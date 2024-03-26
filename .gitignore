@@ -30,3 +30,81 @@
 *.exe
 *.out
 *.app
+
+
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+
+# Pliki i foldery IDE CLion
+.idea/
+cmake-build-*/
+
+# Katalogi build CMake
+*/build/
+*/cmake-build-debug/
+*/cmake-build-release/
+
+# Pliki tymczasowe
+*.swp
+*~
+.DS_Store
+
+# Pliki wyjściowe kompilacji
+*.o
+*.a
+*.so
+*.exe
+*.dll
+*.lib
+
+# Pliki CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+
+# Pliki specyficzne dla systemu
+*.log
+
+# Folder z binariami (możesz go zmienić/zignorować w zależności od konfiguracji)
+/bin/
+
+# Niektóre pliki konfiguracyjne mogą zawierać wrażliwe informacje
+*.config
+
+# Folder z dokumentacją, jeśli nie chcesz go śledzić
+/docs/
+
+/cmake-build-debug
+/cmake-build-debug
