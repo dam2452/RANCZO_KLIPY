@@ -1,5 +1,5 @@
 # Użyj oficjalnego obrazu Pythona jako obrazu bazowego
-FROM python:3.9
+FROM python:3.12
 
 # Zaktualizuj listę pakietów i zainstaluj git
 RUN apt-get update && apt-get install -y git
