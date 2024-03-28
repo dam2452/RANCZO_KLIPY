@@ -4,19 +4,19 @@ import os
 import git
 
 # Użyj zmiennej środowiskowej dla adresu URL repozytorium
-REPO_URL = os.environ.get("REPO_URL")
+#REPO_URL = os.environ.get("REPO_URL")
 
-es = Elasticsearch(["http://localhost:9200"])
+es = Elasticsearch(["http://192.168.0.210:30003"])
 
-def clone_or_update_repo(repo_url, local_path="Ranczo-Transkrypcje"):
-    if os.path.exists(local_path):
-        print("Aktualizowanie repozytorium...")
-        repo = git.Repo(local_path)
-        origin = repo.remotes.origin
-        origin.pull()
-    else:
-        print("Klonowanie repozytorium...")
-        git.Repo.clone_from(repo_url, local_path)
+# def clone_or_update_repo(repo_url, local_path="Ranczo-Transkrypcje"):
+#     if os.path.exists(local_path):
+#         print("Aktualizowanie repozytorium...")
+#         repo = git.Repo(local_path)
+#         origin = repo.remotes.origin
+#         origin.pull()
+#     else:
+#         print("Klonowanie repozytorium...")
+#         git.Repo.clone_from(repo_url, local_path)
 
 def index_transcriptions(base_path="Ranczo-Transkrypcje"):
     actions = []
@@ -38,8 +38,8 @@ def index_transcriptions(base_path="Ranczo-Transkrypcje"):
     helpers.bulk(es, actions)
 
 if __name__ == "__main__":
-    if REPO_URL is None:
-        print("Nie znaleziono URL repozytorium. Ustaw zmienną środowiskową REPO_URL.")
-    else:
-        clone_or_update_repo(REPO_URL)
+    # if REPO_URL is None:
+    #     print("Nie znaleziono URL repozytorium. Ustaw zmienną środowiskową REPO_URL.")
+    # else:
+    #     clone_or_update_repo(REPO_URL)
         index_transcriptions()

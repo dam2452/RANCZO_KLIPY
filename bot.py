@@ -3,7 +3,7 @@ from moviepy.video.io.ffmpeg_tools import ffmpeg_extract_subclip
 from telegram.ext import Updater, CommandHandler, MessageHandler, filters
 import os
 
-es = Elasticsearch(["http://localhost:9200"])
+es = Elasticsearch(["http://192.168.0.210:30003"])
 
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
 
