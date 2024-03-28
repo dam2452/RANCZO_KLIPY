@@ -1,15 +1,11 @@
-import urllib3
+import telebot
 from elasticsearch import Elasticsearch
-from moviepy.video.io.ffmpeg_tools import ffmpeg_extract_subclip
-from telegram import Update
-from telegram.ext import Updater, CommandHandler, MessageHandler, CallbackContext, filters
 import os
-from dotenv import load_dotenv
-
-# Wyłączenie ostrzeżeń dotyczących certyfikatów SSL (zalecane tylko dla celów testowych)
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+import subprocess
 
 # Załadowanie zmiennych środowiskowych
+from dotenv import load_dotenv
+
 load_dotenv("passwords.env")
 
 es_host = os.getenv("ES_HOST")
@@ -17,54 +13,118 @@ es_username = os.getenv("ES_USERNAME")
 es_password = os.getenv("ES_PASSWORD")
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 
+# Konfiguracja klienta Elasticsearch
 es = Elasticsearch(
     [es_host],
     basic_auth=(es_username, es_password),
     verify_certs=False,
 )
 
+bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
 
-# Funkcja wyszukująca cytat w Elasticsearch
-def search_quote(quote):
+# Definicja listy synonimów dla słowa "godnie"
+SYNONYMS_GODNIE = ["godnie", "gadanie"]
+
+# Funkcja wyszukująca cytat w danym sezonie w Elasticsearch
+def search_quote_in_season(quote, season_number=None):
     body = {
         "query": {
-            "match_phrase": {
-                "text": quote
+            "bool": {
+                "must": [
+                    {
+                        "multi_match": {
+                            "query": quote,
+                            "fields": ["text"],
+                            "fuzziness": "AUTO"
+                        }
+                    }
+                ]
             }
-        }
+        },
+        "size": 1
     }
+    if season_number is not None:
+        body["query"]["bool"]["filter"] = [
+            {"term": {"season": season_number}}
+        ]
     res = es.search(index="ranczo-transcriptions", body=body)
-    return [(hit["_source"]["start"], hit["_source"]["end"], hit["_source"]["video_path"]) for hit in res['hits']['hits']]
+    hits = res['hits']['hits']
+    if hits:
+        # Jeśli znaleziono dopasowanie, zwróć klip obejmujący wszystkie trafienia
+        start = min(hit["_source"]["start"] for hit in hits) - 2  # Zapas 2s w obie strony
+        end = max(hit["_source"]["end"] for hit in hits) + 2  # Zapas 2s w obie strony
+        video_paths = [hit["_source"]["video_path"] for hit in hits]
+        return start, end, video_paths[0]  # Zakładamy, że bierzemy tylko pierwszy klip
+    else:
+        return None, None, None
 
 # Funkcja ekstrahująca klip wideo
 def extract_clip(episode_path, start_time, end_time, output_path):
-    start_time = int(start_time)
-    end_time = int(end_time)
-    ffmpeg_extract_subclip(episode_path, start_time, end_time, targetname=output_path)
+    start_time = max(int(start_time) - 2, 0)  # Zapas 2s w lewo
+    end_time = int(end_time) + 2  # Zapas 2s w prawo
+    try:
+        cmd = [
+            "ffmpeg",
+            "-y",
+            "-ss", str(start_time),
+            "-i", episode_path,
+            "-t", str(end_time - start_time),
+            "-c:v", "copy",  # Kopiuj strumień wideo
+            "-c:a", "copy",  # Kopiuj strumień audio
+            output_path
+        ]
+        subprocess.run(cmd, check=True)
+    except subprocess.CalledProcessError as e:
+        print(f"Error occurred while extracting clip: {e}")
+        return False
+    return True
 
-# Obsługa przychodzących wiadomości
-def handle_message(update: Update, context: CallbackContext) -> None:
-    quote = update.message.text
-    results = search_quote(quote)
-    if results:
-        start, end, video_path = results[0]
-        output_path = "output_clip.mp4"
-        extract_clip(video_path, start, end, output_path)
-        with open(output_path, 'rb') as video:
-            context.bot.send_video(chat_id=update.message.chat_id, video=video)
-        os.remove(output_path)
+@bot.message_handler(commands=['klip'])
+def handle_clip_request(message):
+    text = message.text.split(maxsplit=1)
+    if len(text) < 2:
+        bot.reply_to(message, 'Użyj: /klip "Twoje zapytanie" lub /klip numer_sezonu "Twoje zapytanie"')
+        return
+
+    text = text[1]
+    if text.startswith('"'):
+        # Użytkownik wprowadził zapytanie w cudzysłowach, bez numeru sezonu
+        try:
+            quote = text.split('"')[1]
+            season_number = None
+        except IndexError:
+            bot.reply_to(message, 'Nieprawidłowy format komendy. Użyj: /klip "Twoje zapytanie" lub /klip numer_sezonu "Twoje zapytanie"')
+            return
     else:
-        update.message.reply_text('Nie znaleziono odpowiedniego fragmentu.')
+        # Spróbuj odseparować numer sezonu od zapytania
+        parts = text.split(maxsplit=1)
+        if len(parts) == 2 and parts[1].startswith('"'):
+            try:
+                season_number = int(parts[0])
+                quote = parts[1].split('"')[1]
+            except (ValueError, IndexError):
+                bot.reply_to(message, 'Nieprawidłowy format komendy. Użyj: /klip numer_sezonu "Twoje zapytanie"')
+                return
+        else:
+            # Traktuj całość jako zapytanie bez numeru sezonu
+            quote = text
+            season_number = None
 
-# Główna funkcja bota
-def main() -> None:
-    updater = Updater(TELEGRAM_BOT_TOKEN, True)  # Ensure to pass use_context=True
-    dispatcher = updater.dispatcher  # Access dispatcher via updater object
+    start, end, video_path = search_quote_in_season(quote, season_number)
+    if start is not None and end is not None and video_path is not None:
+        output_path = "output_clip.mp4"
+        if extract_clip(video_path, start, end, output_path):
+            with open(output_path, 'rb') as video:
+                bot.send_video(message.chat.id, video)
+            os.remove(output_path)
+        else:
+            bot.reply_to(message, 'Wystąpił błąd podczas ekstrakcji klipu.')
+    else:
+        reply_message = 'Nie znaleziono odpowiedniego fragmentu'
+        if season_number is not None:
+            reply_message += f' w sezonie {season_number}'
+        reply_message += '.'
+        bot.reply_to(message, reply_message)
 
-    dispatcher.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-
-    updater.start_polling()
-    updater.idle()
-
-if __name__ == '__main__':
-    main()
+print("Bot started")
+bot.polling()
