@@ -62,15 +62,20 @@ def search_quote_in_season(quote, season_number=None):
 def extract_clip(episode_path, start_time, end_time, output_path):
     start_time = max(int(start_time) - 2, 0)  # Zapas 2s w lewo
     end_time = int(end_time) + 2  # Zapas 2s w prawo
+    duration = end_time - start_time
     try:
         cmd = [
             "ffmpeg",
             "-y",
             "-ss", str(start_time),
             "-i", episode_path,
-            "-t", str(end_time - start_time),
-            "-c:v", "copy",  # Kopiuj strumień wideo
-            "-c:a", "copy",  # Kopiuj strumień audio
+            "-t", str(duration),
+            "-c:v", "libx264",
+            "-crf", "28",  # Ustawienie CRF dla zmiennego bitrate wideo
+            "-c:a", "aac",
+            "-strict", "experimental",
+            "-preset", "fast",
+            "-b:a", "192k",  # Stały bitrate dla audio
             output_path
         ]
         subprocess.run(cmd, check=True)
