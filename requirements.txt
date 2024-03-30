@@ -1,4 +1,4 @@
-elasticsearch==8.13.0
-moviepy==1.0.3
-python-telegram-bot~=21.0
-python-dotenv==0.21.0
+elasticsearch
+moviepy
+telebot
+python-dotenv

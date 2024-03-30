@@ -1,4 +1,11 @@
 /RANCZO-TRANSKRYPCJE/
 /RANCZO-WIDEO/
 /passwords.env
-/RANCZO-WIDEO/
+/.venv
+/new_venv
+/venv
+/.idea
+/update_and_run.sh
+*.log
+/venv
+
