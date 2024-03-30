@@ -71,11 +71,12 @@ def extract_clip(episode_path, start_time, end_time, output_path):
             "-i", episode_path,
             "-t", str(duration),
             "-c:v", "libx264",
-            "-crf", "28",  # Ustawienie CRF dla zmiennego bitrate wideo
+            "-crf", "25",  # Ustawienie CRF dla zmiennego bitrate wideo
             "-c:a", "aac",
             "-strict", "experimental",
-            "-preset", "fast",
+            "-preset", "superfast",  # Najszybszy preset
             "-b:a", "192k",  # Stały bitrate dla audio
+            "-loglevel", "error",
             output_path
         ]
         subprocess.run(cmd, check=True)
@@ -132,4 +133,4 @@ def handle_clip_request(message):
         bot.reply_to(message, reply_message)
 
 print("Bot started")
-bot.polling()
+bot.infinity_polling(interval=0, timeout=25)
