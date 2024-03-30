@@ -1,0 +1,802 @@
+{
+    "1": [
+        {
+            "episode_number": 1,
+            "title": "Spadek",
+            "premiere_date": "05.03.2006",
+            "viewership": 4396564
+        },
+        {
+            "episode_number": 2,
+            "title": "Go\u015bcie z za\u015bwiat\u00f3w",
+            "premiere_date": "12.03.2006",
+            "viewership": 4308423
+        },
+        {
+            "episode_number": 3,
+            "title": "Ksi\u0105dz z inicjatyw\u0105",
+            "premiere_date": "19.03.2006",
+            "viewership": 4674041
+        },
+        {
+            "episode_number": 4,
+            "title": "Otrze\u017awienie",
+            "premiere_date": "26.03.2006",
+            "viewership": 4917123
+        },
+        {
+            "episode_number": 5,
+            "title": "Wie\u015b\u0107 gminna",
+            "premiere_date": "09.04.2006",
+            "viewership": 4930817
+        },
+        {
+            "episode_number": 6,
+            "title": "Racja gminy",
+            "premiere_date": "23.04.2006",
+            "viewership": 4416068
+        },
+        {
+            "episode_number": 7,
+            "title": "Podw\u00f3jny agent",
+            "premiere_date": "30.04.2006",
+            "viewership": 4314409
+        },
+        {
+            "episode_number": 8,
+            "title": "Kozy ofiarne",
+            "premiere_date": "07.05.2006",
+            "viewership": 4245310
+        },
+        {
+            "episode_number": 9,
+            "title": "Odwyk i antykoncepcja",
+            "premiere_date": "07.05.2006",
+            "viewership": 4832273
+        },
+        {
+            "episode_number": 10,
+            "title": "Porwanie",
+            "premiere_date": "14.05.2006",
+            "viewership": 4459323
+        },
+        {
+            "episode_number": 11,
+            "title": "Wsp\u00f3lny wr\u00f3g",
+            "premiere_date": "14.05.2006",
+            "viewership": 5017929
+        },
+        {
+            "episode_number": 12,
+            "title": "Honor gminy",
+            "premiere_date": "21.05.2006",
+            "viewership": 5218512
+        },
+        {
+            "episode_number": 13,
+            "title": "Wielkie wybory",
+            "premiere_date": "21.05.2006",
+            "viewership": 5611213
+        }
+    ],
+    "2": [
+        {
+            "episode_number": 14,
+            "title": "Sztuka i w\u0142adza",
+            "premiere_date": "18.03.2007",
+            "viewership": 6993951
+        },
+        {
+            "episode_number": 15,
+            "title": "Gmina to ja",
+            "premiere_date": "25.03.2007",
+            "viewership": 7003036
+        },
+        {
+            "episode_number": 16,
+            "title": "Lokalna rewolucja",
+            "premiere_date": "01.04.2007",
+            "viewership": 6896669
+        },
+        {
+            "episode_number": 17,
+            "title": "Honor parafii",
+            "premiere_date": "15.04.2007",
+            "viewership": 6594469
+        },
+        {
+            "episode_number": 18,
+            "title": "Europejski kandydat",
+            "premiere_date": "22.04.2007",
+            "viewership": 6806420
+        },
+        {
+            "episode_number": 19,
+            "title": "Rozw\u00f3d z mi\u0142o\u015bci",
+            "premiere_date": "29.04.2007",
+            "viewership": 6220465
+        },
+        {
+            "episode_number": 20,
+            "title": "Diabelskie porachunki",
+            "premiere_date": "06.05.2007",
+            "viewership": 6691196
+        },
+        {
+            "episode_number": 21,
+            "title": "Jesienna burza",
+            "premiere_date": "13.05.2007",
+            "viewership": 5957569
+        },
+        {
+            "episode_number": 22,
+            "title": "Diler pierog\u00f3w",
+            "premiere_date": "20.05.2007",
+            "viewership": 6919954
+        },
+        {
+            "episode_number": 23,
+            "title": "Do dobrego lepiej przymusi\u0107",
+            "premiere_date": "27.05.2007",
+            "viewership": 6825023
+        },
+        {
+            "episode_number": 24,
+            "title": "Si\u0142a w\u0142adzy",
+            "premiere_date": "03.06.2007",
+            "viewership": 7735820
+        },
+        {
+            "episode_number": 25,
+            "title": "Plan awaryjny",
+            "premiere_date": "10.06.2007",
+            "viewership": 7102324
+        },
+        {
+            "episode_number": 26,
+            "title": "Zgoda po polsku",
+            "premiere_date": "17.06.2007",
+            "viewership": 7397082
+        }
+    ],
+    "3": [
+        {
+            "episode_number": 27,
+            "title": "P\u0142omie\u0144 du\u017cy i ma\u0142y",
+            "premiere_date": "09.03.2008",
+            "viewership": 7411177
+        },
+        {
+            "episode_number": 28,
+            "title": "Powr\u00f3t demona",
+            "premiere_date": "16.03.2008",
+            "viewership": 7168720
+        },
+        {
+            "episode_number": 29,
+            "title": "W kleszczach terroryzmu",
+            "premiere_date": "23.03.2008",
+            "viewership": 6373730
+        },
+        {
+            "episode_number": 30,
+            "title": "Fakt prasowy",
+            "premiere_date": "30.03.2008",
+            "viewership": 6989417
+        },
+        {
+            "episode_number": 31,
+            "title": "Radio interaktywne",
+            "premiere_date": "06.04.2008",
+            "viewership": 6858379
+        },
+        {
+            "episode_number": 32,
+            "title": "Wielkie odkrycie",
+            "premiere_date": "13.04.2008",
+            "viewership": 6943357
+        },
+        {
+            "episode_number": 33,
+            "title": "Sprawca",
+            "premiere_date": "20.04.2008",
+            "viewership": 7014966
+        },
+        {
+            "episode_number": 34,
+            "title": "Odsiecz",
+            "premiere_date": "27.04.2008",
+            "viewership": 6730041
+        },
+        {
+            "episode_number": 35,
+            "title": "Upadek obyczaj\u00f3w",
+            "premiere_date": "04.05.2008",
+            "viewership": 7187346
+        },
+        {
+            "episode_number": 36,
+            "title": "Mied\u017a brz\u0119cz\u0105ca",
+            "premiere_date": "11.05.2008",
+            "viewership": 6622214
+        },
+        {
+            "episode_number": 37,
+            "title": "Zrozumie\u0107 kobiet\u0119",
+            "premiere_date": "18.05.2008",
+            "viewership": 6990594
+        },
+        {
+            "episode_number": 38,
+            "title": "Z\u0142oty deszcz",
+            "premiere_date": "25.05.2008",
+            "viewership": 6494720
+        },
+        {
+            "episode_number": 39,
+            "title": "Szcz\u0119\u015bliwe rozwi\u0105zanie",
+            "premiere_date": "01.06.2008",
+            "viewership": 6891813
+        }
+    ],
+    "4": [
+        {
+            "episode_number": 40,
+            "title": "Szok poporodowy",
+            "premiere_date": "01.03.2009",
+            "viewership": 79859000
+        },
+        {
+            "episode_number": 41,
+            "title": "Sztormy emocjonalne",
+            "premiere_date": "08.03.2009",
+            "viewership": 8794213
+        },
+        {
+            "episode_number": 42,
+            "title": "\u015aluby i rozstania",
+            "premiere_date": "15.03.2009",
+            "viewership": 9282870
+        },
+        {
+            "episode_number": 43,
+            "title": "Agent",
+            "premiere_date": "22.03.2009",
+            "viewership": 8812710
+        },
+        {
+            "episode_number": 44,
+            "title": "Polityka i czary",
+            "premiere_date": "29.03.2009",
+            "viewership": 9164000
+        },
+        {
+            "episode_number": 45,
+            "title": "Wymiana mi\u0119dzypokoleniowa",
+            "premiere_date": "05.04.2009",
+            "viewership": 9207000
+        },
+        {
+            "episode_number": 46,
+            "title": "Dzieci \u015bmieci",
+            "premiere_date": "12.04.2009",
+            "viewership": 7686040
+        },
+        {
+            "episode_number": 47,
+            "title": "W samo popo\u0142udnie",
+            "premiere_date": "19.04.2009",
+            "viewership": 8528782
+        },
+        {
+            "episode_number": 48,
+            "title": "Bohaterski strajk",
+            "premiere_date": "26.04.2009",
+            "viewership": 8104969
+        },
+        {
+            "episode_number": 49,
+            "title": "Debata",
+            "premiere_date": "03.05.2009",
+            "viewership": 7765372
+        },
+        {
+            "episode_number": 50,
+            "title": "Kontratak",
+            "premiere_date": "10.05.2009",
+            "viewership": 7993829
+        },
+        {
+            "episode_number": 51,
+            "title": "Fa\u0142szerze uczu\u0107",
+            "premiere_date": "17.05.2009",
+            "viewership": 7585219
+        },
+        {
+            "episode_number": 52,
+            "title": "Zemsta i wybaczenie",
+            "premiere_date": "24.05.2009",
+            "viewership": 8872069
+        }
+    ],
+    "5": [
+        {
+            "episode_number": 53,
+            "title": "Msza obywatelska",
+            "premiere_date": "06.03.2011",
+            "viewership": 8470010
+        },
+        {
+            "episode_number": 54,
+            "title": "Czysty biznes",
+            "premiere_date": "13.03.2011",
+            "viewership": 8228930
+        },
+        {
+            "episode_number": 55,
+            "title": "Wielki powr\u00f3t",
+            "premiere_date": "20.03.2011",
+            "viewership": 7937260
+        },
+        {
+            "episode_number": 56,
+            "title": "Ameryka\u0144ska baza",
+            "premiere_date": "27.03.2011",
+            "viewership": 7654430
+        },
+        {
+            "episode_number": 57,
+            "title": "Cz\u0142owiek z Rio",
+            "premiere_date": "03.04.2011",
+            "viewership": 6972780
+        },
+        {
+            "episode_number": 58,
+            "title": "Obcy krajowcy",
+            "premiere_date": "17.04.2011",
+            "viewership": 7120510
+        },
+        {
+            "episode_number": 59,
+            "title": "Doktor Wez\u00f3\u0142",
+            "premiere_date": "24.04.2011",
+            "viewership": 5786520
+        },
+        {
+            "episode_number": 60,
+            "title": "W\u0142oski roz\u0142\u0105cznik",
+            "premiere_date": "01.05.2011",
+            "viewership": 6276940
+        },
+        {
+            "episode_number": 61,
+            "title": "Honor i z\u0119by trzonowe",
+            "premiere_date": "08.05.2011",
+            "viewership": 6254249
+        },
+        {
+            "episode_number": 62,
+            "title": "Przymus rekreacji",
+            "premiere_date": "15.05.2011",
+            "viewership": 6645897
+        },
+        {
+            "episode_number": 63,
+            "title": "Przewroty kopernika\u0144skie",
+            "premiere_date": "22.05.2011",
+            "viewership": 5452660
+        },
+        {
+            "episode_number": 64,
+            "title": "Nad Solejuk\u00f3w i Wargacz\u00f3w domem",
+            "premiere_date": "29.05.2011",
+            "viewership": 5950910
+        },
+        {
+            "episode_number": 65,
+            "title": "Pakt z czartem",
+            "premiere_date": "05.06.2011",
+            "viewership": 5538714
+        }
+    ],
+    "6": [
+        {
+            "episode_number": 66,
+            "title": "Szlifierze diament\u00f3w",
+            "premiere_date": "04.03.2012",
+            "viewership": 7296506
+        },
+        {
+            "episode_number": 67,
+            "title": "Kozi r\u00f3g",
+            "premiere_date": "11.03.2012",
+            "viewership": 6871595
+        },
+        {
+            "episode_number": 68,
+            "title": "Narracja negacji",
+            "premiere_date": "18.03.2012",
+            "viewership": 6554510
+        },
+        {
+            "episode_number": 69,
+            "title": "Wiatr w \u017caglach",
+            "premiere_date": "25.03.2012",
+            "viewership": 6649278
+        },
+        {
+            "episode_number": 70,
+            "title": "Seks nocy letniej",
+            "premiere_date": "01.04.2012",
+            "viewership": 6526647
+        },
+        {
+            "episode_number": 71,
+            "title": "Dzieci rewolucji",
+            "premiere_date": "08.04.2012",
+            "viewership": 5973975
+        },
+        {
+            "episode_number": 72,
+            "title": "Przeciek kontrolowany",
+            "premiere_date": "15.04.2012",
+            "viewership": 6138934
+        },
+        {
+            "episode_number": 73,
+            "title": "\u015awiadek koronny",
+            "premiere_date": "22.04.2012",
+            "viewership": 6622856
+        },
+        {
+            "episode_number": 74,
+            "title": "Sztuka translacji",
+            "premiere_date": "29.04.2012",
+            "viewership": 5385754
+        },
+        {
+            "episode_number": 75,
+            "title": "Kontrrewolucja",
+            "premiere_date": "06.05.2012",
+            "viewership": 6461324
+        },
+        {
+            "episode_number": 76,
+            "title": "Tchnienie Las Vegas",
+            "premiere_date": "13.05.2012",
+            "viewership": 5941067
+        },
+        {
+            "episode_number": 77,
+            "title": "Przyw\u00f3dce",
+            "premiere_date": "20.05.2012",
+            "viewership": 5156260
+        },
+        {
+            "episode_number": 78,
+            "title": "Por\u00f3d amatorski",
+            "premiere_date": "27.05.2012",
+            "viewership": 5363702
+        }
+    ],
+    "7": [
+        {
+            "episode_number": 79,
+            "title": "Wielbicielka z Warszawy",
+            "premiere_date": "03.03.2013",
+            "viewership": 6289835
+        },
+        {
+            "episode_number": 80,
+            "title": "Pot\u0119ga immunitetu",
+            "premiere_date": "10.03.2013",
+            "viewership": 6463328
+        },
+        {
+            "episode_number": 81,
+            "title": "Podr\u00f3\u017c w czasie",
+            "premiere_date": "17.03.2013",
+            "viewership": 6129170
+        },
+        {
+            "episode_number": 82,
+            "title": "Tchnienie antyklerykalizmu",
+            "premiere_date": "24.03.2013",
+            "viewership": 6070625
+        },
+        {
+            "episode_number": 83,
+            "title": "Model \u017cycia artysty",
+            "premiere_date": "31.03.2013",
+            "viewership": 5467634
+        },
+        {
+            "episode_number": 84,
+            "title": "S\u0142owa senatora",
+            "premiere_date": "07.04.2013",
+            "viewership": 6373755
+        },
+        {
+            "episode_number": 85,
+            "title": "Pojedynek czarownic",
+            "premiere_date": "14.04.2013",
+            "viewership": 6770025
+        },
+        {
+            "episode_number": 86,
+            "title": "Droga na szczyt",
+            "premiere_date": "21.04.2013",
+            "viewership": 6394566
+        },
+        {
+            "episode_number": 87,
+            "title": "Ci\u0119\u017cka r\u0119ka prawa",
+            "premiere_date": "28.04.2013",
+            "viewership": 6607831
+        },
+        {
+            "episode_number": 88,
+            "title": "Koniec \u015bwiata w Wilkowyjach",
+            "premiere_date": "05.05.2013",
+            "viewership": 6256213
+        },
+        {
+            "episode_number": 89,
+            "title": "Czas konspiry",
+            "premiere_date": "12.05.2013",
+            "viewership": 6643097
+        },
+        {
+            "episode_number": 90,
+            "title": "Trudne powroty",
+            "premiere_date": "19.05.2013",
+            "viewership": 6145820
+        },
+        {
+            "episode_number": 91,
+            "title": "Droga przez stos",
+            "premiere_date": "26.05.2013",
+            "viewership": 6406260
+        }
+    ],
+    "8": [
+        {
+            "episode_number": 92,
+            "title": "Radio Mamrot",
+            "premiere_date": "02.03.2014",
+            "viewership": 6383012
+        },
+        {
+            "episode_number": 93,
+            "title": "Wykapany ojciec",
+            "premiere_date": "09.03.2014",
+            "viewership": 6445700
+        },
+        {
+            "episode_number": 94,
+            "title": "Wybacz mnie",
+            "premiere_date": "16.03.2014",
+            "viewership": 6078428
+        },
+        {
+            "episode_number": 95,
+            "title": "Czysta karta",
+            "premiere_date": "23.03.2014",
+            "viewership": 6415648
+        },
+        {
+            "episode_number": 96,
+            "title": "Obywatelskie obowi\u0105zki",
+            "premiere_date": "30.03.2014",
+            "viewership": 6227364
+        },
+        {
+            "episode_number": 97,
+            "title": "Nowatorska terapia",
+            "premiere_date": "06.04.2014",
+            "viewership": 6305006
+        },
+        {
+            "episode_number": 98,
+            "title": "Zbrodnia to nies\u0142ychana, pani zabija pana",
+            "premiere_date": "13.04.2014",
+            "viewership": 6513615
+        },
+        {
+            "episode_number": 99,
+            "title": "Los pogorzelca",
+            "premiere_date": "20.04.2014",
+            "viewership": 5767091
+        },
+        {
+            "episode_number": 100,
+            "title": "W blasku fleszy",
+            "premiere_date": "27.04.2014",
+            "viewership": 6376867
+        },
+        {
+            "episode_number": 101,
+            "title": "Grecy i Bu\u0142garzy",
+            "premiere_date": "04.05.2014",
+            "viewership": 5975399
+        },
+        {
+            "episode_number": 102,
+            "title": "Jed\u017amy, nikt nie wo\u0142a",
+            "premiere_date": "11.05.2014",
+            "viewership": 6290889
+        },
+        {
+            "episode_number": 103,
+            "title": "Nie rzucaj ziemi, sk\u0105d tw\u00f3j r\u00f3d",
+            "premiere_date": "18.05.2014",
+            "viewership": 6189613
+        },
+        {
+            "episode_number": 104,
+            "title": "Wielkie otwarcie",
+            "premiere_date": "25.05.2014",
+            "viewership": 5014206
+        }
+    ],
+    "9": [
+        {
+            "episode_number": 105,
+            "title": "Nowe wyzwania",
+            "premiere_date": "08.03.2015",
+            "viewership": 6861726
+        },
+        {
+            "episode_number": 106,
+            "title": "Bardzo kr\u00f3tkie kariery",
+            "premiere_date": "15.03.2015",
+            "viewership": 7000249
+        },
+        {
+            "episode_number": 107,
+            "title": "W szponach zdrowia",
+            "premiere_date": "22.03.2015",
+            "viewership": 6688884
+        },
+        {
+            "episode_number": 108,
+            "title": "Gambit geniusza",
+            "premiere_date": "29.03.2015",
+            "viewership": 5765600
+        },
+        {
+            "episode_number": 109,
+            "title": "Pot\u0119ga medi\u00f3w",
+            "premiere_date": "05.04.2015",
+            "viewership": 4916711
+        },
+        {
+            "episode_number": 110,
+            "title": "Boska cz\u0105stka",
+            "premiere_date": "12.04.2015",
+            "viewership": 6215655
+        },
+        {
+            "episode_number": 111,
+            "title": "Istotny dysonans",
+            "premiere_date": "19.04.2015",
+            "viewership": 6473427
+        },
+        {
+            "episode_number": 112,
+            "title": "Demony Kusego",
+            "premiere_date": "26.04.2015",
+            "viewership": 6196250
+        },
+        {
+            "episode_number": 113,
+            "title": "Konie troja\u0144skie",
+            "premiere_date": "03.05.2015",
+            "viewership": 6099286
+        },
+        {
+            "episode_number": 114,
+            "title": "Zamro\u017cony kapita\u0142",
+            "premiere_date": "10.05.2015",
+            "viewership": 5544175
+        },
+        {
+            "episode_number": 115,
+            "title": "Brzytwa dla ton\u0105cego",
+            "premiere_date": "24.05.2015",
+            "viewership": 4951297
+        },
+        {
+            "episode_number": 116,
+            "title": "Grzechy mi\u0142o\u015bci",
+            "premiere_date": "31.05.2015",
+            "viewership": 5628265
+        },
+        {
+            "episode_number": 117,
+            "title": "Z\u0142oty r\u00f3g",
+            "premiere_date": "07.06.2015",
+            "viewership": 5620303
+        }
+    ],
+    "10": [
+        {
+            "episode_number": 118,
+            "title": "Kto tu rz\u0105dzi",
+            "premiere_date": "04.09.2016",
+            "viewership": 4871510
+        },
+        {
+            "episode_number": 119,
+            "title": "Partyzancka dola",
+            "premiere_date": "11.09.2016",
+            "viewership": 4774436
+        },
+        {
+            "episode_number": 120,
+            "title": "Pr\u00f3ba ognia",
+            "premiere_date": "18.09.2016",
+            "viewership": 5107647
+        },
+        {
+            "episode_number": 121,
+            "title": "Geny nie k\u0142ami\u0105",
+            "premiere_date": "25.09.2016",
+            "viewership": 5026592
+        },
+        {
+            "episode_number": 122,
+            "title": "Wszystko jest teatrem",
+            "premiere_date": "2.10.2016",
+            "viewership": 5199098
+        },
+        {
+            "episode_number": 123,
+            "title": "Depresja biskupa",
+            "premiere_date": "9.10.2016",
+            "viewership": 5180200
+        },
+        {
+            "episode_number": 124,
+            "title": "Wet za wet",
+            "premiere_date": "16.10.2016",
+            "viewership": 5244073
+        },
+        {
+            "episode_number": 125,
+            "title": "Polityczny zombie",
+            "premiere_date": "23.10.2016",
+            "viewership": 5315237
+        },
+        {
+            "episode_number": 126,
+            "title": "Edukacyjne dylematy",
+            "premiere_date": "30.10.2016",
+            "viewership": 5560644
+        },
+        {
+            "episode_number": 127,
+            "title": "Dominator",
+            "premiere_date": "6.11.2016",
+            "viewership": 5525780
+        },
+        {
+            "episode_number": 128,
+            "title": "Klauzula sumienia",
+            "premiere_date": "13.11.2016",
+            "viewership": 5455679
+        },
+        {
+            "episode_number": 129,
+            "title": "Ochotnicza stra\u017c kobiet",
+            "premiere_date": "20.11.2016",
+            "viewership": 5468914
+        },
+        {
+            "episode_number": 130,
+            "title": "Cuda, cuda og\u0142aszaj\u0105",
+            "premiere_date": "27.11.2016",
+            "viewership": 6107244
+        }
+    ]
+}
