@@ -5,6 +5,7 @@ import json
 import os
 import warnings  # Dodane dla funkcji ostrzeżeń
 from dotenv import load_dotenv
+from pathlib import Path
 
 # Załaduj zmienne środowiskowe z pliku .env, jeśli istnieje
 env_file = "passwords.env"
