@@ -3,7 +3,7 @@
 ln -s /RANCZO-WIDEO ./RANCZO-WIDEO
 
 # Uruchom skrypt Pythona
-python /app/bot.py
+python /app/telegram_bot.py
 
 # Uruchom Bash
 exec "$@"
