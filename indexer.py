@@ -1,14 +1,13 @@
-import urllib3
-import logging
-from elasticsearch import Elasticsearch, helpers
-import json
 import os
-import warnings  # Dodane dla funkcji ostrzeżeń
+import logging
+import urllib3
+from elasticsearch import Elasticsearch, helpers
 from dotenv import load_dotenv
-from pathlib import Path
+import json
+import warnings
 
 # Załaduj zmienne środowiskowe z pliku .env, jeśli istnieje
-env_file = "passwords.env"
+env_file = os.path.join(os.getcwd(), "passwords.env")  # Ulepszona ścieżka
 if os.path.exists(env_file):
     load_dotenv(env_file)
 
@@ -63,20 +62,21 @@ def index_transcriptions(base_path="RANCZO-TRANSKRYPCJE", es=None):
     if es is None:
         es = connect_elastic()
 
+    base_path = os.path.join(os.getcwd(), base_path)  # Ulepszona ścieżka
     actions = []
     for season_dir in os.listdir(base_path):
         season_path = os.path.join(base_path, season_dir)
         if os.path.isdir(season_path):
             for episode_file in os.listdir(season_path):
                 if episode_file.endswith(".json"):
-                    episode_video_path = episode_file.replace(".json", ".mp4")
+                    episode_video_path = os.path.join("RANCZO-WIDEO", season_dir, episode_file.replace(".json", ".mp4"))
                     file_path = os.path.join(season_path, episode_file)
                     logger.info(f"Indexing transcription from: {file_path}")
                     with open(file_path, 'r', encoding='utf-8') as file:
                         transcription = json.load(file)
                         episode_info = transcription.get("episode_info", {})
                         for segment in transcription.get("segments", []):
-                            segment["video_path"] = os.path.join("RANCZO-WIDEO", season_dir, episode_video_path)
+                            segment["video_path"] = episode_video_path  # Ulepszona ścieżka
                             segment["episode_info"] = episode_info
                             actions.append({
                                 "_index": "ranczo-transcriptions",
