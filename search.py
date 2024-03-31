@@ -1,25 +1,15 @@
 # Import statements organized alphabetically
 from cachetools.func import ttl_cache
 from elastic_manager import connect_to_elasticsearch  # Corrected import statement
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 
 # Decorator to cache results of the function, improving efficiency for repeated queries
-@ttl_cache(maxsize=100, ttl=3600)
-def find_segment_by_quote(quote, index='ranczo-transcriptions'):
-    """
-    Search for a segment by quote in the given index.
-
-    Args:
-    quote (str): The quote to search for.
-    index (str, optional): The Elasticsearch index to search in. Defaults to 'ranczo-transcriptions'.
-
-    Returns:
-    dict or None: The first segment containing the quote if found, else None.
-    """
-    # Establish connection to Elasticsearch
-    es = connect_to_elasticsearch()  # Corrected function call
-
-    # Define the search query with fuzziness to account for minor typos or variations
+def find_segment_by_quote(quote, index='ranczo-transcriptions', return_all=False):
+    es = connect_to_elasticsearch()
     query = {
         "query": {
             "match": {
@@ -31,20 +21,25 @@ def find_segment_by_quote(quote, index='ranczo-transcriptions'):
         }
     }
 
-    # Execute the search query
-    response = es.search(index=index, body=query)
+    response = es.search(index=index, body=query, size=10000 if return_all else 1)
     hits = response['hits']['hits']
 
-    # Return None if no hits are found
+    # Add a log to check the response from Elasticsearch
+    logger.info(f"Elasticsearch response: {response}")
+
     if not hits:
         return None
 
-    # Extract the segment information from the first hit
+    if return_all:
+        return [hit['_source'] for hit in hits if all(key in hit['_source'] for key in ['video_path', 'start', 'end', 'episode_info'])]
+
     segment = hits[0]['_source']
-
-    # Check if the segment contains required keys ('video_path', 'start', 'end')
-    # and return the segment if it does, otherwise return None
-    if all(key in segment for key in ['video_path', 'start', 'end']):
+    if all(key in segment for key in ['video_path', 'start', 'end', 'episode_info']):
         return segment
-
-    return None
+    else:
+        # If 'episode_info' is not in the segment, create a default 'episode_info'
+        segment['episode_info'] = {
+            'episode_number': 0,
+            'title': 'Unknown'
+        }
+        return segment

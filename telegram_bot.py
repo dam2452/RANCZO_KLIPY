@@ -17,6 +17,9 @@ bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Globalny słownik do przechowywania ostatnich zapytań
+last_search_quotes = {}
+
 def send_clip_to_telegram(chat_id, episode_path, start_time, end_time):
     """
     Wysyła klip do użytkownika Telegrama.
@@ -25,18 +28,92 @@ def send_clip_to_telegram(chat_id, episode_path, start_time, end_time):
     with open(output_path, 'rb') as video:
         bot.send_video(chat_id, video)
 
+
 @bot.message_handler(commands=['klip'])
 def handle_clip_request(message):
-    """
-    Obsługa żądania wysłania klipu.
-    """
-    quote = message.text[len('/klip '):]  # Usunięcie '/klip ' z początku wiadomości
+    quote = message.text[len('/klip '):].strip()  # Usuń '/klip ' i białe znaki z początku i końca
+    logger.info(f"Searching for quote: '{quote}'")  # Dodaj log z wyszukiwanym cytatem
     segment = find_segment_by_quote(quote)
 
     if segment:
+        logger.info(f"Found segment: {segment}")  # Logowanie znalezionego segmentu
+
+        # Obliczanie numeru sezonu i odcinka w sezonie na podstawie ogólnego numeru odcinka
+        total_episode_number = segment['episode_info']['episode_number']
+        season_number = (total_episode_number - 1) // 13 + 1
+        episode_number_in_season = (total_episode_number - 1) % 13 + 1
+
+
+
+        # Tutaj powinna nastąpić logika wysyłająca klip, np.:
         send_clip_to_telegram(message.chat.id, segment['video_path'], segment['start'], segment['end'])
     else:
+        logger.info(f"No matching segment found for quote: '{quote}'")
         bot.reply_to(message, "Nie znaleziono pasującego segmentu.")
+
+
+@bot.message_handler(commands=['szukaj'])
+def search_quotes(message):
+    chat_id = message.chat.id
+    content = message.text.split()
+    if len(content) < 2:
+        bot.reply_to(message, "Podaj cytat, który chcesz znaleźć.")
+        return
+
+    quote = ' '.join(content[1:])
+    segments = find_segment_by_quote(quote, return_all=True)
+
+    if not segments:
+        bot.reply_to(message, "Nie znaleziono pasujących segmentów.")
+        return
+
+    response = f"Znaleziono {len(segments)} pasujących segmentów:\n"
+    for segment in segments[:5]:  # Ograniczenie do pierwszych 5 wyników
+        # Przeliczanie na podstawie ogólnego numeru odcinka
+        total_episode_number = segment['episode_info']['episode_number']
+        season_number = (total_episode_number - 1) // 13 + 1  # Obliczanie numeru sezonu
+        episode_number_in_season = (total_episode_number - 1) % 13 + 1  # Obliczanie numeru odcinka w sezonie
+
+        season = str(season_number).zfill(2)
+        episode_number = str(episode_number_in_season).zfill(2)
+        episode_title = segment['episode_info']['title']
+        start_time = int(segment['start'])
+        minutes, seconds = divmod(start_time, 60)
+        time_formatted = f"{minutes:02}:{seconds:02}"
+
+        episode_formatted = f"S{season}E{episode_number}"
+
+        response += f"- {episode_formatted} {episode_title}, czas: {time_formatted}\n"
+
+    bot.reply_to(message, response)
+
+
+@bot.message_handler(commands=['lista'])
+def list_segments(message):
+    chat_id = message.chat.id  # Pobierz ID czatu
+    content = message.text.split()
+    all_segments = 'wszystko' in content
+
+    if chat_id not in last_search_quotes:
+        bot.reply_to(message, "Najpierw wykonaj wyszukiwanie za pomocą /szukaj.")
+        return
+
+    quote = last_search_quotes[chat_id]
+    segments = find_segment_by_quote(quote, return_all=True)
+
+    if not segments:
+        bot.reply_to(message, "Nie znaleziono segmentów dla ostatniego zapytania.")
+        return
+
+    if not all_segments:
+        segments = segments[:5]
+
+    response = "Lista segmentów:\n"
+    for segment in segments:
+        response += f"{segment['episode_info']['title']} (S{segment['episode_info']['season']}E{segment['episode_info']['episode_number']}): {segment['text']}\n"
+
+    bot.reply_to(message, response)
+
 
 @bot.message_handler(commands=['start'])
 def handle_start(message):
