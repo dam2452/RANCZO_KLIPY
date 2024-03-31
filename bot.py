@@ -1,105 +1,61 @@
-import os
-import subprocess
+# cat bot.py  
 import telebot
 from elasticsearch import Elasticsearch
+import os
+import subprocess
+
+# Załadowanie zmiennych środowiskowych
 from dotenv import load_dotenv
 
-if os.path.exists('passwords.env'):
-    load_dotenv('passwords.env')
+load_dotenv("passwords.env")
 
-ES_HOST = os.getenv("ES_HOST")
-ES_USERNAME = os.getenv("ES_USERNAME")
-ES_PASSWORD = os.getenv("ES_PASSWORD")
+es_host = os.getenv("ES_HOST")
+es_username = os.getenv("ES_USERNAME")
+es_password = os.getenv("ES_PASSWORD")
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-
-# Inicjalizacja bota
-bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
 
 # Konfiguracja klienta Elasticsearch
 es = Elasticsearch(
-    [ES_HOST],
-    basic_auth=(ES_USERNAME, ES_PASSWORD),
+    [es_host],
+    basic_auth=(es_username, es_password),
     verify_certs=False,
 )
 
-user_results = {}
+bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
+
 
 # Funkcja wyszukująca cytat w danym sezonie w Elasticsearch
-def search_quote_in_season(quote, chat_id, season_number=None, episode_number=None):
+def search_quote_in_season(quote, season_number=None):
     body = {
         "query": {
             "bool": {
-                "must": {
-                    "match": {
-                        "text": {
+                "must": [
+                    {
+                        "multi_match": {
                             "query": quote,
+                            "fields": ["text"],
                             "fuzziness": "AUTO"
                         }
                     }
-                },
-                "filter": []
+                ]
             }
         },
-        "size": 500  # Zwiększona liczba wyników
+        "size": 1
     }
     if season_number is not None:
-        body["query"]["bool"]["filter"].append({
-            "term": {
-                "season": season_number
-            }
-        })
-    if episode_number is not None:
-        body["query"]["bool"]["filter"].append({
-            "wildcard": {
-                "video_path": f"*E{str(episode_number).zfill(2)}.json"
-            }
-        })
-
+        body["query"]["bool"]["filter"] = [
+            {"term": {"season": season_number}}
+        ]
     res = es.search(index="ranczo-transcriptions", body=body)
     hits = res['hits']['hits']
-    results = [{
-        "start": hit["_source"]["start"],
-        "end": hit["_source"]["end"],
-        "video_path": hit["_source"]["video_path"]
-    } for hit in hits]
-
-    # Zapisz wyniki dla użytkownika
-    user_results[chat_id] = results
-
-    # Jeśli nie podano numeru sezonu, zwróć tylko pierwszy wynik
-    if season_number is None:
-        return results[:1]
+    if hits:
+        # Jeśli znaleziono dopasowanie, zwróć klip obejmujący wszystkie trafienia
+        start = min(hit["_source"]["start"] for hit in hits) - 2  # Zapas 2s w obie strony
+        end = max(hit["_source"]["end"] for hit in hits) + 2  # Zapas 2s w obie strony
+        video_paths = [hit["_source"]["video_path"] for hit in hits]
+        return start, end, video_paths[0]  # Zakładamy, że bierzemy tylko pierwszy klip
     else:
-        return results
-@bot.message_handler(commands=['wybierz_klip'])
-def handle_specific_clip_request(message):
-    chat_id = message.chat.id
-    args = message.text.split()[1:]
-
-    # Sprawdź, czy wyniki dla użytkownika są dostępne
-    if chat_id not in user_results or not user_results[chat_id]:
-        bot.reply_to(message, "Brak zapisanych wyników wyszukiwania. Użyj najpierw /klip.")
-        return
-
-    try:
-        selected_range = args[0]
-        if "-" in selected_range:
-            start, end = map(int, selected_range.split("-"))
-            selected_results = user_results[chat_id][start - 1:end]
-        else:
-            selected_index = int(selected_range) - 1
-            selected_results = [user_results[chat_id][selected_index]]
-
-        # Wysyłanie wybranych klipów
-        for result in selected_results:
-            if extract_clip(result["video_path"], result["start"], result["end"], "output_clip.mp4"):
-                with open("output_clip.mp4", 'rb') as video:
-                    bot.send_video(message.chat.id, video)
-                os.remove("output_clip.mp4")
-            else:
-                bot.reply_to(message, "Wystąpił błąd podczas ekstrakcji klipu.")
-    except (ValueError, IndexError):
-          bot.reply_to(message, "Nieprawidłowy format komendy lub numer poza zakresem.")
+        return None, None, None
 
 # Funkcja ekstrahująca klip wideo
 def extract_clip(episode_path, start_time, end_time, output_path):
@@ -117,6 +73,7 @@ def extract_clip(episode_path, start_time, end_time, output_path):
             "-crf", "25",  # Ustawienie CRF dla zmiennego bitrate wideo
             "-profile:v", "main",  # Profil "main" dla lepszej kompatybilności
             "-c:a", "aac",
+            "-strict", "experimental",
             "-b:a", "128k",  # Stały bitrate dla audio
             "-ac", "2",  # Konwersja audio do stereo
             "-preset", "superfast",  # Najszybszy preset
@@ -131,41 +88,38 @@ def extract_clip(episode_path, start_time, end_time, output_path):
     return True
 
 @bot.message_handler(commands=['klip'])
-def handle_clip_command(message):
-    process_clip_request(message)
-
-@bot.message_handler(func=lambda message: message.reply_to_message is not None)
-def handle_reply(message):
-    process_clip_request(message, is_reply=True)
-
-
-def process_clip_request(message, is_reply=False):
-    chat_id = message.chat.id
-    text = message.text.split(maxsplit=2)  # Rozdzielamy komendę na części
-
+def handle_clip_request(message):
+    text = message.text.split(maxsplit=1)
     if len(text) < 2:
-        bot.reply_to(message, 'Użyj: /klip numer_sezonu "Twoje zapytanie"')
+        bot.reply_to(message, 'Użyj: /klip "Twoje zapytanie" lub /klip numer_sezonu "Twoje zapytanie"')
         return
 
-    # Sprawdzamy, czy podano numer sezonu
-    try:
-        season_number = int(text[1])
-        quote = text[2].strip('"')  # Usuwamy cudzysłowy z zapytania
-    except ValueError:
-        # Jeśli nie uda się przekonwertować na int, to oznacza, że pierwszy argument to cytat
-        season_number = None
-        quote = text[1].strip('"') if len(text) > 1 else ""
+    text = text[1]
+    if text.startswith('"'):
+        # Użytkownik wprowadził zapytanie w cudzysłowach, bez numeru sezonu
+        try:
+            quote = text.split('"')[1]
+            season_number = None
+        except IndexError:
+            bot.reply_to(message, 'Nieprawidłowy format komendy. Użyj: /klip "Twoje zapytanie" lub /klip numer_sezonu "Twoje zapytanie"')
+            return
+    else:
+        # Spróbuj odseparować numer sezonu od zapytania
+        parts = text.split(maxsplit=1)
+        if len(parts) == 2 and parts[1].startswith('"'):
+            try:
+                season_number = int(parts[0])
+                quote = parts[1].split('"')[1]
+            except (ValueError, IndexError):
+                bot.reply_to(message, 'Nieprawidłowy format komendy. Użyj: /klip numer_sezonu "Twoje zapytanie"')
+                return
+        else:
+            # Traktuj całość jako zapytanie bez numeru sezonu
+            quote = text
+            season_number = None
 
-    if not quote:
-        bot.reply_to(message,
-                     'Nie podano zapytania. Użyj: /klip "Twoje zapytanie" lub /klip numer_sezonu "Twoje zapytanie"')
-        return
-
-    results = search_quote_in_season(quote, chat_id, season_number)
-    if results:
-        start = results[0]["start"]
-        end = results[0]["end"]
-        video_path = results[0]["video_path"]
+    start, end, video_path = search_quote_in_season(quote, season_number)
+    if start is not None and end is not None and video_path is not None:
         output_path = "output_clip.mp4"
         if extract_clip(video_path, start, end, output_path):
             with open(output_path, 'rb') as video:
@@ -173,22 +127,12 @@ def process_clip_request(message, is_reply=False):
             os.remove(output_path)
         else:
             bot.reply_to(message, 'Wystąpił błąd podczas ekstrakcji klipu.')
-        if len(results) > 1:
-            bot.send_message(chat_id, f'Znaleziono {len(results)} wyników. Użyj /wybierz_klip <numer> lub /wybierz_klip <zakres> aby wybrać konkretny wynik.')
     else:
         reply_message = 'Nie znaleziono odpowiedniego fragmentu'
         if season_number is not None:
             reply_message += f' w sezonie {season_number}'
         reply_message += '.'
         bot.reply_to(message, reply_message)
-
-@bot.message_handler(commands=['ile_wynikow'])
-def handle_results_count_command(message):
-    chat_id = message.chat.id
-    if chat_id in user_results and user_results[chat_id]:
-        bot.send_message(chat_id, f'Znaleziono {len(user_results[chat_id])} wyników.')
-    else:
-        bot.send_message(chat_id, 'Brak zapisanych wyników wyszukiwania. Użyj najpierw /klip.')
 
 print("Bot started")
 bot.infinity_polling(interval=0, timeout=25)
