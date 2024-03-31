@@ -1,138 +1,36 @@
-# cat bot.py
-from cachetools.func import ttl_cache
-import telebot
-from elasticsearch import Elasticsearch
 import os
-import subprocess
 import logging
-import urllib3
-import json
-import time
-
-# Importowanie funkcji z elastic.py
-from elastic import connect_elastic
-
-# Załadowanie zmiennych środowiskowych
 from dotenv import load_dotenv
+import telebot
 
-# Załaduj zmienne środowiskowe z pliku .env, jeśli istnieje
-env_file = "passwords.env"
-if os.path.exists(env_file):
-    load_dotenv(env_file)
+from cache import get_cached_clip_path, clear_cache_by_age_and_limit
+from search import find_segment_by_quote
 
-# Ścieżka do folderu cache
-CACHE_DIR = os.path.join(os.getcwd(), "cache")
-if not os.path.exists(CACHE_DIR):
-    os.makedirs(CACHE_DIR)
+# Wczytanie zmiennych środowiskowych z pliku .env, jeśli istnieje
+load_dotenv('passwords.env')
 
+# Konfiguracja i inicjalizacja bota
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-
 bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
 
-# Konfiguracja loggera
+# Ustawienia loggera
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-@ttl_cache(maxsize=100, ttl=3600)
-def get_cached_clip_path(episode_path, start_time, end_time):
-    clip_id = f"{os.path.basename(episode_path)}_{start_time}_{end_time}.mp4"
-    output_path = os.path.join(CACHE_DIR, clip_id)
-
-    if not os.path.exists(output_path):
-        extract_clip(episode_path, start_time, end_time, output_path)
-
-    return output_path
-
-def clear_cache_by_age_and_limit(max_age_days=90, max_files=20000):
-    current_time = time.time()
-    files_and_times = []
-
-    for filename in os.listdir(CACHE_DIR):
-        if filename.endswith('.json'): continue  # Pomija pliki metadanych
-
-        filepath = os.path.join(CACHE_DIR, filename)
-        file_creation_time = os.path.getctime(filepath)
-        age_days = (current_time - file_creation_time) / (60 * 60 * 24)
-        files_and_times.append((filepath, file_creation_time, age_days))
-
-    files_and_times.sort(key=lambda x: x[1])  # Sortuje od najstarszego
-
-    # Usuwanie starych plików
-    for filepath, _, age_days in files_and_times:
-        if age_days > max_age_days or len(files_and_times) > max_files:
-            os.remove(filepath)
-            metadata_path = filepath + '.json'
-            if os.path.exists(metadata_path): os.remove(metadata_path)
-            files_and_times.remove((filepath, _, age_days))  # Aktualizuje listę
-
-# Funkcja ekstrahująca klip wideo
-def cache_clip_metadata(episode_path, start_time, end_time, output_path):
-    metadata_path = output_path + '.json'
-    metadata = {'episode_path': episode_path, 'start_time': start_time, 'end_time': end_time}
-    with open(metadata_path, 'w') as f: json.dump(metadata, f)
-
-def is_clip_cached(episode_path, start_time, end_time, output_path):
-    metadata_path = output_path + '.json'
-    if not os.path.exists(metadata_path) or not os.path.exists(output_path): return False
-    with open(metadata_path, 'r') as f:
-        metadata = json.load(f)
-    return metadata['episode_path'] == episode_path and metadata['start_time'] == start_time and metadata['end_time'] == end_time
-
-
-def extract_clip(episode_path, start_time, end_time, output_path):
-    adjusted_start_time, adjusted_end_time = max(int(start_time) - 2, 0), int(end_time) + 2
-    if is_clip_cached(episode_path, adjusted_start_time, adjusted_end_time, output_path):
-        print("Clip is already cached. Skipping extraction.")
-        return True
-
-    try:
-        cmd = ["ffmpeg", "-y", "-ss", str(adjusted_start_time), "-i", episode_path, "-t", str(adjusted_end_time - adjusted_start_time),
-               "-c:v", "libx264", "-crf", "25", "-profile:v", "main", "-c:a", "aac", "-b:a", "128k",
-               "-ac", "2", "-preset", "superfast", "-movflags", "+faststart", "-loglevel", "error", output_path]
-        subprocess.run(cmd, check=True)
-        cache_clip_metadata(episode_path, adjusted_start_time, adjusted_end_time, output_path)
-        print(f"Clip extracted and cached: {output_path}")
-    except subprocess.CalledProcessError as e:
-        print(f"Error occurred while extracting clip: {e}")
-        return False
-    return True
-
-@ttl_cache(maxsize=100, ttl=3600)
-def find_segment_by_quote(quote, index='ranczo-transcriptions'):
-    es = connect_elastic()
-
-    query = {
-        "query": {
-            "match": {
-                "text": {
-                    "query": quote,
-                    "fuzziness": "AUTO"
-                }
-            }
-        }
-    }
-
-    response = es.search(index=index, body=query)
-    hits = response['hits']['hits']
-
-    if not hits:
-        return None
-
-    return hits[0]['_source']
-
-
 def send_clip_to_telegram(chat_id, episode_path, start_time, end_time):
+    """
+    Wysyła klip do użytkownika Telegrama.
+    """
     output_path = get_cached_clip_path(episode_path, start_time, end_time)
-
     with open(output_path, 'rb') as video:
         bot.send_video(chat_id, video)
 
-
-
-# Obsługa komendy /klip
 @bot.message_handler(commands=['klip'])
 def handle_clip_request(message):
-    quote = message.text[len('/klip '):]  # Usuwa '/klip ' z początku wiadomości
+    """
+    Obsługa żądania wysłania klipu.
+    """
+    quote = message.text[len('/klip '):]  # Usunięcie '/klip ' z początku wiadomości
     segment = find_segment_by_quote(quote)
 
     if segment:
@@ -140,7 +38,6 @@ def handle_clip_request(message):
     else:
         bot.reply_to(message, "Nie znaleziono pasującego segmentu.")
 
-# Obsługa komendy /start
 @bot.message_handler(commands=['start'])
 def handle_start(message):
     welcome_message = """
@@ -174,6 +71,9 @@ Jeśli chcesz zobaczyć klip nr 2 z dodatkowymi 2 sekundami przed i 3 sekundami 
 """
     bot.reply_to(message, welcome_message)
 
+# Czyszczenie cache
 clear_cache_by_age_and_limit(90, 20000)
-print("Bot started")
-bot.infinity_polling(interval=0, timeout=25)
+
+if __name__ == "__main__":
+    logger.info("Bot started")
+    bot.infinity_polling(interval=0, timeout=25)
