@@ -1,36 +1,37 @@
 import os
 import logging
 from dotenv import load_dotenv
+import os
+import logging
+from dotenv import load_dotenv
 import telebot
-
-import tempfile
 
 from cache import get_cached_clip_path, clear_cache_by_age_and_limit
 from search import find_segment_by_quote
+from cache import get_cached_clip_path, clear_cache_by_age_and_limit, compile_clips_into_one  # Dodaj import
 
-# Wczytanie zmiennych środowiskowych z pliku .env, jeśli istnieje
+
 load_dotenv('passwords.env')
 
-# Konfiguracja i inicjalizacja bota
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
 
-# Ustawienia loggera
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Globalny słownik do przechowywania ostatnich zapytań
 last_search_quotes = {}
 
-def send_clip_to_telegram(chat_id, episode_path, start_time, end_time):
+def send_clip_to_telegram(chat_id, video_path, start_time, end_time):
     """
-    Wysyła klip do użytkownika Telegrama.
+    Retrieve the cached clip and send it to the Telegram user.
     """
-    output_path = get_cached_clip_path(episode_path, start_time, end_time)
-    with open(output_path, 'rb') as video:
-        bot.send_video(chat_id, video)
-
-
+    try:
+        clip_path = get_cached_clip_path(video_path, start_time, end_time)
+        with open(clip_path, 'rb') as video:
+            bot.send_video(chat_id, video)
+        logger.info(f"Sent video clip from {start_time} to {end_time} to chat {chat_id}")
+    except Exception as e:
+        logger.error(f"Failed to send video clip: {e}")
 @bot.message_handler(commands=['klip'])
 def handle_clip_request(message):
     quote = message.text[len('/klip '):].strip()  # Remove '/klip ' and leading/trailing whitespace
@@ -73,7 +74,7 @@ def search_quotes(message):
         return
 
     # Update last_search_quotes with the current user's chat ID and quote
-    last_search_quotes[chat_id] = quote
+    last_search_quotes[chat_id] = segments
 
 
     response = f"Znaleziono {len(segments)} pasujących segmentów:\n"
@@ -95,7 +96,6 @@ def search_quotes(message):
         response += f"{i}. {episode_formatted} {episode_title}, czas: {time_formatted}\n"
 
     bot.reply_to(message, response)
-
 
 @bot.message_handler(commands=['lista'])
 def list_all_quotes(message):
@@ -155,7 +155,6 @@ def list_all_quotes(message):
         finally:
             os.remove(file_name)
 
-
 @bot.message_handler(commands=['wybierz'])
 def select_quote(message):
     chat_id = message.chat.id
@@ -184,6 +183,68 @@ def select_quote(message):
     segment = segments[segment_number - 1]
     send_clip_to_telegram(chat_id, segment['video_path'], segment['start'], segment['end'])
 
+@bot.message_handler(commands=['rozszerz'])
+def expand_clip(message):
+    chat_id = message.chat.id
+    content = message.text.split()
+    if len(content) < 4:
+        bot.reply_to(message, "Podaj numer segmentu i ilość sekund do dodania przed i po klipie.")
+        return
+
+    try:
+        segment_number = int(content[1])
+        seconds_before = int(content[2])
+        seconds_after = int(content[3])
+    except ValueError:
+        bot.reply_to(message, "Numer segmentu i ilość sekund muszą być liczbami.")
+        return
+
+    if chat_id not in last_search_quotes:
+        bot.reply_to(message, "Najpierw wykonaj wyszukiwanie za pomocą /szukaj.")
+        return
+
+    quote = last_search_quotes[chat_id]
+    segments = find_segment_by_quote(quote, return_all=True)
+
+    if not segments or segment_number < 1 or segment_number > len(segments):
+        bot.reply_to(message, "Nieprawidłowy numer segmentu.")
+        return
+
+    segment = segments[segment_number - 1]
+    send_clip_to_telegram(chat_id, segment['video_path'], segment['start'] - seconds_before, segment['end'] + seconds_after)
+
+@bot.message_handler(commands=['kompiluj'])
+def compile_clips(message):
+    chat_id = message.chat.id
+    content = message.text.split()
+
+    # Check if there are any segments to compile
+    if chat_id not in last_search_quotes or not last_search_quotes[chat_id]:
+        bot.reply_to(message, "Najpierw wykonaj wyszukiwanie za pomocą /szukaj.")
+        return
+
+    segments = last_search_quotes[chat_id]
+
+    # Determine if user wants to compile all segments
+    if len(content) == 2 and content[1].lower() == "wszystko":
+        selected_segments = segments
+    elif len(content) >= 2:
+        selected_segments = []
+        for index in content[1:]:
+            if '-' in index:  # Check if it's a range
+                start, end = map(int, index.split('-'))
+                selected_segments.extend(segments[start-1:end])  # Convert to 0-based index and include end
+            else:
+                try:
+                    selected_segments.append(segments[int(index) - 1])  # Convert to 0-based index
+                except (ValueError, IndexError):
+                    bot.reply_to(message, f"Podano nieprawidłowy indeks segmentu: {index}")
+                    return
+    else:
+        bot.reply_to(message, "Proszę podać indeksy segmentów do skompilowania, zakres lub 'wszystko' do kompilacji wszystkich segmentów.")
+        return
+
+    compile_clips_into_one(selected_segments, chat_id, bot)
 
 @bot.message_handler(commands=['start'])
 def handle_start(message):
@@ -222,4 +283,10 @@ clear_cache_by_age_and_limit(90, 20000)
 
 if __name__ == "__main__":
     logger.info("Bot started")
-    bot.infinity_polling(interval=0, timeout=25)
+    try:
+        bot.infinity_polling(interval=0, timeout=25)
+    except Exception as e:
+        logger.error(f"Bot encountered an error: {e}")
+    finally:
+        clear_cache_by_age_and_limit(90, 20000)
+        logger.info("Cache cleared")

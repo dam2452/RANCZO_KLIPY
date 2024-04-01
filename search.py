@@ -46,7 +46,3 @@ def find_segment_by_quote(quote, season_filter=None, episode_filter=None, index=
     # Fallback if no segments are found
     return None
 
-# You don't need to modify the `list_all_quotes` function specifically for duplicates handling,
-# as the `find_segment_by_quote` function now ensures that only unique segments are returned.
-
-# Note: Ensure that you properly handle the Elasticsearch connection and logging as needed.

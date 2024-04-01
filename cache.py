@@ -85,7 +85,7 @@ def extract_clip(episode_path, start_time, end_time, output_path):
             "-t", str(adjusted_end_time - adjusted_start_time), "-c:v", "libx264",
             "-crf", "25", "-profile:v", "main", "-c:a", "aac", "-b:a", "128k",
             "-ac", "2", "-preset", "superfast", "-movflags", "+faststart",
-            "-loglevel", "error", output_path
+            "-loglevel", "error", "-reset_timestamps", "1", output_path
         ]
         subprocess.run(cmd, check=True)
         cache_clip_metadata(episode_path, adjusted_start_time, adjusted_end_time, output_path)
@@ -94,4 +94,137 @@ def extract_clip(episode_path, start_time, end_time, output_path):
         print(f"Error occurred while extracting clip: {e}")
         return False
 
+
+
     return True
+
+def compile_clips_into_one(segments, chat_id, bot):
+    files_to_compile = []
+
+    for segment in segments:
+        clip_path = download_and_cache_clip(segment)
+        if clip_path:
+            files_to_compile.append(clip_path)
+
+    if not files_to_compile:
+        bot.send_message(chat_id, "Nie udało się pobrać klipów wideo.")
+        return
+
+    output_file = f"compiled_{chat_id}.mp4"
+
+    # Create a temporary text file for ffmpeg concatenation
+    with open("concat_list.txt", "w") as file:
+        for clip_path in files_to_compile:
+            file.write(f"file '{clip_path}'\n")
+
+    compile_command = [
+        "ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", "concat_list.txt",
+        "-c", "copy", output_file
+    ]
+
+    try:
+        subprocess.run(compile_command, check=True)
+        # Check the size of the output file
+        output_file_size_mb = os.path.getsize(output_file) / (1024 * 1024)
+        if output_file_size_mb > 49:
+            # Compress the file if it's larger than 49MB
+            compressed_output_file = f"compressed_{output_file}"
+            compress_to_target_size(output_file, compressed_output_file)
+            output_file = compressed_output_file  # Update the output file to the compressed one
+        with open(output_file, 'rb') as file:
+            bot.send_video(chat_id, file)
+    except subprocess.CalledProcessError as e:
+        print(f"Error occurred while compiling clips: {e}")
+    finally:
+        for file_path in files_to_compile:
+            os.remove(file_path)
+        os.remove(output_file)
+        os.remove("concat_list.txt")  # Clean up the temporary file
+def download_and_cache_clip(segment):
+    # Extract 'episode_path' from 'video_path' if 'file_path' is not in 'episode_info'
+    if 'video_path' in segment:
+        episode_path = segment['video_path']
+    elif 'episode_info' in segment and 'file_path' in segment['episode_info']:
+        episode_path = segment['episode_info']['file_path']
+    else:
+        print(f"Error: 'file_path' not found in segment and 'video_path' is missing. Segment data: {segment}")
+        return None
+
+    start_time = segment['start']
+    end_time = segment['end']
+    output_path = f"cache/season_{segment['episode_info']['season']}_" \
+                  f"episode_{segment['episode_info']['episode_number']}_" \
+                  f"{start_time}_{end_time}.mp4"
+
+    if is_clip_cached(episode_path, start_time, end_time, output_path):
+        return output_path
+
+    adjusted_start_time = max(int(start_time) - 2, 0)
+    adjusted_end_time = int(end_time) + 2
+
+    try:
+        cmd = [
+            "ffmpeg", "-y", "-ss", str(adjusted_start_time), "-to", str(adjusted_end_time), "-i", episode_path,
+            "-c:v", "libx264", "-crf", "25", "-profile:v", "main", "-c:a", "aac", "-b:a", "128k",
+            "-ac", "2", "-preset", "superfast", "-movflags", "+faststart", "-loglevel", "error",
+            "-reset_timestamps", "1", output_path
+        ]
+        subprocess.run(cmd, check=True)
+        cache_clip_metadata(episode_path, adjusted_start_time, adjusted_end_time, output_path)
+        print(f"Clip cached successfully: {output_path}")
+        return output_path
+    except subprocess.CalledProcessError as e:
+        print(f"Failed to download and cache clip due to subprocess error: {e}")
+        return None
+
+def compress_to_target_size(input_file, output_file, target_size_mb=49, audio_bitrate_kbps=128):
+    """
+    Compresses a video file to a target size using H.265 (HEVC) codec.
+
+    Parameters:
+    - input_file: Path to the input video file.
+    - output_file: Path where the output video will be saved.
+    - target_size_mb: Target size of the output file in megabytes (MB).
+    - audio_bitrate_kbps: Bitrate for the audio stream in kilobits per second (kbps).
+    """
+    # Calculate target total bitrate in kbps
+    target_total_bitrate_kbps = (target_size_mb * 8 * 1024) / get_video_duration(input_file) - audio_bitrate_kbps
+
+    if target_total_bitrate_kbps < 1:
+        print("Error: Target size too small for given video.")
+        return False
+
+    # Construct the ffmpeg command to compress the video
+    cmd = [
+        "ffmpeg",
+        "-i", input_file,
+        "-c:v", "libx265",
+        "-b:v", f"{target_total_bitrate_kbps}k",
+        "-x265-params", "pass=1",
+        "-c:a", "aac",
+        "-b:a", f"{audio_bitrate_kbps}k",
+        output_file
+    ]
+
+    try:
+        subprocess.run(cmd, check=True)
+        print(f"Video compressed and saved to {output_file}")
+        return True
+    except subprocess.CalledProcessError as e:
+        print(f"Error occurred during video compression: {e}")
+        return False
+
+def get_video_duration(input_file):
+    """
+    Returns the duration of the video in seconds.
+
+    Parameters:
+    - input_file: Path to the video file.
+    """
+    cmd = ["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", input_file]
+    try:
+        result = subprocess.run(cmd, stdout=subprocess.PIPE, text=True, check=True)
+        return float(result.stdout)
+    except subprocess.CalledProcessError as e:
+        print(f"Error occurred during video duration retrieval: {e}")
+        return 0

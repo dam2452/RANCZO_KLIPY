@@ -11,3 +11,7 @@
 /DataModify
 /cache
 /__pycache__
+*.mp4
+/__pycache__
+*.cutree
+/__pycache__
