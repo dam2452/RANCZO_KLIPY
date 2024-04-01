@@ -46,7 +46,7 @@ def extract_clip(episode_path, start_time, end_time, output_path):
     adjusted_end_time = int(end_time) + 2
     cmd = ["ffmpeg", "-y", "-ss", str(adjusted_start_time), "-i", episode_path, "-t", str(adjusted_end_time - adjusted_start_time),
            "-c:v", "libx264", "-crf", "25", "-profile:v", "main", "-c:a", "aac", "-b:a", "128k", "-ac", "2",
-           "-preset", "superfast", "-movflags", "+faststart", "-loglevel", "error", "-reset_timestamps", "1", output_path]
+           "-preset", "superfast", "-vf", "yadif=0:-1:0,scale=1920:1080", "-movflags", "+faststart", "-loglevel", "error", "-reset_timestamps", "1", output_path]
     subprocess.run(cmd, check=True)
     cache_clip_metadata(episode_path, adjusted_start_time, adjusted_end_time, output_path)
 def compile_clips_into_one(segments, chat_id, bot):
@@ -129,7 +129,8 @@ def download_and_cache_clip(segment):
         return None
 def compress_to_target_size(input_file, output_file, target_size_mb=49, audio_bitrate_kbps=128):
     """
-    Compresses a video file to a target size using the H.264 (libx264) codec, ensuring compatibility with specified devices.
+    Compresses a video file to a target size using the H.265 (libx265) codec, ensuring compatibility with specified devices.
+    The video is standardized to 1080p resolution and deinterlaced if necessary.
 
     Parameters:
     - input_file: Path to the input video file.
@@ -149,12 +150,12 @@ def compress_to_target_size(input_file, output_file, target_size_mb=49, audio_bi
         print("Error: Target size too small for given video.")
         return False
 
-    # Construct the ffmpeg command using the provided flags for compatibility.
+    # Construct the ffmpeg command with deinterlacing (yadif filter) and scaling to 1080p
     cmd = [
         "ffmpeg", "-y",
         "-i", input_file,
-        "-c:v", "libx265", "-crf", "30", "-preset", "superfast",
-        "-profile:v", "main",
+        "-c:v", "libx265", "-crf", "28", "-preset", "superfast",
+        "-vf", "yadif=0:-1:0,scale=1920:1080",  # Deinterlace and scale to 1080p
         "-c:a", "aac", "-b:a", f"{audio_bitrate_kbps}k", "-ac", "2",
         "-b:v", f"{target_total_bitrate_kbps}k",
         "-movflags", "+faststart", "-loglevel", "error",
@@ -163,12 +164,11 @@ def compress_to_target_size(input_file, output_file, target_size_mb=49, audio_bi
 
     try:
         subprocess.run(cmd, check=True)
-        print(f"Video compressed and saved to {output_file}")
+        print(f"Video compressed to {target_size_mb}MB and saved to {output_file}")
         return True
     except subprocess.CalledProcessError as e:
         print(f"Error occurred during video compression: {e}")
         return False
-
 def get_video_duration(input_file):
     """
     Returns the duration of the video in seconds.

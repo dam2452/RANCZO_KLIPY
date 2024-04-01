@@ -1,6 +1,5 @@
-import os
-import logging
-from dotenv import load_dotenv
+
+import tempfile
 import os
 import logging
 from dotenv import load_dotenv
@@ -55,7 +54,6 @@ def handle_clip_request(message):
     else:
         logger.info(f"No segment found for quote: '{quote}'")  # Log when no segment is found
         bot.reply_to(message, "No segment found for the given quote.")
-
 @bot.message_handler(commands=['szukaj'])
 def search_quotes(message):
     chat_id = message.chat.id
@@ -96,37 +94,24 @@ def search_quotes(message):
         response += f"{i}. {episode_formatted} {episode_title}, czas: {time_formatted}\n"
 
     bot.reply_to(message, response)
-
 @bot.message_handler(commands=['lista'])
 def list_all_quotes(message):
-    """
-    Sends a list of all quotes matching the last search to the user.
-    If the number of matching segments is more than 10, creates a temporary file and sends it as a document.
-    """
     chat_id = message.chat.id
-
-    # Check if there was a previous search for this chat_id
     if chat_id not in last_search_quotes:
         bot.reply_to(message, "Najpierw wykonaj wyszukiwanie za pomocą /szukaj.")
         return
 
-    # Retrieve the quote from the last search
-    quote = last_search_quotes[chat_id]
+    segments = last_search_quotes[chat_id]
 
-    # Find all segments matching the quote
-    segments = find_segment_by_quote(quote, return_all=True)
-
-    # If no matching segments were found, inform the user
     if not segments:
         bot.reply_to(message, "Nie znaleziono pasujących segmentów.")
         return
 
-    # Format response similarly to search_quotes function
     response = f"Znaleziono {len(segments)} pasujących segmentów:\n"
     for i, segment in enumerate(segments, start=1):
         total_episode_number = segment['episode_info']['episode_number']
-        season_number = (total_episode_number - 1) // 13 + 1
-        episode_number_in_season = (total_episode_number - 1) % 13 + 1
+        season_number = (total_episode_number - 1) // 13 + 1  # Przykładowe obliczenie numeru sezonu
+        episode_number_in_season = (total_episode_number - 1) % 13 + 1  # Przykładowe obliczenie numeru odcinka w sezonie
 
         season = str(season_number).zfill(2)
         episode_number = str(episode_number_in_season).zfill(2)
@@ -139,30 +124,26 @@ def list_all_quotes(message):
 
         response += f"{i}. {episode_formatted} {episode_title}, czas: {time_formatted}\n"
 
-    # If the number of segments is 10 or less, send them directly
-    if len(segments) <= 10:
-        bot.send_message(chat_id, response)
-    else:
-        # If more than 10 segments, create a temporary file and send it
-        file_name = f"quote_{quote.replace(' ', '_')}_chat_{chat_id}.txt"
-        with open(file_name, 'w', encoding='utf-8') as file:
-            file.write(response)
+    temp_dir = tempfile.gettempdir()
+    file_name = os.path.join(temp_dir, f"quote_results_chat_{chat_id}.txt")
+    with open(file_name, 'w', encoding='utf-8') as file:
+        file.write(response)
 
-        # After writing, send the file and then delete it
-        try:
-            with open(file_name, 'rb') as file:
-                bot.send_document(chat_id, file)
-        finally:
-            os.remove(file_name)
-
+    try:
+        with open(file_name, 'rb') as file:
+            bot.send_document(chat_id, file)
+    finally:
+        os.remove(file_name)
 @bot.message_handler(commands=['wybierz'])
 def select_quote(message):
     chat_id = message.chat.id
+    # Sprawdź, czy dla tego chat_id wykonano już jakieś wyszukiwanie
     if chat_id not in last_search_quotes:
         bot.reply_to(message, "Najpierw wykonaj wyszukiwanie za pomocą /szukaj.")
         return
 
     content = message.text.split()
+    # Sprawdź, czy użytkownik podał numer segmentu do wybrania
     if len(content) < 2:
         bot.reply_to(message, "Podaj numer segmentu, który chcesz wybrać.")
         return
@@ -173,16 +154,19 @@ def select_quote(message):
         bot.reply_to(message, "Numer segmentu musi być liczbą.")
         return
 
-    quote = last_search_quotes[chat_id]
-    segments = find_segment_by_quote(quote, return_all=True)
+    # Pobierz segmenty znalezione w ostatnim wyszukiwaniu
+    segments = last_search_quotes[chat_id]
 
-    if not segments or segment_number < 1 or segment_number > len(segments):
+    # Sprawdź, czy podany numer segmentu jest prawidłowy
+    if segment_number < 1 or segment_number > len(segments):
         bot.reply_to(message, "Nieprawidłowy numer segmentu.")
         return
 
+    # Wybierz segment na podstawie podanego numeru
     segment = segments[segment_number - 1]
-    send_clip_to_telegram(chat_id, segment['video_path'], segment['start'], segment['end'])
 
+    # Wysyłka wybranego klipu do użytkownika
+    send_clip_to_telegram(chat_id, segment['video_path'], segment['start'], segment['end'])
 @bot.message_handler(commands=['rozszerz'])
 def expand_clip(message):
     chat_id = message.chat.id
@@ -212,7 +196,6 @@ def expand_clip(message):
 
     segment = segments[segment_number - 1]
     send_clip_to_telegram(chat_id, segment['video_path'], segment['start'] - seconds_before, segment['end'] + seconds_after)
-
 @bot.message_handler(commands=['kompiluj'])
 def compile_clips(message):
     chat_id = message.chat.id
@@ -245,7 +228,6 @@ def compile_clips(message):
         return
 
     compile_clips_into_one(selected_segments, chat_id, bot)
-
 @bot.message_handler(commands=['start'])
 def handle_start(message):
     welcome_message = """
