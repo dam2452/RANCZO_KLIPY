@@ -18,6 +18,8 @@ bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Globalny słownik do przechowywania informacji o ostatnio wybranym/znalezionym segmencie dla każdego chat_id
+last_selected_segment = {}
 last_search_quotes = {}
 
 def send_clip_to_telegram(chat_id, video_path, start_time, end_time):
@@ -33,27 +35,23 @@ def send_clip_to_telegram(chat_id, video_path, start_time, end_time):
         logger.error(f"Failed to send video clip: {e}")
 @bot.message_handler(commands=['klip'])
 def handle_clip_request(message):
+    chat_id = message.chat.id
     quote = message.text[len('/klip '):].strip()  # Remove '/klip ' and leading/trailing whitespace
     if not quote:
         bot.reply_to(message, "Please provide a quote after the '/klip' command.")
         return
-    logger.info(f"Searching for quote: '{quote}'")  # Log the searched quote
+    logger.info(f"Searching for quote: '{quote}'")
     segments = find_segment_by_quote(quote, return_all=True)
 
     if segments:
-        # Select the most relevant segment. This could be the first one, the last one, or based on some other criteria.
-        # For this example, we'll just take the first one.
         segment = segments[0]
-        logger.info(f"Found segment: {segment}")  # Log the found segment
-        total_episode_number = segment['episode_info']['episode_number']
-        season_number = (total_episode_number - 1) // 13 + 1
-        episode_number_in_season = (total_episode_number - 1) % 13 + 1
-
-        # Here should be the logic to send the clip, e.g.:
+        last_selected_segment[chat_id] = segment  # Zapisanie segmentu
+        logger.info(f"Found segment: {segment}")
         send_clip_to_telegram(message.chat.id, segment['video_path'], segment['start'], segment['end'])
     else:
-        logger.info(f"No segment found for quote: '{quote}'")  # Log when no segment is found
+        logger.info(f"No segment found for quote: '{quote}'")
         bot.reply_to(message, "No segment found for the given quote.")
+
 @bot.message_handler(commands=['szukaj'])
 def search_quotes(message):
     chat_id = message.chat.id
@@ -165,12 +163,16 @@ def select_quote(message):
     # Wybierz segment na podstawie podanego numeru
     segment = segments[segment_number - 1]
 
+    # Zapisz wybrany segment do last_selected_segment dla późniejszego użycia
+    last_selected_segment[chat_id] = segment
+
     # Wysyłka wybranego klipu do użytkownika
     send_clip_to_telegram(chat_id, segment['video_path'], segment['start'], segment['end'])
 @bot.message_handler(commands=['rozszerz'])
 def expand_clip(message):
     chat_id = message.chat.id
     content = message.text.split()
+    # Sprawdzenie, czy podano odpowiednią ilość argumentów
     if len(content) < 4:
         bot.reply_to(message, "Podaj numer segmentu i ilość sekund do dodania przed i po klipie.")
         return
@@ -183,19 +185,15 @@ def expand_clip(message):
         bot.reply_to(message, "Numer segmentu i ilość sekund muszą być liczbami.")
         return
 
-    if chat_id not in last_search_quotes:
-        bot.reply_to(message, "Najpierw wykonaj wyszukiwanie za pomocą /szukaj.")
+    # Sprawdzenie, czy istnieje ostatnio wybrany segment
+    if chat_id not in last_selected_segment:
+        bot.reply_to(message, "Najpierw użyj /klip lub /wybierz, aby znaleźć klip.")
         return
 
-    quote = last_search_quotes[chat_id]
-    segments = find_segment_by_quote(quote, return_all=True)
-
-    if not segments or segment_number < 1 or segment_number > len(segments):
-        bot.reply_to(message, "Nieprawidłowy numer segmentu.")
-        return
-
-    segment = segments[segment_number - 1]
+    segment = last_selected_segment[chat_id]
+    # Wysyłka rozszerzonego klipu do użytkownika
     send_clip_to_telegram(chat_id, segment['video_path'], segment['start'] - seconds_before, segment['end'] + seconds_after)
+
 @bot.message_handler(commands=['kompiluj'])
 def compile_clips(message):
     chat_id = message.chat.id
