@@ -7,97 +7,48 @@ from cachetools.func import ttl_cache
 # Constants
 CACHE_DIR = os.path.join(os.getcwd(), "cache")
 
-# Ensure the cache directory exists
 if not os.path.exists(CACHE_DIR):
     os.makedirs(CACHE_DIR)
 
 @ttl_cache(maxsize=100, ttl=3600)
 def get_cached_clip_path(episode_path, start_time, end_time):
-    """Retrieve or generate a cached clip path."""
     clip_id = f"{os.path.basename(episode_path)}_{start_time}_{end_time}.mp4"
     output_path = os.path.join(CACHE_DIR, clip_id)
 
-    if not os.path.exists(output_path):
+    if not os.path.exists(output_path) or not is_clip_cached(episode_path, start_time, end_time, output_path):
         extract_clip(episode_path, start_time, end_time, output_path)
 
     return output_path
-
 def clear_cache_by_age_and_limit(max_age_days=90, max_files=20000):
-    """Clear cache based on age and limit constraints."""
     current_time = time.time()
-    files_and_times = []
+    files = [(f, os.path.getctime(os.path.join(CACHE_DIR, f))) for f in os.listdir(CACHE_DIR) if not f.endswith('.json')]
+    files.sort(key=lambda x: x[1])
 
-    for filename in os.listdir(CACHE_DIR):
-        if filename.endswith('.json'):
-            continue  # Skip metadata files
-
-        filepath = os.path.join(CACHE_DIR, filename)
-        file_creation_time = os.path.getctime(filepath)
-        age_days = (current_time - file_creation_time) / (60 * 60 * 24)
-        files_and_times.append((filepath, file_creation_time, age_days))
-
-    # Sort by oldest first
-    files_and_times.sort(key=lambda x: x[1])
-
-    # Remove old files
-    for filepath, _, age_days in files_and_times:
-        if age_days > max_age_days or len(files_and_times) > max_files:
-            os.remove(filepath)
-            metadata_path = filepath + '.json'
-            if os.path.exists(metadata_path):
-                os.remove(metadata_path)
-            files_and_times.remove((filepath, _, age_days))  # Update list
-
+    while files and (len(files) > max_files or (current_time - files[0][1]) / (60 * 60 * 24) > max_age_days):
+        os.remove(os.path.join(CACHE_DIR, files[0][0]))
+        if os.path.exists(os.path.join(CACHE_DIR, files[0][0] + '.json')):
+            os.remove(os.path.join(CACHE_DIR, files[0][0] + '.json'))
+        files.pop(0)
 def cache_clip_metadata(episode_path, start_time, end_time, output_path):
-    """Cache metadata for a clip."""
     metadata_path = output_path + '.json'
-    metadata = {
-        'episode_path': episode_path,
-        'start_time': start_time,
-        'end_time': end_time
-    }
+    metadata = {'episode_path': episode_path, 'start_time': start_time, 'end_time': end_time}
     with open(metadata_path, 'w') as f:
         json.dump(metadata, f)
-
 def is_clip_cached(episode_path, start_time, end_time, output_path):
-    """Check if a clip is already cached."""
     metadata_path = output_path + '.json'
-    if not os.path.exists(metadata_path) or not os.path.exists(output_path):
+    if not os.path.exists(metadata_path):
         return False
     with open(metadata_path, 'r') as f:
         metadata = json.load(f)
-    return (metadata['episode_path'] == episode_path and
-            metadata['start_time'] == start_time and
-            metadata['end_time'] == end_time)
-
+    return metadata['episode_path'] == episode_path and metadata['start_time'] == start_time and metadata['end_time'] == end_time
 def extract_clip(episode_path, start_time, end_time, output_path):
-    """Extract a video clip, adjusting times slightly to avoid cuts."""
     adjusted_start_time = max(int(start_time) - 2, 0)
     adjusted_end_time = int(end_time) + 2
-
-    if is_clip_cached(episode_path, adjusted_start_time, adjusted_end_time, output_path):
-        print("Clip is already cached. Skipping extraction.")
-        return True
-
-    try:
-        cmd = [
-            "ffmpeg", "-y", "-ss", str(adjusted_start_time), "-i", episode_path,
-            "-t", str(adjusted_end_time - adjusted_start_time), "-c:v", "libx264",
-            "-crf", "25", "-profile:v", "main", "-c:a", "aac", "-b:a", "128k",
-            "-ac", "2", "-preset", "superfast", "-movflags", "+faststart",
-            "-loglevel", "error", "-reset_timestamps", "1", output_path
-        ]
-        subprocess.run(cmd, check=True)
-        cache_clip_metadata(episode_path, adjusted_start_time, adjusted_end_time, output_path)
-        print(f"Clip extracted and cached: {output_path}")
-    except subprocess.CalledProcessError as e:
-        print(f"Error occurred while extracting clip: {e}")
-        return False
-
-
-
-    return True
-
+    cmd = ["ffmpeg", "-y", "-ss", str(adjusted_start_time), "-i", episode_path, "-t", str(adjusted_end_time - adjusted_start_time),
+           "-c:v", "libx264", "-crf", "25", "-profile:v", "main", "-c:a", "aac", "-b:a", "128k", "-ac", "2",
+           "-preset", "superfast", "-movflags", "+faststart", "-loglevel", "error", "-reset_timestamps", "1", output_path]
+    subprocess.run(cmd, check=True)
+    cache_clip_metadata(episode_path, adjusted_start_time, adjusted_end_time, output_path)
 def compile_clips_into_one(segments, chat_id, bot):
     files_to_compile = []
 
@@ -176,10 +127,9 @@ def download_and_cache_clip(segment):
     except subprocess.CalledProcessError as e:
         print(f"Failed to download and cache clip due to subprocess error: {e}")
         return None
-
 def compress_to_target_size(input_file, output_file, target_size_mb=49, audio_bitrate_kbps=128):
     """
-    Compresses a video file to a target size using H.265 (HEVC) codec.
+    Compresses a video file to a target size using the H.264 (libx264) codec, ensuring compatibility with specified devices.
 
     Parameters:
     - input_file: Path to the input video file.
@@ -187,23 +137,28 @@ def compress_to_target_size(input_file, output_file, target_size_mb=49, audio_bi
     - target_size_mb: Target size of the output file in megabytes (MB).
     - audio_bitrate_kbps: Bitrate for the audio stream in kilobits per second (kbps).
     """
-    # Calculate target total bitrate in kbps
-    target_total_bitrate_kbps = (target_size_mb * 8 * 1024) / get_video_duration(input_file) - audio_bitrate_kbps
+    video_duration = get_video_duration(input_file)
+    if video_duration == 0:
+        print("Error: Unable to retrieve video duration or video is empty.")
+        return False
+
+    # Calculate target total bitrate in kbps, taking into account the length of the video and desired target size.
+    target_total_bitrate_kbps = (target_size_mb * 8 * 1024) / video_duration - audio_bitrate_kbps
 
     if target_total_bitrate_kbps < 1:
         print("Error: Target size too small for given video.")
         return False
 
-    # Construct the ffmpeg command to compress the video
+    # Construct the ffmpeg command using the provided flags for compatibility.
     cmd = [
-        "ffmpeg",
+        "ffmpeg", "-y",
         "-i", input_file,
-        "-c:v", "libx265",
+        "-c:v", "libx265", "-crf", "25", "-preset", "superfast",
+        "-profile:v", "main",
+        "-c:a", "aac", "-b:a", f"{audio_bitrate_kbps}k", "-ac", "2",
         "-b:v", f"{target_total_bitrate_kbps}k",
-        "-x265-params", "pass=1",
-        "-c:a", "aac",
-        "-b:a", f"{audio_bitrate_kbps}k",
-        output_file
+        "-movflags", "+faststart", "-loglevel", "error",
+        "-reset_timestamps", "1", output_file
     ]
 
     try:
