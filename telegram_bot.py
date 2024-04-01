@@ -266,7 +266,7 @@ def compile_clips(message):
 @bot.message_handler(commands=['start'])
 def handle_start(message):
     welcome_message = """
-🐐S *Witaj w RanczoKlipy!* 🐐
+🐐 *Witaj w RanczoKlipy!* 🐐
 Znajdź klipy z Twoich ulubionych momentów w prosty sposób. Oto, co możesz zrobić:
 
 1️⃣ `/klip <cytat>` - Wyszukuje klip na podstawie cytatu. \
