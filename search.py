@@ -5,8 +5,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-
-
 # Decorator to cache results of the function, improving efficiency for repeated queries
 def find_segment_by_quote(quote, season_filter=None, episode_filter=None, index='ranczo-transcriptions', return_all=False):
     es = connect_to_elasticsearch()

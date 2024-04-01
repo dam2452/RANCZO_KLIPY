@@ -51,7 +51,6 @@ def handle_clip_request(message):
     else:
         logger.info(f"No segment found for quote: '{quote}'")
         bot.reply_to(message, "No segment found for the given quote.")
-
 @bot.message_handler(commands=['szukaj'])
 def search_quotes(message):
     chat_id = message.chat.id
@@ -193,7 +192,6 @@ def expand_clip(message):
     segment = last_selected_segment[chat_id]
     # Wysyłka rozszerzonego klipu do użytkownika
     send_clip_to_telegram(chat_id, segment['video_path'], segment['start'] - seconds_before, segment['end'] + seconds_after)
-
 @bot.message_handler(commands=['kompiluj'])
 def compile_clips(message):
     chat_id = message.chat.id
