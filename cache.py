@@ -153,7 +153,7 @@ def compress_to_target_size(input_file, output_file, target_size_mb=49, audio_bi
     cmd = [
         "ffmpeg", "-y",
         "-i", input_file,
-        "-c:v", "libx265", "-crf", "25", "-preset", "superfast",
+        "-c:v", "libx265", "-crf", "30", "-preset", "superfast",
         "-profile:v", "main",
         "-c:a", "aac", "-b:a", f"{audio_bitrate_kbps}k", "-ac", "2",
         "-b:v", f"{target_total_bitrate_kbps}k",
