@@ -35,6 +35,12 @@ def send_clip_to_telegram(chat_id, video_path, start_time, end_time):
         logger.error(f"Failed to send video clip: {e}")
 @bot.message_handler(commands=['klip'])
 def handle_clip_request(message):
+    """Handles a clip request command from a Telegram chat.
+
+    Extracts a quote from the message text following the '/klip' command and searches for a video segment
+    corresponding to the quote. If found, sends the clip to the chat; otherwise, notifies the user that
+    no segment was found.
+    """
     chat_id = message.chat.id
     quote = message.text[len('/klip '):].strip()  # Remove '/klip ' and leading/trailing whitespace
     if not quote:
@@ -53,6 +59,11 @@ def handle_clip_request(message):
         bot.reply_to(message, "No segment found for the given quote.")
 @bot.message_handler(commands=['szukaj'])
 def search_quotes(message):
+    """Searches for video segments matching a given quote from a Telegram message.
+
+    Parses the message to extract a quote and optional season and episode filters. Searches for segments
+    matching the quote and filters. Replies with the found segments or a message indicating none were found.
+    """
     chat_id = message.chat.id
     content = message.text.split()
     if len(content) < 2:
@@ -93,6 +104,12 @@ def search_quotes(message):
     bot.reply_to(message, response)
 @bot.message_handler(commands=['lista'])
 def list_all_quotes(message):
+    """Lists all quotes found from a user's last search.
+
+    Checks if there were any segments found from the user's last search and responds accordingly.
+    If segments were found, it formats a detailed message with the segments' information and sends
+    it as a document to the user.
+    """
     chat_id = message.chat.id
     if chat_id not in last_search_quotes:
         bot.reply_to(message, "Najpierw wykonaj wyszukiwanie za pomocą /szukaj.")
@@ -133,6 +150,13 @@ def list_all_quotes(message):
         os.remove(file_name)
 @bot.message_handler(commands=['wybierz'])
 def select_quote(message):
+    """
+    Allows the user to select a specific quote segment from their last search results.
+
+    This function checks if the user has previously performed a search. If so, it then
+    verifies if the user provided a valid segment number. Finally, it sends the selected
+    video clip to the user.
+    """
     chat_id = message.chat.id
     # Sprawdź, czy dla tego chat_id wykonano już jakieś wyszukiwanie
     if chat_id not in last_search_quotes:
@@ -169,6 +193,13 @@ def select_quote(message):
     send_clip_to_telegram(chat_id, segment['video_path'], segment['start'], segment['end'])
 @bot.message_handler(commands=['rozszerz'])
 def expand_clip(message):
+    """
+    Expands the duration of a previously selected video clip by adding extra time before and after it.
+
+    Users specify the number of seconds to add before and after the original segment. This function
+    first checks if the necessary parameters are provided and validates them. Then, it checks if there's
+    a previously selected segment to expand. If all conditions are met, it sends the expanded clip to the user.
+    """
     chat_id = message.chat.id
     content = message.text.split()
     # Sprawdzenie, czy podano odpowiednią ilość argumentów
@@ -194,6 +225,14 @@ def expand_clip(message):
     send_clip_to_telegram(chat_id, segment['video_path'], segment['start'] - seconds_before, segment['end'] + seconds_after)
 @bot.message_handler(commands=['kompiluj'])
 def compile_clips(message):
+    """
+    Compiles multiple video segments into a single video clip.
+
+    This function allows users to specify which segments to compile by providing individual segment
+    indexes, a range of indexes, or a keyword to compile all segments. It checks for a previous search
+    to ensure there are segments to compile. Then, based on the user's input, it selects the appropriate
+    segments and compiles them into one video clip.
+    """
     chat_id = message.chat.id
     content = message.text.split()
 

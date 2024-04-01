@@ -1,12 +1,34 @@
-# Import statements organized alphabetically
-from cachetools.func import ttl_cache
-from elastic_manager import connect_to_elasticsearch  # Corrected import statement
+# Standard library imports
 import logging
+# Third-party imports
+from cachetools.func import ttl_cache
+# Local application imports
+from elastic_manager import connect_to_elasticsearch
 
+# Configure logging
 logger = logging.getLogger(__name__)
 
-# Decorator to cache results of the function, improving efficiency for repeated queries
-def find_segment_by_quote(quote, season_filter=None, episode_filter=None, index='ranczo-transcriptions', return_all=False):
+@ttl_cache(maxsize=1024, ttl=300)
+def find_segment_by_quote(
+    quote: str,
+    season_filter: str = None,
+    episode_filter: str = None,
+    index: str = 'ranczo-transcriptions',
+    return_all: bool = False
+) -> dict:
+    """
+    Search for a segment by quote in an Elasticsearch index.
+
+    Args:
+    quote (str): The quote to search for.
+    season_filter (str, optional): Season to filter the results. Defaults to None.
+    episode_filter (str, optional): Episode to filter the results. Defaults to None.
+    index (str, optional): The Elasticsearch index to search in. Defaults to 'ranczo-transcriptions'.
+    return_all (bool, optional): If True, returns all results, else returns the first. Defaults to False.
+
+    Returns:
+    dict: The found segment or segments.
+    """
     es = connect_to_elasticsearch()
     query = {
         "query": {
@@ -19,18 +41,19 @@ def find_segment_by_quote(quote, season_filter=None, episode_filter=None, index=
         }
     }
 
-    response = es.search(index=index, body=query, size=10000 if return_all else 1)
+    size = 10000 if return_all else 1
+    response = es.search(index=index, body=query, size=size)
     hits = response['hits']['hits']
 
     if not hits:
         return None
 
-    unique_segments = {}  # Using a dictionary to track unique segments
+    unique_segments = {}  # Tracks unique segments to avoid duplicates
 
     for hit in hits:
         segment = hit['_source']
         if all(key in segment for key in ['video_path', 'start', 'end', 'episode_info']):
-            # Construct a unique key for each segment
+            # Creating a unique identifier for each segment
             unique_key = f"{segment['episode_info']['title']}-{segment['start']}"
             if unique_key not in unique_segments:
                 unique_segments[unique_key] = segment
@@ -39,8 +62,8 @@ def find_segment_by_quote(quote, season_filter=None, episode_filter=None, index=
         return list(unique_segments.values())
 
     if unique_segments:
-        return next(iter(unique_segments.values()))  # Return the first segment
+        # Return the first segment if not returning all
+        return next(iter(unique_segments.values()))
 
-    # Fallback if no segments are found
+    # Return None if no segments are found
     return None
-
