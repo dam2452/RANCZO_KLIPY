@@ -34,12 +34,17 @@ def send_clip_to_telegram(chat_id, episode_path, start_time, end_time):
 @bot.message_handler(commands=['klip'])
 def handle_clip_request(message):
     quote = message.text[len('/klip '):].strip()  # Remove '/klip ' and leading/trailing whitespace
+    if not quote:
+        bot.reply_to(message, "Please provide a quote after the '/klip' command.")
+        return
     logger.info(f"Searching for quote: '{quote}'")  # Log the searched quote
-    segment = find_segment_by_quote(quote)
+    segments = find_segment_by_quote(quote, return_all=True)
 
-    if segment:
+    if segments:
+        # Select the most relevant segment. This could be the first one, the last one, or based on some other criteria.
+        # For this example, we'll just take the first one.
+        segment = segments[0]
         logger.info(f"Found segment: {segment}")  # Log the found segment
-        # Calculate the season number and episode number in the season based on the total episode number
         total_episode_number = segment['episode_info']['episode_number']
         season_number = (total_episode_number - 1) // 13 + 1
         episode_number_in_season = (total_episode_number - 1) % 13 + 1
@@ -48,7 +53,7 @@ def handle_clip_request(message):
         send_clip_to_telegram(message.chat.id, segment['video_path'], segment['start'], segment['end'])
     else:
         logger.info(f"No segment found for quote: '{quote}'")  # Log when no segment is found
-
+        bot.reply_to(message, "No segment found for the given quote.")
 
 @bot.message_handler(commands=['szukaj'])
 def search_quotes(message):
