@@ -121,19 +121,32 @@ def list_all_quotes(message):
         bot.reply_to(message, "Nie znaleziono pasujących segmentów.")
         return
 
+    # Format response similarly to search_quotes function
+    response = f"Znaleziono {len(segments)} pasujących segmentów:\n"
+    for i, segment in enumerate(segments, start=1):
+        total_episode_number = segment['episode_info']['episode_number']
+        season_number = (total_episode_number - 1) // 13 + 1
+        episode_number_in_season = (total_episode_number - 1) % 13 + 1
+
+        season = str(season_number).zfill(2)
+        episode_number = str(episode_number_in_season).zfill(2)
+        episode_title = segment['episode_info']['title']
+        start_time = int(segment['start'])
+        minutes, seconds = divmod(start_time, 60)
+        time_formatted = f"{minutes:02}:{seconds:02}"
+
+        episode_formatted = f"S{season}E{episode_number}"
+
+        response += f"{i}. {episode_formatted} {episode_title}, czas: {time_formatted}\n"
+
     # If the number of segments is 10 or less, send them directly
     if len(segments) <= 10:
-        response = f"Znaleziono {len(segments)} pasujących segmentów:\n"
-        response += "\n".join(f"{i}. {segment['episode_info']['title']}, czas: {segment['start']}"
-                              for i, segment in enumerate(segments, start=1))
         bot.send_message(chat_id, response)
     else:
         # If more than 10 segments, create a temporary file and send it
         file_name = f"quote_{quote.replace(' ', '_')}_chat_{chat_id}.txt"
         with open(file_name, 'w', encoding='utf-8') as file:
-            file.write(f"Znaleziono {len(segments)} pasujących segmentów:\n")
-            for i, segment in enumerate(segments, start=1):
-                file.write(f"{i}. {segment['episode_info']['title']}, czas: {segment['start']}\n")
+            file.write(response)
 
         # After writing, send the file and then delete it
         try:
