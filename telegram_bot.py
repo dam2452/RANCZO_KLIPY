@@ -266,34 +266,36 @@ def compile_clips(message):
 @bot.message_handler(commands=['start'])
 def handle_start(message):
     welcome_message = """
-🎉 Witaj w RanczoKlipy! 🎉 Oto, jak możesz korzystać z bota:
+🐐S *Witaj w RanczoKlipy!* 🐐
+Znajdź klipy z Twoich ulubionych momentów w prosty sposób. Oto, co możesz zrobić:
 
-1️⃣ /klip <cytat> - wyszukuje i wysyła klip na podstawie podanego cytatu. Np. /klip geniusz.
-   - Możesz także rozszerzyć wynik: /rozszerz 1 2 (1s z przodu, 2s z tyłu).
+1️⃣ `/klip <cytat>` - Wyszukuje klip na podstawie cytatu. \
+Przykład: `/klip geniusz`.
+   🔄 *Rozszerzenie wyniku*: `/rozszerz 1 1 2` (1s przed, 2s po).
 
-2️⃣ /szukaj <cytat> [<filtr_sezonu> <filtr_odcinka>] - znajduje wszystkie klipy pasujące do cytatu. Np. /szukaj kozioł S01 lub /szukaj kozioł S01E02. Zwraca ilość wszystkich wystąpień oraz informacje o nich.
+2️⃣ `/szukaj <cytat>` - Znajduje klipy pasujące do cytatu. \
+Przykład: `/szukaj kozioł`.
 
-3️⃣ /lista [wszystko] - wyświetla listę znalezionych klipów wraz z numerami sezonów i odcinków (np. S01E01), nazwami odcinków, datami wydania itp. 
-   - Użycie /lista wyświetli pełną listę wyników.
+3️⃣ `/lista` - Wyświetla listę klipów z informacjami: sezon, odcinek, data wydania.
 
-4️⃣ /rozszerz <numer_klipu> <sekundy_wstecz> <sekundy_do_przodu> - wyświetla wybrany klip, wydłużony o wskazaną liczbę sekund. Np. /rozszerz 1 3 2. 
+4️⃣ `/rozszerz <numer_klipu> <sekundy_wstecz> <sekundy_do_przodu>` - Pokazuje wydłużony klip. \
+Przykład: `/rozszerz 1 3 2`.
 
-5️⃣ /kompiluj <numery_klipów> - tworzy kompilację z wybranych klipów. Np. /kompiluj 1,3,5. 
-   - Możesz także wybrać zakres: /kompiluj 1-5.
-   - Użycie /kompiluj wszystko wybierze wszystkie znalezione klipy.
+5️⃣ `/kompiluj <numery_klipów>` - Tworzy kompilację z wybranych klipów. \
+Przykłady: `/kompiluj 1,3,5` lub `/kompiluj 1-5` lub `/kompiluj wszystko`.
 
-🔍 Szczegóły użycia:
-- /szukaj poinformuje Cię, ile jest klipów odpowiadających zapytaniu. Możesz filtrować wyniki przez sezon lub sezon i numer odcinka.
-- /lista pokaże Ci skróconą lub pełną listę znalezionych klipów, w zależności od wybranej opcji.
-- /rozszerz pozwala na dokładniejsze zobaczenie klipu, dodając sekundy przed i po. Działa zarówno po użyciu /klip, jak i /szukaj.
-- /kompiluj umożliwia stworzenie kompilacji z wybranych klipów. Możesz wybrać pojedyncze klipy, zakres lub wszystkie.
+🔎 *Szczegóły*:
+- `/szukaj` informuje o liczbie pasujących klipów.
+- `/lista` pokazuje klipy z opcją skróconej lub pełnej listy.
+- `/rozszerz` pozwala dokładniej zobaczyć klip, dodając sekundy przed i po.
+- `/kompiluj` umożliwia stworzenie kompilacji z wybranych klipów.
 
-💡 Przykład rozszerzenia klipu:
-Jeśli chcesz zobaczyć klip nr 2 z dodatkowymi 2 sekundami przed i 3 sekundami po, wpisz /rozszerz 2 2 3.
+💡 *Przykład rozszerzenia*:
+Aby zobaczyć klip nr 2 z dodatkowymi 2s przed i 3s po, wpisz: `/rozszerz 2 2 3`.
 
-⏳ Pamiętaj, że każdy klip można maksymalnie wydłużyć o 10 sekund łącznie, po 5 sekund z każdej strony.
+⏳ Pamiętaj o limicie wydłużenia klipu o 10 sekund łącznie, maksymalnie 5 sekund z każdej strony.
 """
-    bot.reply_to(message, welcome_message)
+    bot.reply_to(message, welcome_message, parse_mode='Markdown')
 
 # Czyszczenie cache
 clear_cache_by_age_and_limit(90, 20000)
