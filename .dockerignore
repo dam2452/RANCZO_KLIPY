@@ -9,3 +9,10 @@
 *.log
 /DataModify
 /cache
+/cache
+/__pycache__
+*.mp4
+/__pycache__
+*.cutree
+/__pycache__
+/__pycache__
