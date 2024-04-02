@@ -2,3 +2,5 @@ elasticsearch
 moviepy
 telebot
 python-dotenv
+cachetools
+urllib3
