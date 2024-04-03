@@ -53,17 +53,16 @@ def handle_clip_request(message):
         segment = segments[0]
         last_selected_segment[chat_id] = segment  # Zapisanie segmentu
         logger.info(f"Found segment: {segment}")
-        send_clip_to_telegram(message.chat.id, segment['video_path'], segment['start'], segment['end'])
+        video_path = segment.get('video_path', 'Unknown')  # Provide a default value
+        if video_path == 'Unknown':
+            bot.reply_to(message, "Video path not found for the selected segment.")
+            return
+        send_clip_to_telegram(message.chat.id, video_path, segment['start'], segment['end'])
     else:
         logger.info(f"No segment found for quote: '{quote}'")
         bot.reply_to(message, "No segment found for the given quote.")
 @bot.message_handler(commands=['szukaj'])
 def search_quotes(message):
-    """Searches for video segments matching a given quote from a Telegram message.
-
-    Parses the message to extract a quote and optional season and episode filters. Searches for segments
-    matching the quote and filters. Replies with the found segments or a message indicating none were found.
-    """
     chat_id = message.chat.id
     content = message.text.split()
     if len(content) < 2:
@@ -79,20 +78,18 @@ def search_quotes(message):
         bot.reply_to(message, "Nie znaleziono pasujących segmentów.")
         return
 
-    # Update last_search_quotes with the current user's chat ID and quote
     last_search_quotes[chat_id] = segments
 
-
     response = f"Znaleziono {len(segments)} pasujących segmentów:\n"
-    for i, segment in enumerate(segments[:5], start=1):  # Ograniczenie do pierwszych 5 wyników
-        # Przeliczanie na podstawie ogólnego numeru odcinka
-        total_episode_number = segment['episode_info']['episode_number']
-        season_number = (total_episode_number - 1) // 13 + 1  # Obliczanie numeru sezonu
-        episode_number_in_season = (total_episode_number - 1) % 13 + 1  # Obliczanie numeru odcinka w sezonie
+    for i, segment in enumerate(segments[:5], start=1):
+        episode_info = segment.get('episode_info', {})
+        total_episode_number = episode_info.get('episode_number', 'Unknown')  # Provide a default value
+        season_number = (total_episode_number - 1) // 13 + 1 if total_episode_number != 'Unknown' else 'Unknown'
+        episode_number_in_season = (total_episode_number - 1) % 13 + 1 if total_episode_number != 'Unknown' else 'Unknown'
 
         season = str(season_number).zfill(2)
         episode_number = str(episode_number_in_season).zfill(2)
-        episode_title = segment['episode_info']['title']
+        episode_title = episode_info.get('title', 'Unknown')
         start_time = int(segment['start'])
         minutes, seconds = divmod(start_time, 60)
         time_formatted = f"{minutes:02}:{seconds:02}"
@@ -123,13 +120,14 @@ def list_all_quotes(message):
 
     response = f"Znaleziono {len(segments)} pasujących segmentów:\n"
     for i, segment in enumerate(segments, start=1):
-        total_episode_number = segment['episode_info']['episode_number']
-        season_number = (total_episode_number - 1) // 13 + 1  # Przykładowe obliczenie numeru sezonu
-        episode_number_in_season = (total_episode_number - 1) % 13 + 1  # Przykładowe obliczenie numeru odcinka w sezonie
+        episode_info = segment.get('episode_info', {})
+        total_episode_number = episode_info.get('episode_number', 'Unknown')  # Provide a default value
+        season_number = (total_episode_number - 1) // 13 + 1 if total_episode_number != 'Unknown' else 'Unknown'
+        episode_number_in_season = (total_episode_number - 1) % 13 + 1 if total_episode_number != 'Unknown' else 'Unknown'
 
         season = str(season_number).zfill(2)
         episode_number = str(episode_number_in_season).zfill(2)
-        episode_title = segment['episode_info']['title']
+        episode_title = episode_info.get('title', 'Unknown')
         start_time = int(segment['start'])
         minutes, seconds = divmod(start_time, 60)
         time_formatted = f"{minutes:02}:{seconds:02}"
@@ -190,7 +188,11 @@ def select_quote(message):
     last_selected_segment[chat_id] = segment
 
     # Wysyłka wybranego klipu do użytkownika
-    send_clip_to_telegram(chat_id, segment['video_path'], segment['start'], segment['end'])
+    video_path = segment.get('video_path', 'Unknown')  # Provide a default value
+    if video_path == 'Unknown':
+        bot.reply_to(message, "Video path not found for the selected segment.")
+        return
+    send_clip_to_telegram(chat_id, video_path, segment['start'], segment['end'])
 @bot.message_handler(commands=['rozszerz'])
 def expand_clip(message):
     """
@@ -302,6 +304,7 @@ clear_cache_by_age_and_limit(90, 20000)
 
 if __name__ == "__main__":
     logger.info("Bot started")
+    clear_cache_by_age_and_limit(0, 0)
     try:
         bot.infinity_polling(interval=0, timeout=25)
     except Exception as e:

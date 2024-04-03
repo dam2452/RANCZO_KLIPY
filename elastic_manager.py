@@ -42,61 +42,62 @@ def connect_to_elasticsearch():
         logger.error(f"Connection to Elasticsearch failed: {e}")
         return None
 
+
 def delete_all_indices(es):
-    """
-    Deletes all indices in Elasticsearch.
-    """
     try:
-        if not es.ping():
-            logger.error("Failed to connect to Elasticsearch.")
+        # Pobieranie listy wszystkich indeksów
+        all_indices = es.indices.get_alias(name="*")
+        if not all_indices:
+            logger.info("No indices to delete.")
             return
 
-        all_indices = es.indices.get_alias("*")
         for index in all_indices:
+            # Usuwanie każdego indeksu
             es.indices.delete(index=index)
             logger.info(f"Deleted index: {index}")
         logger.info("All indices have been deleted.")
     except Exception as e:
         logger.error(f"Error deleting indices: {e}")
 
-def index_transcriptions(base_path="RANCZO-TRANSKRYPCJE", es=None):
-    """
-    Indexes transcriptions into Elasticsearch.
-    """
-    if es is None:
-        es = connect_to_elasticsearch()
-        if es is None:
-            return
 
-    base_path = os.path.join(os.getcwd(), base_path)
+def index_transcriptions(base_path, es):
+    logger.info(f"Starting to index transcriptions from base path: {base_path}")
     actions = []
-    for season_dir in os.listdir(base_path):
+    for season_dir in sorted(os.listdir(base_path)):
         season_path = os.path.join(base_path, season_dir)
-        if os.path.isdir(season_path):
-            for episode_file in os.listdir(season_path):
-                if episode_file.endswith(".json"):
-                    episode_video_path = os.path.join("RANCZO-WIDEO", season_dir, episode_file.replace(".json", ".mp4"))
-                    file_path = os.path.join(season_path, episode_file)
-                    logger.info(f"Indexing transcription from: {file_path}")
-                    with open(file_path, 'r', encoding='utf-8') as file:
-                        transcription = json.load(file)
-                        episode_info = transcription.get("episode_info", {})
-                        for segment in transcription.get("segments", []):
-                            segment["video_path"] = episode_video_path
-                            segment["episode_info"] = episode_info
-                            actions.append({
-                                "_index": "ranczo-transcriptions",
-                                "_source": segment
-                            })
+        if not os.path.isdir(season_path):
+            logger.warning(f"Skipping non-directory: {season_path}")
+            continue
+        logger.info(f"Processing season directory: {season_path}")
+        for episode_file in sorted(os.listdir(season_path)):
+            if not episode_file.endswith('.json'):
+                logger.warning(f"Skipping non-JSON file: {episode_file}")
+                continue
+            file_path = os.path.join(season_path, episode_file)
+            logger.info(f"Processing file: {file_path}")
+            with open(file_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                episode_info = data.get('episode_info', {})
+                # Dodajemy 'video_path' do każdego segmentu
+                video_path = f"RANCZO-WIDEO\\{season_dir}\\{episode_file.replace('.json', '.mp4')}"
+                for segment in data.get('segments', []):
+                    segment['episode_info'] = episode_info
+                    segment['video_path'] = video_path  # Tutaj dodajemy ścieżkę
+                    actions.append({
+                        "_index": "ranczo-transcriptions",
+                        "_source": segment
+                    })
+
     if actions:
-        logger.info("Bulk indexing transcriptions...")
+        logger.info(f"Indexing {len(actions)} segments.")
         helpers.bulk(es, actions)
-        logger.info("Transcriptions indexed successfully.")
+        logger.info("Data indexed successfully.")
     else:
-        logger.info("No transcriptions found to index.")
+        logger.info("No data to index.")
+
 
 if __name__ == "__main__":
     es_client = connect_to_elasticsearch()
     if es_client:
-        delete_all_indices(es_client)
+     #delete_all_indices(es_client)
         index_transcriptions(base_path="RANCZO-TRANSKRYPCJE", es=es_client)
