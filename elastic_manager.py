@@ -78,8 +78,9 @@ def index_transcriptions(base_path, es):
             with open(file_path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
                 episode_info = data.get('episode_info', {})
-                # Dodajemy 'video_path' do każdego segmentu
-                video_path = f"RANCZO-WIDEO\\{season_dir}\\{episode_file.replace('.json', '.mp4')}"
+                # Poprawienie 'video_path' na format zgodny z systemem Linux
+                video_path = os.path.join("RANCZO-WIDEO", season_dir, episode_file.replace('.json', '.mp4'))
+                video_path = video_path.replace("\\", os.path.sep)  # Zapewnienie poprawnych separatorów
                 for segment in data.get('segments', []):
                     segment['episode_info'] = episode_info
                     segment['video_path'] = video_path  # Tutaj dodajemy ścieżkę

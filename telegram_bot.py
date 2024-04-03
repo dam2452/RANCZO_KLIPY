@@ -299,12 +299,12 @@ Aby zobaczyć klip nr 2 z dodatkowymi 2s przed i 3s po, wpisz: `/rozszerz 2 2 3`
 """
     bot.reply_to(message, welcome_message, parse_mode='Markdown')
 
-# Czyszczenie cache
-clear_cache_by_age_and_limit(90, 20000)
+
 
 if __name__ == "__main__":
     logger.info("Bot started")
-    clear_cache_by_age_and_limit(0, 0)
+    # Czyszczenie cache
+    clear_cache_by_age_and_limit(90, 20000)
     try:
         bot.infinity_polling(interval=0, timeout=25)
     except Exception as e:
