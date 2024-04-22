@@ -22,6 +22,53 @@ logger = logging.getLogger(__name__)
 last_selected_segment = {}
 last_search_quotes = {}
 
+WHITELIST_PATH = os.getenv("WHITELIST_PATH")
+# Load whitelist of authorized usernames
+WHITELIST = [x.strip() for x in open(WHITELIST_PATH).readlines()]
+
+ADMINS_PATH = os.getenv("ADMINS_PATH")
+
+def load_admins():
+    """Load admin usernames from a file specified in the ADMINS_PATH environment variable."""
+    with open(ADMINS_PATH, 'r') as file:
+        return [line.strip() for line in file.readlines()]
+
+def is_admin(message: telebot.types.Message) -> bool:
+    """Check if the user is an admin."""
+    admins = load_admins()
+    return message.from_user.username in admins
+
+@bot.message_handler(commands=['addwhitelist', 'removewhitelist'])
+def manage_whitelist(message):
+    if not is_admin(message):
+        bot.reply_to(message, "Nie masz uprawnień do zarządzania whitelistą.")
+        return
+
+    command, *username = message.text.split()
+    username = ' '.join(username).strip()
+
+    if command == '/addwhitelist':
+        if username and username not in WHITELIST:
+            WHITELIST.append(username)
+            with open(WHITELIST_PATH, 'a') as file:
+                file.write(f"{username}\n")
+            bot.reply_to(message, f"Dodano {username} do whitelisty.")
+        else:
+            bot.reply_to(message, "Podano nieprawidłową nazwę użytkownika lub jest już na liście.")
+
+    elif command == '/removewhitelist':
+        if username in WHITELIST:
+            WHITELIST.remove(username)
+            with open(WHITELIST_PATH, 'w') as file:
+                file.writelines(f"{user}\n" for user in WHITELIST)
+            bot.reply_to(message, f"Usunięto {username} z whitelisty.")
+        else:
+            bot.reply_to(message, "Użytkownik nie znajduje się na liście.")
+
+def is_authorized(message: telebot.types.Message) -> bool:
+    """Check if the user is authorized based on their username."""
+    return message.from_user.username in WHITELIST
+
 def send_clip_to_telegram(chat_id, video_path, start_time, end_time):
     """
     Retrieve the cached clip and send it to the Telegram user.
@@ -41,6 +88,13 @@ def handle_clip_request(message):
     corresponding to the quote. If found, sends the clip to the chat; otherwise, notifies the user that
     no segment was found.
     """
+
+    """Handle image requests only for authorized users."""
+    if not is_authorized(message):
+        bot.reply_to(message, "pizgnął cię kto kiedy?")
+        return  # Zakończenie funkcji, jeśli użytkownik nie jest autoryzowany
+
+
     chat_id = message.chat.id
     quote = message.text[len('/klip '):].strip()  # Remove '/klip ' and leading/trailing whitespace
     if not quote:
@@ -63,6 +117,13 @@ def handle_clip_request(message):
         bot.reply_to(message, "No segment found for the given quote.")
 @bot.message_handler(commands=['szukaj'])
 def search_quotes(message):
+
+    """Handle image requests only for authorized users."""
+    if not is_authorized(message):
+        bot.reply_to(message, "pizgnął cię kto kiedy?")
+        return  # Zakończenie funkcji, jeśli użytkownik nie jest autoryzowany
+
+
     chat_id = message.chat.id
     content = message.text.split()
     if len(content) < 2:
@@ -107,6 +168,13 @@ def list_all_quotes(message):
     If segments were found, it formats a detailed message with the segments' information and sends
     it as a document to the user.
     """
+
+
+    """Handle image requests only for authorized users."""
+    if not is_authorized(message):
+        bot.reply_to(message, "pizgnął cię kto kiedy?")
+        return  # Zakończenie funkcji, jeśli użytkownik nie jest autoryzowany
+
     chat_id = message.chat.id
     if chat_id not in last_search_quotes:
         bot.reply_to(message, "Najpierw wykonaj wyszukiwanie za pomocą /szukaj.")
@@ -155,6 +223,13 @@ def select_quote(message):
     verifies if the user provided a valid segment number. Finally, it sends the selected
     video clip to the user.
     """
+
+    """Handle image requests only for authorized users."""
+    if not is_authorized(message):
+        bot.reply_to(message, "pizgnął cię kto kiedy?")
+        return  # Zakończenie funkcji, jeśli użytkownik nie jest autoryzowany
+
+
     chat_id = message.chat.id
     # Sprawdź, czy dla tego chat_id wykonano już jakieś wyszukiwanie
     if chat_id not in last_search_quotes:
@@ -202,6 +277,12 @@ def expand_clip(message):
     first checks if the necessary parameters are provided and validates them. Then, it checks if there's
     a previously selected segment to expand. If all conditions are met, it sends the expanded clip to the user.
     """
+
+    """Handle image requests only for authorized users."""
+    if not is_authorized(message):
+        bot.reply_to(message, "pizgnął cię kto kiedy?")
+        return  # Zakończenie funkcji, jeśli użytkownik nie jest autoryzowany
+
     chat_id = message.chat.id
     content = message.text.split()
     # Sprawdzenie, czy podano odpowiednią ilość argumentów
@@ -235,6 +316,12 @@ def compile_clips(message):
     to ensure there are segments to compile. Then, based on the user's input, it selects the appropriate
     segments and compiles them into one video clip.
     """
+
+    """Handle image requests only for authorized users."""
+    if not is_authorized(message):
+        bot.reply_to(message, "pizgnął cię kto kiedy?")
+        return  # Zakończenie funkcji, jeśli użytkownik nie jest autoryzowany
+
     chat_id = message.chat.id
     content = message.text.split()
 
@@ -267,6 +354,12 @@ def compile_clips(message):
     compile_clips_into_one(selected_segments, chat_id, bot)
 @bot.message_handler(commands=['start'])
 def handle_start(message):
+
+    """Handle image requests only for authorized users."""
+    if not is_authorized(message):
+        bot.reply_to(message, "pizgnął cię kto kiedy?")
+        return  # Zakończenie funkcji, jeśli użytkownik nie jest autoryzowany
+
     welcome_message = """
 🐐 *Witaj w RanczoKlipy!* 🐐
 Znajdź klipy z Twoich ulubionych momentów w prosty sposób. Oto, co możesz zrobić:
