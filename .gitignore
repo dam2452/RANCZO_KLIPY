@@ -19,3 +19,6 @@
 *.pyc
 /__pycache__
 *.pyc
+*.zip
+/__pycache__
+*.pyc

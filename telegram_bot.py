@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 import telebot
 
 from cache import get_cached_clip_path, clear_cache_by_age_and_limit
-from search import find_segment_by_quote
+from search_transcriptions import find_segment_by_quote
 from cache import get_cached_clip_path, clear_cache_by_age_and_limit, compile_clips_into_one  # Dodaj import
 
 

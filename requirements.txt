@@ -2,11 +2,8 @@ ffmpeg-python
 elasticsearch
 urllib3
 python-dotenv
+telebot
+requests
 
 
-
-
-#moviepy
-#telebot
-#cachetools
-#cachetools
+Retry
