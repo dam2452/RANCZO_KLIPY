@@ -1,5 +1,5 @@
 # Użyj najnowszego oficjalnego obrazu Pythona jako obrazu bazowego
-FROM python:3.10-slim
+FROM python:3.12-slim
 
 # Ustaw katalog roboczy w kontenerze
 WORKDIR /app

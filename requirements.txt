@@ -1,6 +1,12 @@
+ffmpeg-python
 elasticsearch
-moviepy
-telebot
-python-dotenv
-cachetools
 urllib3
+python-dotenv
+
+
+
+
+#moviepy
+#telebot
+#cachetools
+#cachetools

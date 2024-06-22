@@ -1,14 +1,10 @@
-# Standard library imports
 import logging
-# Third-party imports
-from cachetools.func import ttl_cache
-# Local application imports
 from elastic_manager import connect_to_elasticsearch
 
 # Configure logging
 logger = logging.getLogger(__name__)
 
-@ttl_cache(maxsize=1024, ttl=300)
+
 def find_segment_by_quote(quote, season_filter=None, episode_filter=None, index='ranczo-transcriptions', return_all=False):
     logger.info(f"Searching for quote: '{quote}' with filters - Season: {season_filter}, Episode: {episode_filter}")
     es = connect_to_elasticsearch()
