@@ -2,7 +2,6 @@ from telebot import TeleBot
 from ..utils.db import is_user_authorized
 
 def register_start_handlers(bot: TeleBot):
-
     @bot.message_handler(commands=['start'])
     def handle_start(message):
         if not is_user_authorized(message.from_user.username):
@@ -10,33 +9,43 @@ def register_start_handlers(bot: TeleBot):
             return
 
         welcome_message = """
-🐐 *Witaj w RanczoKlipy!* 🐐
-Znajdź klipy z Twoich ulubionych momentów w prosty sposób. Oto, co możesz zrobić:
+    🐐 *Witaj w RanczoKlipy!* 🐐
+    Znajdź klipy z Twoich ulubionych momentów w prosty sposób. Oto, co możesz zrobić:
 
-1️⃣ `/klip <cytat>` - Wyszukuje klip na podstawie cytatu. 
-Przykład: `/klip geniusz`.
-🔄 *Rozszerzenie wyniku*: `/rozszerz 1 1 2` (1s przed, 2s po).
+1️⃣ *Wyszukiwanie klipu na podstawie cytatu*:
+    `/klip <cytat>` - Wyszukuje klip na podstawie cytatu. 
+    Przykład: `/klip geniusz`.
+    🔄 *Rozszerzenie wyniku*: `/rozszerz 1 3 2` (3s przed, 2s po).
 
-2️⃣ `/szukaj <cytat>` - Znajduje klipy pasujące do cytatu. 
-Przykład: `/szukaj kozioł`.
+2️⃣ *Znajdowanie klipów pasujących do cytatu*:
+    `/szukaj <cytat>` - Znajduje klipy pasujące do cytatu. 
+    Przykład: `/szukaj kozioł`.
 
-3️⃣ `/lista` - Wyświetla listę klipów z informacjami: sezon, odcinek, data wydania.
+3️⃣ *Wyświetlanie listy klipów*:
+    `/lista` - Wyświetla listę klipów z informacjami: sezon, odcinek, data wydania.
 
-4️⃣ `/rozszerz <numer_klipu> <sekundy_wstecz> <sekundy_do_przodu>` - Pokazuje wydłużony klip. 
-Przykład: `/rozszerz 1 3 2`.
+4️⃣ *Pokazywanie wydłużonego klipu*:
+    `/rozszerz <numer_klipu> <sekundy_wstecz> <sekundy_do_przodu>` - Pokazuje wydłużony klip na podstawie numeru klipu. 
+    Przykład: `/rozszerz 1 3 2`.
+    🔄 Możesz także użyć dwóch parametrów, aby wydłużyć ostatnio wybrany klip:
+    `/rozszerz <sekundy_wstecz> <sekundy_do_przodu>` - Przykład: `/rozszerz 3 5`.
 
-5️⃣ `/kompiluj <numery_klipów>` - Tworzy kompilację z wybranych klipów. 
-Przykłady: `/kompiluj 1,3,5` lub `/kompiluj 1-5` lub `/kompiluj wszystko`.
+5️⃣ *Tworzenie kompilacji z wybranych klipów*:
+    `/kompiluj <numery_klipów>` - Tworzy kompilację z wybranych klipów. 
+    Przykłady: `/kompiluj 1,3,5` lub `/kompiluj 1-5` lub `/kompiluj wszystko`.
 
-🔎 *Szczegóły*:
-- `/szukaj` informuje o liczbie pasujących klipów.
-- `/lista` pokazuje klipy z opcją skróconej lub pełnej listy.
-- `/rozszerz` pozwala dokładniej zobaczyć klip, dodając sekundy przed i po.
-- `/kompiluj` umożliwia stworzenie kompilacji z wybranych klipów.
+    🔎 *Szczegóły*:
+    - `/szukaj` informuje o liczbie pasujących klipów.
+    - `/lista` pokazuje klipy z opcją skróconej lub pełnej listy.
+    - `/rozszerz` pozwala dokładniej zobaczyć klip, dodając sekundy przed i po.
+    - `/kompiluj` umożliwia stworzenie kompilacji z wybranych klipów.
 
-💡 *Przykład rozszerzenia*:
-Aby zobaczyć klip nr 2 z dodatkowymi 2s przed i 3s po, wpisz: `/rozszerz 2 2 3`.
+    💡 *Przykład rozszerzenia*:
+    Aby zobaczyć klip nr 2 z dodatkowymi 2s przed i 3s po, wpisz: `/rozszerz 2 2 3`.
+    Aby zobaczyć ostatnio wybrany klip z dodatkowymi 3s przed i 5s po, wpisz: `/rozszerz 3 5`.
 
-⏳ Pamiętaj o limicie wydłużenia klipu o 20 sekund łącznie.
-"""
+    ⏳ Pamiętaj o limicie wydłużenia klipu o 20 sekund łącznie dla użytkowników bez specjalnych uprawnień.
+    """
         bot.reply_to(message, welcome_message, parse_mode='Markdown')
+
+
