@@ -1,5 +1,5 @@
 import logging
-from elastic_manager import connect_to_elasticsearch
+from .elastic_manager import connect_to_elasticsearch
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

@@ -3,7 +3,7 @@ import os
 import logging
 from telebot import TeleBot
 from ..utils.db import is_user_authorized
-from search_transcriptions import find_segment_by_quote
+from ..search_transcriptions import find_segment_by_quote
 
 logger = logging.getLogger(__name__)
 

@@ -20,8 +20,6 @@ def convert_time_to_seconds(time_str):
         return float(parts[0])
     else:
         raise ValueError(f"Invalid time format: {time_str}")
-
-
 def convert_seconds_to_time_str(seconds):
     """
     Converts time in seconds to HH:MM:SS.xxx format.
@@ -103,8 +101,6 @@ def compress_to_target_size(input_file, output_file, target_size_mb=49):
     except ffmpeg.Error as e:
         print(f"Error occurred during video compression: {e}")
         return False
-
-
 def extract_clip(episode_path, start_time, end_time, output):
     """
     Extracts a clip from a video file using ffmpeg.
@@ -159,6 +155,8 @@ def extract_clip(episode_path, start_time, end_time, output):
     finally:
         # Clean up the temporary file
         os.remove(temp_filename)
+
+# Example usage:
 #extract_clip(r"RANCZO-WIDEO/Sezon 10/Ranczo_S10E01.mp4", '00:01:23.456', '00:2:23.456', 'outputTEST2.mp4')
 #print(get_video_duration(r"RANCZO-WIDEO/Sezon 1/Ranczo_S01E01.mp4"))
 #compress_to_target_size(r"outputTEST.mp4", 'outputTESTpokomprsjiDO49_defaultAUDIO.mp4', 49)

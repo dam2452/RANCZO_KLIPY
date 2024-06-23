@@ -1,7 +1,7 @@
 import logging
 import os
 from telebot import TeleBot
-from search_transcriptions import find_segment_by_quote
+from ..search_transcriptions import find_segment_by_quote
 from ..utils.db import is_user_authorized
 from ..utils.helpers import send_clip_to_telegram
 

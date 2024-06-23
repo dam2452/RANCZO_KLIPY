@@ -5,7 +5,7 @@ from bot.config import TELEGRAM_BOT_TOKEN
 from bot.handlers.admin import register_admin_handlers
 from bot.handlers.clip import register_clip_handlers
 from bot.handlers.search import register_search_handlers
-from bot.utils.db import init_db, sync_admins_from_file, sync_vips_from_file
+from bot.utils.db import init_db, set_default_admin
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -15,8 +15,9 @@ bot = TeleBot(TELEGRAM_BOT_TOKEN)
 
 # Initialize the database
 init_db()
-sync_admins_from_file(os.getenv("ADMINS_PATH", "./admins.txt"))
-sync_vips_from_file(os.getenv("WHITELIST_PATH", "./whitelist.txt"))
+set_default_admin(os.getenv("DEFAULT_ADMIN"))
+# sync_admins_from_file(os.getenv("ADMINS_PATH", "./admins.txt"))
+# sync_vips_from_file(os.getenv("WHITELIST_PATH", "./whitelist.txt"))
 
 # Register handlers
 register_admin_handlers(bot)
@@ -25,12 +26,7 @@ register_search_handlers(bot)
 
 if __name__ == "__main__":
     logger.info("Bot started")
-    # import os
-    #
-    # current_path = os.path.dirname(os.path.realpath(__file__))
-    # print(current_path)
-    # print(current_path)
-    # print(current_path)
+
     try:
         bot.infinity_polling(interval=0, timeout=25)
     except Exception as e:
