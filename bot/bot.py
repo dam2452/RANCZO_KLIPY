@@ -17,8 +17,6 @@ bot = TeleBot(TELEGRAM_BOT_TOKEN)
 # Initialize the database
 init_db()
 set_default_admin(os.getenv("DEFAULT_ADMIN"))
-# sync_admins_from_file(os.getenv("ADMINS_PATH", "./admins.txt"))
-# sync_vips_from_file(os.getenv("WHITELIST_PATH", "./whitelist.txt"))
 
 # Register handlers
 register_admin_handlers(bot)
@@ -28,7 +26,6 @@ register_start_handlers(bot)
 
 if __name__ == "__main__":
     logger.info("Bot started")
-
     try:
         bot.infinity_polling(interval=0, timeout=25)
     except Exception as e:

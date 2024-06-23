@@ -1,8 +1,9 @@
 import sqlite3
+from bot.config import USERS_DB
 
 
 def init_db():
-    conn = sqlite3.connect('whitelist.db')
+    conn = sqlite3.connect(USERS_DB)
     cursor = conn.cursor()
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS users (
@@ -20,7 +21,7 @@ def init_db():
 
 
 def add_user(username, is_admin=0, is_moderator=0, full_name=None, email=None, phone=None):
-    conn = sqlite3.connect('whitelist.db')
+    conn = sqlite3.connect(USERS_DB)
     cursor = conn.cursor()
     cursor.execute('''
         INSERT OR IGNORE INTO users (username, is_admin, is_moderator, full_name, email, phone)
@@ -31,7 +32,7 @@ def add_user(username, is_admin=0, is_moderator=0, full_name=None, email=None, p
 
 
 def update_user(username, is_admin=None, is_moderator=None, full_name=None, email=None, phone=None):
-    conn = sqlite3.connect('whitelist.db')
+    conn = sqlite3.connect(USERS_DB)
     cursor = conn.cursor()
     updates = []
     params = []
@@ -64,7 +65,7 @@ def update_user(username, is_admin=None, is_moderator=None, full_name=None, emai
 
 
 def remove_user(username):
-    conn = sqlite3.connect('whitelist.db')
+    conn = sqlite3.connect(USERS_DB)
     cursor = conn.cursor()
     cursor.execute('DELETE FROM users WHERE username = ?', (username,))
     conn.commit()
@@ -72,7 +73,7 @@ def remove_user(username):
 
 
 def get_all_users():
-    conn = sqlite3.connect('whitelist.db')
+    conn = sqlite3.connect(USERS_DB)
     cursor = conn.cursor()
     cursor.execute('SELECT username, is_admin, is_moderator, full_name, email, phone FROM users')
     users = cursor.fetchall()
@@ -81,7 +82,7 @@ def get_all_users():
 
 
 def get_admin_users():
-    conn = sqlite3.connect('whitelist.db')
+    conn = sqlite3.connect(USERS_DB)
     cursor = conn.cursor()
     cursor.execute('SELECT username, full_name, email, phone FROM users WHERE is_admin = 1')
     users = cursor.fetchall()
@@ -90,7 +91,7 @@ def get_admin_users():
 
 
 def get_moderator_users():
-    conn = sqlite3.connect('whitelist.db')
+    conn = sqlite3.connect(USERS_DB)
     cursor = conn.cursor()
     cursor.execute('SELECT username, full_name, email, phone FROM users WHERE is_moderator = 1')
     users = cursor.fetchall()
@@ -99,7 +100,7 @@ def get_moderator_users():
 
 
 def is_user_authorized(username):
-    conn = sqlite3.connect('whitelist.db')
+    conn = sqlite3.connect(USERS_DB)
     cursor = conn.cursor()
     cursor.execute('SELECT 1 FROM users WHERE username = ?', (username,))
     result = cursor.fetchone()
@@ -108,7 +109,7 @@ def is_user_authorized(username):
 
 
 def is_user_admin(username):
-    conn = sqlite3.connect('whitelist.db')
+    conn = sqlite3.connect(USERS_DB)
     cursor = conn.cursor()
     cursor.execute('SELECT is_admin FROM users WHERE username = ?', (username,))
     result = cursor.fetchone()
@@ -117,7 +118,7 @@ def is_user_admin(username):
 
 
 def is_user_moderator(username):
-    conn = sqlite3.connect('whitelist.db')
+    conn = sqlite3.connect(USERS_DB)
     cursor = conn.cursor()
     cursor.execute('SELECT is_moderator FROM users WHERE username = ?', (username,))
     result = cursor.fetchone()
@@ -125,7 +126,7 @@ def is_user_moderator(username):
     return result is not None and result[0] == 1
 
 def set_default_admin(default_admin):
-    conn = sqlite3.connect('whitelist.db')
+    conn = sqlite3.connect(USERS_DB)
     cursor = conn.cursor()
     cursor.execute('''
         INSERT OR IGNORE INTO users (username, is_admin)
