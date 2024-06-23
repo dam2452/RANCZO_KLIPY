@@ -1,18 +1,43 @@
 import ffmpeg
+import tempfile
+import os
 
 def convert_time_to_seconds(time_str):
     """
-    Converts time in HH:MM:SS.xxx format to seconds.
+    Convert a time string to seconds. Handles formats:
+    - HH:MM:SS
+    - MM:SS
+    - SS.xxx
+    """
+    parts = time_str.split(':')
+    if len(parts) == 3:  # HH:MM:SS
+        h, m, s = parts
+        return int(h) * 3600 + int(m) * 60 + float(s)
+    elif len(parts) == 2:  # MM:SS
+        m, s = parts
+        return int(m) * 60 + float(s)
+    elif len(parts) == 1:  # SS.xxx
+        return float(parts[0])
+    else:
+        raise ValueError(f"Invalid time format: {time_str}")
+
+
+def convert_seconds_to_time_str(seconds):
+    """
+    Converts time in seconds to HH:MM:SS.xxx format.
 
     Parameters:
-    - time_str (str): Time string in HH:MM:SS.xxx format.
+    - seconds (float): Time in seconds.
 
     Returns:
-    - float: Time in seconds.
+    - str: Time string in HH:MM:SS.xxx format.
     """
-    h, m, s = time_str.split(':')
-    s, ms = s.split('.')
-    return int(h) * 3600 + int(m) * 60 + int(s) + float(ms) / 1000
+    hours = int(seconds // 3600)
+    minutes = int((seconds % 3600) // 60)
+    seconds = int(seconds % 60)
+    milliseconds = int((seconds - int(seconds)) * 1000)
+
+    return f"{hours:02}:{minutes:02}:{seconds:02}.{milliseconds:03}"
 def get_video_duration(input_file):
     """
     Returns the duration of the video in HH:MM:SS.xxx format.
@@ -78,7 +103,9 @@ def compress_to_target_size(input_file, output_file, target_size_mb=49):
     except ffmpeg.Error as e:
         print(f"Error occurred during video compression: {e}")
         return False
-def extract_clip(episode_path, start_time, end_time, output_path):
+
+
+def extract_clip(episode_path, start_time, end_time, output):
     """
     Extracts a clip from a video file using ffmpeg.
 
@@ -90,7 +117,7 @@ def extract_clip(episode_path, start_time, end_time, output_path):
     - episode_path (str): Path to the video file.
     - start_time (str): The start time of the clip in HH:MM:SS.xxx format.
     - end_time (str): The end time of the clip in HH:MM:SS.xxx format.
-    - output_path (str): The path to save the extracted clip.
+    - output (io.BytesIO): The io.BytesIO object to save the extracted clip.
     """
     # Convert start and end times to seconds
     start_time_seconds = convert_time_to_seconds(start_time)
@@ -103,22 +130,36 @@ def extract_clip(episode_path, start_time, end_time, output_path):
     # Calculate the duration
     duration = adjusted_end_time - adjusted_start_time
 
-    # Use ffmpeg to extract and copy the clip without re-encoding
+    # Log the details for debugging
+    print(f"Extracting clip from: {episode_path}")
+    print(f"Start time (seconds): {start_time_seconds}, Adjusted start time: {adjusted_start_time}")
+    print(f"End time (seconds): {end_time_seconds}, Adjusted end time: {adjusted_end_time}")
+    print(f"Duration: {duration}")
+
+    # Use a temporary file for the extraction
+    with tempfile.NamedTemporaryFile(delete=False, dir=os.path.expanduser('~')) as temp_file:
+        temp_filename = temp_file.name
+
     try:
         (
             ffmpeg
             .input(episode_path, ss=adjusted_start_time, t=duration)
-            .output(output_path,
-                    c='copy',
-                    movflags='+faststart',
-                    fflags='+genpts',
-                    loglevel='error')
+            .output(temp_filename, format='mp4', c='copy', movflags='+faststart', fflags='+genpts')
             .run(overwrite_output=True)
         )
-    except ffmpeg.Error as e:
-        print(f"Error occurred during clip extraction: {e}")
 
+        # Read the content of the temporary file into the output buffer
+        with open(temp_filename, 'rb') as f:
+            output.write(f.read())
+
+    except ffmpeg.Error as e:
+        error_output = e.stderr.decode() if e.stderr else str(e)
+        print(f"Error occurred during clip extraction: {error_output}")
+
+    finally:
+        # Clean up the temporary file
+        os.remove(temp_filename)
 #extract_clip(r"RANCZO-WIDEO/Sezon 10/Ranczo_S10E01.mp4", '00:01:23.456', '00:2:23.456', 'outputTEST2.mp4')
 #print(get_video_duration(r"RANCZO-WIDEO/Sezon 1/Ranczo_S01E01.mp4"))
 #compress_to_target_size(r"outputTEST.mp4", 'outputTESTpokomprsjiDO49_defaultAUDIO.mp4', 49)
-extract_clip(r"Ranczo_S10E01_TEST_JAKOs_BOTAcq28.mp4", '00:01:23.456', '00:2:23.456', 'outputTEST28888.mp4')
+# extract_clip(r"Ranczo_S10E01_TEST_JAKOs_BOTAcq28.mp4", '00:01:23.456', '00:2:23.456', 'outputTEST28888.mp4')

@@ -25,6 +25,12 @@ register_search_handlers(bot)
 
 if __name__ == "__main__":
     logger.info("Bot started")
+    # import os
+    #
+    # current_path = os.path.dirname(os.path.realpath(__file__))
+    # print(current_path)
+    # print(current_path)
+    # print(current_path)
     try:
         bot.infinity_polling(interval=0, timeout=25)
     except Exception as e:
