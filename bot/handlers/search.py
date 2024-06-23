@@ -59,8 +59,7 @@ def register_search_handlers(bot: TeleBot):
             episode_info = segment.get('episode_info', {})
             total_episode_number = episode_info.get('episode_number', 'Unknown')
             season_number = (total_episode_number - 1) // 13 + 1 if isinstance(total_episode_number, int) else 'Unknown'
-            episode_number_in_season = (total_episode_number - 1) % 13 + 1 if isinstance(total_episode_number,
-                                                                                         int) else 'Unknown'
+            episode_number_in_season = (total_episode_number - 1) % 13 + 1 if isinstance(total_episode_number, int) else 'Unknown'
 
             season = str(season_number).zfill(2)
             episode_number = str(episode_number_in_season).zfill(2)
@@ -118,8 +117,7 @@ def register_search_handlers(bot: TeleBot):
             episode_info = segment.get('episode_info', {})
             total_episode_number = episode_info.get('episode_number', 'Unknown')
             season_number = (total_episode_number - 1) // 13 + 1 if isinstance(total_episode_number, int) else 'Unknown'
-            episode_number_in_season = (total_episode_number - 1) % 13 + 1 if isinstance(total_episode_number,
-                                                                                         int) else 'Unknown'
+            episode_number_in_season = (total_episode_number - 1) % 13 + 1 if isinstance(total_episode_number, int) else 'Unknown'
 
             season = str(season_number).zfill(2)
             episode_number = str(episode_number_in_season).zfill(2)
@@ -132,8 +130,7 @@ def register_search_handlers(bot: TeleBot):
             line = [i, episode_formatted, episode_title, time_formatted]
             segment_lines.append(line)
 
-        table = tabulate(segment_lines, headers=["#", "Odcinek", "Tytuł", "Czas"], tablefmt="pipe",
-                         colalign=("left", "center", "left", "right"))
+        table = tabulate(segment_lines, headers=["#", "Odcinek", "Tytuł", "Czas"], tablefmt="pipe", colalign=("left", "center", "left", "right"))
         response += f"{table}\n"
 
         temp_dir = tempfile.gettempdir()
@@ -143,7 +140,6 @@ def register_search_handlers(bot: TeleBot):
 
         try:
             with open(file_name, 'rb') as file:
-                bot.send_document(chat_id, file, caption="Znalezione segmenty",
-                                  visible_file_name="Ranczo_Klipy_Results.txt")
+                bot.send_document(chat_id, file, caption="Znalezione segmenty", visible_file_name="Ranczo_Klipy_Results.txt")
         finally:
             os.remove(file_name)
