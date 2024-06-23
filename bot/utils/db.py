@@ -1,7 +1,6 @@
 import sqlite3
 from bot.config import USERS_DB
 
-
 def init_db():
     conn = sqlite3.connect(USERS_DB)
     cursor = conn.cursor()
@@ -19,7 +18,6 @@ def init_db():
     conn.commit()
     conn.close()
 
-
 def add_user(username, is_admin=0, is_moderator=0, full_name=None, email=None, phone=None):
     conn = sqlite3.connect(USERS_DB)
     cursor = conn.cursor()
@@ -29,7 +27,6 @@ def add_user(username, is_admin=0, is_moderator=0, full_name=None, email=None, p
     ''', (username, is_admin, is_moderator, full_name, email, phone))
     conn.commit()
     conn.close()
-
 
 def update_user(username, is_admin=None, is_moderator=None, full_name=None, email=None, phone=None):
     conn = sqlite3.connect(USERS_DB)
@@ -63,14 +60,12 @@ def update_user(username, is_admin=None, is_moderator=None, full_name=None, emai
     conn.commit()
     conn.close()
 
-
 def remove_user(username):
     conn = sqlite3.connect(USERS_DB)
     cursor = conn.cursor()
     cursor.execute('DELETE FROM users WHERE username = ?', (username,))
     conn.commit()
     conn.close()
-
 
 def get_all_users():
     conn = sqlite3.connect(USERS_DB)
@@ -80,7 +75,6 @@ def get_all_users():
     conn.close()
     return users
 
-
 def get_admin_users():
     conn = sqlite3.connect(USERS_DB)
     cursor = conn.cursor()
@@ -88,7 +82,6 @@ def get_admin_users():
     users = cursor.fetchall()
     conn.close()
     return users
-
 
 def get_moderator_users():
     conn = sqlite3.connect(USERS_DB)
@@ -98,7 +91,6 @@ def get_moderator_users():
     conn.close()
     return users
 
-
 def is_user_authorized(username):
     conn = sqlite3.connect(USERS_DB)
     cursor = conn.cursor()
@@ -107,7 +99,6 @@ def is_user_authorized(username):
     conn.close()
     return result is not None
 
-
 def is_user_admin(username):
     conn = sqlite3.connect(USERS_DB)
     cursor = conn.cursor()
@@ -115,7 +106,6 @@ def is_user_admin(username):
     result = cursor.fetchone()
     conn.close()
     return result is not None and result[0] == 1
-
 
 def is_user_moderator(username):
     conn = sqlite3.connect(USERS_DB)
