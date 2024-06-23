@@ -32,14 +32,32 @@ def register_search_handlers(bot: TeleBot):
             bot.reply_to(message, "Nie znaleziono pasujących segmentów.")
             return
 
-        last_search_quotes[chat_id] = segments
+        unique_segments = {}
+        for segment in segments:
+            episode_info = segment.get('episode_info', {})
+            title = episode_info.get('title', 'Unknown')
+            season = episode_info.get('season', 'Unknown')
+            episode_number = episode_info.get('episode_number', 'Unknown')
+            start_time = segment.get('start', 'Unknown')
 
-        response = f"Znaleziono {len(segments)} pasujących segmentów:\n"
-        for i, segment in enumerate(segments[:5], start=1):
+            if season == 'Unknown' or episode_number == 'Unknown':
+                continue  # Skip segments with unknown season or episode number
+
+            unique_key = f"{title}-{season}-{episode_number}-{start_time}"
+
+            if unique_key not in unique_segments:
+                unique_segments[unique_key] = segment
+
+        last_search_quotes[chat_id] = list(unique_segments.values())
+
+        response = f"🔍 Znaleziono {len(unique_segments)} pasujących segmentów:\n\n"
+        for i, (unique_key, segment) in enumerate(unique_segments.items(), start=1):
+            if i > 5:
+                break
             episode_info = segment.get('episode_info', {})
             total_episode_number = episode_info.get('episode_number', 'Unknown')
-            season_number = (total_episode_number - 1) // 13 + 1 if total_episode_number != 'Unknown' else 'Unknown'
-            episode_number_in_season = (total_episode_number - 1) % 13 + 1 if total_episode_number != 'Unknown' else 'Unknown'
+            season_number = (total_episode_number - 1) // 13 + 1 if isinstance(total_episode_number, int) else 'Unknown'
+            episode_number_in_season = (total_episode_number - 1) % 13 + 1 if isinstance(total_episode_number, int) else 'Unknown'
 
             season = str(season_number).zfill(2)
             episode_number = str(episode_number_in_season).zfill(2)
@@ -50,7 +68,7 @@ def register_search_handlers(bot: TeleBot):
 
             episode_formatted = f"S{season}E{episode_number}"
 
-            response += f"{i}. {episode_formatted} {episode_title}, czas: {time_formatted}\n"
+            response += f"{i}️⃣ {episode_formatted} {episode_title}, ⏱ {time_formatted}\n"
 
         bot.reply_to(message, response)
 
@@ -71,12 +89,28 @@ def register_search_handlers(bot: TeleBot):
             bot.reply_to(message, "Nie znaleziono pasujących segmentów.")
             return
 
-        response = f"Znaleziono {len(segments)} pasujących segmentów:\n"
-        for i, segment in enumerate(segments, start=1):
+        unique_segments = {}
+        for segment in segments:
+            episode_info = segment.get('episode_info', {})
+            title = episode_info.get('title', 'Unknown')
+            season = episode_info.get('season', 'Unknown')
+            episode_number = episode_info.get('episode_number', 'Unknown')
+            start_time = segment.get('start', 'Unknown')
+
+            if season == 'Unknown' or episode_number == 'Unknown':
+                continue  # Skip segments with unknown season or episode number
+
+            unique_key = f"{title}-{season}-{episode_number}-{start_time}"
+
+            if unique_key not in unique_segments:
+                unique_segments[unique_key] = segment
+
+        response = f"🔍 Znaleziono {len(unique_segments)} pasujących segmentów:\n"
+        for i, (unique_key, segment) in enumerate(unique_segments.items(), start=1):
             episode_info = segment.get('episode_info', {})
             total_episode_number = episode_info.get('episode_number', 'Unknown')
-            season_number = (total_episode_number - 1) // 13 + 1 if total_episode_number != 'Unknown' else 'Unknown'
-            episode_number_in_season = (total_episode_number - 1) % 13 + 1 if total_episode_number != 'Unknown' else 'Unknown'
+            season_number = (total_episode_number - 1) // 13 + 1 if isinstance(total_episode_number, int) else 'Unknown'
+            episode_number_in_season = (total_episode_number - 1) % 13 + 1 if isinstance(total_episode_number, int) else 'Unknown'
 
             season = str(season_number).zfill(2)
             episode_number = str(episode_number_in_season).zfill(2)
@@ -87,7 +121,7 @@ def register_search_handlers(bot: TeleBot):
 
             episode_formatted = f"S{season}E{episode_number}"
 
-            response += f"{i}. {episode_formatted} {episode_title}, czas: {time_formatted}\n"
+            response += f"{i}️⃣ {episode_formatted} {episode_title}, ⏰ {time_formatted}\n"
 
         temp_dir = tempfile.gettempdir()
         file_name = os.path.join(temp_dir, f"quote_results_chat_{chat_id}.txt")
