@@ -1,26 +1,21 @@
+# Directory-based exclusions
 /RANCZO-TRANSKRYPCJE/
 /RANCZO-WIDEO/
-/passwords.env
 /.venv
 /new_venv
 /venv
 /.idea
-/update_and_run.sh
-*.log
-/venv
 /DataModify
 /cache
 /__pycache__
+
+# Specific file-based exclusions
+/passwords.env
+/update_and_run.sh
+*.log
 *.mp4
-/__pycache__
 *.cutree
-/__pycache__
-/__pycache__
-*.pyc
-/__pycache__
 *.pyc
 *.zip
-/__pycache__
-*.pyc
-*.pyc
 .env
+
