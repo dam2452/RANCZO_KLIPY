@@ -37,6 +37,6 @@ Przykłady: `/kompiluj 1,3,5` lub `/kompiluj 1-5` lub `/kompiluj wszystko`.
 💡 *Przykład rozszerzenia*:
 Aby zobaczyć klip nr 2 z dodatkowymi 2s przed i 3s po, wpisz: `/rozszerz 2 2 3`.
 
-⏳ Pamiętaj o limicie wydłużenia klipu o 10 sekund łącznie, maksymalnie 5 sekund z każdej strony.
+⏳ Pamiętaj o limicie wydłużenia klipu o 20 sekund łącznie.
 """
         bot.reply_to(message, welcome_message, parse_mode='Markdown')
