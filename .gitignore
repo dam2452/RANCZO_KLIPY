@@ -18,5 +18,4 @@
 *.pyc
 *.zip
 .env
-
-/db
+.db
