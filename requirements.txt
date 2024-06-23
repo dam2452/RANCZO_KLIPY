@@ -4,6 +4,6 @@ urllib3
 python-dotenv
 telebot
 requests
-
+tabulate
 
 Retry

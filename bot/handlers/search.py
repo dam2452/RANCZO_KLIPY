@@ -1,6 +1,7 @@
 import tempfile
 import os
 import logging
+from tabulate import tabulate
 from telebot import TeleBot
 from ..utils.db import is_user_authorized
 from ..search_transcriptions import find_segment_by_quote
@@ -10,7 +11,6 @@ logger = logging.getLogger(__name__)
 last_search_quotes = {}
 
 def register_search_handlers(bot: TeleBot):
-
     @bot.message_handler(commands=['szukaj'])
     def search_quotes(message):
         if not is_user_authorized(message.from_user.username):
@@ -50,14 +50,17 @@ def register_search_handlers(bot: TeleBot):
 
         last_search_quotes[chat_id] = list(unique_segments.values())
 
-        response = f"🔍 Znaleziono {len(unique_segments)} pasujących segmentów:\n\n"
+        response = f"🔍 *Znaleziono {len(unique_segments)} pasujących segmentów:*\n\n"
+        segment_lines = []
+
         for i, (unique_key, segment) in enumerate(unique_segments.items(), start=1):
             if i > 5:
                 break
             episode_info = segment.get('episode_info', {})
             total_episode_number = episode_info.get('episode_number', 'Unknown')
             season_number = (total_episode_number - 1) // 13 + 1 if isinstance(total_episode_number, int) else 'Unknown'
-            episode_number_in_season = (total_episode_number - 1) % 13 + 1 if isinstance(total_episode_number, int) else 'Unknown'
+            episode_number_in_season = (total_episode_number - 1) % 13 + 1 if isinstance(total_episode_number,
+                                                                                         int) else 'Unknown'
 
             season = str(season_number).zfill(2)
             episode_number = str(episode_number_in_season).zfill(2)
@@ -67,10 +70,13 @@ def register_search_handlers(bot: TeleBot):
             time_formatted = f"{minutes:02}:{seconds:02}"
 
             episode_formatted = f"S{season}E{episode_number}"
+            line = [f"{i}️⃣", episode_formatted, episode_title, time_formatted]
+            segment_lines.append(line)
 
-            response += f"{i}️⃣ {episode_formatted} {episode_title}, ⏱ {time_formatted}\n"
+        table = tabulate(segment_lines, tablefmt="pipe", colalign=("left", "center", "left", "right"))
+        response += f"```\n{table}\n```"
 
-        bot.reply_to(message, response)
+        bot.reply_to(message, response, parse_mode='Markdown')
 
     @bot.message_handler(commands=['lista'])
     def list_all_quotes(message):
@@ -106,11 +112,14 @@ def register_search_handlers(bot: TeleBot):
                 unique_segments[unique_key] = segment
 
         response = f"🔍 Znaleziono {len(unique_segments)} pasujących segmentów:\n"
+        segment_lines = []
+
         for i, (unique_key, segment) in enumerate(unique_segments.items(), start=1):
             episode_info = segment.get('episode_info', {})
             total_episode_number = episode_info.get('episode_number', 'Unknown')
             season_number = (total_episode_number - 1) // 13 + 1 if isinstance(total_episode_number, int) else 'Unknown'
-            episode_number_in_season = (total_episode_number - 1) % 13 + 1 if isinstance(total_episode_number, int) else 'Unknown'
+            episode_number_in_season = (total_episode_number - 1) % 13 + 1 if isinstance(total_episode_number,
+                                                                                         int) else 'Unknown'
 
             season = str(season_number).zfill(2)
             episode_number = str(episode_number_in_season).zfill(2)
@@ -120,16 +129,21 @@ def register_search_handlers(bot: TeleBot):
             time_formatted = f"{minutes:02}:{seconds:02}"
 
             episode_formatted = f"S{season}E{episode_number}"
+            line = [i, episode_formatted, episode_title, time_formatted]
+            segment_lines.append(line)
 
-            response += f"{i}️⃣ {episode_formatted} {episode_title}, ⏰ {time_formatted}\n"
+        table = tabulate(segment_lines, headers=["#", "Odcinek", "Tytuł", "Czas"], tablefmt="pipe",
+                         colalign=("left", "center", "left", "right"))
+        response += f"{table}\n"
 
         temp_dir = tempfile.gettempdir()
-        file_name = os.path.join(temp_dir, f"quote_results_chat_{chat_id}.txt")
+        file_name = os.path.join(temp_dir, "Ranczo_Klipy_Results.txt")
         with open(file_name, 'w', encoding='utf-8') as file:
             file.write(response)
 
         try:
             with open(file_name, 'rb') as file:
-                bot.send_document(chat_id, file)
+                bot.send_document(chat_id, file, caption="Znalezione segmenty",
+                                  visible_file_name="Ranczo_Klipy_Results.txt")
         finally:
             os.remove(file_name)
