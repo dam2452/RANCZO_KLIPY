@@ -1,9 +1,8 @@
 import psycopg2
 from psycopg2 import sql
 from bot.config import POSTGRES_HOST, POSTGRES_DB, POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_PORT
-print("-----------------------------------------")
-print(POSTGRES_HOST, POSTGRES_DB, POSTGRES_USER, POSTGRES_PASSWORD)
-print("-----------------------------------------")
+
+
 def get_db_connection():
     #port add
     return psycopg2.connect(
