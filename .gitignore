@@ -20,3 +20,4 @@
 .env
 .db
 *.db
+/MOBILE_VIDEO_TESTS

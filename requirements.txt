@@ -6,3 +6,4 @@ telebot
 requests
 tabulate
 Retry
+psycopg2
