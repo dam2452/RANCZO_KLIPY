@@ -202,3 +202,38 @@ def get_clip_by_name(username, clip_name):
     cursor.close()
     conn.close()
     return result
+
+def get_clip_by_index(username, index):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT clip_name, start_time, end_time, season, episode_number, is_compilation
+        FROM clips
+        WHERE username = %s
+        ORDER BY id
+        LIMIT 1 OFFSET %s
+    ''', (username, index - 1))
+    clip = cursor.fetchone()
+    cursor.close()
+    conn.close()
+
+    if clip:
+        clip_name, start_time, end_time, season, episode_number, is_compilation = clip
+        return (clip_name, start_time, end_time, season, episode_number, is_compilation)
+    return None
+
+def get_video_data_by_name(username, clip_name):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT video_data
+        FROM clips
+        WHERE username = %s AND clip_name = %s
+    ''', (username, clip_name))
+    result = cursor.fetchone()
+    cursor.close()
+    conn.close()
+
+    if result:
+        return result[0]
+    return None
