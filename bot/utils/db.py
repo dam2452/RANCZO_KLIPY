@@ -2,9 +2,7 @@ import psycopg2
 from psycopg2 import sql
 from bot.config import POSTGRES_HOST, POSTGRES_DB, POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_PORT
 
-
 def get_db_connection():
-    #port add
     return psycopg2.connect(
         host=POSTGRES_HOST,
         port=POSTGRES_PORT,
@@ -12,7 +10,6 @@ def get_db_connection():
         user=POSTGRES_USER,
         password=POSTGRES_PASSWORD
     )
-
 
 def init_db():
     conn = get_db_connection()
@@ -28,9 +25,24 @@ def init_db():
             phone TEXT
         )
     ''')
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS clips (
+            id SERIAL PRIMARY KEY,
+            username TEXT NOT NULL,
+            clip_name TEXT NOT NULL,
+            video_data BYTEA NOT NULL,
+            start_time INT,
+            end_time INT,
+            season INT,
+            episode_number INT,
+            is_compilation BOOLEAN NOT NULL DEFAULT FALSE,
+            FOREIGN KEY (username) REFERENCES users (username)
+        )
+    ''')
     conn.commit()
     cursor.close()
     conn.close()
+
 
 
 def add_user(username, is_admin=False, is_moderator=False, full_name=None, email=None, phone=None):
@@ -157,3 +169,33 @@ def set_default_admin(default_admin):
     conn.commit()
     cursor.close()
     conn.close()
+
+def save_clip(username, clip_name, video_data, start_time, end_time, season, episode_number, is_compilation=False):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        INSERT INTO clips (username, clip_name, video_data, start_time, end_time, season, episode_number, is_compilation)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+    ''', (username, clip_name, psycopg2.Binary(video_data), start_time, end_time, season, episode_number, is_compilation))
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+
+def get_saved_clips(username):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT clip_name, start_time, end_time, season, episode_number, is_compilation FROM clips WHERE username = %s', (username,))
+    clips = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return clips
+
+def get_clip_by_name(username, clip_name):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT video_data, start_time, end_time FROM clips WHERE username = %s AND clip_name = %s', (username, clip_name))
+    clip = cursor.fetchone()
+    cursor.close()
+    conn.close()
+    return clip

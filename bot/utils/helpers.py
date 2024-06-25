@@ -30,3 +30,5 @@ def send_clip_to_telegram(bot, chat_id, video_path, start_time, end_time):
         logger.info(f"Sent video clip from {start_time_str} to {end_time_str} to chat {chat_id}")
     except Exception as e:
         logger.error(f"Failed to send video clip: {e}")
+
+
