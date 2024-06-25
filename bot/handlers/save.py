@@ -32,10 +32,12 @@ def register_save_clip_handler(bot: TeleBot):
         if 'compiled_clip' in segment_info:
             video_data = segment_info['compiled_clip'].getvalue()
             is_compilation = True
-            segment = segment_info['selected_segments'][0]
+            selected_segments = segment_info['selected_segments']
+            total_duration = sum(segment['end'] - segment['start'] for segment in selected_segments)
+            start_time = 0  # Compiled clips do not have a single start time
+            end_time = total_duration
+            segment = selected_segments[0]
             episode_info = segment.get('episode_info')
-            start_time = None
-            end_time = None
         else:
             segment = segment_info['segment']
             clip_path = segment['video_path']

@@ -20,7 +20,7 @@ def register_list_clips_handler(bot: TeleBot):
 
         table_data = []
         for idx, (clip_name, start_time, end_time, season, episode_number, is_compilation) in enumerate(clips, start=1):
-            length = end_time - start_time if end_time and start_time else None
+            length = end_time - start_time if end_time and start_time is not None else None
             if length:
                 minutes, seconds = divmod(length, 60)
                 length_str = f"{minutes}m{seconds}s" if minutes else f"{seconds}s"
