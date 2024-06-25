@@ -169,6 +169,15 @@ def set_default_admin(default_admin):
     cursor.close()
     conn.close()
 
+def get_saved_clips(username):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT clip_name, start_time, end_time, season, episode_number, is_compilation FROM clips WHERE username = %s', (username,))
+    clips = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return clips
+
 def save_clip(username, clip_name, video_data, start_time, end_time, season, episode_number, is_compilation=False):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -180,22 +189,16 @@ def save_clip(username, clip_name, video_data, start_time, end_time, season, epi
     cursor.close()
     conn.close()
 
-
-def get_saved_clips(username):
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute('SELECT clip_name, start_time, end_time, season, episode_number, is_compilation FROM clips WHERE username = %s', (username,))
-    clips = cursor.fetchall()
-    cursor.close()
-    conn.close()
-    return clips
-
 def get_clip_by_name(username, clip_name):
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute('SELECT video_data, start_time, end_time FROM clips WHERE username = %s AND clip_name = %s', (username, clip_name))
-    clip = cursor.fetchone()
+    query = '''
+        SELECT video_data, start_time, end_time
+        FROM clips
+        WHERE username = %s AND clip_name = %s
+    '''
+    cursor.execute(query, (username, clip_name))
+    result = cursor.fetchone()
     cursor.close()
     conn.close()
-    return clip
-
+    return result

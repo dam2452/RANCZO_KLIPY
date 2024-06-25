@@ -1,8 +1,9 @@
 import logging
-import os
-import tempfile
 import ffmpeg
+import tempfile
+import os
 from telebot import TeleBot
+from io import BytesIO
 from ..utils.db import is_user_authorized
 from .clip import last_selected_segment
 from .search import last_search_quotes
@@ -20,8 +21,7 @@ def register_compile_command(bot: TeleBot):
         content = message.text.split()
 
         if len(content) < 2:
-            bot.reply_to(message,
-                         "Proszę podać indeksy segmentów do skompilowania, zakres lub 'wszystko' do kompilacji wszystkich segmentów.")
+            bot.reply_to(message, "Proszę podać indeksy segmentów do skompilowania, zakres lub 'wszystko' do kompilacji wszystkich segmentów.")
             return
 
         if chat_id not in last_search_quotes or not last_search_quotes[chat_id]:
@@ -53,48 +53,54 @@ def register_compile_command(bot: TeleBot):
             bot.reply_to(message, "Nie znaleziono pasujących segmentów do kompilacji.")
             return
 
-        temp_dir = tempfile.gettempdir()
-        output_path = os.path.join(temp_dir, f"compiled_clips_{chat_id}.mp4")
-
         try:
-            video_clips = []
-            max_resolution = (0, 0)
-            for segment in selected_segments:
+            temp_files = []
+            concat_file_content = ""
+
+            for idx, segment in enumerate(selected_segments):
                 video_path = segment['video_path']
                 start = segment['start']
                 end = segment['end']
-                video_clips.append((video_path, start, end))
-                probe = ffmpeg.probe(video_path)
-                video_streams = [stream for stream in probe['streams'] if stream['codec_type'] == 'video']
-                if video_streams:
-                    width = int(video_streams[0]['width'])
-                    height = int(video_streams[0]['height'])
-                    max_resolution = max(max_resolution, (width, height), key=lambda x: x[0] * x[1])
 
-            concat_filter = ''
-            for idx, (video_path, start, end) in enumerate(video_clips):
-                input_file = ffmpeg.input(video_path, ss=start, t=(end - start))
-                input_stream = input_file.video.filter('scale', max_resolution[0], max_resolution[1])
-                audio_stream = input_file.audio
-                temp_clip_path = os.path.join(temp_dir, f'clip{idx}.mp4')
-                ffmpeg.output(input_stream, audio_stream, temp_clip_path).run()
+                # Create a temporary segment file
+                temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
+                temp_files.append(temp_file.name)
 
-            ffmpeg.concat(
-                *[ffmpeg.input(os.path.join(temp_dir, f'clip{idx}.mp4')) for idx in range(len(video_clips))],
-                v=1, a=1
-            ).output(output_path).run()
+                ffmpeg.input(video_path, ss=start, to=end).output(temp_file.name, codec='copy').run(overwrite_output=True)
+                temp_file.close()
+
+                # Add the segment to the concat file content
+                concat_file_content += f"file '{temp_file.name}'\n"
+
+            # Create a temporary concat file
+            concat_file = tempfile.NamedTemporaryFile(delete=False, mode='w', suffix=".txt")
+            concat_file.write(concat_file_content)
+            concat_file.close()
+
+            # Create the output file
+            compiled_output = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
+            compiled_output.close()
+
+            # Concatenate segments using the concat demuxer
+            ffmpeg.input(concat_file.name, format='concat', safe=0).output(compiled_output.name, codec='copy').run(overwrite_output=True)
+
+            # Read the output file to BytesIO
+            with open(compiled_output.name, 'rb') as f:
+                compiled_data = f.read()
+
+            compiled_output_io = BytesIO(compiled_data)
 
             # Store compiled clip info for saving
-            last_selected_segment[chat_id] = {'compiled_clip': output_path, 'selected_segments': selected_segments}
+            last_selected_segment[chat_id] = {'compiled_clip': compiled_output_io, 'selected_segments': selected_segments}
 
-            with open(output_path, 'rb') as video:
-                bot.send_video(chat_id, video, caption="Oto skompilowane klipy.")
+            bot.send_video(chat_id, compiled_output_io, caption="Oto skompilowane klipy.")
+
+            # Clean up temporary files
+            for temp_file in temp_files:
+                os.remove(temp_file)
+            os.remove(concat_file.name)
+            os.remove(compiled_output.name)
 
         except Exception as e:
             logger.error(f"An error occurred while compiling clips: {e}")
             bot.reply_to(message, "Wystąpił błąd podczas kompilacji klipów.")
-
-        finally:
-            # Move cleanup to the save handler to avoid premature deletion
-            last_selected_segment[chat_id]['temp_clip_paths'] = [os.path.join(temp_dir, f'clip{idx}.mp4') for idx in
-                                                                 range(len(video_clips))]
