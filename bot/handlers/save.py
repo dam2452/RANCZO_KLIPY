@@ -45,13 +45,20 @@ def register_save_clip_handler(bot: TeleBot):
             end_time = segment_info['end_time']
             is_compilation = False
 
+            # Adjust start and end times for accurate extraction
+            adjusted_start_time = max(0, start_time - 2)
+            adjusted_end_time = end_time + 2
+
             # Convert start and end times to HH:MM:SS.xxx format
-            start_time_str = convert_seconds_to_time_str(start_time)
-            end_time_str = convert_seconds_to_time_str(end_time)
+            start_time_str = convert_seconds_to_time_str(adjusted_start_time)
+            end_time_str = convert_seconds_to_time_str(adjusted_end_time)
 
             output = io.BytesIO()
             extract_clip(clip_path, start_time_str, end_time_str, output)
             video_data = output.getvalue()
+
+            # Recalculate the actual duration from the extracted clip
+            actual_duration = adjusted_end_time - adjusted_start_time
 
             episode_info = segment.get('episode_info')
 
@@ -64,8 +71,8 @@ def register_save_clip_handler(bot: TeleBot):
             episode_number = None
 
         try:
-            logger.info(f"Saving clip: {clip_name}, start_time: {start_time}, end_time: {end_time}, season: {season}, episode: {episode_number}, is_compilation: {is_compilation}")
-            save_clip(message.from_user.username, clip_name, video_data, start_time, end_time, season, episode_number, is_compilation)
+            logger.info(f"Saving clip: {clip_name}, start_time: {start_time}, end_time: {end_time}, actual_duration: {actual_duration}, season: {season}, episode: {episode_number}, is_compilation: {is_compilation}")
+            save_clip(message.from_user.username, clip_name, video_data, adjusted_start_time, adjusted_end_time, season, episode_number, is_compilation)
 
             bot.reply_to(message, f"Klip '{clip_name}' został zapisany.")
         except Exception as e:
