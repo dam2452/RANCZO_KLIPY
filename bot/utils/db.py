@@ -44,7 +44,6 @@ def init_db():
     conn.close()
 
 
-
 def add_user(username, is_admin=False, is_moderator=False, full_name=None, email=None, phone=None):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -199,3 +198,4 @@ def get_clip_by_name(username, clip_name):
     cursor.close()
     conn.close()
     return clip
+

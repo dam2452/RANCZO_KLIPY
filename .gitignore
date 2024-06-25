@@ -21,3 +21,5 @@
 .db
 *.db
 /MOBILE_VIDEO_TESTS
+/m
+log.txt

@@ -5,6 +5,7 @@ from bot.handlers.clip import last_selected_segment
 
 logger = logging.getLogger(__name__)
 
+
 def register_save_clip_handler(bot: TeleBot):
     @bot.message_handler(commands=['zapisz'])
     def save_user_clip(message):
@@ -25,6 +26,7 @@ def register_save_clip_handler(bot: TeleBot):
             return
 
         segment_info = last_selected_segment[chat_id]
+        logger.info(f"Segment Info: {segment_info}")
 
         if 'compiled_clip' in segment_info:
             clip_path = segment_info['compiled_clip']
@@ -40,15 +42,27 @@ def register_save_clip_handler(bot: TeleBot):
             with open(clip_path, 'rb') as f:
                 if is_compilation:
                     video_data = f.read()
+                    logger.info(f"Saving clip: {clip_name}, is_compilation: {is_compilation}")
                     save_clip(message.from_user.username, clip_name, video_data, None, None, None, None, is_compilation)
                 else:
                     f.seek(int(start_time))
                     video_data = f.read(int(end_time - start_time))
-                    save_clip(message.from_user.username, clip_name, video_data, start_time, end_time,
-                              segment.get('season', None), segment.get('episode', None), is_compilation)
+
+                    episode_info = segment.get('episode_info')
+                    logger.info(f"Episode Info: {episode_info}")
+                    if episode_info:
+                        season = episode_info.get('season')
+                        episode_number = episode_info.get('episode_number')
+                    else:
+                        season = None
+                        episode_number = None
+
+                    logger.info(
+                        f"Saving clip: {clip_name}, start_time: {start_time}, end_time: {end_time}, season: {season}, episode: {episode_number}, is_compilation: {is_compilation}")
+                    save_clip(message.from_user.username, clip_name, video_data, start_time, end_time, season,
+                              episode_number, is_compilation)
 
             bot.reply_to(message, f"Klip '{clip_name}' został zapisany.")
-
         except Exception as e:
-            logger.error(f"An error occurred while saving clip: {e}")
-            bot.reply_to(message, "Wystąpił błąd podczas zapisywania klipu.")
+            logger.error(f"Error saving clip: {str(e)}")
+            bot.reply_to(message, f"Error saving clip: {str(e)}")
