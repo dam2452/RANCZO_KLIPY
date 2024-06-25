@@ -36,6 +36,7 @@ def register_save_clip_handler(bot: TeleBot):
             total_duration = sum(segment['end'] - segment['start'] for segment in selected_segments)
             start_time = 0  # Compiled clips do not have a single start time
             end_time = total_duration
+            actual_duration = total_duration
             segment = selected_segments[0]
             episode_info = segment.get('episode_info')
         else:
@@ -72,9 +73,10 @@ def register_save_clip_handler(bot: TeleBot):
 
         try:
             logger.info(f"Saving clip: {clip_name}, start_time: {start_time}, end_time: {end_time}, actual_duration: {actual_duration}, season: {season}, episode: {episode_number}, is_compilation: {is_compilation}")
-            save_clip(message.from_user.username, clip_name, video_data, adjusted_start_time, adjusted_end_time, season, episode_number, is_compilation)
+            save_clip(message.from_user.username, clip_name, video_data, start_time, end_time, season, episode_number, is_compilation)
 
             bot.reply_to(message, f"Klip '{clip_name}' został zapisany.")
         except Exception as e:
             logger.error(f"Error saving clip: {str(e)}")
             bot.reply_to(message, f"Error saving clip: {str(e)}")
+
