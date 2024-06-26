@@ -67,6 +67,53 @@ async def handle_search_request(message: types.Message, bot: Bot):
             time_formatted = f"{minutes:02}:{seconds:02}"
 
             episode_formatted = f"S{season}E{episode_number}"
+            line = [f"{i}️⃣", episode_formatted, episode_title, time_formatted]
+            segment_lines.append(line)
+
+            if i == 5:
+                break
+
+        table = tabulate(
+            segment_lines,
+            headers=["#", "Odcinek", "Tytuł", "Czas"],
+            tablefmt="pipe",
+            colalign=("center", "center", "left", "right")
+        )
+
+        response += f"```\n{table}\n```"
+        await message.answer(response, parse_mode="Markdown")
+    except Exception as e:
+        logger.error(f"Error in handle_search_request: {e}")
+        await message.answer("Wystąpił błąd podczas przetwarzania żądania.")
+
+@router.message(Command('lista'))
+async def handle_list_request(message: types.Message, bot: Bot):
+    try:
+        chat_id = message.chat.id
+
+        if chat_id not in last_search_quotes:
+            await message.answer("Nie znaleziono wcześniejszych wyników wyszukiwania.")
+            return
+
+        segments = last_search_quotes[chat_id]
+
+        response = f"🔍 Znaleziono {len(segments)} pasujących segmentów:\n"
+        segment_lines = []
+
+        for i, segment in enumerate(segments, start=1):
+            episode_info = segment.get('episode_info', {})
+            total_episode_number = episode_info.get('episode_number', 'Unknown')
+            season_number = (total_episode_number - 1) // 13 + 1 if isinstance(total_episode_number, int) else 'Unknown'
+            episode_number_in_season = (total_episode_number - 1) % 13 + 1 if isinstance(total_episode_number, int) else 'Unknown'
+
+            season = str(season_number).zfill(2)
+            episode_number = str(episode_number_in_season).zfill(2)
+            episode_title = episode_info.get('title', 'Unknown')
+            start_time = int(segment['start'])
+            minutes, seconds = divmod(start_time, 60)
+            time_formatted = f"{minutes:02}:{seconds:02}"
+
+            episode_formatted = f"S{season}E{episode_number}"
             line = [i, episode_formatted, episode_title, time_formatted]
             segment_lines.append(line)
 
@@ -82,7 +129,7 @@ async def handle_search_request(message: types.Message, bot: Bot):
         await bot.send_document(chat_id, input_file, caption="Znalezione segmenty")
         os.remove(file_name)
     except Exception as e:
-        logger.error(f"Error in handle_search_request: {e}")
+        logger.error(f"Error in handle_list_request: {e}")
         await message.answer("Wystąpił błąd podczas przetwarzania żądania.")
 
 def register_search_command(dispatcher):
