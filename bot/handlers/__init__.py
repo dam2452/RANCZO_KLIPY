@@ -12,7 +12,7 @@ from bot.handlers.list_saved_clips import register_list_clips_handler
 from bot.handlers.send_saved_clip import register_send_clip_handler
 from bot.handlers.compile_selected_clips import register_compile_selected_clips_command
 from bot.handlers.subscription import register_subscription_handler
-from bot.handlers.shorten import register_shrink_command
+from bot.handlers.shorten import register_shorten_command
 
 def register_handlers(dispatcher: Dispatcher):
     register_clip_command(dispatcher)
@@ -28,5 +28,5 @@ def register_handlers(dispatcher: Dispatcher):
     register_send_clip_handler(dispatcher)
     register_compile_selected_clips_command(dispatcher)
     register_subscription_handler(dispatcher)
-    register_shrink_command(dispatcher)
+    register_shorten_command(dispatcher)
 
