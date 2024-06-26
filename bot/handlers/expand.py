@@ -1,3 +1,4 @@
+# expand.py
 import logging
 import os
 import tempfile
@@ -12,6 +13,9 @@ from bot.handlers.search import last_search_quotes
 
 logger = logging.getLogger(__name__)
 router = Router()
+
+EXTEND_BEFORE = 5
+EXTEND_AFTER = 5
 
 @router.message(Command('rozszerz'))
 async def handle_expand_request(message: types.Message, bot: Bot):

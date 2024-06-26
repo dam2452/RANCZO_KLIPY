@@ -10,6 +10,7 @@ from bot.handlers.clip import last_selected_segment
 from bot.utils.db import is_user_authorized
 from bot.video_processing import extract_clip
 from bot.handlers.search import last_search_quotes
+from bot.handlers.expand import EXTEND_BEFORE, EXTEND_AFTER
 
 logger = logging.getLogger(__name__)
 router = Router()
@@ -46,19 +47,19 @@ async def handle_shorten_request(message: types.Message, bot: Bot):
             reduce_after = float(content[2])
 
         # Używaj rozszerzonych czasów z zapisanego segmentu
-        original_start_time = segment['start'] - 5
-        original_end_time = segment['end'] + 5
+        original_start_time = segment['start'] - EXTEND_BEFORE
+        original_end_time = segment['end'] + EXTEND_AFTER
 
         # Logowanie dla debugowania
-        logger.info("--------------------------------------------------------------------------------------------")
-        logger.info(f"Original start time: {original_start_time}, Original end time: {original_end_time}")
-        logger.info(f"Reduced by {reduce_before} seconds before and {reduce_after} seconds after")
+        # logger.info("--------------------------------------------------------------------------------------------")
+        # logger.info(f"Original start time: {original_start_time}, Original end time: {original_end_time}")
+        # logger.info(f"Reduced by {reduce_before} seconds before and {reduce_after} seconds after")
 
         new_start_time = original_start_time + reduce_before
         new_end_time = original_end_time - reduce_after
 
-        logger.info(f"New start time: {new_start_time}, New end time: {new_end_time}")
-        logger.info("--------------------------------------------------------------------------------------------")
+        # logger.info(f"New start time: {new_start_time}, New end time: {new_end_time}")
+        # logger.info("--------------------------------------------------------------------------------------------")
 
         # Upewnij się, że nowe czasy mieszczą się w oryginalnym zakresie klipu
         if new_start_time < 0 or new_end_time > original_end_time or new_start_time >= new_end_time:
