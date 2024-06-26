@@ -9,6 +9,7 @@ logger = logging.getLogger(__name__)
 router = Router()
 
 last_search_quotes = {}
+last_search_terms = {}  # Add this dictionary to store search terms
 
 @router.message(Command('szukaj'))
 async def handle_search_request(message: types.Message, bot: Bot):
@@ -24,6 +25,7 @@ async def handle_search_request(message: types.Message, bot: Bot):
             return
 
         quote = ' '.join(content[1:])
+        last_search_terms[chat_id] = quote  # Store the search term
         logger.info(f"Searching for quote: '{quote}'")
         segments = await find_segment_by_quote(quote, return_all=True)
         logger.info(f"Found segments: {segments}")
