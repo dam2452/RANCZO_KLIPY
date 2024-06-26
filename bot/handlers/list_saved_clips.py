@@ -31,9 +31,7 @@ async def list_saved_clips(message: types.Message, bot: Bot):
         if is_compilation or season is None or episode_number is None:
             season_episode = "Kompilacja"
         else:
-            episode_number_mod = episode_number % 13
-            if episode_number_mod == 0:
-                episode_number_mod = 13
+            episode_number_mod = (episode_number - 1) % 13 + 1  # Convert to episode number within the season
             season_episode = f"S{season:02d}E{episode_number_mod:02d}"
 
         table_data.append([idx, clip_name, season_episode, length_str])

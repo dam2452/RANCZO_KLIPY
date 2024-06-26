@@ -5,9 +5,10 @@ import ffmpeg
 from aiogram import Router, Bot, types, Dispatcher
 from aiogram.filters import Command
 from aiogram.types import FSInputFile
-from bot.utils.db import is_user_authorized
+from bot.utils.db import is_user_authorized, save_clip
 from bot.handlers.search import last_search_quotes
-
+from io import BytesIO
+from bot.handlers.clip import last_selected_segment
 logger = logging.getLogger(__name__)
 router = Router()
 
@@ -85,7 +86,15 @@ async def compile_clips(message: types.Message, bot: Bot):
             # Concatenate segments using the concat demuxer
             ffmpeg.input(concat_file.name, format='concat', safe=0).output(compiled_output.name, codec='copy').run(overwrite_output=True)
 
-            # Send the compiled video
+            # Read the output file to BytesIO
+            with open(compiled_output.name, 'rb') as f:
+                compiled_data = f.read()
+
+            compiled_output_io = BytesIO(compiled_data)
+
+            # Store compiled clip info for saving
+            last_selected_segment[chat_id] = {'compiled_clip': compiled_output_io, 'selected_segments': selected_segments}
+
             await bot.send_video(chat_id, FSInputFile(compiled_output.name), caption="Oto skompilowane klipy.")
 
             # Clean up temporary files

@@ -40,12 +40,16 @@ async def save_user_clip(message: types.Message):
         total_duration = sum(segment['end'] - segment['start'] for segment in selected_segments)
         start_time = 0  # Compiled clips do not have a single start time
         end_time = total_duration
+        season = None
+        episode_number = None
     else:
         segment = segment_info
         clip_path = segment['video_path']
         start_time = max(0, segment['start'] - 5)  # Extend 5 seconds before
         end_time = segment['end'] + 5  # Extend 5 seconds after
         is_compilation = False
+        season = segment['episode_info']['season']
+        episode_number = segment['episode_info']['episode_number']
 
         # Extract the clip
         output_filename = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4").name
@@ -66,7 +70,9 @@ async def save_user_clip(message: types.Message):
         video_data=video_data,
         start_time=start_time,
         end_time=end_time,
-        is_compilation=is_compilation
+        is_compilation=is_compilation,
+        season=season,
+        episode_number=episode_number
     )
 
     await message.answer(f"Klip '{clip_name}' został zapisany pomyślnie.")

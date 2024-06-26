@@ -138,17 +138,18 @@ async def get_saved_clips(username):
     await conn.close()
     return result
 
-async def save_clip(chat_id, username, clip_name, video_data, start_time, end_time, is_compilation):
+async def save_clip(chat_id, username, clip_name, video_data, start_time, end_time, is_compilation, season=None, episode_number=None):
     conn = await get_db_connection()
     async with conn.transaction():
         await conn.execute(
             """
-            INSERT INTO clips (chat_id, username, clip_name, video_data, start_time, end_time, is_compilation)
-            VALUES ($1, $2, $3, $4, $5, $6, $7)
+            INSERT INTO clips (chat_id, username, clip_name, video_data, start_time, end_time, season, episode_number, is_compilation)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
             """,
-            chat_id, username, clip_name, video_data, start_time, end_time, is_compilation
+            chat_id, username, clip_name, video_data, start_time, end_time, season, episode_number, is_compilation
         )
     await conn.close()
+
 
 
 async def get_clip_by_name(username, clip_name):
