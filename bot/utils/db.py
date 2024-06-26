@@ -1,4 +1,5 @@
 import asyncpg
+from datetime import date, timedelta
 from bot.config import POSTGRES_HOST, POSTGRES_DB, POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_PORT
 
 async def get_db_connection():
@@ -21,7 +22,8 @@ async def init_db():
                 is_moderator BOOLEAN NOT NULL DEFAULT FALSE,
                 full_name TEXT,
                 email TEXT,
-                phone TEXT
+                phone TEXT,
+                subscription_end DATE DEFAULT NULL
             )
         ''')
         await conn.execute('''
@@ -41,18 +43,18 @@ async def init_db():
         ''')
     await conn.close()
 
-
-async def add_user(username, is_admin=False, is_moderator=False, full_name=None, email=None, phone=None):
+async def add_user(username, is_admin=False, is_moderator=False, full_name=None, email=None, phone=None, subscription_days=None):
     conn = await get_db_connection()
+    subscription_end = date.today() + timedelta(days=subscription_days) if subscription_days else None
     async with conn.transaction():
         await conn.execute('''
-            INSERT INTO users (username, is_admin, is_moderator, full_name, email, phone)
-            VALUES ($1, $2, $3, $4, $5, $6)
+            INSERT INTO users (username, is_admin, is_moderator, full_name, email, phone, subscription_end)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
             ON CONFLICT (username) DO NOTHING
-        ''', username, is_admin, is_moderator, full_name, email, phone)
+        ''', username, is_admin, is_moderator, full_name, email, phone, subscription_end)
     await conn.close()
 
-async def update_user(username, is_admin=None, is_moderator=None, full_name=None, email=None, phone=None):
+async def update_user(username, is_admin=None, is_moderator=None, full_name=None, email=None, phone=None, subscription_end=None):
     conn = await get_db_connection()
     updates = []
     params = []
@@ -72,6 +74,9 @@ async def update_user(username, is_admin=None, is_moderator=None, full_name=None
     if phone is not None:
         updates.append('phone = $' + str(len(params) + 1))
         params.append(phone)
+    if subscription_end is not None:
+        updates.append('subscription_end = $' + str(len(params) + 1))
+        params.append(subscription_end)
 
     if updates:
         query = f'UPDATE users SET {", ".join(updates)} WHERE username = ${len(params) + 1}'
@@ -89,7 +94,7 @@ async def remove_user(username):
 
 async def get_all_users():
     conn = await get_db_connection()
-    result = await conn.fetch('SELECT username, is_admin, is_moderator, full_name, email, phone FROM users')
+    result = await conn.fetch('SELECT username, is_admin, is_moderator, full_name, email, phone, subscription_end FROM users')
     await conn.close()
     return result
 
@@ -107,9 +112,15 @@ async def get_moderator_users():
 
 async def is_user_authorized(username):
     conn = await get_db_connection()
-    result = await conn.fetchval('SELECT COUNT(*) FROM users WHERE username = $1', username)
+    result = await conn.fetchrow('SELECT is_admin, is_moderator, subscription_end FROM users WHERE username = $1', username)
     await conn.close()
-    return result > 0
+    if result:
+        is_admin = result['is_admin']
+        is_moderator = result['is_moderator']
+        subscription_end = result['subscription_end']
+        if is_admin or is_moderator or (subscription_end and subscription_end >= date.today()):
+            return True
+    return False
 
 async def is_user_admin(username):
     conn = await get_db_connection()
@@ -150,8 +161,6 @@ async def save_clip(chat_id, username, clip_name, video_data, start_time, end_ti
         )
     await conn.close()
 
-
-
 async def get_clip_by_name(username, clip_name):
     conn = await get_db_connection()
     result = await conn.fetchrow('''
@@ -188,3 +197,30 @@ async def get_video_data_by_name(username, clip_name):
     await conn.close()
 
     return result
+
+async def add_subscription(username, days):
+    conn = await get_db_connection()
+    new_end_date = await conn.fetchval('''
+        UPDATE users
+        SET subscription_end = COALESCE(subscription_end, CURRENT_DATE) + $1 * INTERVAL '1 day'
+        WHERE username = $2
+        RETURNING subscription_end
+    ''', days, username)
+    await conn.close()
+    return new_end_date
+
+async def remove_subscription(username):
+    conn = await get_db_connection()
+    await conn.execute('''
+        UPDATE users
+        SET subscription_end = NULL
+        WHERE username = $1
+    ''', username)
+    await conn.close()
+
+
+async def get_user_subscription(username):
+    conn = await get_db_connection()
+    subscription_end = await conn.fetchval('SELECT subscription_end FROM users WHERE username = $1', username)
+    await conn.close()
+    return subscription_end
