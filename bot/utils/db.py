@@ -27,6 +27,7 @@ async def init_db():
         await conn.execute('''
             CREATE TABLE IF NOT EXISTS clips (
                 id SERIAL PRIMARY KEY,
+                chat_id BIGINT NOT NULL,
                 username TEXT NOT NULL,
                 clip_name TEXT NOT NULL,
                 video_data BYTEA NOT NULL,
@@ -39,6 +40,7 @@ async def init_db():
             )
         ''')
     await conn.close()
+
 
 async def add_user(username, is_admin=False, is_moderator=False, full_name=None, email=None, phone=None):
     conn = await get_db_connection()
@@ -136,17 +138,18 @@ async def get_saved_clips(username):
     await conn.close()
     return result
 
-async def save_clip(chat_id, clip_name, video_data, start_time, end_time, is_compilation):
+async def save_clip(chat_id, username, clip_name, video_data, start_time, end_time, is_compilation):
     conn = await get_db_connection()
     async with conn.transaction():
         await conn.execute(
             """
-            INSERT INTO clips (chat_id, clip_name, video_data, start_time, end_time, is_compilation)
-            VALUES ($1, $2, $3, $4, $5, $6)
+            INSERT INTO clips (chat_id, username, clip_name, video_data, start_time, end_time, is_compilation)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
             """,
-            chat_id, clip_name, video_data, start_time, end_time, is_compilation
+            chat_id, username, clip_name, video_data, start_time, end_time, is_compilation
         )
     await conn.close()
+
 
 async def get_clip_by_name(username, clip_name):
     conn = await get_db_connection()
