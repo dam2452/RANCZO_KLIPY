@@ -7,6 +7,7 @@ from bot.config import TELEGRAM_BOT_TOKEN
 from bot.handlers import register_handlers
 from bot.utils.db import init_db, set_default_admin
 
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

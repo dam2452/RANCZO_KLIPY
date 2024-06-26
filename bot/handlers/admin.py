@@ -3,6 +3,7 @@ from aiogram import Router, Dispatcher
 from aiogram.filters import Command
 from aiogram.types import Message
 from bot.utils.db import add_user, remove_user, update_user, is_user_admin, is_user_moderator, get_all_users, get_admin_users, get_moderator_users, add_subscription, remove_subscription
+from bot.search_transcriptions import find_segment_with_context
 
 logger = logging.getLogger(__name__)
 router = Router()
@@ -202,3 +203,36 @@ async def remove_subscription_command(message: Message):
 
 def register_admin_handlers(dispatcher: Dispatcher):
     dispatcher.include_router(router)
+
+
+@router.message(Command('transkrypcja'))
+async def handle_transcription_request(message: Message):
+    if not await is_user_admin(message.from_user.username) and not await is_user_moderator(message.from_user.username):
+        await message.answer("Nie masz uprawnień do używania tej komendy.")
+        return
+
+    content = message.text.split()
+    if len(content) < 2:
+        await message.answer("Podaj cytat, który chcesz znaleźć.")
+        return
+
+    quote = ' '.join(content[1:])
+    logger.info(f"Searching transcription for quote: '{quote}'")
+    result = await find_segment_with_context(quote)
+
+    if not result:
+        await message.answer("Nie znaleziono pasujących segmentów.")
+        return
+
+    target_segment = result['target']
+    context_segments = result['context']
+
+    response = f"Transkrypcja dla cytatu: '{quote}'\n\n"
+    for segment in context_segments:
+        response += f"ID: {segment['id']} - {segment['text']}\n"
+
+    await message.answer(response)
+
+def register_admin_handlers(dispatcher: Dispatcher):
+    dispatcher.include_router(router)
+

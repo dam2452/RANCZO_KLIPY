@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from elasticsearch import AsyncElasticsearch, helpers
 import urllib3
 
+
 # Configure basic logging settings
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -12,13 +13,13 @@ logger = logging.getLogger(__name__)
 # Disable warnings regarding untrusted HTTPS requests
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-# Load environment variables from .env file, if it exists
-env_file = os.path.join(os.getcwd(), "passwords.env")
-if os.path.exists(env_file):
-    load_dotenv(env_file)
+
+
+load_dotenv("../.env")
 
 # Retrieve environment variables
 es_host = os.getenv("ES_HOST")
+print(es_host)
 es_username = os.getenv("ES_USERNAME")
 es_password = os.getenv("ES_PASSWORD")
 # Additional variable for Telegram bot token, if needed
