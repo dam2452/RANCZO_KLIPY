@@ -51,7 +51,7 @@ async def add_user(username, is_admin=False, is_moderator=False, full_name=None,
             INSERT INTO users (username, is_admin, is_moderator, full_name, email, phone, subscription_end)
             VALUES ($1, $2, $3, $4, $5, $6, $7)
             ON CONFLICT (username) DO NOTHING
-        ''', username, is_admin, is_moderator, full_name, email, phone, subscription_end)
+        ''', username, bool(is_admin), bool(is_moderator), full_name, email, phone, subscription_end)
     await conn.close()
 
 async def update_user(username, is_admin=None, is_moderator=None, full_name=None, email=None, phone=None, subscription_end=None):
@@ -61,10 +61,10 @@ async def update_user(username, is_admin=None, is_moderator=None, full_name=None
 
     if is_admin is not None:
         updates.append('is_admin = $' + str(len(params) + 1))
-        params.append(is_admin)
+        params.append(bool(is_admin))
     if is_moderator is not None:
         updates.append('is_moderator = $' + str(len(params) + 1))
-        params.append(is_moderator)
+        params.append(bool(is_moderator))
     if full_name is not None:
         updates.append('full_name = $' + str(len(params) + 1))
         params.append(full_name)
@@ -217,7 +217,6 @@ async def remove_subscription(username):
         WHERE username = $1
     ''', username)
     await conn.close()
-
 
 async def get_user_subscription(username):
     conn = await get_db_connection()

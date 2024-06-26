@@ -61,8 +61,8 @@ async def add_to_whitelist(message: Message):
         return
 
     username = params[0]
-    is_admin = int(params[1]) if len(params) > 1 else 0
-    is_moderator = int(params[2]) if len(params) > 2 else 0
+    is_admin = bool(int(params[1])) if len(params) > 1 else False
+    is_moderator = bool(int(params[2])) if len(params) > 2 else False
 
     if await is_user_moderator(message.from_user.username):
         if is_admin or is_moderator:
@@ -102,8 +102,8 @@ async def update_whitelist(message: Message):
         return
 
     username = params[0]
-    is_admin = int(params[1]) if len(params) > 1 else None
-    is_moderator = int(params[2]) if len(params) > 2 else None
+    is_admin = bool(int(params[1])) if len(params) > 1 else None
+    is_moderator = bool(int(params[2])) if len(params) > 2 else None
 
     if await is_user_moderator(message.from_user.username):
         if is_admin or is_moderator:

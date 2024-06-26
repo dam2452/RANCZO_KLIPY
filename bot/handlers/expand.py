@@ -13,7 +13,6 @@ from bot.handlers.search import last_search_quotes
 logger = logging.getLogger(__name__)
 router = Router()
 
-
 @router.message(Command('rozszerz'))
 async def handle_expand_request(message: types.Message, bot: Bot):
     try:
@@ -29,8 +28,8 @@ async def handle_expand_request(message: types.Message, bot: Bot):
 
         if len(content) == 4:
             index = int(content[1]) - 1
-            extra_before = int(content[2])
-            extra_after = int(content[3])
+            extra_before = float(content[2])
+            extra_after = float(content[3])
             if chat_id not in last_search_quotes:
                 await message.answer("Najpierw wykonaj wyszukiwanie za pomocą /szukaj.")
                 return
@@ -42,13 +41,14 @@ async def handle_expand_request(message: types.Message, bot: Bot):
                     "Nie znaleziono żadnego wybranego segmentu. Użyj najpierw komendy /klip lub /wybierz.")
                 return
             segment = last_selected_segment[chat_id]
-            extra_before = int(content[1])
-            extra_after = int(content[2])
+            extra_before = float(content[1])
+            extra_after = float(content[2])
+
+        # Use existing expanded_start and expanded_end if they exist
+        start_time = max(0, segment.get('expanded_start', segment['start']) - extra_before)
+        end_time = segment.get('expanded_end', segment['end']) + extra_after
 
         video_path = segment['video_path']
-        start_time = max(0, segment['start'] - extra_before)
-        end_time = segment['end'] + extra_after
-
         output_filename = os.path.join(tempfile.gettempdir(), f"{segment['id']}_expanded_clip.mp4")
         await extract_clip(video_path, start_time, end_time, output_filename)
 
@@ -60,20 +60,16 @@ async def handle_expand_request(message: types.Message, bot: Bot):
         with open(output_filename, 'rb') as file:
             video_data = file.read()
 
-        last_selected_segment[chat_id] = {
-            'expanded_clip': BytesIO(video_data),
-            'start_time': start_time,
-            'end_time': end_time,
-            'season': segment['episode_info']['season'],
-            'episode_number': segment['episode_info']['episode_number']
-        }
+        # Retain the expanded start and end times for further expansions
+        last_selected_segment[chat_id]['expanded_start'] = start_time
+        last_selected_segment[chat_id]['expanded_end'] = end_time
+        last_selected_segment[chat_id]['expanded_clip'] = BytesIO(video_data)
 
         os.remove(output_filename)
 
     except Exception as e:
         logger.error(f"Error handling /rozszerz command: {e}", exc_info=True)
         await message.answer("Wystąpił błąd podczas przetwarzania żądania.")
-
 
 def register_expand_command(dispatcher: Dispatcher):
     dispatcher.include_router(router)
