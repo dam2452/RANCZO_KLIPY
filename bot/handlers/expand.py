@@ -1,6 +1,7 @@
 import logging
 import os
 import tempfile
+from io import BytesIO
 from aiogram import Router, Bot, types, Dispatcher
 from aiogram.filters import Command
 from aiogram.types import FSInputFile
@@ -11,6 +12,7 @@ from bot.handlers.search import last_search_quotes
 
 logger = logging.getLogger(__name__)
 router = Router()
+
 
 @router.message(Command('rozszerz'))
 async def handle_expand_request(message: types.Message, bot: Bot):
@@ -36,7 +38,8 @@ async def handle_expand_request(message: types.Message, bot: Bot):
             segment = segments[index]
         else:
             if chat_id not in last_selected_segment:
-                await message.answer("Nie znaleziono żadnego wybranego segmentu. Użyj najpierw komendy /klip lub /wybierz.")
+                await message.answer(
+                    "Nie znaleziono żadnego wybranego segmentu. Użyj najpierw komendy /klip lub /wybierz.")
                 return
             segment = last_selected_segment[chat_id]
             extra_before = int(content[1])
@@ -50,12 +53,27 @@ async def handle_expand_request(message: types.Message, bot: Bot):
         await extract_clip(video_path, start_time, end_time, output_filename)
 
         input_file = FSInputFile(output_filename)
-        await bot.send_video(message.chat.id, input_file, caption=f"Rozszerzony klip: S{segment['episode_info']['season']}E{segment['episode_info']['episode_number']}")
+        await bot.send_video(message.chat.id, input_file,
+                             caption=f"Rozszerzony klip: S{segment['episode_info']['season']}E{segment['episode_info']['episode_number']}")
+
+        # Store expanded clip info for saving
+        with open(output_filename, 'rb') as file:
+            video_data = file.read()
+
+        last_selected_segment[chat_id] = {
+            'expanded_clip': BytesIO(video_data),
+            'start_time': start_time,
+            'end_time': end_time,
+            'season': segment['episode_info']['season'],
+            'episode_number': segment['episode_info']['episode_number']
+        }
+
         os.remove(output_filename)
 
     except Exception as e:
         logger.error(f"Error handling /rozszerz command: {e}", exc_info=True)
         await message.answer("Wystąpił błąd podczas przetwarzania żądania.")
+
 
 def register_expand_command(dispatcher: Dispatcher):
     dispatcher.include_router(router)

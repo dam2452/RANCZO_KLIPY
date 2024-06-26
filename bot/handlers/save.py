@@ -42,6 +42,13 @@ async def save_user_clip(message: types.Message):
         end_time = total_duration
         season = None
         episode_number = None
+    elif 'expanded_clip' in segment_info:
+        video_data = segment_info['expanded_clip'].getvalue()
+        is_compilation = False
+        start_time = segment_info['start_time']
+        end_time = segment_info['end_time']
+        season = segment_info['season']
+        episode_number = segment_info['episode_number']
     else:
         segment = segment_info
         clip_path = segment['video_path']
