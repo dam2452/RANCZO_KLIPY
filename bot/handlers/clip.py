@@ -16,13 +16,13 @@ router = Router()
 async def handle_clip_request(message: Message, bot: Bot):
     try:
         if not await is_user_authorized(message.from_user.username):
-            await message.answer("pizgnął cię kto kiedy?")
+            await message.answer("Nie masz uprawnień do korzystania z tego bota.")
             return
 
         chat_id = message.chat.id
         quote = message.text[len('/klip '):].strip()
         if not quote:
-            await message.answer("Please provide a quote after the '/klip' command.")
+            await message.answer("Podaj cytat po komendzie '/klip'.")
             return
 
         logger.info(f"Searching for quote: '{quote}'")
@@ -30,32 +30,31 @@ async def handle_clip_request(message: Message, bot: Bot):
 
         if segments:
             segment = segments[0]
-            last_selected_segment[chat_id] = {'segment': segment, 'start_time': segment['start'],
-                                              'end_time': segment['end']}
+            last_selected_segment[chat_id] = {'segment': segment, 'start_time': segment['start'], 'end_time': segment['end']}
             logger.info(f"Found segment: {segment}")
             video_path = segment.get('video_path', 'Unknown')
             if video_path == 'Unknown':
-                await message.answer("Video path not found for the selected segment.")
+                await message.answer("Ścieżka do wideo nie została znaleziona dla wybranego segmentu.")
                 return
 
             base_dir = os.path.dirname(os.path.abspath(__file__))
             video_path = os.path.normpath(os.path.join(base_dir, "..", "..", video_path))
 
             if not os.path.exists(video_path):
-                await message.answer("Video file does not exist.")
+                await message.answer("Plik wideo nie istnieje.")
                 return
 
-            start_time_str = str(segment['start'])
-            end_time_str = str(segment['end'])
+            start_time = float(segment['start'])
+            end_time = float(segment['end'])
 
-            logger.info(f"Starting video extraction from {start_time_str} to {end_time_str} for video: {video_path}")
-            await send_clip_to_telegram(bot, message.chat.id, video_path, start_time_str, end_time_str)
+            logger.info(f"Starting video extraction from {start_time} to {end_time} for video: {video_path}")
+            await send_clip_to_telegram(bot, message.chat.id, video_path, start_time, end_time)
         else:
             logger.info(f"No segment found for quote: '{quote}'")
-            await message.answer("No segment found for the given quote.")
+            await message.answer("Nie znaleziono segmentu dla podanego cytatu.")
     except Exception as e:
         logger.error(f"Error handling /klip command: {e}", exc_info=True)
-        await message.answer("An error occurred while processing your request.")
+        await message.answer("Wystąpił błąd podczas przetwarzania Twojego żądania.")
 
 def register_clip_command(dispatcher: Router):
     dispatcher.include_router(router)

@@ -25,17 +25,14 @@ def convert_seconds_to_time_str(seconds):
     return f"{hours:02}:{minutes:02}:{int(seconds):02}.{milliseconds:03}"
 
 async def extract_clip(video_path, start_time, end_time, output_filename):
-    start_time_seconds = convert_time_to_seconds(start_time)
-    end_time_seconds = convert_time_to_seconds(end_time)
-
-    adjusted_start_time = max(start_time_seconds - 2, 0)
-    adjusted_end_time = end_time_seconds + 2
+    adjusted_start_time = max(start_time - 2, 0)
+    adjusted_end_time = end_time + 2
 
     duration = adjusted_end_time - adjusted_start_time
 
     logger.info(f"Extracting clip from: {video_path}")
-    logger.info(f"Start time (seconds): {start_time_seconds}, Adjusted start time: {adjusted_start_time}")
-    logger.info(f"End time (seconds): {end_time_seconds}, Adjusted end time: {adjusted_end_time}")
+    logger.info(f"Start time (seconds): {start_time}, Adjusted start time: {adjusted_start_time}")
+    logger.info(f"End time (seconds): {end_time}, Adjusted end time: {adjusted_end_time}")
     logger.info(f"Duration: {duration}")
 
     ffmpeg_command = [
@@ -80,11 +77,6 @@ async def extract_clip(video_path, start_time, end_time, output_filename):
     except Exception as e:
         logger.error(f"Error during video extraction: {e}", exc_info=True)
         raise
-
-
-
-
-
 
 def get_video_duration(input_file):
     """

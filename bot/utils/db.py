@@ -1,7 +1,5 @@
 import asyncpg
 from bot.config import POSTGRES_HOST, POSTGRES_DB, POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_PORT
-# import psycopg2
-# from psycopg2 import sql
 
 async def get_db_connection():
     return await asyncpg.connect(
@@ -81,45 +79,29 @@ async def update_user(username, is_admin=None, is_moderator=None, full_name=None
 
     await conn.close()
 
+async def remove_user(username):
+    conn = await get_db_connection()
+    async with conn.transaction():
+        await conn.execute('DELETE FROM users WHERE username = $1', username)
+    await conn.close()
 
-def remove_user(username):
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute('DELETE FROM users WHERE username = %s', (username,))
-    conn.commit()
-    cursor.close()
-    conn.close()
+async def get_all_users():
+    conn = await get_db_connection()
+    result = await conn.fetch('SELECT username, is_admin, is_moderator, full_name, email, phone FROM users')
+    await conn.close()
+    return result
 
+async def get_admin_users():
+    conn = await get_db_connection()
+    result = await conn.fetch('SELECT username, full_name, email, phone FROM users WHERE is_admin = TRUE')
+    await conn.close()
+    return result
 
-def get_all_users():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute('SELECT username, is_admin, is_moderator, full_name, email, phone FROM users')
-    users = cursor.fetchall()
-    cursor.close()
-    conn.close()
-    return users
-
-
-def get_admin_users():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute('SELECT username, full_name, email, phone FROM users WHERE is_admin = TRUE')
-    users = cursor.fetchall()
-    cursor.close()
-    conn.close()
-    return users
-
-
-def get_moderator_users():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute('SELECT username, full_name, email, phone FROM users WHERE is_moderator = TRUE')
-    users = cursor.fetchall()
-    cursor.close()
-    conn.close()
-    return users
-
+async def get_moderator_users():
+    conn = await get_db_connection()
+    result = await conn.fetch('SELECT username, full_name, email, phone FROM users WHERE is_moderator = TRUE')
+    await conn.close()
+    return result
 
 async def is_user_authorized(username):
     conn = await get_db_connection()
@@ -127,26 +109,17 @@ async def is_user_authorized(username):
     await conn.close()
     return result > 0
 
+async def is_user_admin(username):
+    conn = await get_db_connection()
+    result = await conn.fetchval('SELECT is_admin FROM users WHERE username = $1', username)
+    await conn.close()
+    return result
 
-def is_user_admin(username):
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute('SELECT is_admin FROM users WHERE username = %s', (username,))
-    result = cursor.fetchone()
-    cursor.close()
-    conn.close()
-    return result is not None and result[0]
-
-
-def is_user_moderator(username):
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute('SELECT is_moderator FROM users WHERE username = %s', (username,))
-    result = cursor.fetchone()
-    cursor.close()
-    conn.close()
-    return result is not None and result[0]
-
+async def is_user_moderator(username):
+    conn = await get_db_connection()
+    result = await conn.fetchval('SELECT is_moderator FROM users WHERE username = $1', username)
+    await conn.close()
+    return result
 
 async def set_default_admin(admin_id):
     conn = await get_db_connection()
@@ -157,22 +130,22 @@ async def set_default_admin(admin_id):
     ''', admin_id)
     await conn.close()
 
-def get_saved_clips(username):
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute('SELECT clip_name, start_time, end_time, season, episode_number, is_compilation FROM clips WHERE username = %s', (username,))
-    clips = cursor.fetchall()
-    cursor.close()
-    conn.close()
-    return clips
+async def get_saved_clips(username):
+    conn = await get_db_connection()
+    result = await conn.fetch('SELECT clip_name, start_time, end_time, season, episode_number, is_compilation FROM clips WHERE username = $1', username)
+    await conn.close()
+    return result
 
-async def save_clip(username, clip_name, video_data, start_time, end_time, season, episode_number, is_compilation=False):
+async def save_clip(chat_id, clip_name, video_data, start_time, end_time, is_compilation):
     conn = await get_db_connection()
     async with conn.transaction():
-        await conn.execute('''
-            INSERT INTO clips (username, clip_name, video_data, start_time, end_time, season, episode_number, is_compilation)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-        ''', username, clip_name, video_data, start_time, end_time, season, episode_number, is_compilation)
+        await conn.execute(
+            """
+            INSERT INTO clips (chat_id, clip_name, video_data, start_time, end_time, is_compilation)
+            VALUES ($1, $2, $3, $4, $5, $6)
+            """,
+            chat_id, clip_name, video_data, start_time, end_time, is_compilation
+        )
     await conn.close()
 
 async def get_clip_by_name(username, clip_name):
