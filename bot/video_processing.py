@@ -31,3 +31,10 @@ async def extract_clip(video_path, start_time, end_time, output_filename):
     if process.returncode != 0:
         raise Exception(f"ffmpeg error: {stderr.decode()}")
 
+def convert_seconds_to_time_str(seconds):
+    hours = int(seconds // 3600)
+    minutes = int((seconds % 3600) // 60)
+    seconds = int(seconds % 60)
+    return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
+
+
