@@ -1,11 +1,12 @@
 import logging
-from .elastic_manager import connect_to_elasticsearch
+from elasticsearch import AsyncElasticsearch
+from bot.elastic_manager import connect_to_elasticsearch
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-def find_segment_by_quote(quote, season_filter=None, episode_filter=None, index='ranczo-transcriptions', return_all=False):
+async def find_segment_by_quote(quote, season_filter=None, episode_filter=None, index='ranczo-transcriptions', return_all=False):
     """
     Searches for a segment by a given quote with optional season and episode filters.
 
@@ -22,7 +23,7 @@ def find_segment_by_quote(quote, season_filter=None, episode_filter=None, index=
     - None if no matches are found.
     """
     logger.info(f"Searching for quote: '{quote}' with filters - Season: {season_filter}, Episode: {episode_filter}")
-    es = connect_to_elasticsearch()
+    es = await connect_to_elasticsearch()
 
     if not es:
         logger.error("Failed to connect to Elasticsearch.")
@@ -56,7 +57,7 @@ def find_segment_by_quote(quote, season_filter=None, episode_filter=None, index=
     size = 10000 if return_all else 1
 
     try:
-        response = es.search(index=index, body=query, size=size)
+        response = await es.search(index=index, body=query, size=size)
         hits = response['hits']['hits']
 
         if not hits:
@@ -88,3 +89,4 @@ def find_segment_by_quote(quote, season_filter=None, episode_filter=None, index=
     except Exception as e:
         logger.error(f"An error occurred while searching for segments: {e}")
         return None
+

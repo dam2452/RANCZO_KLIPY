@@ -1,26 +1,35 @@
 import logging
 import os
-from telebot import TeleBot
+import asyncio
+from aiogram import Bot, Dispatcher
+from aiogram.fsm.storage.memory import MemoryStorage
 from bot.config import TELEGRAM_BOT_TOKEN
-from .handlers import register_handlers
+from bot.handlers import register_handlers
 from bot.utils.db import init_db, set_default_admin
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-bot = TeleBot(TELEGRAM_BOT_TOKEN)
+# Initialize bot and dispatcher
+bot = Bot(token=TELEGRAM_BOT_TOKEN)
+dp = Dispatcher(storage=MemoryStorage())
 
-# Initialize the database
-init_db()
-set_default_admin(os.getenv("DEFAULT_ADMIN"))
+async def on_startup():
+    # Initialize the database
+    await init_db()
+    await set_default_admin(os.getenv("DEFAULT_ADMIN"))
 
-# Register all handlers
-register_handlers(bot)
+    # Register all handlers
+    register_handlers(dp)
 
-if __name__ == "__main__":
+async def main():
+    await on_startup()
     logger.info("Bot started")
     try:
-        bot.infinity_polling(interval=0, timeout=25)
+        await dp.start_polling(bot)
     except Exception as e:
         logger.error(f"Bot encountered an error: {e}")
+
+if __name__ == "__main__":
+    asyncio.run(main())

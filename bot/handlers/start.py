@@ -1,16 +1,22 @@
-from telebot import TeleBot
-from ..utils.db import is_user_authorized
+import logging
+from aiogram import Router, Dispatcher
+from aiogram.types import Message
+from aiogram.filters import Command
+from bot.utils.db import is_user_authorized
 
-def register_start_handlers(bot: TeleBot):
-    @bot.message_handler(commands=['start'])
-    def handle_start(message):
-        if not is_user_authorized(message.from_user.username):
-            bot.reply_to(message, "Nie masz uprawnień do korzystania z tego bota.")
-            return
+logger = logging.getLogger(__name__)
 
-        welcome_message = """
-    🐐 *Witaj w RanczoKlipy!* 🐐
-    Znajdź klipy z Twoich ulubionych momentów w prosty sposób. Oto, co możesz zrobić:
+router = Router()
+
+@router.message(Command('start'))
+async def handle_start(message: Message):
+    if not await is_user_authorized(message.from_user.username):
+        await message.answer("Nie masz uprawnień do korzystania z tego bota.")
+        return
+
+    welcome_message = """
+🐐 *Witaj w RanczoKlipy!* 🐐
+Znajdź klipy z Twoich ulubionych momentów w prosty sposób. Oto, co możesz zrobić:
 
 1️⃣ *Wyszukiwanie klipu na podstawie cytatu*:
     `/klip <cytat>` - Wyszukuje klip na podstawie cytatu. 
@@ -46,6 +52,7 @@ def register_start_handlers(bot: TeleBot):
 
     ⏳ Pamiętaj o limicie wydłużenia klipu o 20 sekund łącznie dla użytkowników bez specjalnych uprawnień.
     """
-        bot.reply_to(message, welcome_message, parse_mode='Markdown')
+    await message.answer(welcome_message, parse_mode='Markdown')
 
-
+def register_start_command(dispatcher: Dispatcher):
+    dispatcher.include_router(router)

@@ -1,34 +1,26 @@
-import io
+from aiogram.types import FSInputFile
+import os
 import logging
-from ..video_processing import extract_clip, convert_seconds_to_time_str
+import tempfile
+from bot.video_processing import extract_clip
 
 logger = logging.getLogger(__name__)
 
-def send_clip_to_telegram(bot, chat_id, video_path, start_time, end_time):
-    """
-    Extract a video clip and send it to the Telegram user.
-    """
+async def send_clip_to_telegram(bot, chat_id, video_path, start_time, end_time):
     try:
-        # Convert start and end times to strings
-        start_time_str = convert_seconds_to_time_str(start_time)
-        end_time_str = convert_seconds_to_time_str(end_time)
+        output_filename = tempfile.mktemp(suffix='.mp4')
+        await extract_clip(video_path, start_time, end_time, output_filename)
 
-        # Extract the clip to memory
-        out_buf = io.BytesIO()
-        out_buf.name = "clip.mp4"
-        extract_clip(video_path, start_time_str, end_time_str, out_buf)
+        file_size = os.path.getsize(output_filename) / (1024 * 1024)
+        logger.info(f"Clip size: {file_size} MB")
 
-        # Check the size of the clip
-        clip_size_mb = len(out_buf.getvalue()) / (1024 * 1024)
-        if clip_size_mb > 50:
-            bot.send_message(chat_id, "Rozszerzony klip przekracza 50MB i nie może zostać wysłany.")
-            return
+        if file_size > 50:  # Telegram has a 50 MB limit for video files
+            await bot.send_message(chat_id, "The extracted clip is too large to send via Telegram.")
+        else:
+            input_file = FSInputFile(output_filename)  # Ensure the path is correct
+            await bot.send_video(chat_id, input_file)
 
-        # Send the clip
-        out_buf.seek(0)
-        bot.send_video(chat_id, out_buf)
-        logger.info(f"Sent video clip from {start_time_str} to {end_time_str} to chat {chat_id}")
+        os.remove(output_filename)
     except Exception as e:
-        logger.error(f"Failed to send video clip: {e}")
-
-
+        logger.error(f"Failed to send video clip: {e}", exc_info=True)
+        await bot.send_message(chat_id, f"Failed to send video clip: {str(e)}")

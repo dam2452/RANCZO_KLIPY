@@ -7,3 +7,5 @@ requests
 tabulate
 Retry
 psycopg2
+aiogram
+asyncpg
