@@ -5,6 +5,7 @@ from  .expand import register_expand_command
 from .search import register_search_command
 from .select import register_select_command
 from .list import register_list_command
+from .compile import register_compile_command
 
 
 def register_handlers(dispatcher: Dispatcher):
@@ -14,3 +15,4 @@ def register_handlers(dispatcher: Dispatcher):
     register_search_command(dispatcher)
     register_select_command(dispatcher)
     register_list_command(dispatcher)
+    register_compile_command(dispatcher)
