@@ -1,3 +1,4 @@
+# start.py
 import logging
 from aiogram import Router, Dispatcher
 from aiogram.types import Message
@@ -5,7 +6,6 @@ from aiogram.filters import Command
 from bot.utils.db import is_user_authorized
 
 logger = logging.getLogger(__name__)
-
 router = Router()
 
 @router.message(Command('start'))
@@ -21,7 +21,6 @@ Znajdź klipy z Twoich ulubionych momentów w prosty sposób. Oto, co możesz zr
 1️⃣ *Wyszukiwanie klipu na podstawie cytatu*:
     `/klip <cytat>` - Wyszukuje klip na podstawie cytatu. 
     Przykład: `/klip geniusz`.
-    🔄 *Rozszerzenie wyniku*: `/rozszerz 1 3 2` (3s przed, 2s po).
 
 2️⃣ *Znajdowanie klipów pasujących do cytatu*:
     `/szukaj <cytat>` - Znajduje klipy pasujące do cytatu. 
@@ -36,22 +35,29 @@ Znajdź klipy z Twoich ulubionych momentów w prosty sposób. Oto, co możesz zr
     🔄 Możesz także użyć dwóch parametrów, aby wydłużyć ostatnio wybrany klip:
     `/rozszerz <sekundy_wstecz> <sekundy_do_przodu>` - Przykład: `/rozszerz 3 5`.
 
-5️⃣ *Tworzenie kompilacji z wybranych klipów*:
-    `/kompiluj <numery_klipów>` - Tworzy kompilację z wybranych klipów. 
-    Przykłady: `/kompiluj 1,3,5` lub `/kompiluj 1-5` lub `/kompiluj wszystko`.
+5️⃣ *Skracanie klipu*:
+    `/skroc <numer_klipu> <sekundy_przed> <sekundy_po>` - Skraca klip na podstawie numeru klipu. 
+    Przykład: `/skroc 1 2 1`.
 
-    🔎 *Szczegóły*:
-    - `/szukaj` informuje o liczbie pasujących klipów.
-    - `/lista` pokazuje klipy z opcją skróconej lub pełnej listy.
-    - `/rozszerz` pozwala dokładniej zobaczyć klip, dodając sekundy przed i po.
-    - `/kompiluj` umożliwia stworzenie kompilacji z wybranych klipów.
+6️⃣ *Tworzenie kompilacji z wybranych klipów*:
+    `/kompilujklipy <nazwy_klipów>` - Tworzy kompilację z wybranych klipów. 
+    Przykład: `/kompilujklipy klip1 klip2 klip3`.
 
-    💡 *Przykład rozszerzenia*:
-    Aby zobaczyć klip nr 2 z dodatkowymi 2s przed i 3s po, wpisz: `/rozszerz 2 2 3`.
-    Aby zobaczyć ostatnio wybrany klip z dodatkowymi 3s przed i 5s po, wpisz: `/rozszerz 3 5`.
+7️⃣ *Zapis klipu*:
+    `/zapisz <nazwa_klipu>` - Zapisuje wybrany klip z podaną nazwą. 
+    Przykład: `/zapisz moj_klip`.
 
-    ⏳ Pamiętaj o limicie wydłużenia klipu o 20 sekund łącznie dla użytkowników bez specjalnych uprawnień.
+8️⃣ *Wyświetlanie zapisanych klipów*:
+    `/mojeklipy` - Wyświetla listę zapisanych klipów.
+
+9️⃣ *Wysyłanie zapisanego klipu*:
+    `/wyslijklip <nazwa_klipu>` - Wysyła zapisany klip o podanej nazwie. 
+    Przykład: `/wyslijklip moj_klip`.
+
+🔟 *Sprawdzanie subskrypcji*:
+    `/mojasubskrypcja` - Sprawdza stan Twojej subskrypcji.
     """
+
     await message.answer(welcome_message, parse_mode='Markdown')
 
 def register_start_command(dispatcher: Dispatcher):
