@@ -6,7 +6,6 @@ from aiogram import Router, Bot, types, Dispatcher
 from aiogram.filters import Command
 from aiogram.types import FSInputFile
 from bot.utils.db import is_user_authorized
-from bot.handlers.clip import last_selected_segment
 from bot.handlers.search import last_search_quotes
 
 logger = logging.getLogger(__name__)

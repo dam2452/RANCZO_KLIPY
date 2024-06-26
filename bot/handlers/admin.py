@@ -1,5 +1,5 @@
 import logging
-from aiogram import Router, Bot, types, Dispatcher
+from aiogram import Router, Dispatcher
 from aiogram.filters import Command
 from aiogram.types import Message
 from bot.utils.db import add_user, remove_user, update_user, is_user_admin, is_user_moderator, get_all_users, get_admin_users, get_moderator_users

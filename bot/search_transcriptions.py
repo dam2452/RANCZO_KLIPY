@@ -1,5 +1,4 @@
 import logging
-from elasticsearch import AsyncElasticsearch
 from bot.elastic_manager import connect_to_elasticsearch
 
 # Configure logging

@@ -1,12 +1,9 @@
+import subprocess
 import asyncio
 import logging
-import os
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 
-import subprocess
-import asyncio
 
 async def extract_clip(video_path, start_time, end_time, output_filename):
     duration = end_time - start_time
