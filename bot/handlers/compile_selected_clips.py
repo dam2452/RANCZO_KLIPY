@@ -1,21 +1,44 @@
 import logging
 import tempfile
 import os
-import ffmpeg
+import asyncio
 from aiogram import Router, Bot, types, Dispatcher
 from aiogram.filters import Command
 from aiogram.types import FSInputFile
 from bot.utils.db import is_user_authorized, get_clip_by_name
-from io import BytesIO
+import subprocess
+
 
 logger = logging.getLogger(__name__)
 router = Router()
+
+async def concatenate_clips(segment_files, output_file):
+    concat_file_content = "\n".join([f"file '{file}'" for file in segment_files])
+    concat_file = tempfile.NamedTemporaryFile(delete=False, mode='w', suffix=".txt")
+    concat_file.write(concat_file_content)
+    concat_file.close()
+
+    command = [
+        'ffmpeg', '-y', '-f', 'concat', '-safe', '0', '-i', concat_file.name,
+        '-c', 'copy', '-movflags', '+faststart', '-fflags', '+genpts',
+        '-avoid_negative_ts', '1', output_file
+    ]
+
+    process = await asyncio.create_subprocess_exec(
+        *command,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE
+    )
+    stdout, stderr = await process.communicate()
+    os.remove(concat_file.name)
+    if process.returncode != 0:
+        raise Exception(f"ffmpeg error: {stderr.decode()}")
 
 @router.message(Command('polaczklipy'))
 async def compile_selected_clips(message: types.Message, bot: Bot):
     try:
         if not await is_user_authorized(message.from_user.username):
-            await message.answer("Nie masz uprawnień do korzystania z tego bota.")
+            await message.answer("❌ Nie masz uprawnień do korzystania z tego bota.")
             return
 
         chat_id = message.chat.id
@@ -42,9 +65,7 @@ async def compile_selected_clips(message: types.Message, bot: Bot):
 
         try:
             temp_files = []
-            concat_file_content = ""
-
-            for idx, clip in enumerate(selected_clips):
+            for clip in selected_clips:
                 video_data, start_time, end_time = clip
 
                 # Create a temporary segment file
@@ -54,20 +75,12 @@ async def compile_selected_clips(message: types.Message, bot: Bot):
                 with open(temp_file.name, 'wb') as f:
                     f.write(video_data)
 
-                # Add the segment to the concat file content
-                concat_file_content += f"file '{temp_file.name}'\n"
-
-            # Create a temporary concat file
-            concat_file = tempfile.NamedTemporaryFile(delete=False, mode='w', suffix=".txt")
-            concat_file.write(concat_file_content)
-            concat_file.close()
-
             # Create the output file
             compiled_output = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
             compiled_output.close()
 
             # Concatenate segments using the concat demuxer
-            ffmpeg.input(concat_file.name, format='concat', safe=0).output(compiled_output.name, codec='copy').run(overwrite_output=True)
+            await concatenate_clips(temp_files, compiled_output.name)
 
             # Send the compiled video
             await bot.send_video(chat_id, FSInputFile(compiled_output.name), caption="Oto skompilowane klipy.")
@@ -75,7 +88,6 @@ async def compile_selected_clips(message: types.Message, bot: Bot):
             # Clean up temporary files
             for temp_file in temp_files:
                 os.remove(temp_file)
-            os.remove(concat_file.name)
             os.remove(compiled_output.name)
 
         except Exception as e:
@@ -83,7 +95,7 @@ async def compile_selected_clips(message: types.Message, bot: Bot):
             await message.answer("Wystąpił błąd podczas kompilacji klipów.")
 
     except Exception as e:
-        logger.error(f"Error handling /kompilujklipy command: {e}", exc_info=True)
+        logger.error(f"Error handling /polaczklipy command: {e}", exc_info=True)
         await message.answer("Wystąpił błąd podczas przetwarzania żądania.")
 
 def register_compile_selected_clips_command(dispatcher: Dispatcher):

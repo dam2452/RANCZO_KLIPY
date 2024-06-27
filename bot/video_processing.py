@@ -1,6 +1,7 @@
 import subprocess
 import asyncio
 import logging
+import ffmpeg
 
 logger = logging.getLogger(__name__)
 
@@ -36,4 +37,11 @@ def convert_seconds_to_time_str(seconds):
     seconds = int(seconds % 60)
     return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
 
-
+def get_video_duration(file_path):
+    try:
+        probe = ffmpeg.probe(file_path)
+        duration = float(probe['format']['duration'])
+        return duration
+    except ffmpeg.Error as e:
+        print(f"Error getting video duration: {e}")
+        return None

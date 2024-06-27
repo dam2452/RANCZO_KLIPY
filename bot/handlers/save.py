@@ -5,7 +5,7 @@ from aiogram import types, Router, Dispatcher
 from aiogram.filters import Command
 from bot.utils.db import is_user_authorized, save_clip
 from bot.handlers.clip import last_selected_segment
-from bot.video_processing import extract_clip
+from bot.video_processing import extract_clip, get_video_duration
 
 logger = logging.getLogger(__name__)
 
@@ -33,18 +33,22 @@ async def save_user_clip(message: types.Message):
     segment_info = last_selected_segment[chat_id]
     logger.info(f"Segment Info: {segment_info}")
 
+    video_data = None
+    start_time = 0
+    end_time = 0
+    is_compilation = False
+    season = None
+    episode_number = None
+
     if 'compiled_clip' in segment_info:
-        video_data = segment_info['compiled_clip'].getvalue()
+        output_filename = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4").name
+        with open(output_filename, 'wb') as f:
+            f.write(segment_info['compiled_clip'].getvalue())
         is_compilation = True
-        selected_segments = segment_info['selected_segments']
-        total_duration = sum(segment['end'] - segment['start'] for segment in selected_segments)
-        start_time = 0  # Compiled clips do not have a single start time
-        end_time = total_duration
-        season = None
-        episode_number = None
     elif 'expanded_clip' in segment_info:
-        video_data = segment_info['expanded_clip'].getvalue()
-        is_compilation = False
+        output_filename = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4").name
+        with open(output_filename, 'wb') as f:
+            f.write(segment_info['expanded_clip'].getvalue())
         start_time = segment_info['start_time']
         end_time = segment_info['end_time']
         season = segment_info['season']
@@ -62,12 +66,21 @@ async def save_user_clip(message: types.Message):
         output_filename = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4").name
         await extract_clip(clip_path, start_time, end_time, output_filename)
 
-        # Read the extracted clip data
-        with open(output_filename, 'rb') as file:
-            video_data = file.read()
-
-        # Remove the temporary file
+    # Verify the video length using ffmpeg-python
+    actual_duration = get_video_duration(output_filename)
+    if actual_duration is None:
+        await message.answer("❌ Nie udało się zweryfikować długości klipu.")
         os.remove(output_filename)
+        return
+
+    end_time = start_time + int(actual_duration)
+
+    # Read the extracted clip data
+    with open(output_filename, 'rb') as file:
+        video_data = file.read()
+
+    # Remove the temporary file
+    os.remove(output_filename)
 
     # Save the clip to the database
     await save_clip(
