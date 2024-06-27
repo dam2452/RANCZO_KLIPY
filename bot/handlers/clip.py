@@ -46,7 +46,7 @@ async def handle_clip_request(message: types.Message, bot: Bot):
         await extract_clip(video_path, start_time, end_time, output_filename)
 
         input_file = FSInputFile(output_filename)
-        await bot.send_video(message.chat.id, input_file, caption=f"Klip dla cytatu: '{quote}'")
+        await bot.send_video(message.chat.id, input_file) #, caption=f"Klip dla cytatu: '{quote}'")
         os.remove(output_filename)
 
         # Zapisz segment jako ostatnio wybrany

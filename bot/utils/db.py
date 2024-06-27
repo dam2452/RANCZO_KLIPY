@@ -41,7 +41,17 @@ async def init_db():
                 FOREIGN KEY (username) REFERENCES users (username)
             )
         ''')
+        await conn.execute('''
+            CREATE TABLE IF NOT EXISTS reports (
+                id SERIAL PRIMARY KEY,
+                username TEXT NOT NULL,
+                report TEXT NOT NULL,
+                timestamp TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (username) REFERENCES users (username)
+            )
+        ''')
     await conn.close()
+
 
 async def add_user(username, is_admin=False, is_moderator=False, full_name=None, email=None, phone=None, subscription_days=None):
     conn = await get_db_connection()
@@ -223,3 +233,13 @@ async def get_user_subscription(username):
     subscription_end = await conn.fetchval('SELECT subscription_end FROM users WHERE username = $1', username)
     await conn.close()
     return subscription_end
+
+async def add_report(username, report):
+    conn = await get_db_connection()
+    async with conn.transaction():
+        await conn.execute('''
+            INSERT INTO reports (username, report)
+            VALUES ($1, $2)
+        ''', username, report)
+    await conn.close()
+

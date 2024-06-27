@@ -34,6 +34,12 @@ async def admin_help(message: Message):
 🚫 /removesubscription <username> - Usuwa subskrypcję użytkownika. Przykład: /removesubscription johndoe
 
 
+    ╔ ═════════════════════════════════════╗
+    ║     🔍 Zarządzanie transkrypcjami:   ║
+    ╚ ═════════════════════════════════════╝
+🔍 /transkrypcja <cytat> - Wyszukuje cytat w transkrypcjach i zwraca kontekst. Przykład: /transkrypcja Nie szkoda panu tego pięknego gabinetu?
+
+
 ```"""
     await message.answer(help_message, parse_mode='Markdown')
 
@@ -191,9 +197,6 @@ async def remove_subscription_command(message: Message):
     await remove_subscription(username)
     await message.answer(f"Subskrypcja dla użytkownika {username} została usunięta.")
 
-def register_admin_handlers(dispatcher: Dispatcher):
-    dispatcher.include_router(router)
-
 
 @router.message(Command('transkrypcja'))
 async def handle_transcription_request(message: Message):
@@ -208,7 +211,9 @@ async def handle_transcription_request(message: Message):
 
     quote = ' '.join(content[1:])
     logger.info(f"Searching transcription for quote: '{quote}'")
-    result = await find_segment_with_context(quote)
+
+    context_size = 30
+    result = await find_segment_with_context(quote, context_size)
 
     if not result:
         await message.answer("Nie znaleziono pasujących segmentów.")
@@ -222,6 +227,7 @@ async def handle_transcription_request(message: Message):
         response += f"ID: {segment['id']} - {segment['text']}\n"
 
     await message.answer(response)
+
 
 def register_admin_handlers(dispatcher: Dispatcher):
     dispatcher.include_router(router)

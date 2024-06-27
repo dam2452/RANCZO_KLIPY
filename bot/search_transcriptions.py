@@ -90,85 +90,92 @@ async def find_segment_by_quote(quote, season_filter=None, episode_filter=None, 
         return None
 
 
-async def find_segment_with_context(quote, context_size=5, season_filter=None, episode_filter=None, index='ranczo-transcriptions'):
-    """
-    Searches for a segment by a given quote and returns it with additional context.
-
-    Parameters:
-    - quote: The text to search for within segments.
-    - context_size: Number of segments before and after the found segment to include as context.
-    - season_filter: Optional filter to narrow down results to a specific season.
-    - episode_filter: Optional filter to narrow down results to a specific episode.
-    - index: The Elasticsearch index to search within.
-
-    Returns:
-    - A dictionary with the found segment and its context.
-    """
-    logger.info(f"Searching for quote: '{quote}' with context size: {context_size}, filters - Season: {season_filter}, Episode: {episode_filter}")
+async def find_segment_with_context(quote, context_size=30, season_filter=None, episode_filter=None, index='ranczo-transcriptions'):
+    logger.info(
+        f"Searching for quote: '{quote}' with context size: {context_size}, filters - Season: {season_filter}, Episode: {episode_filter}")
     es = await connect_to_elasticsearch()
 
     if not es:
         logger.error("Failed to connect to Elasticsearch.")
         return None
 
-    query = {
+    segment = await find_segment_by_quote(quote, season_filter, episode_filter, index, return_all=False)
+    if not segment:
+        logger.info("No segments found matching the query.")
+        return None
+
+    segment = segment[0] if isinstance(segment, list) else segment
+    segment_id = segment['id']
+    episode_number = segment['episode_info']['episode_number']
+    season_number = segment['episode_info']['season']
+
+    context_query_before = {
         "query": {
             "bool": {
-                "must": {
-                    "match": {
-                        "text": {
-                            "query": quote,
-                            "fuzziness": "AUTO"
-                        }
-                    }
-                },
-                "filter": []
+                "must": [
+                    {"term": {"episode_info.season": season_number}},
+                    {"term": {"episode_info.episode_number": episode_number}}
+                ],
+                "filter": [
+                    {"range": {"id": {"lt": segment_id}}}
+                ]
             }
-        }
+        },
+        "sort": [{"id": "desc"}],
+        "size": context_size
     }
 
-    if season_filter:
-        query["query"]["bool"]["filter"].append({"term": {"episode_info.season": season_filter}})
-    if episode_filter:
-        query["query"]["bool"]["filter"].append({"term": {"episode_info.episode_number": episode_filter}})
+    context_query_after = {
+        "query": {
+            "bool": {
+                "must": [
+                    {"term": {"episode_info.season": season_number}},
+                    {"term": {"episode_info.episode_number": episode_number}}
+                ],
+                "filter": [
+                    {"range": {"id": {"gt": segment_id}}}
+                ]
+            }
+        },
+        "sort": [{"id": "asc"}],
+        "size": context_size
+    }
 
     try:
-        response = await es.search(index=index, body=query, size=1)
-        hits = response['hits']['hits']
+        context_response_before = await es.search(index=index, body=context_query_before)
+        context_response_after = await es.search(index=index, body=context_query_after)
 
-        if not hits:
-            logger.info("No segments found matching the query.")
-            return None
+        context_segments_before = [{'id': hit['_source']['id'], 'text': hit['_source']['text']} for hit in
+                                   context_response_before['hits']['hits']]
+        context_segments_after = [{'id': hit['_source']['id'], 'text': hit['_source']['text']} for hit in
+                                  context_response_after['hits']['hits']]
 
-        segment = hits[0]['_source']
-        segment_id = segment['id']
+        context_segments_before.reverse()
 
-        context_query = {
-            "query": {
-                "bool": {
-                    "must": {
-                        "match_all": {}
-                    },
-                    "filter": [
-                        {"range": {"id": {"gte": segment_id - context_size, "lte": segment_id + context_size}}}
-                    ]
-                }
-            },
-            "sort": [{"id": "asc"}]
-        }
+        context_segments = context_segments_before + [{'id': segment['id'], 'text': segment['text']}] + context_segments_after
 
-        context_response = await es.search(index=index, body=context_query, size=(context_size * 2 + 1))
-        context_hits = context_response['hits']['hits']
+        seen_ids = set()
+        unique_context_segments = []
+        for seg in context_segments:
+            if seg['id'] not in seen_ids:
+                unique_context_segments.append(seg)
+                seen_ids.add(seg['id'])
 
-        context_segments = [{'id': hit['_source']['id'], 'text': hit['_source']['text']} for hit in context_hits]
-        logger.info(f"Found {len(context_segments)} segments for context.")
+        logger.info(f"Found {len(unique_context_segments)} unique segments for context.")
+
+        target_index = unique_context_segments.index({'id': segment['id'], 'text': segment['text']})
+        start_index = max(target_index - context_size, 0)
+        end_index = min(target_index + context_size + 1, len(unique_context_segments))
+        final_context_segments = unique_context_segments[start_index:end_index]
 
         return {
             "target": segment,
-            "context": context_segments
+            "context": final_context_segments
         }
 
     except Exception as e:
         logger.error(f"An error occurred while searching for segment with context: {e}")
         return None
+
+
 
