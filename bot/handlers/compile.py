@@ -23,10 +23,7 @@ async def concatenate_clips(segment_files, output_file):
 
     command = [
         'ffmpeg', '-y', '-f', 'concat', '-safe', '0', '-i', concat_file.name,
-          '-c', 'copy',
-        '-movflags', '+faststart',
-        '-fflags', '+genpts',
-        '-avoid_negative_ts', '1', output_file
+        '-c', 'copy', '-movflags', '+faststart', '-fflags', '+genpts', '-avoid_negative_ts', '1', output_file
     ]
 
     process = await asyncio.create_subprocess_exec(
@@ -122,6 +119,13 @@ async def compile_clips(message: types.Message, bot: Bot):
 
             # Concatenate segments using the concat demuxer
             await concatenate_clips(temp_files, compiled_output.name)
+
+            file_size_mb = os.path.getsize(compiled_output.name) / (1024 * 1024)
+            if file_size_mb > 50:
+                await message.answer(
+                    "❌ Skompilowany klip jest za duży, aby go wysłać przez Telegram. Maksymalny rozmiar pliku to 50 MB. ❌")
+                os.remove(compiled_output.name)
+                return
 
             # Read the output file to BytesIO
             with open(compiled_output.name, 'rb') as f:

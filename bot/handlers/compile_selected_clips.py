@@ -6,8 +6,6 @@ from aiogram import Router, Bot, types, Dispatcher
 from aiogram.filters import Command
 from aiogram.types import FSInputFile
 from bot.utils.db import is_user_authorized, get_clip_by_name
-import subprocess
-
 
 logger = logging.getLogger(__name__)
 router = Router()
@@ -81,6 +79,13 @@ async def compile_selected_clips(message: types.Message, bot: Bot):
 
             # Concatenate segments using the concat demuxer
             await concatenate_clips(temp_files, compiled_output.name)
+
+            file_size_mb = os.path.getsize(compiled_output.name) / (1024 * 1024)
+            if file_size_mb > 50:
+                await message.answer(
+                    "❌ Skompilowany klip jest za duży, aby go wysłać przez Telegram. Maksymalny rozmiar pliku to 50 MB. ❌")
+                os.remove(compiled_output.name)
+                return
 
             # Send the compiled video
             await bot.send_video(chat_id, FSInputFile(compiled_output.name), caption="Oto skompilowane klipy.")
