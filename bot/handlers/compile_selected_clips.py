@@ -37,13 +37,15 @@ async def compile_selected_clips(message: types.Message, bot: Bot):
     try:
         if not await is_user_authorized(message.from_user.username):
             await message.answer("❌ Nie masz uprawnień do korzystania z tego bota.")
+            logger.warning(f"Unauthorized access attempt by user: {message.from_user.username}")
             return
 
         chat_id = message.chat.id
         content = message.text.split()
 
         if len(content) < 2:
-            await message.answer("Podaj nazwy klipów do skompilowania w odpowiedniej kolejności.")
+            await message.answer("📄 Podaj nazwy klipów do skompilowania w odpowiedniej kolejności.")
+            logger.info("No clip names provided by user.")
             return
 
         username = message.from_user.username
@@ -53,12 +55,14 @@ async def compile_selected_clips(message: types.Message, bot: Bot):
         for clip_name in clip_names:
             clip = await get_clip_by_name(username, clip_name)
             if not clip:
-                await message.answer(f"Nie znaleziono klipu o nazwie '{clip_name}'.")
+                await message.answer(f"❌ Nie znaleziono klipu o nazwie '{clip_name}'.")
+                logger.info(f"Clip '{clip_name}' not found for user '{username}'.")
                 return
             selected_clips.append(clip)
 
         if not selected_clips:
-            await message.answer("Nie znaleziono pasujących klipów do kompilacji.")
+            await message.answer("❌ Nie znaleziono pasujących klipów do kompilacji.")
+            logger.info("No matching clips found for compilation.")
             return
 
         try:
@@ -84,24 +88,26 @@ async def compile_selected_clips(message: types.Message, bot: Bot):
             if file_size_mb > 50:
                 await message.answer(
                     "❌ Skompilowany klip jest za duży, aby go wysłać przez Telegram. Maksymalny rozmiar pliku to 50 MB. ❌")
+                logger.warning(f"Compiled clip exceeds size limit: {file_size_mb:.2f} MB")
                 os.remove(compiled_output.name)
                 return
 
             # Send the compiled video
-            await bot.send_video(chat_id, FSInputFile(compiled_output.name), caption="Oto skompilowane klipy.")
+            await bot.send_video(chat_id, FSInputFile(compiled_output.name), caption="🎬 Oto skompilowane klipy! 🎬")
 
             # Clean up temporary files
             for temp_file in temp_files:
                 os.remove(temp_file)
             os.remove(compiled_output.name)
+            logger.info(f"Compiled clip sent to user '{message.from_user.username}' and temporary files removed.")
 
         except Exception as e:
             logger.error(f"An error occurred while compiling clips: {e}", exc_info=True)
-            await message.answer("Wystąpił błąd podczas kompilacji klipów.")
+            await message.answer("⚠️ Wystąpił błąd podczas kompilacji klipów.")
 
     except Exception as e:
-        logger.error(f"Error handling /polaczklipy command: {e}", exc_info=True)
-        await message.answer("Wystąpił błąd podczas przetwarzania żądania.")
+        logger.error(f"Error handling /polaczklipy command for user '{message.from_user.username}': {e}", exc_info=True)
+        await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania.")
 
 def register_compile_selected_clips_command(dispatcher: Dispatcher):
     dispatcher.include_router(router)
