@@ -15,7 +15,8 @@ async def handle_list_request(message: types.Message, bot: Bot):
     try:
         chat_id = message.chat.id
         if chat_id not in last_search_quotes or chat_id not in last_search_terms:
-            await message.answer("Nie znaleziono wcześniejszych wyników wyszukiwania.")
+            await message.answer("🔍 Nie znaleziono wcześniejszych wyników wyszukiwania.")
+            logger.info("No previous search results found for chat ID {chat_id}.")
             return
 
         segments = last_search_quotes[chat_id]
@@ -51,11 +52,13 @@ async def handle_list_request(message: types.Message, bot: Bot):
             file.write(response)
 
         input_file = FSInputFile(file_name)
-        await bot.send_document(chat_id, input_file, caption="Znalezione cytaty")
+        await bot.send_document(chat_id, input_file, caption="📄 Znalezione cytaty")
         os.remove(file_name)
+        logger.info(f"List of search results for term '{search_term}' sent to user {message.from_user.username}.")
+
     except Exception as e:
-        logger.error(f"Error in handle_list_request: {e}", exc_info=True)
-        await message.answer("Wystąpił błąd podczas przetwarzania żądania.")
+        logger.error(f"Error in handle_list_request for user {message.from_user.username}: {e}", exc_info=True)
+        await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania. Prosimy spróbować ponownie później.")
 
 def register_list_command(dispatcher: Dispatcher):
     dispatcher.include_router(router)
