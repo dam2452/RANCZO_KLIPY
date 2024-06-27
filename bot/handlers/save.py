@@ -8,26 +8,28 @@ from bot.handlers.clip import last_selected_segment
 from bot.video_processing import extract_clip, get_video_duration
 
 logger = logging.getLogger(__name__)
-
 router = Router()
 
 @router.message(Command("zapisz"))
 async def save_user_clip(message: types.Message):
     if not await is_user_authorized(message.from_user.username):
-        await message.answer("Nie masz uprawnień do korzystania z tego bota.")
+        await message.answer("❌ Nie masz uprawnień do korzystania z tego bota.")
+        logger.warning(f"Unauthorized access attempt by user: {message.from_user.username}")
         return
 
     chat_id = message.chat.id
     username = message.from_user.username
     content = message.text.split()
     if len(content) < 2:
-        await message.answer("Podaj nazwę klipu.")
+        await message.answer("📝 Podaj nazwę klipu. Przykład: /zapisz nazwa_klipu")
+        logger.info("No clip name provided by user.")
         return
 
     clip_name = content[1]
 
     if chat_id not in last_selected_segment:
-        await message.answer("Najpierw wybierz segment za pomocą /wybierz.")
+        await message.answer("⚠️ Najpierw wybierz segment za pomocą /wybierz.")
+        logger.info("No segment selected by user.")
         return
 
     segment_info = last_selected_segment[chat_id]
@@ -70,6 +72,7 @@ async def save_user_clip(message: types.Message):
     actual_duration = get_video_duration(output_filename)
     if actual_duration is None:
         await message.answer("❌ Nie udało się zweryfikować długości klipu.")
+        logger.error(f"Failed to verify the length of the clip '{clip_name}' for user '{username}'.")
         os.remove(output_filename)
         return
 
@@ -95,7 +98,8 @@ async def save_user_clip(message: types.Message):
         episode_number=episode_number
     )
 
-    await message.answer(f"Klip '{clip_name}' został zapisany pomyślnie.")
+    await message.answer(f"✅ Klip '{clip_name}' został zapisany pomyślnie.")
+    logger.info(f"Clip '{clip_name}' saved successfully for user '{username}'.")
 
 def register_save_handler(dispatcher: Dispatcher):
     dispatcher.include_router(router)
