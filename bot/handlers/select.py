@@ -42,14 +42,16 @@ async def handle_select_request(message: types.Message, bot: Bot):
 
         segment = segments[index]
         video_path = segment['video_path']
-        start_time = segment['start']
-        end_time = segment['end']
+        # start_time = segment['start']
+        # end_time = segment['end']
+        start_time = max(0, segment['start'] - 5)  # Extend 5 seconds before
+        end_time = segment['end'] + 5  # Extend 5 seconds after
 
         output_filename = os.path.join(tempfile.gettempdir(), f"{segment['id']}_clip.mp4")
         await extract_clip(video_path, start_time, end_time, output_filename)
 
         input_file = FSInputFile(output_filename)
-        await bot.send_video(message.chat.id, input_file)#, caption="🎥 Wybrany klip! 🎥")
+        await bot.send_video(message.chat.id, input_file, supports_streaming=True,width=1920, height=1080)#, caption="🎥 Wybrany klip! 🎥")
         os.remove(output_filename)
 
         # Zapisz segment jako ostatnio wybrany

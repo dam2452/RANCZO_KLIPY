@@ -143,7 +143,7 @@ async def compile_clips(message: types.Message, bot: Bot):
             # Store compiled clip info for saving
             last_selected_segment[chat_id] = {'compiled_clip': compiled_output_io, 'selected_segments': selected_segments}
 
-            await bot.send_video(chat_id, FSInputFile(compiled_output.name), caption="🎬 Oto skompilowane klipy! 🎬")
+            await bot.send_video(chat_id, FSInputFile(compiled_output.name), supports_streaming=True,width=1920, height=1080)#, caption="🎬 Oto skompilowane klipy! 🎬")
 
             # Clean up temporary files
             for temp_file in temp_files:

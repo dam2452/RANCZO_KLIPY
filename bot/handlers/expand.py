@@ -65,7 +65,7 @@ async def handle_expand_request(message: types.Message, bot: Bot):
             return
 
         input_file = FSInputFile(output_filename)
-        await bot.send_video(message.chat.id, input_file, caption="🎬 Oto Twój rozszerzony klip! 🎬")
+        await bot.send_video(message.chat.id, input_file, supports_streaming=True,width=1920, height=1080) #caption="🎬 Oto Twój rozszerzony klip! 🎬")
 
         with open(output_filename, 'rb') as file:
             video_data = file.read()

@@ -19,7 +19,7 @@ async def send_clip_to_telegram(bot, chat_id, video_path, start_time, end_time):
             logger.warning(f"Clip size {file_size:.2f} MB exceeds the 50 MB limit.")
         else:
             input_file = FSInputFile(output_filename)  # Ensure the path is correct
-            await bot.send_video(chat_id, input_file, caption="🎥 Oto Twój klip! 🎥")
+            await bot.send_video(chat_id, input_file, supports_streaming=True,width=1920, height=1080)# caption="🎥 Oto Twój klip! 🎥")
 
         os.remove(output_filename)
         logger.info(f"Temporary file '{output_filename}' removed after sending clip.")

@@ -49,7 +49,7 @@ async def handle_clip_request(message: types.Message, bot: Bot):
         await extract_clip(video_path, start_time, end_time, output_filename)
 
         input_file = FSInputFile(output_filename)
-        await bot.send_video(message.chat.id, input_file)
+        await bot.send_video(message.chat.id, input_file, supports_streaming=True,width=1920, height=1080)
         os.remove(output_filename)
         logger.info(f"Clip for quote '{quote}' sent to user '{message.from_user.username}' and temporary file removed.")
 
