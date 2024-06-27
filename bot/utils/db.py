@@ -243,3 +243,12 @@ async def add_report(username, report):
         ''', username, report)
     await conn.close()
 
+async def delete_clip(username, clip_name):
+    conn = await get_db_connection()
+    async with conn.transaction():
+        result = await conn.execute('''
+            DELETE FROM clips
+            WHERE username = $1 AND clip_name = $2
+        ''', username, clip_name)
+    await conn.close()
+    return result

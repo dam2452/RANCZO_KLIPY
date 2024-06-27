@@ -3,6 +3,7 @@ from aiogram import Router, Bot, types, Dispatcher
 from aiogram.filters import Command
 from bot.utils.db import get_saved_clips
 from tabulate import tabulate
+from datetime import date
 
 logger = logging.getLogger(__name__)
 router = Router()
@@ -11,12 +12,12 @@ router = Router()
 async def list_saved_clips(message: types.Message, bot: Bot):
     username = message.from_user.username
     if not username:
-        await message.answer("Nie można zidentyfikować użytkownika.")
+        await message.answer("❌ Nie można zidentyfikować użytkownika.")
         return
 
     clips = await get_saved_clips(username)
     if not clips:
-        await message.answer("Nie masz zapisanych klipów.")
+        await message.answer("📭 Nie masz zapisanych klipów.")
         return
 
     table_data = []
@@ -37,7 +38,16 @@ async def list_saved_clips(message: types.Message, bot: Bot):
         table_data.append([idx, clip_name, season_episode, length_str])
 
     table = tabulate(table_data, headers=["#", "Nazwa Klipu", "Sezon/Odcinek", "Długość"], tablefmt="grid")
-    response_message = f"Twoje zapisane klipy:\n\n<pre>{table}</pre>"
+    response_message = f"""
+🎬 Twoje Zapisane Klipy 🎬
+
+🎥 Użytkownik: @{username}
+📅 Data: {date.today().strftime('%Y-%m-%d')}
+
+<pre>{table}</pre>
+
+Dzięki za wspieranie projektu!  🌟
+"""
     await message.answer(response_message, parse_mode="HTML")
 
 def register_list_clips_handler(dispatcher: Dispatcher):

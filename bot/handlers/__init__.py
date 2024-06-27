@@ -14,6 +14,7 @@ from bot.handlers.compile_selected_clips import register_compile_selected_clips_
 from bot.handlers.subscription import register_subscription_handler
 from bot.handlers.shorten import register_shorten_command
 from bot.handlers.report import register_report_handler
+from bot.handlers.delete_clip import register_delete_clip_handler
 
 def register_handlers(dispatcher: Dispatcher):
     register_clip_command(dispatcher)
@@ -31,4 +32,5 @@ def register_handlers(dispatcher: Dispatcher):
     register_subscription_handler(dispatcher)
     register_shorten_command(dispatcher)
     register_report_handler(dispatcher)
+    register_delete_clip_handler(dispatcher)
 

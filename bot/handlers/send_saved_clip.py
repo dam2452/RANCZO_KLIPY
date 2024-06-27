@@ -45,7 +45,7 @@ async def send_clip(message: types.Message, bot: Bot):
             os.remove(temp_file_path)
             return
 
-        await bot.send_video(chat_id, FSInputFile(temp_file_path), caption=f"Klip: {clip_name}")
+        await bot.send_video(chat_id, FSInputFile(temp_file_path))# caption=f"Klip: {clip_name}")
 
         os.remove(temp_file_path)  # Clean up the temporary file
     except Exception as e:
