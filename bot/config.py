@@ -23,3 +23,4 @@ if TELEGRAM_BOT_TOKEN is None:
 
 if not all([POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_HOST, POSTGRES_DB]):
     raise ValueError("PostgreSQL connection parameters are not fully set in .env file")
+

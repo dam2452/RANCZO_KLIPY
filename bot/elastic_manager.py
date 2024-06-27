@@ -13,8 +13,6 @@ logger = logging.getLogger(__name__)
 # Disable warnings regarding untrusted HTTPS requests
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-
-
 load_dotenv("../.env")
 
 # Retrieve environment variables
@@ -22,8 +20,7 @@ es_host = os.getenv("ES_HOST")
 print(es_host)
 es_username = os.getenv("ES_USERNAME")
 es_password = os.getenv("ES_PASSWORD")
-# Additional variable for Telegram bot token, if needed
-telegram_bot_token = os.getenv("TELEGRAM_BOT_TOKEN")
+
 
 async def connect_to_elasticsearch():
     """
