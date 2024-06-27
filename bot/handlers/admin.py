@@ -14,40 +14,26 @@ async def admin_help(message: Message):
         await message.answer("Nie masz uprawnień do zarządzania whitelistą.")
         return
 
-    help_message = """
-🛠 *Instrukcje dla admina* 🛠
+    help_message = """```🛠Instrukcje_dla_admina🛠
 
-Komendy do zarządzania whitelistą:
+    ╔ ═════════════════════════════════════╗
+    ║       🔐 Zarządzanie użytkownikami:  ║
+    ╚ ═════════════════════════════════════╝
+➕ /addwhitelist <username> [is_admin=0] [is_moderator=0] [full_name] [email] [phone] - Dodaje użytkownika do whitelisty. Przykład: /addwhitelist johndoe 1 0 John Doe johndoe@example.com 123456789
+➖ /removewhitelist <username> - Usuwa użytkownika z whitelisty. Przykład: /removewhitelist johndoe
+✏️ /updatewhitelist <username> [is_admin] [is_moderator] [full_name] [email] [phone] - Aktualizuje dane użytkownika w whiteliście. Przykład: /updatewhitelist johndoe 0 1 John Doe johndoe@example.com 987654321
+📃 /listwhitelist - Wyświetla listę wszystkich użytkowników w whiteliście.
+📃 /listadmins - Wyświetla listę wszystkich adminów.
+📃 /listmoderators - Wyświetla listę wszystkich moderatorów.
 
-➕ `/addwhitelist <username> [is_admin=0] [is_moderator=0] [full_name] [email] [phone]`
-Dodaje użytkownika do whitelisty.
-Przykład: `/addwhitelist johndoe 1 0 John Doe johndoe@example.com 123456789`
+    ╔ ═════════════════════════════════════╗
+    ║     💳 Zarządzanie subskrypcjami:    ║
+    ╚ ═════════════════════════════════════╝
+➕ /addsubscription <username> <days> - Dodaje subskrypcję użytkownikowi na określoną liczbę dni. Przykład: /addsubscription johndoe 30
+🚫 /removesubscription <username> - Usuwa subskrypcję użytkownika. Przykład: /removesubscription johndoe
 
-➖ `/removewhitelist <username>`
-Usuwa użytkownika z whitelisty.
-Przykład: `/removewhitelist johndoe`
 
-✏️ `/updatewhitelist <username> [is_admin] [is_moderator] [full_name] [email] [phone]`
-Aktualizuje dane użytkownika w whiteliście.
-Przykład: `/updatewhitelist johndoe 0 1 John Doe johndoe@example.com 987654321`
-
-📃 `/listwhitelist`
-Wyświetla listę wszystkich użytkowników w whiteliście.
-
-📃 `/listadmins`
-Wyświetla listę wszystkich adminów.
-
-📃 `/listmoderators`
-Wyświetla listę wszystkich moderatorów.
-
-💳 `/addsubscription <username> <days>`
-Dodaje subskrypcję użytkownikowi na określoną liczbę dni.
-Przykład: `/addsubscription johndoe 30`
-
-🚫 `/removesubscription <username>`
-Usuwa subskrypcję użytkownika.
-Przykład: `/removesubscription johndoe`
-"""
+```"""
     await message.answer(help_message, parse_mode='Markdown')
 
 @router.message(Command('addwhitelist'))
