@@ -1,4 +1,3 @@
-# start.py
 import logging
 from aiogram import Router, Dispatcher
 from aiogram.types import Message
@@ -57,7 +56,7 @@ async def handle_start(message: Message):
 # """
 # 2️⃣ /kupsuba - Kupuje subskrypcję.
 # 3️⃣ /anulujsuba - Anuluje subskrypcję.
-#
+#   ╗  ╔ ═ ╣  ╚ ╝║
 # """
 
     await message.answer(welcome_message, parse_mode='Markdown')
@@ -65,4 +64,3 @@ async def handle_start(message: Message):
 def register_start_command(dispatcher: Dispatcher):
     dispatcher.include_router(router)
 
-   # ╗  ╔ ═ ╣  ╚ ╝║
