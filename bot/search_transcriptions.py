@@ -21,11 +21,11 @@ async def find_segment_by_quote(quote, season_filter=None, episode_filter=None, 
     - The first matching segment if return_all is False.
     - None if no matches are found.
     """
-    logger.info(f"Searching for quote: '{quote}' with filters - Season: {season_filter}, Episode: {episode_filter}")
+    logger.info(f"🔍 Searching for quote: '{quote}' with filters - Season: {season_filter}, Episode: {episode_filter}")
     es = await connect_to_elasticsearch()
 
     if not es:
-        logger.error("Failed to connect to Elasticsearch.")
+        logger.error("❌ Failed to connect to Elasticsearch.")
         return None
 
     # Construct the base query
@@ -51,7 +51,7 @@ async def find_segment_by_quote(quote, season_filter=None, episode_filter=None, 
 
     # Add episode filter if provided
     if episode_filter:
-        query["query"]["bool"]["filter"].append({"term": {"episode_info.episode_number": episode_filter}}) #Globl number of episode
+        query["query"]["bool"]["filter"].append({"term": {"episode_info.episode_number": episode_filter}}) #Global number of episode
 
     size = 10000 if return_all else 1
 
@@ -60,7 +60,7 @@ async def find_segment_by_quote(quote, season_filter=None, episode_filter=None, 
         hits = response['hits']['hits']
 
         if not hits:
-            logger.info("No segments found matching the query.")
+            logger.info("❌ No segments found matching the query.")
             return None
 
         unique_segments = {}
@@ -78,7 +78,7 @@ async def find_segment_by_quote(quote, season_filter=None, episode_filter=None, 
             if unique_key not in unique_segments:
                 unique_segments[unique_key] = segment
 
-        logger.info(f"Found {len(unique_segments)} unique segments matching the query.")
+        logger.info(f"✅ Found {len(unique_segments)} unique segments matching the query.")
 
         if return_all:
             return list(unique_segments.values())
@@ -86,22 +86,21 @@ async def find_segment_by_quote(quote, season_filter=None, episode_filter=None, 
         return next(iter(unique_segments.values()), None)
 
     except Exception as e:
-        logger.error(f"An error occurred while searching for segments: {e}")
+        logger.error(f"❌ An error occurred while searching for segments: {e}")
         return None
 
 
 async def find_segment_with_context(quote, context_size=30, season_filter=None, episode_filter=None, index='ranczo-transcriptions'):
-    logger.info(
-        f"Searching for quote: '{quote}' with context size: {context_size}, filters - Season: {season_filter}, Episode: {episode_filter}")
+    logger.info(f"🔍 Searching for quote: '{quote}' with context size: {context_size}, filters - Season: {season_filter}, Episode: {episode_filter}")
     es = await connect_to_elasticsearch()
 
     if not es:
-        logger.error("Failed to connect to Elasticsearch.")
+        logger.error("❌ Failed to connect to Elasticsearch.")
         return None
 
     segment = await find_segment_by_quote(quote, season_filter, episode_filter, index, return_all=False)
     if not segment:
-        logger.info("No segments found matching the query.")
+        logger.info("❌ No segments found matching the query.")
         return None
 
     segment = segment[0] if isinstance(segment, list) else segment
@@ -145,10 +144,8 @@ async def find_segment_with_context(quote, context_size=30, season_filter=None, 
         context_response_before = await es.search(index=index, body=context_query_before)
         context_response_after = await es.search(index=index, body=context_query_after)
 
-        context_segments_before = [{'id': hit['_source']['id'], 'text': hit['_source']['text']} for hit in
-                                   context_response_before['hits']['hits']]
-        context_segments_after = [{'id': hit['_source']['id'], 'text': hit['_source']['text']} for hit in
-                                  context_response_after['hits']['hits']]
+        context_segments_before = [{'id': hit['_source']['id'], 'text': hit['_source']['text']} for hit in context_response_before['hits']['hits']]
+        context_segments_after = [{'id': hit['_source']['id'], 'text': hit['_source']['text']} for hit in context_response_after['hits']['hits']]
 
         context_segments_before.reverse()
 
@@ -161,7 +158,7 @@ async def find_segment_with_context(quote, context_size=30, season_filter=None, 
                 unique_context_segments.append(seg)
                 seen_ids.add(seg['id'])
 
-        logger.info(f"Found {len(unique_context_segments)} unique segments for context.")
+        logger.info(f"✅ Found {len(unique_context_segments)} unique segments for context.")
 
         target_index = unique_context_segments.index({'id': segment['id'], 'text': segment['text']})
         start_index = max(target_index - context_size, 0)
@@ -174,8 +171,5 @@ async def find_segment_with_context(quote, context_size=30, season_filter=None, 
         }
 
     except Exception as e:
-        logger.error(f"An error occurred while searching for segment with context: {e}")
+        logger.error(f"❌ An error occurred while searching for segment with context: {e}")
         return None
-
-
-

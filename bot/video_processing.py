@@ -5,7 +5,6 @@ import ffmpeg
 
 logger = logging.getLogger(__name__)
 
-
 async def extract_clip(video_path, start_time, end_time, output_filename):
     duration = end_time - start_time
 
@@ -29,7 +28,9 @@ async def extract_clip(video_path, start_time, end_time, output_filename):
     )
     stdout, stderr = await process.communicate()
     if process.returncode != 0:
-        raise Exception(f"ffmpeg error: {stderr.decode()}")
+        logger.error(f"FFmpeg error: {stderr.decode()}")
+        raise Exception(f"❌ Błąd FFmpeg: {stderr.decode()}")
+    logger.info(f"Clip extracted successfully: {output_filename}")
 
 def convert_seconds_to_time_str(seconds):
     hours = int(seconds // 3600)
@@ -41,7 +42,9 @@ def get_video_duration(file_path):
     try:
         probe = ffmpeg.probe(file_path)
         duration = float(probe['format']['duration'])
+        logger.info(f"Video duration for '{file_path}': {duration} seconds")
         return duration
     except ffmpeg.Error as e:
-        print(f"Error getting video duration: {e}")
+        logger.error(f"Error getting video duration for '{file_path}': {e}")
+        print(f"⚠️ Błąd podczas uzyskiwania długości wideo: {e}")
         return None
