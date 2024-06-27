@@ -13,11 +13,13 @@ async def list_saved_clips(message: types.Message, bot: Bot):
     username = message.from_user.username
     if not username:
         await message.answer("❌ Nie można zidentyfikować użytkownika.")
+        logger.warning("User identification failed: Unable to identify user.")
         return
 
     clips = await get_saved_clips(username)
     if not clips:
         await message.answer("📭 Nie masz zapisanych klipów.")
+        logger.info(f"No saved clips found for user: {username}")
         return
 
     table_data = []
@@ -39,16 +41,17 @@ async def list_saved_clips(message: types.Message, bot: Bot):
 
     table = tabulate(table_data, headers=["#", "Nazwa Klipu", "Sezon/Odcinek", "Długość"], tablefmt="grid")
     response_message = f"""
-🎬 Twoje Zapisane Klipy 🎬
+🎬 **Twoje Zapisane Klipy** 🎬
 
-🎥 Użytkownik: @{username}
-📅 Data: {date.today().strftime('%Y-%m-%d')}
+🎥 **Użytkownik:** @{username}
+📅 **Data:** {date.today().strftime('%Y-%m-%d')}
 
 <pre>{table}</pre>
 
-Dzięki za wspieranie projektu!  🌟
+Dziękujemy za korzystanie z naszych usług! 🌟
 """
     await message.answer(response_message, parse_mode="HTML")
+    logger.info(f"List of saved clips sent to user '{username}'.")
 
 def register_list_clips_handler(dispatcher: Dispatcher):
     dispatcher.include_router(router)
