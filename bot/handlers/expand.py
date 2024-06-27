@@ -55,6 +55,13 @@ async def handle_expand_request(message: types.Message, bot: Bot):
         output_filename = os.path.join(tempfile.gettempdir(), f"{segment['id']}_expanded_clip.mp4")
         await extract_clip(video_path, start_time, end_time, output_filename)
 
+        file_size_mb = os.path.getsize(output_filename) / (1024 * 1024)
+        if file_size_mb > 50:
+            await message.answer(
+                "❌ Rozszerzony klip jest za duży, aby go wysłać przez Telegram. Maksymalny rozmiar pliku to 50 MB. ❌")
+            os.remove(output_filename)
+            return
+
         input_file = FSInputFile(output_filename)
         await bot.send_video(message.chat.id, input_file)
                              #caption=f"Rozszerzony klip: S{segment['episode_info']['season']}E{segment['episode_info']['episode_number']}")
