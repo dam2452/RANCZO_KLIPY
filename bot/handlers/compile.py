@@ -2,15 +2,14 @@ import logging
 import tempfile
 import os
 import asyncio
-import subprocess
 from io import BytesIO
 from aiogram import Router, Bot, types, Dispatcher
 from aiogram.filters import Command
 from aiogram.types import FSInputFile
-from bot.utils.db import is_user_authorized, save_clip
+from bot.utils.db import is_user_authorized
 from bot.handlers.search import last_search_quotes
 from bot.handlers.clip import last_selected_segment
-from bot.video_processing import get_video_duration
+
 
 logger = logging.getLogger(__name__)
 router = Router()
@@ -41,17 +40,20 @@ async def compile_clips(message: types.Message, bot: Bot):
     try:
         if not await is_user_authorized(message.from_user.username):
             await message.answer("❌ Nie masz uprawnień do korzystania z tego bota.")
+            logger.warning(f"Unauthorized access attempt by user: {message.from_user.username}")
             return
 
         chat_id = message.chat.id
         content = message.text.split()
 
         if len(content) < 2:
-            await message.answer("Proszę podać indeksy segmentów do skompilowania, zakres lub 'wszystko' do kompilacji wszystkich segmentów.")
+            await message.answer("🔄 Proszę podać indeksy segmentów do skompilowania, zakres lub 'wszystko' do kompilacji wszystkich segmentów.")
+            logger.info("No segments provided by user.")
             return
 
         if chat_id not in last_search_quotes or not last_search_quotes[chat_id]:
-            await message.answer("Najpierw wykonaj wyszukiwanie za pomocą /szukaj.")
+            await message.answer("🔍 Najpierw wykonaj wyszukiwanie za pomocą /szukaj.")
+            logger.info("No previous search results found for user.")
             return
 
         segments = last_search_quotes[chat_id]
@@ -66,17 +68,20 @@ async def compile_clips(message: types.Message, bot: Bot):
                     start, end = map(int, index.split('-'))
                     selected_segments.extend(segments[start - 1:end])  # Convert to 0-based index and include end
                 except ValueError:
-                    await message.answer(f"Podano nieprawidłowy zakres segmentów: {index}")
+                    await message.answer(f"⚠️ Podano nieprawidłowy zakres segmentów: {index}")
+                    logger.warning(f"Invalid range provided by user: {index}")
                     return
             else:
                 try:
                     selected_segments.append(segments[int(index) - 1])  # Convert to 0-based index
                 except (ValueError, IndexError):
-                    await message.answer(f"Podano nieprawidłowy indeks segmentu: {index}")
+                    await message.answer(f"⚠️ Podano nieprawidłowy indeks segmentu: {index}")
+                    logger.warning(f"Invalid index provided by user: {index}")
                     return
 
         if not selected_segments:
-            await message.answer("Nie znaleziono pasujących segmentów do kompilacji.")
+            await message.answer("❌ Nie znaleziono pasujących segmentów do kompilacji.")
+            logger.info("No matching segments found for compilation.")
             return
 
         try:
@@ -124,6 +129,7 @@ async def compile_clips(message: types.Message, bot: Bot):
             if file_size_mb > 50:
                 await message.answer(
                     "❌ Skompilowany klip jest za duży, aby go wysłać przez Telegram. Maksymalny rozmiar pliku to 50 MB. ❌")
+                logger.warning(f"Compiled clip exceeds size limit: {file_size_mb:.2f} MB")
                 os.remove(compiled_output.name)
                 return
 
@@ -136,20 +142,21 @@ async def compile_clips(message: types.Message, bot: Bot):
             # Store compiled clip info for saving
             last_selected_segment[chat_id] = {'compiled_clip': compiled_output_io, 'selected_segments': selected_segments}
 
-            await bot.send_video(chat_id, FSInputFile(compiled_output.name))# caption="Oto skompilowane klipy.")
+            await bot.send_video(chat_id, FSInputFile(compiled_output.name), caption="🎬 Oto skompilowane klipy! 🎬")
 
             # Clean up temporary files
             for temp_file in temp_files:
                 os.remove(temp_file)
             os.remove(compiled_output.name)
+            logger.info(f"Compiled clip sent to user '{message.from_user.username}' and temporary files removed.")
 
         except Exception as e:
             logger.error(f"An error occurred while compiling clips: {e}", exc_info=True)
-            await message.answer("Wystąpił błąd podczas kompilacji klipów.")
+            await message.answer("⚠️ Wystąpił błąd podczas kompilacji klipów.")
 
     except Exception as e:
-        logger.error(f"Error handling /kompiluj command: {e}", exc_info=True)
-        await message.answer("Wystąpił błąd podczas przetwarzania żądania.")
+        logger.error(f"Error handling /kompiluj command for user '{message.from_user.username}': {e}", exc_info=True)
+        await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania.")
 
 def register_compile_command(dispatcher: Dispatcher):
     dispatcher.include_router(router)
