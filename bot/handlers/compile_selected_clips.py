@@ -11,7 +11,7 @@ from io import BytesIO
 logger = logging.getLogger(__name__)
 router = Router()
 
-@router.message(Command('kompilujklipy'))
+@router.message(Command('polaczklipy'))
 async def compile_selected_clips(message: types.Message, bot: Bot):
     try:
         if not await is_user_authorized(message.from_user.username):

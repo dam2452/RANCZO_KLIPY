@@ -8,7 +8,7 @@ from bot.utils.db import get_clip_by_name
 logger = logging.getLogger(__name__)
 router = Router()
 
-@router.message(Command('wyslijklip'))
+@router.message(Command('wyslij'))
 async def send_clip(message: types.Message, bot: Bot):
     chat_id = message.chat.id
     content = message.text.split()

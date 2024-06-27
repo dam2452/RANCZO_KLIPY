@@ -8,7 +8,7 @@ from bot.utils.db import get_user_subscription
 logger = logging.getLogger(__name__)
 router = Router()
 
-@router.message(Command('mojasubskrypcja'))
+@router.message(Command('subskrypcja'))
 async def check_subscription(message: Message):
     username = message.from_user.username
     if not username:
