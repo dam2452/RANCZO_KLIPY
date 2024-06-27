@@ -4,6 +4,7 @@ from aiogram.filters import Command
 from aiogram.types import Message
 from bot.utils.db import add_user, remove_user, update_user, is_user_admin, is_user_moderator, get_all_users, get_admin_users, get_moderator_users, add_subscription, remove_subscription
 from bot.search_transcriptions import find_segment_with_context
+from tabulate import tabulate
 
 logger = logging.getLogger(__name__)
 router = Router()
@@ -103,22 +104,25 @@ async def update_whitelist(message: Message):
     await update_user(username, is_admin, is_moderator, full_name, email, phone)
     await message.answer(f"Zaktualizowano dane użytkownika {username}.")
 
+
 @router.message(Command('listwhitelist'))
 async def list_whitelist(message: Message):
     if not await is_user_admin(message.from_user.username) and not await is_user_moderator(message.from_user.username):
-        await message.answer("Nie masz uprawnień do zarządzania whitelistą.")
+        await message.answer("❌ Nie masz uprawnień do zarządzania whitelistą.")
         return
 
     users = await get_all_users()
     if not users:
-        await message.answer("Whitelist jest pusta.")
+        await message.answer("📭 Whitelist jest pusta.")
         return
 
-    response = "Lista użytkowników w whiteliście:\n"
+    table = [["Username", "Full Name", "Email", "Phone", "Subskrypcja do"]]
     for user in users:
-        response += f"Username: {user['username']}, Full Name: {user['full_name']}, Email: {user['email']}, Phone: {user['phone']}, Subskrypcja do: {user['subscription_end']}\n"
+        table.append([user['username'], user['full_name'], user['email'], user['phone'], user['subscription_end']])
 
-    await message.answer(response)
+    response = f"```whitelista\n{tabulate(table, headers='firstrow', tablefmt='grid')}```"
+
+    await message.answer(response, parse_mode='Markdown')
 
 @router.message(Command('listadmins'))
 async def list_admins(message: Message):
