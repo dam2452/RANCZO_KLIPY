@@ -15,23 +15,26 @@ last_search_terms = {}  # Add this dictionary to store search terms
 async def handle_search_request(message: types.Message, bot: Bot):
     try:
         if not await is_user_authorized(message.from_user.username):
-            await message.answer("Nie masz uprawnień do korzystania z tego bota.")
+            await message.answer("❌ Nie masz uprawnień do korzystania z tego bota.")
+            logger.warning(f"Unauthorized access attempt by user: {message.from_user.username}")
             return
 
         chat_id = message.chat.id
         content = message.text.split()
         if len(content) < 2:
-            await message.answer("Podaj cytat, który chcesz znaleźć.")
+            await message.answer("🔍 Podaj cytat, który chcesz znaleźć. Przykład: /szukaj geniusz")
+            logger.info("No search quote provided by user.")
             return
 
         quote = ' '.join(content[1:])
         last_search_terms[chat_id] = quote  # Store the search term
-        logger.info(f"Searching for quote: '{quote}'")
+        logger.info(f"User '{message.from_user.username}' is searching for quote: '{quote}'")
         segments = await find_segment_by_quote(quote, return_all=True)
-        logger.info(f"Found segments: {segments}")
+        logger.info(f"Segments found for quote '{quote}': {segments}")
 
         if not segments:
-            await message.answer("Nie znaleziono pasujących segmentów.")
+            await message.answer("❌ Nie znaleziono pasujących segmentów.")
+            logger.info(f"No segments found for quote: '{quote}'")
             return
 
         unique_segments = {}
@@ -75,9 +78,11 @@ async def handle_search_request(message: types.Message, bot: Bot):
         response += f"```\n{table}\n```"
 
         await message.answer(response, parse_mode='Markdown')
+        logger.info(f"Search results for quote '{quote}' sent to user '{message.from_user.username}'.")
+
     except Exception as e:
-        logger.error(f"Error in handle_search_request: {e}", exc_info=True)
-        await message.answer("Wystąpił błąd podczas przetwarzania żądania.")
+        logger.error(f"Error in handle_search_request for user '{message.from_user.username}': {e}", exc_info=True)
+        await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania. Prosimy spróbować ponownie później.")
 
 def register_search_command(dispatcher: Dispatcher):
     dispatcher.include_router(router)
