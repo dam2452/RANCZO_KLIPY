@@ -252,3 +252,12 @@ async def delete_clip(username, clip_name):
         ''', username, clip_name)
     await conn.close()
     return result
+
+async def is_clip_name_unique(chat_id: int, clip_name: str) -> bool:
+    conn = await get_db_connection()
+    result = await conn.fetchval(
+        'SELECT COUNT(*) FROM clips WHERE chat_id=$1 AND clip_name=$2',
+        chat_id, clip_name
+    )
+    await conn.close()
+    return result == 0

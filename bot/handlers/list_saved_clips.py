@@ -41,14 +41,14 @@ async def list_saved_clips(message: types.Message, bot: Bot):
 
     table = tabulate(table_data, headers=["#", "Nazwa Klipu", "Sezon/Odcinek", "Długość"], tablefmt="grid")
     response_message = f"""
-🎬 **Twoje Zapisane Klipy** 🎬
+🎬 Twoje Zapisane Klipy 🎬
 
-🎥 **Użytkownik:** @{username}
-📅 **Data:** {date.today().strftime('%Y-%m-%d')}
+🎥 Użytkownik: @{username}
+📅 Data: {date.today().strftime('%Y-%m-%d')}
 
 <pre>{table}</pre>
 
-Dziękujemy za korzystanie z naszych usług! 🌟
+Dziękujemy wspieranie projektu 🌟
 """
     await message.answer(response_message, parse_mode="HTML")
     logger.info(f"List of saved clips sent to user '{username}'.")

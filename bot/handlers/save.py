@@ -1,9 +1,10 @@
+# save.py
 import logging
 import os
 import tempfile
 from aiogram import types, Router, Dispatcher
 from aiogram.filters import Command
-from bot.utils.db import is_user_authorized, save_clip
+from bot.utils.db import is_user_authorized, save_clip, is_clip_name_unique
 from bot.handlers.clip import last_selected_segment
 from bot.video_processing import extract_clip, get_video_duration
 
@@ -27,8 +28,13 @@ async def save_user_clip(message: types.Message):
 
     clip_name = content[1]
 
+    if not await is_clip_name_unique(chat_id, clip_name):
+        await message.answer("⚠️ Klip o takiej nazwie już istnieje. Wybierz inną nazwę.")
+        logger.info(f"Clip name '{clip_name}' already exists for user '{username}'.")
+        return
+
     if chat_id not in last_selected_segment:
-        await message.answer("⚠️ Najpierw wybierz segment za pomocą /wybierz.")
+        await message.answer("⚠️ Najpierw wybierz segment za pomocą /klip.")
         logger.info("No segment selected by user.")
         return
 
@@ -51,10 +57,10 @@ async def save_user_clip(message: types.Message):
         output_filename = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4").name
         with open(output_filename, 'wb') as f:
             f.write(segment_info['expanded_clip'].getvalue())
-        start_time = segment_info['start_time']
-        end_time = segment_info['end_time']
-        season = segment_info['season']
-        episode_number = segment_info['episode_number']
+        start_time = segment_info['expanded_start']
+        end_time = segment_info['expanded_end']
+        season = segment_info['episode_info']['season']
+        episode_number = segment_info['episode_info']['episode_number']
     else:
         segment = segment_info
         clip_path = segment['video_path']
