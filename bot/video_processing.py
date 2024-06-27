@@ -11,14 +11,16 @@ async def extract_clip(video_path, start_time, end_time, output_filename):
     command = [
         'ffmpeg',
         '-y',  # Add this option to force overwrite
-        '-i', video_path,
         '-ss', str(start_time),
+        '-i', video_path,
         '-t', str(duration),
         '-c', 'copy',
         '-movflags', '+faststart',
         '-fflags', '+genpts',
+        '-avoid_negative_ts', '1',
         output_filename
     ]
+
     process = await asyncio.create_subprocess_exec(
         *command,
         stdout=subprocess.PIPE,

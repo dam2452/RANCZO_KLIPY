@@ -1,4 +1,3 @@
-# expand.py
 import logging
 import os
 import tempfile
@@ -57,8 +56,8 @@ async def handle_expand_request(message: types.Message, bot: Bot):
         await extract_clip(video_path, start_time, end_time, output_filename)
 
         input_file = FSInputFile(output_filename)
-        await bot.send_video(message.chat.id, input_file,
-                             caption=f"Rozszerzony klip: S{segment['episode_info']['season']}E{segment['episode_info']['episode_number']}")
+        await bot.send_video(message.chat.id, input_file)
+                             #caption=f"Rozszerzony klip: S{segment['episode_info']['season']}E{segment['episode_info']['episode_number']}")
 
         # Store expanded clip info for saving
         with open(output_filename, 'rb') as file:
