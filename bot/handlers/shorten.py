@@ -64,7 +64,7 @@ async def handle_shorten_request(message: types.Message, bot: Bot):
         await extract_clip(video_path, new_start_time, new_end_time, output_filename)
 
         input_file = FSInputFile(output_filename)
-        await bot.send_video(message.chat.id, input_file, caption="✂️ Skrócony klip! ✂️")
+        await bot.send_video(message.chat.id, input_file) #caption="✂️ Skrócony klip! ✂️")
 
         segment['expanded_start'] = new_start_time
         segment['expanded_end'] = new_end_time

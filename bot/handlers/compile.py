@@ -2,6 +2,7 @@ import logging
 import tempfile
 import os
 import asyncio
+import subprocess
 from io import BytesIO
 from aiogram import Router, Bot, types, Dispatcher
 from aiogram.filters import Command
