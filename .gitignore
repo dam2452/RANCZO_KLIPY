@@ -8,6 +8,8 @@
 /DataModify
 /cache
 /__pycache__
+/bot/RANCZO-TRANSKRYPCJE/
+/bot/RANCZO-WIDEO/
 
 # Specific file-based exclusions
 /passwords.env
