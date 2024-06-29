@@ -19,5 +19,7 @@
 .env
 log.txt
 preprocessing_video.py
+Dockerfile
+docker-compose.yml
 
 
