@@ -5,7 +5,6 @@ from dotenv import load_dotenv
 from elasticsearch import AsyncElasticsearch, helpers
 import urllib3
 
-
 # Configure basic logging settings
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -13,14 +12,13 @@ logger = logging.getLogger(__name__)
 # Disable warnings regarding untrusted HTTPS requests
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-load_dotenv("../.env")
+# Load environment variables from .env file
+load_dotenv(os.path.join(os.path.dirname(__file__), "../.env"))
 
 # Retrieve environment variables
 es_host = os.getenv("ES_HOST")
-print(es_host)
 es_username = os.getenv("ES_USERNAME")
 es_password = os.getenv("ES_PASSWORD")
-
 
 async def connect_to_elasticsearch():
     """
@@ -29,7 +27,7 @@ async def connect_to_elasticsearch():
     try:
         es = AsyncElasticsearch(
             [es_host],
-            http_auth=(es_username, es_password),
+            basic_auth=(es_username, es_password),  # Use 'basic_auth' instead of 'http_auth'
             verify_certs=False,  # Set to True in production for security
         )
         if not await es.ping():
@@ -45,7 +43,7 @@ async def delete_all_indices(es):
     Deletes all indices in Elasticsearch.
     """
     try:
-        all_indices = await es.indices.get_alias(name="*")
+        all_indices = await es.indices.get(index="_all")
         if not all_indices:
             logger.info("No indices to delete.")
             return
@@ -74,9 +72,9 @@ async def index_transcriptions(base_path, es):
                         data = json.load(f)
                         episode_info = data.get('episode_info', {})
 
-                        # Correct 'video_path' to match Linux format
-                        video_path = os.path.join("RANCZO-WIDEO", season_dir, episode_file.replace('.json', '.mp4'))
-                        video_path = video_path.replace("\\", os.path.sep)  # Ensure correct separators
+                        # Convert Windows paths to Linux paths
+                        video_path = os.path.join("bot/RANCZO-WIDEO", season_dir, episode_file.replace('.json', '.mp4'))
+                        video_path = video_path.replace("\\", "/")  # Ensure the path is in Linux format
 
                         for segment in data.get('segments', []):
                             segment['episode_info'] = episode_info
@@ -102,6 +100,7 @@ async def print_one_transcription(es, index="ranczo-transcriptions"):
         response = await es.search(index=index, size=1)
         if response['hits']['hits']:
             document = response['hits']['hits'][0]['_source']
+            document['video_path'] = document['video_path'].replace("\\", "/")  # Normalize path for output
             logger.info("Retrieved document:")
             print(json.dumps(document, indent=4, ensure_ascii=False))
         else:
@@ -109,16 +108,18 @@ async def print_one_transcription(es, index="ranczo-transcriptions"):
     except Exception as e:
         logger.error(f"Error retrieving document: {e}")
 
-if __name__ == "__main__":
-    import asyncio
-
-    async def main():
-        es_client = await connect_to_elasticsearch()
-        if es_client:
+async def main():
+    es_client = await connect_to_elasticsearch()
+    if es_client:
+        try:
             # Uncomment the following line if you need to delete all indices before indexing
-            # await delete_all_indices(es_client)
-            # await index_transcriptions(base_path="RANCZO-TRANSKRYPCJE", es=es_client)
+            await delete_all_indices(es_client)
+            await index_transcriptions(base_path="../RANCZO-TRANSKRYPCJE", es=es_client)
             # Print one transcription document
             await print_one_transcription(es_client)
+        finally:
+            await es_client.close()  # Ensure the client is closed after use
 
+if __name__ == "__main__":
+    import asyncio
     asyncio.run(main())

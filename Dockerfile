@@ -1,30 +1,27 @@
-# Użyj najnowszego oficjalnego obrazu Pythona jako obrazu bazowego
+# Wybór obrazu bazowego
 FROM python:3.12-slim
 
-# Ustaw katalog roboczy w kontenerze
+# Ustawienie katalogu roboczego w kontenerze
 WORKDIR /app
 
-# Zaktualizuj apt-get i zainstaluj potrzebne pakiety
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# Instalacja zależności systemowych
+RUN apt-get update --fix-missing && apt-get install -y --no-install-recommends \
     git \
     ffmpeg \
+    libpq-dev \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Skopiuj wszystkie pliki projektu do kontenera, z wyjątkiem tych zdefiniowanych w .dockerignore
+# Kopiowanie plików do kontenera
 COPY . .
 
 # Instalacja zależności Pythona z pliku requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Kopiuj skrypt entrypoint do kontenera
-COPY entrypoint.sh /entrypoint.sh
+RUN useradd -ms /bin/bash ranczo-klipy
+USER ranczo-klipy
 
-# Nadaj uprawnienia wykonania skryptowi entrypoint
-RUN chmod +x /entrypoint.sh
+ENV PYTHONUNBUFFERED=1
 
-# Ustaw skrypt entrypoint.sh jako punkt wejścia
-ENTRYPOINT ["/entrypoint.sh"]
-
-# Domyślnie uruchom Bash po zakończeniu pracy skryptu entrypoint
-CMD ["/bin/bash"]
+# Ustawienie domyślnej komendy do uruchomienia
+CMD ["python", "-m", "bot.bot"]
