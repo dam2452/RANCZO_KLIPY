@@ -2,7 +2,7 @@ from aiogram.types import FSInputFile
 import os
 import logging
 import tempfile
-from bot.video_processing import extract_clip
+from bot.video_manager import extract_clip
 
 logger = logging.getLogger(__name__)
 

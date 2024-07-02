@@ -1,11 +1,8 @@
 import logging
-import os
-import tempfile
-from aiogram import Router, Bot, types, Dispatcher
+from aiogram import Router, types, Bot
 from aiogram.filters import Command
-from aiogram.types import FSInputFile
 from bot.utils.db import is_user_authorized
-from bot.video_processing import extract_clip
+from bot.utils.video_manager import VideoManager
 from bot.handlers.search import last_search_quotes
 from bot.handlers.clip import last_selected_segment
 
@@ -42,17 +39,11 @@ async def handle_select_request(message: types.Message, bot: Bot):
 
         segment = segments[index]
         video_path = segment['video_path']
-        # start_time = segment['start']
-        # end_time = segment['end']
         start_time = max(0, segment['start'] - 5)  # Extend 5 seconds before
         end_time = segment['end'] + 5  # Extend 5 seconds after
 
-        output_filename = os.path.join(tempfile.gettempdir(), f"{segment['id']}_clip.mp4")
-        await extract_clip(video_path, start_time, end_time, output_filename)
-
-        input_file = FSInputFile(output_filename)
-        await bot.send_video(message.chat.id, input_file, supports_streaming=True,width=1920, height=1080)#, caption="🎥 Wybrany klip! 🎥")
-        os.remove(output_filename)
+        video_manager = VideoManager(bot)
+        await video_manager.extract_and_send_clip(chat_id, video_path, start_time, end_time)
 
         # Zapisz segment jako ostatnio wybrany
         last_selected_segment[chat_id] = segment
@@ -62,5 +53,5 @@ async def handle_select_request(message: types.Message, bot: Bot):
         logger.error(f"Error in select_quote for user '{message.from_user.username}': {e}", exc_info=True)
         await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania. Prosimy spróbować ponownie później.")
 
-def register_select_command(dispatcher: Dispatcher):
-    dispatcher.include_router(router)
+def register_select_command(router: Router):
+    router.message.register(handle_select_request, Command(commands=["wybierz"]))

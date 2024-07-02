@@ -6,31 +6,10 @@ from aiogram import Router, Bot, types, Dispatcher
 from aiogram.filters import Command
 from aiogram.types import FSInputFile
 from bot.utils.db import is_user_authorized, get_clip_by_name
+from bot.utils.video_manager import VideoManager
 
 logger = logging.getLogger(__name__)
 router = Router()
-
-async def concatenate_clips(segment_files, output_file):
-    concat_file_content = "\n".join([f"file '{file}'" for file in segment_files])
-    concat_file = tempfile.NamedTemporaryFile(delete=False, mode='w', suffix=".txt")
-    concat_file.write(concat_file_content)
-    concat_file.close()
-
-    command = [
-        'ffmpeg', '-y', '-f', 'concat', '-safe', '0', '-i', concat_file.name,
-        '-c', 'copy', '-movflags', '+faststart', '-fflags', '+genpts',
-        '-avoid_negative_ts', '1', output_file
-    ]
-
-    process = await asyncio.create_subprocess_exec(
-        *command,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE
-    )
-    stdout, stderr = await process.communicate()
-    os.remove(concat_file.name)
-    if process.returncode != 0:
-        raise Exception(f"ffmpeg error: {stderr.decode()}")
 
 @router.message(Command('polaczklipy'))
 async def compile_selected_clips(message: types.Message, bot: Bot):
@@ -81,8 +60,11 @@ async def compile_selected_clips(message: types.Message, bot: Bot):
             compiled_output = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
             compiled_output.close()
 
+            # Create an instance of VideoManager
+            video_manager = VideoManager(bot)
+
             # Concatenate segments using the concat demuxer
-            await concatenate_clips(temp_files, compiled_output.name)
+            await video_manager.concatenate_clips(temp_files, compiled_output.name)
 
             file_size_mb = os.path.getsize(compiled_output.name) / (1024 * 1024)
             if file_size_mb > 50:
@@ -93,7 +75,7 @@ async def compile_selected_clips(message: types.Message, bot: Bot):
                 return
 
             # Send the compiled video
-            await bot.send_video(chat_id, FSInputFile(compiled_output.name), supports_streaming=True,width=1920, height=1080) #caption="🎬 Oto skompilowane klipy! 🎬")
+            await bot.send_video(chat_id, FSInputFile(compiled_output.name), supports_streaming=True, width=1920, height=1080)
 
             # Clean up temporary files
             for temp_file in temp_files:

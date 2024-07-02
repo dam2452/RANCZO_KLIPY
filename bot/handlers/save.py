@@ -1,18 +1,17 @@
-# save.py
 import logging
 import os
 import tempfile
-from aiogram import types, Router, Dispatcher
+from aiogram import types, Router, Dispatcher, Bot
 from aiogram.filters import Command
 from bot.utils.db import is_user_authorized, save_clip, is_clip_name_unique
 from bot.handlers.clip import last_selected_segment
-from bot.video_processing import extract_clip, get_video_duration
+from bot.utils.video_manager import VideoManager, VideoProcessor
 
 logger = logging.getLogger(__name__)
 router = Router()
 
 @router.message(Command("zapisz"))
-async def save_user_clip(message: types.Message):
+async def save_user_clip(message: types.Message, bot: Bot):
     if not await is_user_authorized(message.from_user.username):
         await message.answer("❌ Nie masz uprawnień do korzystania z tego bota.")
         logger.warning(f"Unauthorized access attempt by user: {message.from_user.username}")
@@ -41,7 +40,6 @@ async def save_user_clip(message: types.Message):
     segment_info = last_selected_segment[chat_id]
     logger.info(f"Segment Info: {segment_info}")
 
-    video_data = None
     start_time = 0
     end_time = 0
     is_compilation = False
@@ -71,11 +69,12 @@ async def save_user_clip(message: types.Message):
         episode_number = segment['episode_info']['episode_number']
 
         # Extract the clip
+        video_manager = VideoManager(bot)
         output_filename = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4").name
-        await extract_clip(clip_path, start_time, end_time, output_filename)
+        await VideoProcessor.extract_clip(clip_path, start_time, end_time, output_filename)
 
     # Verify the video length using ffmpeg-python
-    actual_duration = get_video_duration(output_filename)
+    actual_duration = VideoProcessor.get_video_duration(output_filename)
     if actual_duration is None:
         await message.answer("❌ Nie udało się zweryfikować długości klipu.")
         logger.error(f"Failed to verify the length of the clip '{clip_name}' for user '{username}'.")

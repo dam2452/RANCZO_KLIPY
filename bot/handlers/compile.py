@@ -1,8 +1,6 @@
 import logging
 import tempfile
 import os
-import asyncio
-import subprocess
 from io import BytesIO
 from aiogram import Router, Bot, types, Dispatcher
 from aiogram.filters import Command
@@ -10,31 +8,10 @@ from aiogram.types import FSInputFile
 from bot.utils.db import is_user_authorized
 from bot.handlers.search import last_search_quotes
 from bot.handlers.clip import last_selected_segment
-
+from bot.utils.video_manager import VideoManager
 
 logger = logging.getLogger(__name__)
 router = Router()
-
-async def concatenate_clips(segment_files, output_file):
-    concat_file_content = "\n".join([f"file '{file}'" for file in segment_files])
-    concat_file = tempfile.NamedTemporaryFile(delete=False, mode='w', suffix=".txt")
-    concat_file.write(concat_file_content)
-    concat_file.close()
-
-    command = [
-        'ffmpeg', '-y', '-f', 'concat', '-safe', '0', '-i', concat_file.name,
-        '-c', 'copy', '-movflags', '+faststart', '-fflags', '+genpts', '-avoid_negative_ts', '1', output_file
-    ]
-
-    process = await asyncio.create_subprocess_exec(
-        *command,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE
-    )
-    stdout, stderr = await process.communicate()
-    os.remove(concat_file.name)
-    if process.returncode != 0:
-        raise Exception(f"ffmpeg error: {stderr.decode()}")
 
 @router.message(Command('kompiluj'))
 async def compile_clips(message: types.Message, bot: Bot):
@@ -86,68 +63,29 @@ async def compile_clips(message: types.Message, bot: Bot):
             return
 
         try:
-            temp_files = []
-            for idx, segment in enumerate(selected_segments):
-                video_path = segment['video_path']
-                start = max(0, segment['start'] - 5)  # Extend 5 seconds before
-                end = segment['end'] + 5  # Extend 5 seconds after
-
-                # Create a temporary segment file
-                temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
-                temp_files.append(temp_file.name)
-
-                command = [
-                    'ffmpeg', '-y',
-                    '-ss', str(start),
-                    '-i', video_path,
-                    '-to', str(end - start),
-                    '-c', 'copy',
-                    '-movflags', '+faststart',
-                    '-fflags', '+genpts',
-                    '-avoid_negative_ts', '1',
-                    temp_file.name
-                ]
-
-                process = await asyncio.create_subprocess_exec(
-                    *command,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE
-                )
-                stdout, stderr = await process.communicate()
-                if process.returncode != 0:
-                    raise Exception(f"ffmpeg error: {stderr.decode()}")
-
-                temp_file.close()
-
-            # Create the output file
+            video_manager = VideoManager(bot)
             compiled_output = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
             compiled_output.close()
 
-            # Concatenate segments using the concat demuxer
-            await concatenate_clips(temp_files, compiled_output.name)
+            # Extract and concatenate segments
+            await video_manager.extract_and_concatenate_clips(selected_segments, compiled_output.name)
 
             file_size_mb = os.path.getsize(compiled_output.name) / (1024 * 1024)
             if file_size_mb > 50:
-                await message.answer(
-                    "❌ Skompilowany klip jest za duży, aby go wysłać przez Telegram. Maksymalny rozmiar pliku to 50 MB. ❌")
+                await message.answer("❌ Skompilowany klip jest za duży, aby go wysłać przez Telegram. Maksymalny rozmiar pliku to 50 MB. ❌")
                 logger.warning(f"Compiled clip exceeds size limit: {file_size_mb:.2f} MB")
                 os.remove(compiled_output.name)
                 return
 
-            # Read the output file to BytesIO
+            # Store compiled clip info for saving
             with open(compiled_output.name, 'rb') as f:
                 compiled_data = f.read()
 
             compiled_output_io = BytesIO(compiled_data)
-
-            # Store compiled clip info for saving
             last_selected_segment[chat_id] = {'compiled_clip': compiled_output_io, 'selected_segments': selected_segments}
 
-            await bot.send_video(chat_id, FSInputFile(compiled_output.name), supports_streaming=True,width=1920, height=1080)#, caption="🎬 Oto skompilowane klipy! 🎬")
+            await bot.send_video(chat_id, FSInputFile(compiled_output.name), supports_streaming=True, width=1920, height=1080)
 
-            # Clean up temporary files
-            for temp_file in temp_files:
-                os.remove(temp_file)
             os.remove(compiled_output.name)
             logger.info(f"Compiled clip sent to user '{message.from_user.username}' and temporary files removed.")
 

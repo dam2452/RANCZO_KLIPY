@@ -6,6 +6,7 @@ from tabulate import tabulate
 import tempfile
 import os
 from aiogram.filters import Command
+from bot.utils.db import is_user_authorized
 
 logger = logging.getLogger(__name__)
 router = Router()
@@ -13,10 +14,16 @@ router = Router()
 @router.message(Command('lista'))
 async def handle_list_request(message: types.Message, bot: Bot):
     try:
+        username = message.from_user.username
+        if not await is_user_authorized(username):
+            await message.answer("❌ Nie masz uprawnień do korzystania z tego bota.")
+            logger.warning(f"Unauthorized access attempt by user: {username}")
+            return
+
         chat_id = message.chat.id
         if chat_id not in last_search_quotes or chat_id not in last_search_terms:
             await message.answer("🔍 Nie znaleziono wcześniejszych wyników wyszukiwania.")
-            logger.info("No previous search results found for chat ID {chat_id}.")
+            logger.info(f"No previous search results found for chat ID {chat_id}.")
             return
 
         segments = last_search_quotes[chat_id]
@@ -54,10 +61,10 @@ async def handle_list_request(message: types.Message, bot: Bot):
         input_file = FSInputFile(file_name)
         await bot.send_document(chat_id, input_file, caption="📄 Znalezione cytaty")
         os.remove(file_name)
-        logger.info(f"List of search results for term '{search_term}' sent to user {message.from_user.username}.")
+        logger.info(f"List of search results for term '{search_term}' sent to user {username}.")
 
     except Exception as e:
-        logger.error(f"Error in handle_list_request for user {message.from_user.username}: {e}", exc_info=True)
+        logger.error(f"Error in handle_list_request for user {username}: {e}", exc_info=True)
         await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania. Prosimy spróbować ponownie później.")
 
 def register_list_command(dispatcher: Dispatcher):

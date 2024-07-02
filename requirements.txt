@@ -8,3 +8,5 @@ Retry
 psycopg2-binary
 aiogram
 asyncpg
+pydantic-settings
+pydantic
