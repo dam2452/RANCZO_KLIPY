@@ -1,95 +1,41 @@
 import logging
-import tempfile
-import os
-import asyncio
-from aiogram import Router, Bot, types, Dispatcher
+from aiogram import Router, types, Dispatcher, Bot
 from aiogram.filters import Command
-from aiogram.types import FSInputFile
-from bot.utils.db import is_user_authorized, get_clip_by_name
-from bot.utils.video_manager import VideoManager
+from bot.utils.db import DatabaseManager
+from bot.middlewares.authorization import AuthorizationMiddleware
+from bot.middlewares.error_handler import ErrorHandlerMiddleware
 
 logger = logging.getLogger(__name__)
 router = Router()
 
-@router.message(Command('polaczklipy'))
-async def compile_selected_clips(message: types.Message, bot: Bot):
+@router.message(Command("usunklip"))
+async def delete_saved_clip(message: types.Message, bot: Bot):
     try:
-        if not await is_user_authorized(message.from_user.username):
-            await message.answer("❌ Nie masz uprawnień do korzystania z tego bota.")
-            logger.warning(f"Unauthorized access attempt by user: {message.from_user.username}")
-            return
-
-        chat_id = message.chat.id
-        content = message.text.split()
-
-        if len(content) < 2:
-            await message.answer("📄 Podaj nazwy klipów do skompilowania w odpowiedniej kolejności.")
-            logger.info("No clip names provided by user.")
-            return
-
         username = message.from_user.username
-        clip_names = content[1:]
-
-        selected_clips = []
-        for clip_name in clip_names:
-            clip = await get_clip_by_name(username, clip_name)
-            if not clip:
-                await message.answer(f"❌ Nie znaleziono klipu o nazwie '{clip_name}'.")
-                logger.info(f"Clip '{clip_name}' not found for user '{username}'.")
-                return
-            selected_clips.append(clip)
-
-        if not selected_clips:
-            await message.answer("❌ Nie znaleziono pasujących klipów do kompilacji.")
-            logger.info("No matching clips found for compilation.")
+        command_parts = message.text.split(maxsplit=1)
+        if len(command_parts) < 2:
+            await message.answer("❌ Podaj nazwę klipu do usunięcia. Przykład: /usunklip nazwa_klipu")
+            logger.info("No clip name provided by user.")
             return
 
-        try:
-            temp_files = []
-            for clip in selected_clips:
-                video_data, start_time, end_time = clip
+        clip_name = command_parts[1]
+        logger.info(f"User '{username}' requested deletion of clip: '{clip_name}'")
+        result = await DatabaseManager.delete_clip(username, clip_name)
 
-                # Create a temporary segment file
-                temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
-                temp_files.append(temp_file.name)
-
-                with open(temp_file.name, 'wb') as f:
-                    f.write(video_data)
-
-            # Create the output file
-            compiled_output = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
-            compiled_output.close()
-
-            # Create an instance of VideoManager
-            video_manager = VideoManager(bot)
-
-            # Concatenate segments using the concat demuxer
-            await video_manager.concatenate_clips(temp_files, compiled_output.name)
-
-            file_size_mb = os.path.getsize(compiled_output.name) / (1024 * 1024)
-            if file_size_mb > 50:
-                await message.answer(
-                    "❌ Skompilowany klip jest za duży, aby go wysłać przez Telegram. Maksymalny rozmiar pliku to 50 MB. ❌")
-                logger.warning(f"Compiled clip exceeds size limit: {file_size_mb:.2f} MB")
-                os.remove(compiled_output.name)
-                return
-
-            # Send the compiled video
-            await bot.send_video(chat_id, FSInputFile(compiled_output.name), supports_streaming=True, width=1920, height=1080)
-
-            # Clean up temporary files
-            for temp_file in temp_files:
-                os.remove(temp_file)
-            os.remove(compiled_output.name)
-            logger.info(f"Compiled clip sent to user '{message.from_user.username}' and temporary files removed.")
-
-        except Exception as e:
-            logger.error(f"An error occurred while compiling clips: {e}", exc_info=True)
-            await message.answer("⚠️ Wystąpił błąd podczas kompilacji klipów.")
+        if result == "DELETE 0":
+            await message.answer(f"🚫 Klip o nazwie '{clip_name}' nie istnieje.")
+            logger.info(f"Clip '{clip_name}' does not exist for user '{username}'.")
+        else:
+            await message.answer(f"✅ Klip o nazwie '{clip_name}' został usunięty.")
+            logger.info(f"Clip '{clip_name}' has been successfully deleted for user '{username}'.")
 
     except Exception as e:
-        logger.error(f"Error handling /polaczklipy command for user '{message.from_user.username}': {e}", exc_info=True)
+        logger.error(f"Error handling /usunklip command for user '{message.from_user.username}': {e}", exc_info=True)
         await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania.")
 
-def register_compile_selected_clips_command(dispatcher: Dispatcher):
+def register_delete_clip_handler(dispatcher: Dispatcher):
     dispatcher.include_router(router)
+
+# Ustawienie middleware'ów
+router.message.middleware(AuthorizationMiddleware())
+router.message.middleware(ErrorHandlerMiddleware())

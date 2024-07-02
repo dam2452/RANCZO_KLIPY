@@ -1,9 +1,11 @@
 import logging
 from aiogram import Router, Bot, types, Dispatcher
 from aiogram.filters import Command
-from bot.utils.db import get_saved_clips, is_user_authorized
+from bot.utils.db import DatabaseManager
 from tabulate import tabulate
 from datetime import date
+from bot.middlewares.authorization import AuthorizationMiddleware
+from bot.middlewares.error_handler import ErrorHandlerMiddleware
 
 logger = logging.getLogger(__name__)
 router = Router()
@@ -12,12 +14,12 @@ router = Router()
 async def list_saved_clips(message: types.Message, bot: Bot):
     try:
         username = message.from_user.username
-        if not username or not await is_user_authorized(username):
+        if not username or not await DatabaseManager.is_user_authorized(username):
             await message.answer("❌ Nie można zidentyfikować użytkownika lub brak uprawnień.")
             logger.warning("User identification failed or user not authorized.")
             return
 
-        clips = await get_saved_clips(username)
+        clips = await DatabaseManager.get_saved_clips(username)
         if not clips:
             await message.answer("📭 Nie masz zapisanych klipów.")
             logger.info(f"No saved clips found for user: {username}")
@@ -56,7 +58,11 @@ Dziękujemy wspieranie projektu 🌟
 
     except Exception as e:
         logger.error(f"Error handling /mojeklipy command for user '{message.from_user.username}': {e}", exc_info=True)
-        await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania.")
+        await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania. Prosimy spróbować ponownie później.")
 
 def register_list_clips_handler(dispatcher: Dispatcher):
     dispatcher.include_router(router)
+
+# Ustawienie middleware'ów
+router.message.middleware(AuthorizationMiddleware())
+router.message.middleware(ErrorHandlerMiddleware())

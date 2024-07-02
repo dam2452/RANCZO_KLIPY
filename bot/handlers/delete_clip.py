@@ -1,7 +1,8 @@
 import logging
 from aiogram import Router, types, Dispatcher, Bot
 from aiogram.filters import Command
-from bot.utils.db import is_user_authorized, delete_clip
+# from bot.utils.db import is_user_authorized, delete_clip
+from bot.utils.db import DatabaseManager
 
 logger = logging.getLogger(__name__)
 router = Router()
@@ -10,7 +11,7 @@ router = Router()
 async def delete_saved_clip(message: types.Message, bot: Bot):
     try:
         username = message.from_user.username
-        if not username or not await is_user_authorized(username):
+        if not username or not await DatabaseManager.is_user_authorized(username):
             await message.answer("❌ Nie masz uprawnień do korzystania z tego bota.")
             logger.warning("Unauthorized access attempt: Unable to identify user or user not authorized.")
             return
@@ -23,7 +24,7 @@ async def delete_saved_clip(message: types.Message, bot: Bot):
 
         clip_name = command_parts[1]
         logger.info(f"User '{username}' requested deletion of clip: '{clip_name}'")
-        result = await delete_clip(username, clip_name)
+        result = await DatabaseManager.delete_clip(username, clip_name)
 
         if result == "DELETE 0":
             await message.answer(f"🚫 Klip o nazwie '{clip_name}' nie istnieje.")

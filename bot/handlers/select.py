@@ -1,10 +1,11 @@
 import logging
-from aiogram import Router, types, Bot
+from aiogram import Router, types, Bot, Dispatcher
 from aiogram.filters import Command
-from bot.utils.db import is_user_authorized
 from bot.utils.video_manager import VideoManager
 from bot.handlers.search import last_search_quotes
 from bot.handlers.clip import last_selected_segment
+from bot.middlewares.authorization import AuthorizationMiddleware
+from bot.middlewares.error_handler import ErrorHandlerMiddleware
 
 logger = logging.getLogger(__name__)
 router = Router()
@@ -12,11 +13,6 @@ router = Router()
 @router.message(Command('wybierz'))
 async def handle_select_request(message: types.Message, bot: Bot):
     try:
-        if not await is_user_authorized(message.from_user.username):
-            await message.answer("❌ Nie masz uprawnień do korzystania z tego bota.")
-            logger.warning(f"Unauthorized access attempt by user: {message.from_user.username}")
-            return
-
         chat_id = message.chat.id
         content = message.text.split()
         if len(content) < 2:
@@ -53,5 +49,9 @@ async def handle_select_request(message: types.Message, bot: Bot):
         logger.error(f"Error in select_quote for user '{message.from_user.username}': {e}", exc_info=True)
         await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania. Prosimy spróbować ponownie później.")
 
-def register_select_command(router: Router):
-    router.message.register(handle_select_request, Command(commands=["wybierz"]))
+def register_select_command(dispatcher: Dispatcher):
+    dispatcher.include_router(router)
+
+# Ustawienie middleware'ów
+router.message.middleware(AuthorizationMiddleware())
+router.message.middleware(ErrorHandlerMiddleware())

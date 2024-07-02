@@ -5,7 +5,7 @@ from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
 from bot.config import settings  # Import settings
 from bot.handlers import register_handlers
-from bot.utils.db import init_db, set_default_admin
+from bot.utils.db import DatabaseManager
 from bot.middlewares.authorization import AuthorizationMiddleware  # Import AuthorizationMiddleware
 from bot.middlewares.error_handler import ErrorHandlerMiddleware  # Import ErrorHandlerMiddleware
 
@@ -24,8 +24,8 @@ dp.update.middleware(ErrorHandlerMiddleware())  # Register ErrorHandlerMiddlewar
 async def on_startup():
     try:
         # Initialize the database
-        await init_db()
-        await set_default_admin(os.getenv("DEFAULT_ADMIN"))
+        await DatabaseManager.init_db()
+        await DatabaseManager.set_default_admin(os.getenv("DEFAULT_ADMIN"))
         logger.info("📦 Database initialized and default admin set. 📦")
     except Exception as e:
         logger.error(f"❌ Failed to initialize database or set default admin: {e} ❌")

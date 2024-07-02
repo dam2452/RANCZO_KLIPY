@@ -1,24 +1,20 @@
 import logging
 from aiogram import Router, Bot, types, Dispatcher
 from aiogram.filters import Command
-from bot.search_transcriptions import find_segment_by_quote
-from bot.utils.db import is_user_authorized
+from bot.utils.search_transcriptions import find_segment_by_quote
+from bot.middlewares.authorization import AuthorizationMiddleware
+from bot.middlewares.error_handler import ErrorHandlerMiddleware
 from tabulate import tabulate
 
 logger = logging.getLogger(__name__)
 router = Router()
 
 last_search_quotes = {}
-last_search_terms = {}  # Add this dictionary to store search terms
+last_search_terms = {}  # Store search terms
 
 @router.message(Command('szukaj'))
 async def handle_search_request(message: types.Message, bot: Bot):
     try:
-        if not await is_user_authorized(message.from_user.username):
-            await message.answer("❌ Nie masz uprawnień do korzystania z tego bota.")
-            logger.warning(f"Unauthorized access attempt by user: {message.from_user.username}")
-            return
-
         chat_id = message.chat.id
         content = message.text.split()
         if len(content) < 2:
@@ -86,3 +82,7 @@ async def handle_search_request(message: types.Message, bot: Bot):
 
 def register_search_command(dispatcher: Dispatcher):
     dispatcher.include_router(router)
+
+# Ustawienie middleware'ów
+router.message.middleware(AuthorizationMiddleware())
+router.message.middleware(ErrorHandlerMiddleware())

@@ -4,8 +4,10 @@ import tempfile
 from aiogram import Router, Bot, types, Dispatcher
 from aiogram.filters import Command
 from aiogram.types import FSInputFile
-from bot.utils.db import get_clip_by_name, is_user_authorized
+from bot.utils.db import DatabaseManager
 from bot.utils.video_manager import VideoManager
+from bot.middlewares.authorization import AuthorizationMiddleware
+from bot.middlewares.error_handler import ErrorHandlerMiddleware
 
 logger = logging.getLogger(__name__)
 router = Router()
@@ -14,10 +16,6 @@ router = Router()
 async def send_clip(message: types.Message, bot: Bot):
     try:
         username = message.from_user.username
-        if not username or not await is_user_authorized(username):
-            await message.answer("❌ Nie można zidentyfikować użytkownika lub brak uprawnień.")
-            logger.warning("User identification failed or user not authorized.")
-            return
 
         content = message.text.split()
         if len(content) < 2:
@@ -28,7 +26,7 @@ async def send_clip(message: types.Message, bot: Bot):
         clip_name = content[1]
         logger.info(f"User '{username}' requested to send clip: '{clip_name}'")
 
-        clip = await get_clip_by_name(username, clip_name)
+        clip = await DatabaseManager.get_clip_by_name(username, clip_name)
         if not clip:
             await message.answer(f"❌ Nie znaleziono klipu o nazwie '{clip_name}'.")
             logger.info(f"Clip '{clip_name}' not found for user '{username}'.")
@@ -40,13 +38,11 @@ async def send_clip(message: types.Message, bot: Bot):
             logger.warning(f"Clip file is empty for clip '{clip_name}' by user '{username}'.")
             return
 
-        # Use current working directory for the temporary file
         temp_file_path = os.path.join(tempfile.gettempdir(), f"{clip_name}.mp4")
 
         with open(temp_file_path, 'wb') as temp_file:
             temp_file.write(video_data)
 
-        # Verify the file is not empty
         if os.path.getsize(temp_file_path) == 0:
             await message.answer("⚠️ Wystąpił błąd podczas wysyłania klipu. Plik jest pusty.")
             logger.error(f"File is empty after writing clip '{clip_name}' for user '{username}'.")
@@ -67,3 +63,7 @@ async def send_clip(message: types.Message, bot: Bot):
 
 def register_send_clip_handler(dispatcher: Dispatcher):
     dispatcher.include_router(router)
+
+# Ustawienie middleware'ów
+router.message.middleware(AuthorizationMiddleware())
+router.message.middleware(ErrorHandlerMiddleware())

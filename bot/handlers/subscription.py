@@ -2,7 +2,9 @@ import logging
 from datetime import date
 from aiogram import Router, Dispatcher, types, Bot
 from aiogram.filters import Command
-from bot.utils.db import get_user_subscription, is_user_authorized
+from bot.middlewares.authorization import AuthorizationMiddleware
+from bot.middlewares.error_handler import ErrorHandlerMiddleware
+from bot.utils.db import DatabaseManager
 
 logger = logging.getLogger(__name__)
 router = Router()
@@ -10,7 +12,7 @@ router = Router()
 class UserManager:
     @staticmethod
     async def get_subscription_status(username: str):
-        subscription_end = await get_user_subscription(username)
+        subscription_end = await DatabaseManager.get_user_subscription(username)
         if subscription_end is None:
             return None
         days_remaining = (subscription_end - date.today()).days
@@ -18,20 +20,17 @@ class UserManager:
 
 @router.message(Command('subskrypcja'))
 async def check_subscription(message: types.Message, bot: Bot):
-    username = message.from_user.username
-    if not username or not await is_user_authorized(username):
-        await message.answer("❌ Nie można zidentyfikować użytkownika lub brak uprawnień.")
-        logger.warning("User identification failed or user not authorized.")
-        return
+    try:
+        username = message.from_user.username
 
-    subscription_status = await UserManager.get_subscription_status(username)
-    if subscription_status is None:
-        await message.answer("🚫 Nie masz aktywnej subskrypcji.")
-        logger.info(f"No active subscription found for user '{username}'.")
-        return
+        subscription_status = await UserManager.get_subscription_status(username)
+        if subscription_status is None:
+            await message.answer("🚫 Nie masz aktywnej subskrypcji.")
+            logger.info(f"No active subscription found for user '{username}'.")
+            return
 
-    subscription_end, days_remaining = subscription_status
-    response = f"""
+        subscription_end, days_remaining = subscription_status
+        response = f"""
 ✨ **Status Twojej subskrypcji** ✨
 
 👤 **Użytkownik:** {username}
@@ -40,8 +39,16 @@ async def check_subscription(message: types.Message, bot: Bot):
 
 Dzięki za wsparcie projektu! 🎉
 """
-    await message.answer(response, parse_mode='Markdown')
-    logger.info(f"Subscription status sent to user '{username}'.")
+        await message.answer(response, parse_mode='Markdown')
+        logger.info(f"Subscription status sent to user '{username}'.")
+
+    except Exception as e:
+        logger.error(f"Error in check_subscription for user '{message.from_user.username}': {e}", exc_info=True)
+        await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania. Prosimy spróbować ponownie później.")
 
 def register_subscription_handler(dispatcher: Dispatcher):
     dispatcher.include_router(router)
+
+# Ustawienie middleware'ów
+router.message.middleware(AuthorizationMiddleware())
+router.message.middleware(ErrorHandlerMiddleware())

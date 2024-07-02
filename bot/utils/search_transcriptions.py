@@ -1,5 +1,5 @@
 import logging
-from bot.elastic_manager import connect_to_elasticsearch
+from bot.utils.elastic_manager import connect_to_elasticsearch
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
