@@ -1,7 +1,7 @@
 import logging
 from aiogram import Router, types, Bot, Dispatcher
 from aiogram.filters import Command
-from bot.utils.search_transcriptions import find_segment_by_quote
+from bot.utils.search_transcriptions import SearchTranscriptions
 from bot.utils.video_manager import VideoManager
 from bot.middlewares.authorization import AuthorizationMiddleware
 from bot.middlewares.error_handler import ErrorHandlerMiddleware
@@ -23,11 +23,14 @@ async def handle_clip_request(message: types.Message, bot: Bot):
 
         quote = ' '.join(content[1:])
         logger.info(f"User '{message.from_user.username}' is searching for quote: '{quote}'")
-        segments = await find_segment_by_quote(quote, return_all=False)
+
+        # Korzystanie z SearchTranscriptions
+        search_transcriptions = SearchTranscriptions(router)
+        segments = await search_transcriptions.find_segment_by_quote(quote, return_all=False)
         logger.info(f"Segments found for quote '{quote}': {segments}")
 
         if not segments:
-            await message.answer("❌ Nie znaleziono pasujących cytatów.")
+            await message.answer("❌ Nie znaleziono pasujących cytatów.❌")
             logger.info(f"No segments found for quote: '{quote}'")
             return
 
@@ -44,7 +47,7 @@ async def handle_clip_request(message: types.Message, bot: Bot):
         logger.info(f"Segment saved as last selected for chat ID '{message.chat.id}'")
     except Exception as e:
         logger.error(f"An error occurred while handling clip request: {str(e)}")
-        await message.answer("⚠️ Wystąpił błąd podczas przetwarzania Twojego żądania.")
+        await message.answer("⚠️ Wystąpił błąd podczas przetwarzania Twojego żądania.⚠️")
 
 def register_clip_handlers(dispatcher: Dispatcher):
     dispatcher.include_router(router)

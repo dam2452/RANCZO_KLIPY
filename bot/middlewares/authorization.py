@@ -12,7 +12,7 @@ class AuthorizationMiddleware(BaseMiddleware):
             if username and await DatabaseManager.is_user_authorized(username):
                 return await handler(event, data)
             else:
-                await event.answer("❌ Nie masz uprawnień do korzystania z tego bota.")
+                await event.answer("❌ Nie masz uprawnień do korzystania z tego bota.❌")
                 logger.warning(f"Unauthorized access attempt by user: {username}")
                 return
         return await handler(event, data)

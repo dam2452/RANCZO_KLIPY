@@ -26,12 +26,12 @@ async def save_user_clip(message: types.Message, bot: Bot):
         clip_name = content[1]
 
         if not await DatabaseManager.is_clip_name_unique(chat_id, clip_name):
-            await message.answer("⚠️ Klip o takiej nazwie już istnieje. Wybierz inną nazwę.")
+            await message.answer("⚠️ Klip o takiej nazwie już istnieje. Wybierz inną nazwę.⚠️")
             logger.info(f"Clip name '{clip_name}' already exists for user '{username}'.")
             return
 
         if chat_id not in last_selected_segment:
-            await message.answer("⚠️ Najpierw wybierz segment za pomocą /klip.")
+            await message.answer("⚠️ Najpierw wybierz segment za pomocą /klip.⚠️")
             logger.info("No segment selected by user.")
             return
 
@@ -74,7 +74,7 @@ async def save_user_clip(message: types.Message, bot: Bot):
         # Verify the video length using ffmpeg-python
         actual_duration = VideoProcessor.get_video_duration(output_filename)
         if actual_duration is None:
-            await message.answer("❌ Nie udało się zweryfikować długości klipu.")
+            await message.answer("❌ Nie udało się zweryfikować długości klipu.❌")
             logger.error(f"Failed to verify the length of the clip '{clip_name}' for user '{username}'.")
             os.remove(output_filename)
             return
@@ -106,7 +106,7 @@ async def save_user_clip(message: types.Message, bot: Bot):
 
     except Exception as e:
         logger.error(f"Error handling /zapisz command for user '{message.from_user.username}': {e}", exc_info=True)
-        await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania. Prosimy spróbować ponownie później.")
+        await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania. Prosimy spróbować ponownie później.⚠️")
 
 def register_save_handler(dispatcher: Dispatcher):
     dispatcher.include_router(router)

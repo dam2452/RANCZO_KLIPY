@@ -21,7 +21,7 @@ async def handle_list_request(message: types.Message, bot: Bot):
         chat_id = message.chat.id
 
         if not await DatabaseManager.is_user_authorized(username):
-            await message.answer("❌ Nie masz uprawnień do korzystania z tego bota.")
+            await message.answer("❌ Nie masz uprawnień do korzystania z tego bota.❌")
             logger.warning(f"Unauthorized access attempt by user: {username}")
             return
 
@@ -72,7 +72,7 @@ async def handle_list_request(message: types.Message, bot: Bot):
 
     except Exception as e:
         logger.error(f"Error in handle_list_request for user {username}: {e}", exc_info=True)
-        await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania. Prosimy spróbować ponownie później.")
+        await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania. Prosimy spróbować ponownie później.⚠️")
 
 
 def register_list_command(dispatcher: Dispatcher):

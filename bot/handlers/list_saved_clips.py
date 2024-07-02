@@ -15,13 +15,13 @@ async def list_saved_clips(message: types.Message, bot: Bot):
     try:
         username = message.from_user.username
         if not username or not await DatabaseManager.is_user_authorized(username):
-            await message.answer("❌ Nie można zidentyfikować użytkownika lub brak uprawnień.")
+            await message.answer("❌ Nie można zidentyfikować użytkownika lub brak uprawnień.❌")
             logger.warning("User identification failed or user not authorized.")
             return
 
         clips = await DatabaseManager.get_saved_clips(username)
         if not clips:
-            await message.answer("📭 Nie masz zapisanych klipów.")
+            await message.answer("📭 Nie masz zapisanych klipów.📭")
             logger.info(f"No saved clips found for user: {username}")
             return
 
@@ -58,7 +58,7 @@ Dziękujemy wspieranie projektu 🌟
 
     except Exception as e:
         logger.error(f"Error handling /mojeklipy command for user '{message.from_user.username}': {e}", exc_info=True)
-        await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania. Prosimy spróbować ponownie później.")
+        await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania. Prosimy spróbować ponownie później.⚠️")
 
 def register_list_clips_handler(dispatcher: Dispatcher):
     dispatcher.include_router(router)

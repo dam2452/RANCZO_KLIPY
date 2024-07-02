@@ -31,7 +31,7 @@ async def delete_saved_clip(message: types.Message, bot: Bot):
 
     except Exception as e:
         logger.error(f"Error handling /usunklip command for user '{message.from_user.username}': {e}", exc_info=True)
-        await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania.")
+        await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania.⚠️")
 
 def register_delete_clip_handler(dispatcher: Dispatcher):
     dispatcher.include_router(router)

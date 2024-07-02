@@ -25,7 +25,7 @@ async def check_subscription(message: types.Message, bot: Bot):
 
         subscription_status = await UserManager.get_subscription_status(username)
         if subscription_status is None:
-            await message.answer("🚫 Nie masz aktywnej subskrypcji.")
+            await message.answer("🚫 Nie masz aktywnej subskrypcji.🚫")
             logger.info(f"No active subscription found for user '{username}'.")
             return
 
@@ -44,7 +44,7 @@ Dzięki za wsparcie projektu! 🎉
 
     except Exception as e:
         logger.error(f"Error in check_subscription for user '{message.from_user.username}': {e}", exc_info=True)
-        await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania. Prosimy spróbować ponownie później.")
+        await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania. Prosimy spróbować ponownie później.⚠️")
 
 def register_subscription_handler(dispatcher: Dispatcher):
     dispatcher.include_router(router)

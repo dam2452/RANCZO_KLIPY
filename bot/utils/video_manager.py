@@ -22,7 +22,7 @@ class VideoManager:
             logger.info(f"Clip size: {file_size:.2f} MB")
 
             if file_size > 50:  # Telegram has a 50 MB limit for video files
-                await self.bot.send_message(chat_id, "❌ Wyodrębniony klip jest za duży, aby go wysłać przez Telegram. Maksymalny rozmiar pliku to 50 MB.")
+                await self.bot.send_message(chat_id, "❌ Wyodrębniony klip jest za duży, aby go wysłać przez Telegram. Maksymalny rozmiar pliku to 50 MB.❌")
                 logger.warning(f"Clip size {file_size:.2f} MB exceeds the 50 MB limit.")
             else:
                 input_file = FSInputFile(output_filename)

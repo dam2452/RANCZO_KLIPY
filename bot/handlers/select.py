@@ -29,7 +29,7 @@ async def handle_select_request(message: types.Message, bot: Bot):
         segments = last_search_quotes[chat_id]
 
         if index < 0 or index >= len(segments):
-            await message.answer("❌ Nieprawidłowy numer segmentu.")
+            await message.answer("❌ Nieprawidłowy numer segmentu.❌")
             logger.warning(f"Invalid segment number provided by user: {index + 1}")
             return
 
@@ -47,7 +47,7 @@ async def handle_select_request(message: types.Message, bot: Bot):
 
     except Exception as e:
         logger.error(f"Error in select_quote for user '{message.from_user.username}': {e}", exc_info=True)
-        await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania. Prosimy spróbować ponownie później.")
+        await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania. Prosimy spróbować ponownie później.⚠️")
 
 def register_select_command(dispatcher: Dispatcher):
     dispatcher.include_router(router)

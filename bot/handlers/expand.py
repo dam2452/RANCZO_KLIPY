@@ -58,7 +58,7 @@ async def handle_expand_request(message: types.Message, bot: Bot):
 
     except Exception as e:
         logger.error(f"Error handling /rozszerz command for user '{message.from_user.username}': {e}", exc_info=True)
-        await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania. Prosimy spróbować ponownie później.")
+        await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania. Prosimy spróbować ponownie później.⚠️")
 
 def register_expand_command(router: Router):
     router.message.register(handle_expand_request, Command(commands=["rozszerz"]))

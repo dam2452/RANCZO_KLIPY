@@ -42,19 +42,19 @@ async def compile_clips(message: types.Message, bot: Bot):
                     start, end = map(int, index.split('-'))
                     selected_segments.extend(segments[start - 1:end])  # Convert to 0-based index and include end
                 except ValueError:
-                    await message.answer(f"⚠️ Podano nieprawidłowy zakres segmentów: {index}")
+                    await message.answer(f"⚠️ Podano nieprawidłowy zakres segmentów: {index} ⚠️")
                     logger.warning(f"Invalid range provided by user: {index}")
                     return
             else:
                 try:
                     selected_segments.append(segments[int(index) - 1])  # Convert to 0-based index
                 except (ValueError, IndexError):
-                    await message.answer(f"⚠️ Podano nieprawidłowy indeks segmentu: {index}")
+                    await message.answer(f"⚠️ Podano nieprawidłowy indeks segmentu: {index} ⚠️")
                     logger.warning(f"Invalid index provided by user: {index}")
                     return
 
         if not selected_segments:
-            await message.answer("❌ Nie znaleziono pasujących segmentów do kompilacji.")
+            await message.answer("❌ Nie znaleziono pasujących segmentów do kompilacji.❌")
             logger.info("No matching segments found for compilation.")
             return
 
@@ -85,7 +85,7 @@ async def compile_clips(message: types.Message, bot: Bot):
 
     except Exception as e:
         logger.error(f"An error occurred while compiling clips: {e}", exc_info=True)
-        await message.answer("⚠️ Wystąpił błąd podczas kompilacji klipów.")
+        await message.answer("⚠️ Wystąpił błąd podczas kompilacji klipów.⚠️")
         if 'compiled_output' in locals() and os.path.exists(compiled_output.name):
             os.remove(compiled_output.name)
 

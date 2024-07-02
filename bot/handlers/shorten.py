@@ -24,7 +24,7 @@ async def shorten_video_clip(message: types.Message, bot: Bot):
         end_time_str = content[1]
 
         if chat_id not in last_selected_segment:
-            await message.answer("⚠️ Najpierw wybierz segment za pomocą /klip.")
+            await message.answer("⚠️ Najpierw wybierz segment za pomocą /klip.⚠️")
             logger.info("No segment selected by user.")
             return
 
@@ -36,7 +36,7 @@ async def shorten_video_clip(message: types.Message, bot: Bot):
         clip_path = segment_info['video_path']
 
         if end_time <= start_time:
-            await message.answer("⚠️ Czas zakończenia musi być późniejszy niż czas rozpoczęcia.")
+            await message.answer("⚠️ Czas zakończenia musi być późniejszy niż czas rozpoczęcia.⚠️")
             logger.info("End time must be later than start time.")
             return
 
@@ -49,7 +49,7 @@ async def shorten_video_clip(message: types.Message, bot: Bot):
             logger.info(f"Clip size: {file_size:.2f} MB")
 
             if file_size > 50:  # Telegram has a 50 MB limit for video files
-                await message.answer("❌ Wyodrębniony klip jest za duży, aby go wysłać przez Telegram. Maksymalny rozmiar pliku to 50 MB.")
+                await message.answer("❌ Wyodrębniony klip jest za duży, aby go wysłać przez Telegram. Maksymalny rozmiar pliku to 50 MB.❌")
                 logger.warning(f"Clip size {file_size:.2f} MB exceeds the 50 MB limit.")
             else:
                 # Send the trimmed video clip
@@ -69,7 +69,7 @@ async def shorten_video_clip(message: types.Message, bot: Bot):
 
     except Exception as e:
         logger.error(f"Error in shorten_video_clip for user '{message.from_user.username}': {e}", exc_info=True)
-        await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania. Prosimy spróbować ponownie później.")
+        await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania. Prosimy spróbować ponownie później.⚠️")
 
 def register_shorten_handler(dispatcher: Dispatcher):
     dispatcher.include_router(router)

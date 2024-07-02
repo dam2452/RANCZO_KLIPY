@@ -28,13 +28,13 @@ async def send_clip(message: types.Message, bot: Bot):
 
         clip = await DatabaseManager.get_clip_by_name(username, clip_name)
         if not clip:
-            await message.answer(f"❌ Nie znaleziono klipu o nazwie '{clip_name}'.")
+            await message.answer(f"❌ Nie znaleziono klipu o nazwie '{clip_name}'.❌")
             logger.info(f"Clip '{clip_name}' not found for user '{username}'.")
             return
 
         video_data, start_time, end_time = clip
         if not video_data:
-            await message.answer("⚠️ Plik klipu jest pusty.")
+            await message.answer("⚠️ Plik klipu jest pusty.⚠️")
             logger.warning(f"Clip file is empty for clip '{clip_name}' by user '{username}'.")
             return
 
@@ -44,7 +44,7 @@ async def send_clip(message: types.Message, bot: Bot):
             temp_file.write(video_data)
 
         if os.path.getsize(temp_file_path) == 0:
-            await message.answer("⚠️ Wystąpił błąd podczas wysyłania klipu. Plik jest pusty.")
+            await message.answer("⚠️ Wystąpił błąd podczas wysyłania klipu. Plik jest pusty.⚠️")
             logger.error(f"File is empty after writing clip '{clip_name}' for user '{username}'.")
             os.remove(temp_file_path)
             return
@@ -57,7 +57,7 @@ async def send_clip(message: types.Message, bot: Bot):
 
     except Exception as e:
         logger.error(f"An error occurred while sending clip '{clip_name}' for user '{username}': {str(e)}")
-        await message.answer("⚠️ Wystąpił błąd podczas wysyłania klipu.")
+        await message.answer("⚠️ Wystąpił błąd podczas wysyłania klipu.⚠️")
         if os.path.exists(temp_file_path):
             os.remove(temp_file_path)  # Clean up the temporary file
 

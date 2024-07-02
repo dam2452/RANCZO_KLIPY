@@ -11,5 +11,5 @@ class ErrorHandlerMiddleware(BaseMiddleware):
         except Exception as e:
             message = event if isinstance(event, Message) else None
             if message:
-                await message.answer("⚠️ Wystąpił błąd podczas przetwarzania Twojego żądania. Prosimy spróbować ponownie później.")
+                await message.answer("⚠️ Wystąpił błąd podczas przetwarzania Twojego żądania. Prosimy spróbować ponownie później.⚠️")
             logger.error(f"An error occurred: {e}", exc_info=True)

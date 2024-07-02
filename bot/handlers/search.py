@@ -1,9 +1,9 @@
 import logging
 from aiogram import Router, Bot, types, Dispatcher
 from aiogram.filters import Command
-from bot.utils.search_transcriptions import find_segment_by_quote
 from bot.middlewares.authorization import AuthorizationMiddleware
 from bot.middlewares.error_handler import ErrorHandlerMiddleware
+from bot.utils.search_transcriptions import SearchTranscriptions
 from tabulate import tabulate
 
 logger = logging.getLogger(__name__)
@@ -11,6 +11,7 @@ router = Router()
 
 last_search_quotes = {}
 last_search_terms = {}  # Store search terms
+
 
 @router.message(Command('szukaj'))
 async def handle_search_request(message: types.Message, bot: Bot):
@@ -25,11 +26,13 @@ async def handle_search_request(message: types.Message, bot: Bot):
         quote = ' '.join(content[1:])
         last_search_terms[chat_id] = quote  # Store the search term
         logger.info(f"User '{message.from_user.username}' is searching for quote: '{quote}'")
-        segments = await find_segment_by_quote(quote, return_all=True)
+
+        search_transcriptions = SearchTranscriptions(router)
+        segments = await search_transcriptions.find_segment_by_quote(quote, return_all=True)
         logger.info(f"Segments found for quote '{quote}': {segments}")
 
         if not segments:
-            await message.answer("❌ Nie znaleziono pasujących segmentów.")
+            await message.answer("❌ Nie znaleziono pasujących segmentów.❌")
             logger.info(f"No segments found for quote: '{quote}'")
             return
 
@@ -57,7 +60,8 @@ async def handle_search_request(message: types.Message, bot: Bot):
             episode_info = segment.get('episode_info', {})
             total_episode_number = episode_info.get('episode_number', 'Unknown')
             season_number = (total_episode_number - 1) // 13 + 1 if isinstance(total_episode_number, int) else 'Unknown'
-            episode_number_in_season = (total_episode_number - 1) % 13 + 1 if isinstance(total_episode_number, int) else 'Unknown'
+            episode_number_in_season = (total_episode_number - 1) % 13 + 1 if isinstance(total_episode_number,
+                                                                                         int) else 'Unknown'
 
             season = str(season_number).zfill(2)
             episode_number = str(episode_number_in_season).zfill(2)
@@ -70,7 +74,8 @@ async def handle_search_request(message: types.Message, bot: Bot):
             line = [f"{i}️⃣", episode_formatted, episode_title, time_formatted]
             segment_lines.append(line)
 
-        table = tabulate(segment_lines, headers=["#", "Odcinek", "Tytuł", "Czas"], tablefmt="pipe", colalign=("left", "center", "left", "right"))
+        table = tabulate(segment_lines, headers=["#", "Odcinek", "Tytuł", "Czas"], tablefmt="pipe",
+                         colalign=("left", "center", "left", "right"))
         response += f"```\n{table}\n```"
 
         await message.answer(response, parse_mode='Markdown')
@@ -78,10 +83,12 @@ async def handle_search_request(message: types.Message, bot: Bot):
 
     except Exception as e:
         logger.error(f"Error in handle_search_request for user '{message.from_user.username}': {e}", exc_info=True)
-        await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania. Prosimy spróbować ponownie później.")
+        await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania. Prosimy spróbować ponownie później.⚠️")
+
 
 def register_search_command(dispatcher: Dispatcher):
     dispatcher.include_router(router)
+
 
 # Ustawienie middleware'ów
 router.message.middleware(AuthorizationMiddleware())
