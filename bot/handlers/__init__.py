@@ -9,13 +9,14 @@ from bot.handlers.admin_tools import register_admin_handlers
 from bot.handlers.save_clip import register_save_handler
 from bot.handlers.list_clips import register_list_clips_handler
 from bot.handlers.send_clip import register_send_clip_handler
-from bot.handlers.compile_selected import register_delete_clip_handler
+from bot.handlers.compile_selected import register_compile_selected_clips_command
 from bot.handlers.subscription_status import register_subscription_handler
 from bot.handlers.report_issue import register_report_handler
 from bot.handlers.delete_clip import register_delete_clip_handler
 from bot.handlers.adjust_clip import register_adjust_handler
 
 async def register_handlers(dispatcher: Dispatcher):
+    register_compile_selected_clips_command(dispatcher)
     register_adjust_handler(dispatcher)
     register_clip_handlers(dispatcher)
     register_start_command(dispatcher)
