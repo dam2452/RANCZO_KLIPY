@@ -7,7 +7,7 @@ from bot.middlewares.error_middleware import ErrorHandlerMiddleware
 logger = logging.getLogger(__name__)
 router = Router()
 
-@router.message(Command('start'))
+@router.message(Command(commands=['start', 's', 'help', 'h']))
 async def handle_start(message: types.Message, bot: Bot):
     try:
         username = message.from_user.username

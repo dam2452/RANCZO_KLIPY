@@ -11,8 +11,7 @@ from bot.middlewares.auth_middleware import AuthorizationMiddleware
 
 logger = logging.getLogger(__name__)
 router = Router()
-
-@router.message(Command("zapisz"))
+@router.message(Command(commands=['zapisz', 'save','z']))
 async def save_user_clip(message: types.Message, bot: Bot):
     try:
         username = message.from_user.username

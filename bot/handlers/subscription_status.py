@@ -17,8 +17,7 @@ class UserManager:
             return None
         days_remaining = (subscription_end - date.today()).days
         return subscription_end, days_remaining
-
-@router.message(Command('subskrypcja'))
+@router.message(Command(commands=['subskrypcja', 'sub', 's']))
 async def check_subscription(message: types.Message, bot: Bot):
     try:
         username = message.from_user.username

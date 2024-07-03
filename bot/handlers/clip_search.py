@@ -11,7 +11,7 @@ router = Router()
 last_search_quotes = {}
 last_search_terms = {}  # Store search terms
 
-@router.message(Command('szukaj'))
+@router.message(Command(commands=['szukaj', 'search', 'sz',]))
 async def handle_search_request(message: types.Message, bot: Bot):
     try:
         chat_id = message.chat.id

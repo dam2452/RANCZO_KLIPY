@@ -11,8 +11,7 @@ from bot.middlewares.error_middleware import ErrorHandlerMiddleware
 
 logger = logging.getLogger(__name__)
 router = Router()
-
-@router.message(Command('wyslij'))
+@router.message(Command(commands=['wyslij', 'send', 'wys']))
 async def send_clip(message: types.Message, bot: Bot):
     try:
         username = message.from_user.username

@@ -6,8 +6,7 @@ from bot.utils.database import DatabaseManager
 
 logger = logging.getLogger(__name__)
 router = Router()
-
-@router.message(Command("usunklip"))
+@router.message(Command(commands=['usunklip', 'deleteclip','uk']))
 async def delete_saved_clip(message: types.Message, bot: Bot):
     try:
         username = message.from_user.username

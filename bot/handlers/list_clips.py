@@ -7,8 +7,7 @@ from bot.middlewares.error_middleware import ErrorHandlerMiddleware
 
 logger = logging.getLogger(__name__)
 router = Router()
-
-@router.message(Command("mojeklipy"))
+@router.message(Command(commands=['mojeklipy', 'myclips', 'mk']))
 async def list_saved_clips(message: types.Message, bot: Bot):
     try:
         username = message.from_user.username

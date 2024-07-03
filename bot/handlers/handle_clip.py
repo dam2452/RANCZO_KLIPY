@@ -14,8 +14,7 @@ EXTEND_AFTER = 5
 
 # Definicja last_selected_segment
 last_selected_segment = {}
-
-@router.message(Command('klip'))
+@router.message(Command(commands=['klip', 'clip', 'k']))
 async def handle_clip_request(message: types.Message, bot: Bot):
     try:
         content = message.text.split()

@@ -11,8 +11,7 @@ from bot.middlewares.error_middleware import ErrorHandlerMiddleware
 
 logger = logging.getLogger(__name__)
 router = Router()
-
-@router.message(Command("dostosuj"))
+@router.message(Command(commands=['dostosuj', 'adjust','d']))
 async def adjust_video_clip(message: types.Message, bot: Bot):
     try:
         chat_id = message.chat.id
