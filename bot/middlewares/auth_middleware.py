@@ -1,7 +1,7 @@
 import logging
 from aiogram import BaseMiddleware
 from aiogram.types import Message
-from bot.utils.db import DatabaseManager
+from bot.utils.database import DatabaseManager
 
 logger = logging.getLogger(__name__)
 

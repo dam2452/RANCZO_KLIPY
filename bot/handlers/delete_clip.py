@@ -2,7 +2,7 @@ import logging
 from aiogram import Router, types, Dispatcher, Bot
 from aiogram.filters import Command
 # from bot.utils.db import is_user_authorized, delete_clip
-from bot.utils.db import DatabaseManager
+from bot.utils.database import DatabaseManager
 
 logger = logging.getLogger(__name__)
 router = Router()

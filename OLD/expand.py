@@ -1,12 +1,12 @@
 import logging
 from aiogram import Router, types, Bot
 from aiogram.filters import Command
-from bot.handlers.clip import last_selected_segment
-from bot.utils.db import DatabaseManager
-from bot.utils.video_manager import VideoManager
-from bot.handlers.search import last_search_quotes
-from bot.middlewares.authorization import AuthorizationMiddleware
-from bot.middlewares.error_handler import ErrorHandlerMiddleware
+from bot.handlers.handle_clip import last_selected_segment
+from bot.utils.database import DatabaseManager
+from bot.utils.video_handler import VideoManager
+from bot.handlers.clip_search import last_search_quotes
+from bot.middlewares.auth_middleware import AuthorizationMiddleware
+from bot.middlewares.error_middleware import ErrorHandlerMiddleware
 
 logger = logging.getLogger(__name__)
 router = Router()

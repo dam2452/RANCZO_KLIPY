@@ -1,16 +1,16 @@
 import logging
 from aiogram import Router, Dispatcher, types
 from aiogram.filters import Command
-from bot.utils.db import DatabaseManager
-from bot.utils.search_transcriptions import SearchTranscriptions
+from bot.utils.database import DatabaseManager
+from bot.utils.transcription_search import SearchTranscriptions
 from tabulate import tabulate
 
 logger = logging.getLogger(__name__)
 router = Router()
 
 # Middleware
-from bot.middlewares.authorization import AuthorizationMiddleware
-from bot.middlewares.error_handler import ErrorHandlerMiddleware
+from bot.middlewares.auth_middleware import AuthorizationMiddleware
+from bot.middlewares.error_middleware import ErrorHandlerMiddleware
 
 # Definicja UserManager dla łatwiejszego dostępu do funkcji zarządzania użytkownikami
 class UserManager:

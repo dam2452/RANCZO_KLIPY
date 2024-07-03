@@ -3,11 +3,11 @@ import os
 import tempfile
 from aiogram import types, Router, Dispatcher, Bot
 from aiogram.filters import Command
-from bot.utils.db import DatabaseManager
-from bot.handlers.clip import last_selected_segment
-from bot.utils.video_manager import VideoManager, VideoProcessor
-from bot.middlewares.error_handler import ErrorHandlerMiddleware
-from bot.middlewares.authorization import AuthorizationMiddleware
+from bot.utils.database import DatabaseManager
+from bot.handlers.handle_clip import last_selected_segment
+from bot.utils.video_handler import VideoManager, VideoProcessor
+from bot.middlewares.error_middleware import ErrorHandlerMiddleware
+from bot.middlewares.auth_middleware import AuthorizationMiddleware
 
 logger = logging.getLogger(__name__)
 router = Router()

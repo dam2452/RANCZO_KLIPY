@@ -15,5 +15,5 @@ services:
       POSTGRES_PORT: ${POSTGRES_PORT}
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
-      - ./RANCZO-WIDEO:/app/bot/RANCZO-WIDEO
-      - ./RANCZO-TRANSKRYPCJE:/app/bot/RANCZO-TRANSKRYPCJE
+      - ./bot/RANCZO-WIDEO:/app/bot/RANCZO-WIDEO
+      - ./bot/RANCZO-TRANSKRYPCJE:/app/bot/RANCZO-TRANSKRYPCJE

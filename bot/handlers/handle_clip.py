@@ -1,10 +1,10 @@
 import logging
 from aiogram import Router, types, Bot, Dispatcher
 from aiogram.filters import Command
-from bot.utils.search_transcriptions import SearchTranscriptions
-from bot.utils.video_manager import VideoManager
-from bot.middlewares.authorization import AuthorizationMiddleware
-from bot.middlewares.error_handler import ErrorHandlerMiddleware
+from bot.utils.transcription_search import SearchTranscriptions
+from bot.utils.video_handler import VideoManager
+from bot.middlewares.auth_middleware import AuthorizationMiddleware
+from bot.middlewares.error_middleware import ErrorHandlerMiddleware
 
 logger = logging.getLogger(__name__)
 router = Router()

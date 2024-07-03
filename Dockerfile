@@ -14,7 +14,7 @@ RUN apt-get update --fix-missing && apt-get install -y --no-install-recommends \
 
 # Kopiowanie plików do kontenera
 COPY . .
-
+RUN pip install --upgrade pip
 # Instalacja zależności Pythona z pliku requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
@@ -24,4 +24,4 @@ USER ranczo-klipy
 ENV PYTHONUNBUFFERED=1
 
 # Ustawienie domyślnej komendy do uruchomienia
-CMD ["python", "-m", "bot.bot"]
+CMD ["python", "-m", "bot.main"]

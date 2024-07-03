@@ -3,12 +3,12 @@ import asyncio
 import os
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
-from bot.config import settings  # Import settings
+from bot.settings import settings  # Import settings
 from bot.handlers import register_handlers
-from bot.utils.db import DatabaseManager
-from bot.middlewares.authorization import AuthorizationMiddleware  # Import AuthorizationMiddleware
-from bot.middlewares.error_handler import ErrorHandlerMiddleware  # Import ErrorHandlerMiddleware
-from bot.handlers.adjust import register_adjust_handler
+from bot.utils.database import DatabaseManager
+from bot.middlewares.auth_middleware import AuthorizationMiddleware  # Import AuthorizationMiddleware
+from bot.middlewares.error_middleware import ErrorHandlerMiddleware  # Import ErrorHandlerMiddleware
+from bot.handlers.adjust_clip import register_adjust_handler
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

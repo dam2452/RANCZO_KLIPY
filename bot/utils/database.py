@@ -1,6 +1,6 @@
 import asyncpg
 from datetime import date, timedelta
-from bot.config import POSTGRES_HOST, POSTGRES_DB, POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_PORT
+from bot.settings import POSTGRES_HOST, POSTGRES_DB, POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_PORT
 
 class DatabaseManager:
     @staticmethod

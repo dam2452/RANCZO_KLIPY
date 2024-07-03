@@ -5,7 +5,7 @@ import asyncio
 import subprocess
 from aiogram import Bot
 from aiogram.types import FSInputFile
-from bot.utils.video_processing import VideoProcessor
+from bot.utils.video_utils import VideoProcessor
 
 logger = logging.getLogger(__name__)
 
