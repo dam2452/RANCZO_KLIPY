@@ -61,7 +61,7 @@ async def handle_list_request(message: types.Message, bot: Bot):
         temp_dir = tempfile.gettempdir()
         sanitized_search_term = "".join(
             [c for c in search_term if c.isalpha() or c.isdigit() or c == ' ']).rstrip().replace(" ", "_")
-        file_name = os.path.join(temp_dir, f"Ranczo_Klipy_Results_{sanitized_search_term}.txt")
+        file_name = os.path.join(temp_dir, f"Ranczo_Klipy_Wyniki_{sanitized_search_term}.txt")
         with open(file_name, 'w', encoding='utf-8') as file:
             file.write(response)
 

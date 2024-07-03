@@ -2,8 +2,6 @@ import logging
 from aiogram import Router, Bot, types, Dispatcher
 from aiogram.filters import Command
 from bot.utils.db import DatabaseManager
-from tabulate import tabulate
-from datetime import date
 from bot.middlewares.authorization import AuthorizationMiddleware
 from bot.middlewares.error_handler import ErrorHandlerMiddleware
 
@@ -25,7 +23,10 @@ async def list_saved_clips(message: types.Message, bot: Bot):
             logger.info(f"No saved clips found for user: {username}")
             return
 
-        table_data = []
+        response = f"🎬 Twoje Zapisane Klipy 🎬\n\n"
+        response += f"🎥 Użytkownik: @{username}\n\n"
+        clip_lines = []
+
         for idx, (clip_name, start_time, end_time, season, episode_number, is_compilation) in enumerate(clips, start=1):
             length = end_time - start_time if end_time and start_time is not None else None
             if length:
@@ -37,23 +38,15 @@ async def list_saved_clips(message: types.Message, bot: Bot):
             if is_compilation or season is None or episode_number is None:
                 season_episode = "Kompilacja"
             else:
-                episode_number_mod = (episode_number - 1) % 13 + 1  # Convert to episode number within the season
+                episode_number_mod = (episode_number - 1) % 13 + 1
                 season_episode = f"S{season:02d}E{episode_number_mod:02d}"
 
-            table_data.append([idx, clip_name, season_episode, length_str])
+            line1 = f"{idx}️⃣ | 📺 {season_episode} | 🕒 {length_str}"
+            line2 = f"👉 {clip_name}"
+            clip_lines.append(f"{line1} \n{line2}")
 
-        table = tabulate(table_data, headers=["#", "Nazwa Klipu", "Sezon/Odcinek", "Długość"], tablefmt="grid")
-        response_message = f"""
-🎬 Twoje Zapisane Klipy 🎬
-
-🎥 Użytkownik: @{username}
-📅 Data: {date.today().strftime('%Y-%m-%d')}
-
-<pre>{table}</pre>
-
-Dziękujemy wspieranie projektu 🌟
-"""
-        await message.answer(response_message, parse_mode="HTML")
+        response += "```\n" + "\n\n".join(clip_lines) + "\n```"
+        await message.answer(response, parse_mode='Markdown')
         logger.info(f"List of saved clips sent to user '{username}'.")
 
     except Exception as e:

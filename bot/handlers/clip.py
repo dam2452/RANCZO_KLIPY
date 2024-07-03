@@ -9,6 +9,9 @@ from bot.middlewares.error_handler import ErrorHandlerMiddleware
 logger = logging.getLogger(__name__)
 router = Router()
 
+EXTEND_BEFORE = 5
+EXTEND_AFTER = 5
+
 # Definicja last_selected_segment
 last_selected_segment = {}
 
@@ -36,8 +39,8 @@ async def handle_clip_request(message: types.Message, bot: Bot):
 
         segment = segments[0] if isinstance(segments, list) else segments  # Handle dictionary response
         video_path = segment['video_path']
-        start_time = max(0, segment['start'] - 5)  # Extend 5 seconds before
-        end_time = segment['end'] + 5  # Extend 5 seconds after
+        start_time = max(0, segment['start'] - EXTEND_BEFORE)
+        end_time = segment['end'] + EXTEND_AFTER
 
         video_manager = VideoManager(bot)
         await video_manager.extract_and_send_clip(message.chat.id, video_path, start_time, end_time)

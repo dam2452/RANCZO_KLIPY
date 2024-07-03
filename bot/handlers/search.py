@@ -4,14 +4,12 @@ from aiogram.filters import Command
 from bot.middlewares.authorization import AuthorizationMiddleware
 from bot.middlewares.error_handler import ErrorHandlerMiddleware
 from bot.utils.search_transcriptions import SearchTranscriptions
-from tabulate import tabulate
 
 logger = logging.getLogger(__name__)
 router = Router()
 
 last_search_quotes = {}
 last_search_terms = {}  # Store search terms
-
 
 @router.message(Command('szukaj'))
 async def handle_search_request(message: types.Message, bot: Bot):
@@ -32,7 +30,7 @@ async def handle_search_request(message: types.Message, bot: Bot):
         logger.info(f"Segments found for quote '{quote}': {segments}")
 
         if not segments:
-            await message.answer("❌ Nie znaleziono pasujących segmentów.❌")
+            await message.answer("❌ Nie znaleziono pasujących cytatów.❌")
             logger.info(f"No segments found for quote: '{quote}'")
             return
 
@@ -60,8 +58,7 @@ async def handle_search_request(message: types.Message, bot: Bot):
             episode_info = segment.get('episode_info', {})
             total_episode_number = episode_info.get('episode_number', 'Unknown')
             season_number = (total_episode_number - 1) // 13 + 1 if isinstance(total_episode_number, int) else 'Unknown'
-            episode_number_in_season = (total_episode_number - 1) % 13 + 1 if isinstance(total_episode_number,
-                                                                                         int) else 'Unknown'
+            episode_number_in_season = (total_episode_number - 1) % 13 + 1 if isinstance(total_episode_number, int) else 'Unknown'
 
             season = str(season_number).zfill(2)
             episode_number = str(episode_number_in_season).zfill(2)
@@ -71,12 +68,10 @@ async def handle_search_request(message: types.Message, bot: Bot):
             time_formatted = f"{minutes:02}:{seconds:02}"
 
             episode_formatted = f"S{season}E{episode_number}"
-            line = [f"{i}️⃣", episode_formatted, episode_title, time_formatted]
+            line = f"{i}️⃣ | 📺{episode_formatted} | 🕒 {time_formatted} \n👉  {episode_title} "
             segment_lines.append(line)
 
-        table = tabulate(segment_lines, headers=["#", "Odcinek", "Tytuł", "Czas"], tablefmt="pipe",
-                         colalign=("left", "center", "left", "right"))
-        response += f"```\n{table}\n```"
+        response += "```\n" + "\n\n".join(segment_lines) + "\n```"
 
         await message.answer(response, parse_mode='Markdown')
         logger.info(f"Search results for quote '{quote}' sent to user '{message.from_user.username}'.")
@@ -85,10 +80,8 @@ async def handle_search_request(message: types.Message, bot: Bot):
         logger.error(f"Error in handle_search_request for user '{message.from_user.username}': {e}", exc_info=True)
         await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania. Prosimy spróbować ponownie później.⚠️")
 
-
 def register_search_command(dispatcher: Dispatcher):
     dispatcher.include_router(router)
-
 
 # Ustawienie middleware'ów
 router.message.middleware(AuthorizationMiddleware())

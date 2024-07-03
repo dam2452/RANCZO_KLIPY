@@ -4,7 +4,7 @@ import tempfile
 from aiogram import types, Router, Dispatcher, Bot
 from aiogram.filters import Command
 from bot.handlers.clip import last_selected_segment
-from bot.handlers.clip import EXTEND_AFTER, EXTEND_BEFORE
+from bot.handlers.search import last_search_quotes
 from bot.utils.video_manager import VideoManager, VideoProcessor
 from bot.middlewares.authorization import AuthorizationMiddleware
 from bot.middlewares.error_handler import ErrorHandlerMiddleware
@@ -18,49 +18,38 @@ async def adjust_video_clip(message: types.Message, bot: Bot):
         chat_id = message.chat.id
         content = message.text.split()
 
-        if len(content) < 3:
-            await message.answer("📝 Podaj czas w formacie `<float> <float>`. Przykład: /dostosuj 10.5 -15.2")
+        if len(content) not in (3, 4):
+            await message.answer("📝 Podaj czas w formacie `<float> <float>` lub `<index> <float> <float>`. Przykład: /dostosuj 10.5 -15.2 lub /dostosuj 1 10.5 -15.2")
             logger.info("Invalid number of arguments provided by user.")
             return
 
-        before_adjustment = float(content[1])
-        after_adjustment = float(content[2])
+        if len(content) == 4:
+            index = int(content[1]) - 1
+            before_adjustment = float(content[2])
+            after_adjustment = float(content[3])
+            if chat_id not in last_search_quotes:
+                await message.answer("🔍 Najpierw wykonaj wyszukiwanie za pomocą /szukaj.")
+                logger.info("No previous search results found for user.")
+                return
+            segments = last_search_quotes[chat_id]
+            segment_info = segments[index]
+        else:
+            before_adjustment = float(content[1])
+            after_adjustment = float(content[2])
+            if chat_id not in last_selected_segment:
+                await message.answer("⚠️ Najpierw wybierz segment za pomocą /klip.⚠️")
+                logger.info("No segment selected by user.")
+                return
+            segment_info = last_selected_segment[chat_id]
 
-        if chat_id not in last_selected_segment:
-            await message.answer("⚠️ Najpierw wybierz segment za pomocą /klip.⚠️")
-            logger.info("No segment selected by user.")
-            return
-
-        segment_info = last_selected_segment[chat_id]
-        print("---------------------------------------------------------------------------------------------------------")
-        print("Segment Info")
-        print(last_selected_segment)
-        print(segment_info)
-        print("---------------------------------------------------------------------------------------------------------")
         logger.info(f"Segment Info: {segment_info}")
 
         original_start_time = segment_info['start']
         original_end_time = segment_info['end']
-        print("---------------------------------------------------------------------------------------------------------")
-        print("Original Start Time")
-        print(original_start_time)
-        print("---------------------------------------------------------------------------------------------------------")
-        print("Original End Time")
-        print(original_end_time)
-        print("---------------------------------------------------------------------------------------------------------")
-        print("---------------------------------------------------------------------------------------------------------")
-        print("Before Adjustment")
-        print(before_adjustment)
-        print("---------------------------------------------------------------------------------------------------------")
-        print("After Adjustment")
-        print(after_adjustment)
-        print("---------------------------------------------------------------------------------------------------------")
-
-
 
         # Calculate new start and end times
-        start_time = original_start_time - before_adjustment - EXTEND_BEFORE
-        end_time = original_end_time + after_adjustment + EXTEND_AFTER
+        start_time = original_start_time - before_adjustment
+        end_time = original_end_time + after_adjustment
 
         # Ensure times are valid
         if start_time < 0:
@@ -97,7 +86,7 @@ async def adjust_video_clip(message: types.Message, bot: Bot):
             await message.answer(f"⚠️ Nie udało się zmienić klipu wideo: {str(e)}")
 
         # await message.answer(
-        #     f"✅ Klip został zmodyfikowany do {VideoProcessor.convert_seconds_to_time_str(end_time - start_time)}.")
+            # f"✅ Klip został zmodyfikowany do {VideoProcessor.convert_seconds_to_time_str(end_time - start_time)}.")
         logger.info(f"Video clip adjusted successfully for user '{message.from_user.username}'.")
 
     except Exception as e:

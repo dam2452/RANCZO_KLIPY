@@ -8,7 +8,7 @@ from bot.handlers import register_handlers
 from bot.utils.db import DatabaseManager
 from bot.middlewares.authorization import AuthorizationMiddleware  # Import AuthorizationMiddleware
 from bot.middlewares.error_handler import ErrorHandlerMiddleware  # Import ErrorHandlerMiddleware
-
+from bot.handlers.adjust import register_adjust_handler
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
