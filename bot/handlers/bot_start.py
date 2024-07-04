@@ -59,6 +59,8 @@ Aby uzyskać pełną listę komend, użyj /start lista.
 🔍 /szukaj <cytat> - Znajduje klipy pasujące do cytatu (pierwsze 5 wyników). Przykład: /szukaj kozioł.
 📋 /lista - Wyświetla wszystkie klipy znalezione przez /szukaj.
 ✅ /wybierz <numer_klipu> - Wybiera klip z listy uzyskanej przez /szukaj do dalszych operacji. Przykład: /wybierz 1.
+📺 /odcinki <sezon> - Wyświetla listę odcinków dla podanego sezonu. Przykład: /odcinki 2.
+✂️ /wytnij <sezon_odcinek> <czas_start> <czas_koniec> - Wytnij fragment klipu. Przykład: /wytnij S02E10 20:30.11 21:32.50.
 
 ════════════════════
 ✂️ Edycja klipów ✂️
@@ -98,6 +100,8 @@ Aby uzyskać pełną listę komend, użyj /start lista.
 🔍 /szukaj <cytat> - Znajduje klipy pasujące do cytatu (pierwsze 5 wyników). Przykład: /szukaj kozioł.
 📋 /lista - Wyświetla wszystkie klipy znalezione przez /szukaj.
 ✅ /wybierz <numer_klipu> - Wybiera klip z listy uzyskanej przez /szukaj do dalszych operacji. Przykład: /wybierz 1.
+📺 /odcinki <sezon> - Wyświetla listę odcinków dla podanego sezonu. Przykład: /odcinki 2.
+✂️ /wytnij <sezon_odcinek> <czas_start> <czas_koniec> - Wytnij fragment klipu. Przykład: /wytnij S02E10 20:30.11 21:32.50.
 ```"""
             await message.answer(wyszukiwanie_message, parse_mode='Markdown')
             logger.info(f"Wyszukiwanie klipów message sent to user '{username}'.")
