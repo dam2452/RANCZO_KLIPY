@@ -8,6 +8,7 @@ from bot.handlers.clip_search import last_search_quotes
 from bot.utils.video_handler import VideoManager, VideoProcessor
 from bot.middlewares.auth_middleware import AuthorizationMiddleware
 from bot.middlewares.error_middleware import ErrorHandlerMiddleware
+from bot.handlers.handle_clip import EXTEND_BEFORE, EXTEND_AFTER
 
 logger = logging.getLogger(__name__)
 router = Router()
@@ -43,8 +44,8 @@ async def adjust_video_clip(message: types.Message, bot: Bot):
 
         logger.info(f"Segment Info: {segment_info}")
 
-        original_start_time = segment_info['start']
-        original_end_time = segment_info['end']
+        original_start_time = segment_info['start'] - EXTEND_BEFORE
+        original_end_time = segment_info['end'] + EXTEND_AFTER
 
         # Calculate new start and end times
         start_time = original_start_time - before_adjustment
