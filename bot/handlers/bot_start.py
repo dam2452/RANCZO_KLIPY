@@ -94,7 +94,7 @@ Aby uzyskać pełną listę komend, użyj /start lista.
             logger.info(f"Full start message sent to user '{username}'.")
 
         elif len(content) == 2 and content[1] == 'wyszukiwanie':
-            wyszukiwanie_message = """```🐐RanczoKlipy-Wyszukiwanie_i_przeglądanie_klipów🐐
+            wyszukiwanie_message = """```🐐RanczoKlipy-Wyszukiwanie_klipów🐐
 ═════════════════════════════════════════
 🔎 /klip <cytat> - Wyszukuje klip na podstawie cytatu. Przykład: /klip geniusz.
 🔍 /szukaj <cytat> - Znajduje klipy pasujące do cytatu (pierwsze 5 wyników). Przykład: /szukaj kozioł.
