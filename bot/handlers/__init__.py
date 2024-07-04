@@ -14,6 +14,8 @@ from bot.handlers.subscription_status import register_subscription_handler
 from bot.handlers.report_issue import register_report_handler
 from bot.handlers.delete_clip import register_delete_clip_handler
 from bot.handlers.adjust_clip import register_adjust_handler
+from bot.handlers.manual_clip import register_manual_handler
+from bot.handlers.episode_list import register_episode_list_handler
 
 async def register_handlers(dispatcher: Dispatcher):
     register_compile_selected_clips_command(dispatcher)
@@ -29,8 +31,12 @@ async def register_handlers(dispatcher: Dispatcher):
     register_list_clips_handler(dispatcher)
     register_send_clip_handler(dispatcher)
     register_delete_clip_handler(dispatcher)
+    register_episode_list_handler(dispatcher)
     register_subscription_handler(dispatcher)
     register_report_handler(dispatcher)
+    register_manual_handler(dispatcher)
     register_delete_clip_handler(dispatcher)
+
+
 
 

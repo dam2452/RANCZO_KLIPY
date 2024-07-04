@@ -1,9 +1,9 @@
 import json
 import logging
 import os
-from dotenv import load_dotenv
 from elasticsearch import AsyncElasticsearch, helpers
 import urllib3
+from bot.settings import settings
 
 # Configure basic logging settings
 logging.basicConfig(level=logging.INFO)
@@ -12,13 +12,10 @@ logger = logging.getLogger(__name__)
 # Disable warnings regarding untrusted HTTPS requests
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-# Load environment variables from .env file
-load_dotenv(os.path.join(os.path.dirname(__file__), "../.env"))
-
-# Retrieve environment variables
-es_host = os.getenv("ES_HOST")
-es_username = os.getenv("ES_USERNAME")
-es_password = os.getenv("ES_PASSWORD")
+# Elasticsearch settings
+es_host = settings.ES_HOST
+es_username = settings.ES_USERNAME
+es_password = settings.ES_PASSWORD
 
 async def connect_to_elasticsearch():
     """
@@ -26,7 +23,7 @@ async def connect_to_elasticsearch():
     """
     try:
         es = AsyncElasticsearch(
-            [es_host],
+            hosts=[es_host],
             basic_auth=(es_username, es_password),  # Use 'basic_auth' instead of 'http_auth'
             verify_certs=False,  # Set to True in production for security
         )
@@ -94,15 +91,22 @@ async def index_transcriptions(base_path, es):
 
 async def print_one_transcription(es, index="ranczo-transcriptions"):
     """
-    Prints one transcription document from Elasticsearch.
+    Prints one transcription document from Elasticsearch in a more readable format.
     """
     try:
         response = await es.search(index=index, size=1)
         if response['hits']['hits']:
             document = response['hits']['hits'][0]['_source']
-            document['video_path'] = document['video_path'].replace("\\", "/")  # Normalize path for output
+            # Normalize path for output
+            document['video_path'] = document['video_path'].replace("\\", "/")
+            # Create a more readable output format
+            readable_output = f"Document ID: {response['hits']['hits'][0]['_id']}\n" \
+                              f"Episode Info: {document['episode_info']}\n" \
+                              f"Video Path: {document['video_path']}\n" \
+                              f"Segment Text: {document.get('text', 'No text available')}\n" \
+                              f"Timestamp: {document.get('timestamp', 'No timestamp available')}"
             logger.info("Retrieved document:")
-            print(json.dumps(document, indent=4, ensure_ascii=False))
+            print(readable_output)
         else:
             logger.info("No documents found.")
     except Exception as e:
@@ -112,10 +116,10 @@ async def main():
     es_client = await connect_to_elasticsearch()
     if es_client:
         try:
-            # Uncomment the following line if you need to delete all indices before indexing
+            #Uncomment the following line if you need to delete all indices before indexing
             await delete_all_indices(es_client)
             await index_transcriptions(base_path="../RANCZO-TRANSKRYPCJE", es=es_client)
-            # Print one transcription document
+            #Print one transcription document
             await print_one_transcription(es_client)
         finally:
             await es_client.close()  # Ensure the client is closed after use

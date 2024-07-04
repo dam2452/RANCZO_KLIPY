@@ -189,3 +189,134 @@ class SearchTranscriptions:
         except Exception as e:
             logger.error(f"❌ An error occurred while searching for segment with context: {e} ❌")
             return None
+
+    async def find_video_path_by_episode(self, season, episode_number, index='ranczo-transcriptions'):
+        """
+        Finds the video path for a given season and episode number.
+
+        Parameters:
+        - season: The season number to search for.
+        - episode_number: The episode number to search for.
+        - index: The Elasticsearch index to search within.
+
+        Returns:
+        - The video path if a matching segment is found.
+        - None if no matches are found.
+        """
+        logger.info(f"🔍 Searching for video path with filters - Season: {season}, Episode: {episode_number}")
+        es = await connect_to_elasticsearch()
+
+        if not es:
+            logger.error("❌ Failed to connect to Elasticsearch.")
+            return None
+
+        query = {
+            "query": {
+                "bool": {
+                    "must": [
+                        {"term": {"episode_info.season": season}},
+                        {"term": {"episode_info.episode_number": episode_number}}
+                    ]
+                }
+            }
+        }
+
+        try:
+            response = await es.search(index=index, body=query, size=1)
+            hits = response['hits']['hits']
+
+            if not hits:
+                logger.info("❌ No segments found matching the query.")
+                return None
+
+            segment = hits[0]['_source']
+            video_path = segment.get('video_path', None)
+
+            if video_path:
+                logger.info(f"✅ Found video path: {video_path}")
+                return video_path
+            else:
+                logger.info("❌ Video path not found in the segment.")
+                return None
+
+        except Exception as e:
+            logger.error(f"❌ An error occurred while searching for video path: {e}")
+            return None
+
+    async def find_episodes_by_season(self, season, index='ranczo-transcriptions'):
+        """
+        Finds all episodes for a given season.
+
+        Parameters:
+        - season: The season number to search for.
+        - index: The Elasticsearch index to search within.
+
+        Returns:
+        - A list of episodes if matching segments are found.
+        - None if no matches are found.
+        """
+        logger.info(f"🔍 Searching for episodes in season {season}")
+        es = await connect_to_elasticsearch()
+
+        if not es:
+            logger.error("❌ Failed to connect to Elasticsearch.")
+            return None
+
+        query = {
+            "size": 0,
+            "query": {
+                "term": {"episode_info.season": season}
+            },
+            "aggs": {
+                "unique_episodes": {
+                    "terms": {
+                        "field": "episode_info.episode_number",
+                        "size": 1000,
+                        "order": {
+                            "_key": "asc"
+                        }
+                    },
+                    "aggs": {
+                        "episode_info": {
+                            "top_hits": {
+                                "size": 1,
+                                "_source": {
+                                    "includes": [
+                                        "episode_info.title",
+                                        "episode_info.premiere_date",
+                                        "episode_info.viewership",
+                                        "episode_info.episode_number"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        try:
+            response = await es.search(index=index, body=query)
+            buckets = response['aggregations']['unique_episodes']['buckets']
+
+            if not buckets:
+                logger.info(f"❌ No episodes found for season {season}.")
+                return None
+
+            episodes = []
+            for bucket in buckets:
+                episode_info = bucket['episode_info']['hits']['hits'][0]['_source']['episode_info']
+                episode = {
+                    "episode_number": episode_info.get('episode_number'),
+                    "title": episode_info.get('title', 'Unknown'),
+                    "premiere_date": episode_info.get('premiere_date', 'Unknown'),
+                    "viewership": episode_info.get('viewership', 'Unknown')
+                }
+                episodes.append(episode)
+
+            logger.info(f"✅ Found {len(episodes)} episodes for season {season}.")
+            return episodes
+
+        except Exception as e:
+            logger.error(f"❌ An error occurred while searching for episodes: {e}")
+            return None
