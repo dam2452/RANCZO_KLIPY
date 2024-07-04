@@ -50,9 +50,12 @@ async def handle_episode_list_command(message: types.Message, bot: Bot):
             if absolute_episode_number == 0:
                 absolute_episode_number = 13
             adjusted_season, adjusted_episode_number = adjust_episode_number(absolute_episode_number)
+            formatted_viewership = f"{episode['viewership']:,}".replace(',', '.')
+
             response += f"🎬 {episode['title']}: S{season:02d}E{absolute_episode_number:02d} ({episode['episode_number']}) \n"
             response += f"📅 Data premiery: {episode['premiere_date']}\n"
-            response += f"👀 Oglądalność: {episode['viewership']}\n\n"
+            response += f"👀 Oglądalność: {formatted_viewership}\n\n"
+
 
         # Split the response into smaller parts to avoid the Telegram message length limit
         response_parts = split_message(response)
