@@ -87,8 +87,7 @@ async def admin_help(message: types.Message):
 ```"""
     await message.answer(help_message, parse_mode='Markdown')
     logger.info("Admin help message sent to user.")
-
-@router.message(Command('addwhitelist'))
+@router.message(Command(commands=['addwhitelist','addw']))
 async def add_to_whitelist(message: types.Message):
     if not await UserManager.is_user_admin(message.from_user.username) and not await UserManager.is_user_moderator(message.from_user.username):
         await message.answer("❌ Nie masz uprawnień do zarządzania whitelistą.❌")
@@ -118,7 +117,7 @@ async def add_to_whitelist(message: types.Message):
     await message.answer(f"✅ Dodano {username} do whitelisty.✅")
     logger.info(f"User {username} added to whitelist by {message.from_user.username}.")
 
-@router.message(Command('removewhitelist'))
+@router.message(Command(commands=['removewhitelist','removew']))
 async def remove_from_whitelist(message: types.Message):
     if not await UserManager.is_user_admin(message.from_user.username) and not await UserManager.is_user_moderator(message.from_user.username):
         await message.answer("❌ Nie masz uprawnień do zarządzania whitelistą.❌")
@@ -136,7 +135,7 @@ async def remove_from_whitelist(message: types.Message):
     await message.answer(f"✅ Usunięto {username} z whitelisty.✅")
     logger.info(f"User {username} removed from whitelist by {message.from_user.username}.")
 
-@router.message(Command('updatewhitelist'))
+@router.message(Command(commands=['updatewhitelist','updatew']))
 async def update_whitelist(message: types.Message):
     if not await UserManager.is_user_admin(message.from_user.username) and not await UserManager.is_user_moderator(message.from_user.username):
         await message.answer("❌ Nie masz uprawnień do zarządzania whitelistą.❌")
@@ -166,7 +165,7 @@ async def update_whitelist(message: types.Message):
     await message.answer(f"✅ Zaktualizowano dane użytkownika {username}.✅")
     logger.info(f"User {username} updated by {message.from_user.username}.")
 
-@router.message(Command('listwhitelist'))
+@router.message(Command(commands=['listwhitelist','listw']))
 async def list_whitelist(message: types.Message):
     if not await UserManager.is_user_admin(message.from_user.username) and not await UserManager.is_user_moderator(message.from_user.username):
         await message.answer("❌ Nie masz uprawnień do zarządzania whitelistą.❌")
@@ -187,7 +186,7 @@ async def list_whitelist(message: types.Message):
     await message.answer(response, parse_mode='Markdown')
     logger.info("Whitelist sent to user.")
 
-@router.message(Command('listadmins'))
+@router.message(Command(commands=['listadmins','listad']))
 async def list_admins(message: types.Message):
     if not await UserManager.is_user_admin(message.from_user.username) and not await UserManager.is_user_moderator(message.from_user.username):
         await message.answer("❌ Nie masz uprawnień do zarządzania whitelistą.❌")
@@ -207,7 +206,7 @@ async def list_admins(message: types.Message):
     await message.answer(response)
     logger.info("Admin list sent to user.")
 
-@router.message(Command('listmoderators'))
+@router.message(Command(commands=['listmoderators','listmod']))
 async def list_moderators(message: types.Message):
     if not await UserManager.is_user_admin(message.from_user.username) and not await UserManager.is_user_moderator(message.from_user.username):
         await message.answer("❌ Nie masz uprawnień do zarządzania whitelistą.❌")
@@ -227,7 +226,7 @@ async def list_moderators(message: types.Message):
     await message.answer(response)
     logger.info("Moderator list sent to user.")
 
-@router.message(Command('addsubscription'))
+@router.message(Command(commands=['addsubscription','addsub']))
 async def add_subscription_command(message: types.Message):
     if not await UserManager.is_user_admin(message.from_user.username):
         await message.answer("❌ Nie masz uprawnień do zarządzania subskrypcjami.❌ ")
@@ -247,7 +246,7 @@ async def add_subscription_command(message: types.Message):
     await message.answer(f"✅ Subskrypcja dla użytkownika {username} przedłużona do {new_end_date}.✅")
     logger.info(f"Subscription for user {username} extended by {message.from_user.username}.")
 
-@router.message(Command('removesubscription'))
+@router.message(Command(commands=['removesubscription','removesub']))
 async def remove_subscription_command(message: types.Message):
     if not await UserManager.is_user_admin(message.from_user.username):
         await message.answer("❌ Nie masz uprawnień do zarządzania subskrypcjami.❌")
@@ -266,9 +265,11 @@ async def remove_subscription_command(message: types.Message):
     await message.answer(f"✅ Subskrypcja dla użytkownika {username} została usunięta.✅")
     logger.info(f"Subscription for user {username} removed by {message.from_user.username}.")
 
-@router.message(Command('transkrypcja'))
+
+@router.message(Command(commands=['transkrypcja', 'trans']))
 async def handle_transcription_request(message: types.Message):
-    if not await UserManager.is_user_admin(message.from_user.username) and not await UserManager.is_user_moderator(message.from_user.username):
+    if not await UserManager.is_user_admin(message.from_user.username) and not await UserManager.is_user_moderator(
+            message.from_user.username):
         await message.answer("❌ Nie masz uprawnień do używania tej komendy.❌")
         logger.warning(f"Unauthorized access attempt by user: {message.from_user.username}")
         return
@@ -282,8 +283,9 @@ async def handle_transcription_request(message: types.Message):
     quote = ' '.join(content[1:])
     logger.info(f"Searching transcription for quote: '{quote}'")
 
-    context_size = 30
-    result = await find_segment_with_context(quote, context_size)
+    search_transcriptions = SearchTranscriptions(router)
+    context_size = 15
+    result = await search_transcriptions.find_segment_with_context(quote, context_size)
 
     if not result:
         await message.answer("❌ Nie znaleziono pasujących segmentów.❌")
@@ -293,11 +295,12 @@ async def handle_transcription_request(message: types.Message):
     target_segment = result['target']
     context_segments = result['context']
 
-    response = f"🔍 Transkrypcja dla cytatu: '{quote}'\n\n"
+    response = f"🔍 Transkrypcja dla cytatu: \"{quote}\"\n\n```\n"
     for segment in context_segments:
-        response += f"🆔 ID: {segment['id']} - {segment['text']}\n"
+        response += f"🆔 {segment['id']} - {segment['text']}\n"
+    response += "```"
 
-    await message.answer(response)
+    await message.answer(response, parse_mode='Markdown')
     logger.info(f"Transcription for quote '{quote}' sent to user '{message.from_user.username}'.")
 
 def register_admin_handlers(dispatcher: Dispatcher):
