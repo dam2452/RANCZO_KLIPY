@@ -34,7 +34,7 @@ class Settings(BaseSettings):
 try:
     settings = Settings()
 except ValidationError as e:
-    raise ValueError(f"Configuration error: {e}")
+    raise ValueError(f"Configuration error: {e}") from e
 
 # Access settings via the settings instance
 TELEGRAM_BOT_TOKEN = settings.TELEGRAM_BOT_TOKEN

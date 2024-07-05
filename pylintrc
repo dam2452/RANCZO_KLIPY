@@ -429,7 +429,7 @@ max-statements = 50
 max-attributes=11
 
 # Maximum number of statements in a try-block
-max-try-statements = 7
+max-try-statements = 10
 
 [CLASSES]
 

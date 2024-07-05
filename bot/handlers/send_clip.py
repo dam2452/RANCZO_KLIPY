@@ -39,7 +39,7 @@ async def send_clip(message: types.Message, bot: Bot):
             logger.info(f"Clip '{clip_name}' not found for user '{username}'.")
             return
 
-        video_data, start_time, end_time = clip
+        video_data, _, _ = clip
         if not video_data:
             await message.answer("⚠️ Plik klipu jest pusty.⚠️")
             logger.warning(f"Clip file is empty for clip '{clip_name}' by user '{username}'.")

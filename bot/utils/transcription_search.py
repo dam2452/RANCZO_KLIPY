@@ -245,9 +245,9 @@ class SearchTranscriptions:
             if video_path:
                 logger.info(f"✅ Found video path: {video_path}")
                 return video_path
-            else:
-                logger.info("❌ Video path not found in the segment.")
-                return None
+
+            logger.warning("❌ Video path not found in the segment.")
+            return None
 
         except Exception as e:
             logger.error(f"❌ An error occurred while searching for video path: {e}")

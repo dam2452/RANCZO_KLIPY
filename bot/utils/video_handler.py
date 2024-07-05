@@ -88,7 +88,7 @@ class VideoManager:
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
-        stdout, stderr = await process.communicate()
+        _, stderr = await process.communicate()
         os.remove(concat_file.name)
         if process.returncode != 0:
             raise Exception(f"ffmpeg error: {stderr.decode()}")
