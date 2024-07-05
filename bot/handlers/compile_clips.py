@@ -22,14 +22,16 @@ from bot.utils.video_handler import VideoManager
 logger = logging.getLogger(__name__)
 router = Router()
 
-@router.message(Command(commands=['kompiluj', 'compile','kom']))
+
+@router.message(Command(commands=['kompiluj', 'compile', 'kom']))
 async def compile_clips(message: types.Message, bot: Bot):
     chat_id = message.chat.id
     try:
         username = message.from_user.username
         content = message.text.split()
         if len(content) < 2:
-            await message.answer("🔄 Proszę podać indeksy segmentów do skompilowania, zakres lub 'wszystko' do kompilacji wszystkich segmentów.")
+            await message.answer(
+                "🔄 Proszę podać indeksy segmentów do skompilowania, zakres lub 'wszystko' do kompilacji wszystkich segmentów.")
             logger.info("No segments provided by user.")
             await DatabaseManager.log_system_message("INFO", "No segments provided by user.")
             return
@@ -106,8 +108,10 @@ async def compile_clips(message: types.Message, bot: Bot):
         if 'compiled_output' in locals() and os.path.exists(compiled_output.name):
             os.remove(compiled_output.name)
 
+
 def register_compile_command(dispatcher: Dispatcher):
     dispatcher.include_router(router)
+
 
 # Ustawienie middleware'ów
 router.message.middleware(AuthorizationMiddleware())

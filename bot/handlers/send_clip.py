@@ -19,6 +19,7 @@ from bot.utils.video_handler import VideoManager
 logger = logging.getLogger(__name__)
 router = Router()
 
+
 @router.message(Command(commands=['wyslij', 'send', 'wys']))
 async def send_clip(message: types.Message, bot: Bot):
     try:
@@ -71,12 +72,15 @@ async def send_clip(message: types.Message, bot: Bot):
     except Exception as e:
         logger.error(f"An error occurred while sending clip '{clip_name}' for user '{username}': {str(e)}")
         await message.answer("⚠️ Wystąpił błąd podczas wysyłania klipu.⚠️")
-        await DatabaseManager.log_system_message("ERROR", f"An error occurred while sending clip '{clip_name}' for user '{username}': {str(e)}")
+        await DatabaseManager.log_system_message("ERROR",
+                                                 f"An error occurred while sending clip '{clip_name}' for user '{username}': {str(e)}")
         if os.path.exists(temp_file_path):
             os.remove(temp_file_path)  # Clean up the temporary file
 
+
 def register_send_clip_handler(dispatcher: Dispatcher):
     dispatcher.include_router(router)
+
 
 # Ustawienie middleware'ów
 router.message.middleware(AuthorizationMiddleware())

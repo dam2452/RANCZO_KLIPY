@@ -16,11 +16,13 @@ from bot.utils.transcription_search import SearchTranscriptions
 logger = logging.getLogger(__name__)
 router = Router()
 
+
 def adjust_episode_number(absolute_episode):
     """ Adjust the absolute episode number to season and episode format """
     season = (absolute_episode - 1) // 13 + 1
     episode = (absolute_episode - 1) % 13 + 1
     return season, episode
+
 
 def split_message(message, max_length=4096):
     """ Splits a message into chunks to fit within the Telegram message length limit """
@@ -33,6 +35,7 @@ def split_message(message, max_length=4096):
         message = message[split_at:].lstrip()
     parts.append(message)
     return parts
+
 
 @router.message(Command(commands=['odcinki', 'episodes', 'o']))
 async def handle_episode_list_command(message: types.Message, bot: Bot):
@@ -84,8 +87,10 @@ async def handle_episode_list_command(message: types.Message, bot: Bot):
         await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania. Prosimy spróbować ponownie później.")
         await DatabaseManager.log_system_message("ERROR", f"An error occurred while handling episode list command: {e}")
 
+
 def register_episode_list_handler(dispatcher: Dispatcher):
     dispatcher.include_router(router)
+
 
 # Ustawienie middleware'ów
 router.message.middleware(AuthorizationMiddleware())

@@ -18,6 +18,7 @@ from bot.utils.video_handler import VideoManager
 logger = logging.getLogger(__name__)
 router = Router()
 
+
 @router.message(Command(commands=['wybierz', 'select', 'w']))
 async def handle_select_request(message: types.Message, bot: Bot):
     try:
@@ -64,8 +65,10 @@ async def handle_select_request(message: types.Message, bot: Bot):
         await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania. Prosimy spróbować ponownie później.⚠️")
         await DatabaseManager.log_system_message("ERROR", f"Error in select_quote for user '{username}': {e}")
 
+
 def register_select_command(dispatcher: Dispatcher):
     dispatcher.include_router(router)
+
 
 # Ustawienie middleware'ów
 router.message.middleware(AuthorizationMiddleware())

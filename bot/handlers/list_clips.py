@@ -28,8 +28,10 @@ number_to_emoji = {
     '9': '9️⃣',
 }
 
+
 def convert_number_to_emoji(number):
     return ''.join(number_to_emoji.get(digit, digit) for digit in str(number))
+
 
 @router.message(Command(commands=['mojeklipy', 'myclips', 'mk']))
 async def list_saved_clips(message: types.Message, bot: Bot):
@@ -82,8 +84,10 @@ async def list_saved_clips(message: types.Message, bot: Bot):
         await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania. Prosimy spróbować ponownie później.⚠️")
         await DatabaseManager.log_system_message("ERROR", f"Error handling /mojeklipy command for user '{message.from_user.username}': {e}")
 
+
 def register_list_clips_handler(dispatcher: Dispatcher):
     dispatcher.include_router(router)
+
 
 # Ustawienie middleware'ów
 router.message.middleware(AuthorizationMiddleware())

@@ -24,6 +24,7 @@ router = Router()
 # Definicja last_selected_segment
 last_selected_segment = {}
 
+
 @router.message(Command(commands=['klip', 'clip', 'k']))
 async def handle_clip_request(message: types.Message, bot: Bot):
     try:
@@ -65,8 +66,10 @@ async def handle_clip_request(message: types.Message, bot: Bot):
         await message.answer("⚠️ Wystąpił błąd podczas przetwarzania Twojego żądania.⚠️")
         await DatabaseManager.log_system_message("ERROR", f"An error occurred while handling clip request: {str(e)}")
 
+
 def register_clip_handlers(dispatcher: Dispatcher):
     dispatcher.include_router(router)
+
 
 # Ustawienie middleware'ów
 router.message.middleware(AuthorizationMiddleware())

@@ -20,6 +20,7 @@ router = Router()
 
 last_manual_clip = {}  # Dictionary to store the last manual clip per chat ID
 
+
 def minutes_str_to_seconds(time_str):
     """ Convert time string in the format MM:SS.ms to seconds """
     try:
@@ -30,11 +31,13 @@ def minutes_str_to_seconds(time_str):
     except ValueError:
         return None
 
+
 def adjust_episode_number(absolute_episode):
     """ Adjust the absolute episode number to season and episode format """
     season = (absolute_episode - 1) // 13 + 1
     episode = (absolute_episode - 1) % 13 + 1
     return season, episode
+
 
 @router.message(Command(commands=['wytnij', 'cut', 'wyt', 'pawlos']))  # XD pawlos
 async def handle_manual_command(message: types.Message, bot: Bot):
@@ -113,8 +116,10 @@ async def handle_manual_command(message: types.Message, bot: Bot):
         await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania. Prosimy spróbować ponownie później.")
         await DatabaseManager.log_system_message("ERROR", f"An error occurred while handling manual command: {e}")
 
+
 def register_manual_handler(dispatcher: Dispatcher):
     dispatcher.include_router(router)
+
 
 # Ustawienie middleware'ów
 router.message.middleware(AuthorizationMiddleware())

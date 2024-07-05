@@ -16,7 +16,8 @@ from bot.utils.database import DatabaseManager
 logger = logging.getLogger(__name__)
 router = Router()
 
-@router.message(Command(commands=['report', 'zglos','r']))
+
+@router.message(Command(commands=['report', 'zglos', 'r']))
 async def handle_report(message: types.Message, bot: Bot):
     try:
         username = message.from_user.username
@@ -45,8 +46,10 @@ async def handle_report(message: types.Message, bot: Bot):
         await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania. Prosimy spróbować ponownie później.⚠️")
         await DatabaseManager.log_system_message("ERROR", f"Error handling /report command for user '{message.from_user.username}': {e}")
 
+
 def register_report_handler(dispatcher: Dispatcher):
     dispatcher.include_router(router)
+
 
 # Ustawienie middleware'ów
 router.message.middleware(AuthorizationMiddleware())

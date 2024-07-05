@@ -28,6 +28,7 @@ from bot.utils.video_handler import (
 logger = logging.getLogger(__name__)
 router = Router()
 
+
 @router.message(Command(commands=['zapisz', 'save', 'z']))
 async def save_user_clip(message: types.Message, bot: Bot):
     try:
@@ -95,8 +96,8 @@ async def save_user_clip(message: types.Message, bot: Bot):
         else:
             segment = segment_info
             clip_path = segment['video_path']
-            start_time = segment['start']# - EXTEND_BEFORE
-            end_time = segment['end']# + EXTEND_AFTER
+            start_time = segment['start']  # - EXTEND_BEFORE
+            end_time = segment['end']  # + EXTEND_AFTER
             is_compilation = False
             season = segment['episode_info']['season']
             episode_number = segment['episode_info']['episode_number']
@@ -109,7 +110,8 @@ async def save_user_clip(message: types.Message, bot: Bot):
         if actual_duration is None:
             await message.answer("❌ Nie udało się zweryfikować długości klipu.❌")
             logger.error(f"Failed to verify the length of the clip '{clip_name}' for user '{username}'.")
-            await DatabaseManager.log_system_message("ERROR", f"Failed to verify the length of the clip '{clip_name}' for user '{username}'.")
+            await DatabaseManager.log_system_message("ERROR",
+                                                     f"Failed to verify the length of the clip '{clip_name}' for user '{username}'.")
             os.remove(output_filename)
             return
 
@@ -141,8 +143,10 @@ async def save_user_clip(message: types.Message, bot: Bot):
         await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania. Prosimy spróbować ponownie później.⚠️")
         await DatabaseManager.log_system_message("ERROR", f"Error handling /zapisz command for user '{message.from_user.username}': {e}")
 
+
 def register_save_handler(dispatcher: Dispatcher):
     dispatcher.include_router(router)
+
 
 # Ustawienie middleware'ów
 router.message.middleware(AuthorizationMiddleware())

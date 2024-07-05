@@ -22,6 +22,7 @@ router = Router()
 # Definicja last_compiled_clip
 last_compiled_clip = {}
 
+
 @router.message(Command(commands=['polaczklipy', 'concatclips', 'pk']))
 async def compile_selected_clips(message: types.Message, bot: Bot):
     try:
@@ -118,10 +119,13 @@ async def compile_selected_clips(message: types.Message, bot: Bot):
     except Exception as e:
         logger.error(f"Error handling /polaczklipy command for user '{message.from_user.username}': {e}", exc_info=True)
         await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania.⚠️")
-        await DatabaseManager.log_system_message("ERROR", f"Error handling /polaczklipy command for user '{message.from_user.username}': {e}")
+        await DatabaseManager.log_system_message("ERROR",
+                                                 f"Error handling /polaczklipy command for user '{message.from_user.username}': {e}")
+
 
 def register_compile_selected_clips_command(dispatcher: Dispatcher):
     dispatcher.include_router(router)
+
 
 # Ustawienie middleware'ów
 router.message.middleware(AuthorizationMiddleware())

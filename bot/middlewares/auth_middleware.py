@@ -7,6 +7,7 @@ from bot.utils.database import DatabaseManager
 
 logger = logging.getLogger(__name__)
 
+
 class AuthorizationMiddleware(BaseMiddleware):
     async def __call__(self, handler, event, data):
         if isinstance(event, Message):

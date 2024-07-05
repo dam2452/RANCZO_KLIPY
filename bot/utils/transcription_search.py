@@ -11,6 +11,7 @@ from bot.utils.es_manager import connect_to_elasticsearch
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 class SearchTranscriptions:
     def __init__(self, dispatcher: Dispatcher):
         dispatcher.message.middleware(AuthorizationMiddleware())
@@ -33,7 +34,8 @@ class SearchTranscriptions:
         - None if no matches are found.
         """
         logger.info(f"🔍 Searching for quote: '{quote}' with filters - Season: {season_filter}, Episode: {episode_filter}")
-        await DatabaseManager.log_system_message("INFO", f"Searching for quote: '{quote}' with filters - Season: {season_filter}, Episode: {episode_filter}")
+        await DatabaseManager.log_system_message("INFO",
+                                                 f"Searching for quote: '{quote}' with filters - Season: {season_filter}, Episode: {episode_filter}")
         es = await connect_to_elasticsearch()
 
         if not es:
@@ -105,9 +107,12 @@ class SearchTranscriptions:
             await DatabaseManager.log_system_message("ERROR", f"An error occurred while searching for segments: {e}")
             return None
 
-    async def find_segment_with_context(self, quote, context_size=30, season_filter=None, episode_filter=None, index='ranczo-transcriptions'):
-        logger.info(f"🔍 Searching for quote: '{quote}' with context size: {context_size}, filters - Season: {season_filter}, Episode: {episode_filter}")
-        await DatabaseManager.log_system_message("INFO", f"Searching for quote: '{quote}' with context size: {context_size}, filters - Season: {season_filter}, Episode: {episode_filter}")
+    async def find_segment_with_context(self, quote, context_size=30, season_filter=None, episode_filter=None,
+                                        index='ranczo-transcriptions'):
+        logger.info(
+            f"🔍 Searching for quote: '{quote}' with context size: {context_size}, filters - Season: {season_filter}, Episode: {episode_filter}")
+        await DatabaseManager.log_system_message("INFO",
+                                                 f"Searching for quote: '{quote}' with context size: {context_size}, filters - Season: {season_filter}, Episode: {episode_filter}")
         es = await connect_to_elasticsearch()
 
         if not es:
@@ -162,8 +167,10 @@ class SearchTranscriptions:
             context_response_before = await es.search(index=index, body=context_query_before)
             context_response_after = await es.search(index=index, body=context_query_after)
 
-            context_segments_before = [{'id': hit['_source']['id'], 'text': hit['_source']['text']} for hit in context_response_before['hits']['hits']]
-            context_segments_after = [{'id': hit['_source']['id'], 'text': hit['_source']['text']} for hit in context_response_after['hits']['hits']]
+            context_segments_before = [{'id': hit['_source']['id'], 'text': hit['_source']['text']} for hit in
+                                       context_response_before['hits']['hits']]
+            context_segments_after = [{'id': hit['_source']['id'], 'text': hit['_source']['text']} for hit in
+                                      context_response_after['hits']['hits']]
 
             context_segments_before.reverse()
 
@@ -208,7 +215,8 @@ class SearchTranscriptions:
         - None if no matches are found.
         """
         logger.info(f"🔍 Searching for video path with filters - Season: {season}, Episode: {episode_number}")
-        await DatabaseManager.log_system_message("INFO", f"Searching for video path with filters - Season: {season}, Episode: {episode_number}")
+        await DatabaseManager.log_system_message("INFO",
+                                                 f"Searching for video path with filters - Season: {season}, Episode: {episode_number}")
         es = await connect_to_elasticsearch()
 
         if not es:

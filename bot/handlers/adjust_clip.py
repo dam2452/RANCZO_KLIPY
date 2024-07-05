@@ -27,14 +27,16 @@ from bot.utils.video_handler import (
 logger = logging.getLogger(__name__)
 router = Router()
 
-@router.message(Command(commands=['dostosuj', 'adjust','d']))
+
+@router.message(Command(commands=['dostosuj', 'adjust', 'd']))
 async def adjust_video_clip(message: types.Message, bot: Bot):
     try:
         chat_id = message.chat.id
         content = message.text.split()
 
         if len(content) not in (3, 4):
-            await message.answer("📝 Podaj czas w formacie `<float> <float>` lub `<index> <float> <float>`. Przykład: /dostosuj 10.5 -15.2 lub /dostosuj 1 10.5 -15.2")
+            await message.answer(
+                "📝 Podaj czas w formacie `<float> <float>` lub `<index> <float> <float>`. Przykład: /dostosuj 10.5 -15.2 lub /dostosuj 1 10.5 -15.2")
             logger.info("Invalid number of arguments provided by user.")
             await DatabaseManager.log_system_message("INFO", "Invalid number of arguments provided by user.")
             return
@@ -119,8 +121,10 @@ async def adjust_video_clip(message: types.Message, bot: Bot):
         await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania. Prosimy spróbować ponownie później.⚠️")
         await DatabaseManager.log_system_message("ERROR", f"Error in adjust_video_clip for user '{message.from_user.username}': {e}")
 
+
 def register_adjust_handler(dispatcher: Dispatcher):
     dispatcher.include_router(router)
+
 
 # Ustawienie middleware'ów
 router.message.middleware(AuthorizationMiddleware())

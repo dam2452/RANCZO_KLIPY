@@ -23,6 +23,7 @@ from bot.utils.database import DatabaseManager
 logger = logging.getLogger(__name__)
 router = Router()
 
+
 @router.message(Command(commands=['lista', 'list', 'l']))
 async def handle_list_request(message: types.Message, bot: Bot):
     try:
@@ -64,7 +65,8 @@ async def handle_list_request(message: types.Message, bot: Bot):
             line = [i, episode_formatted, episode_title, time_formatted]
             segment_lines.append(line)
 
-        table = tabulate(segment_lines, headers=["#", "Odcinek", "Tytuł", "Czas"], tablefmt="pipe", colalign=("left", "center", "left", "right"))
+        table = tabulate(segment_lines, headers=["#", "Odcinek", "Tytuł", "Czas"], tablefmt="pipe",
+                         colalign=("left", "center", "left", "right"))
         response += f"{table}\n"
 
         temp_dir = tempfile.gettempdir()
@@ -85,8 +87,10 @@ async def handle_list_request(message: types.Message, bot: Bot):
         await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania. Prosimy spróbować ponownie później.⚠️")
         await DatabaseManager.log_system_message("ERROR", f"Error in handle_list_request for user {username}: {e}")
 
+
 def register_list_command(dispatcher: Dispatcher):
     dispatcher.include_router(router)
+
 
 # Ustawienie middleware'ów
 router.message.middleware(AuthorizationMiddleware())

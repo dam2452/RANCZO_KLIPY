@@ -15,14 +15,16 @@ from bot.utils.database import DatabaseManager
 logger = logging.getLogger(__name__)
 router = Router()
 
-@router.message(Command(commands=['usunklip', 'deleteclip','uk']))
+
+@router.message(Command(commands=['usunklip', 'deleteclip', 'uk']))
 async def delete_saved_clip(message: types.Message, bot: Bot):
     try:
         username = message.from_user.username
         if not username or not await DatabaseManager.is_user_authorized(username):
             await message.answer("❌ Nie masz uprawnień do korzystania z tego bota.❌")
             logger.warning("Unauthorized access attempt: Unable to identify user or user not authorized.")
-            await DatabaseManager.log_system_message("WARNING", "Unauthorized access attempt: Unable to identify user or user not authorized.")
+            await DatabaseManager.log_system_message("WARNING",
+                                                     "Unauthorized access attempt: Unable to identify user or user not authorized.")
             return
 
         command_parts = message.text.split(maxsplit=1)
@@ -52,8 +54,10 @@ async def delete_saved_clip(message: types.Message, bot: Bot):
         await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania.⚠️")
         await DatabaseManager.log_system_message("ERROR", f"Error handling /usunklip command for user '{message.from_user.username}': {e}")
 
+
 def register_delete_clip_handler(dispatcher: Dispatcher):
     dispatcher.include_router(router)
+
 
 # Ustawienie middleware'ów
 router.message.middleware(AuthorizationMiddleware())
