@@ -5,9 +5,11 @@ from aiogram import types, Router, Dispatcher, Bot
 from aiogram.filters import Command
 from bot.utils.database import DatabaseManager
 from bot.handlers.handle_clip import last_selected_segment
+from bot.handlers.compile_selected import last_compiled_clip
 from bot.utils.video_handler import VideoManager, VideoProcessor
 from bot.middlewares.error_middleware import ErrorHandlerMiddleware
 from bot.middlewares.auth_middleware import AuthorizationMiddleware
+from bot.settings import EXTEND_BEFORE, EXTEND_AFTER
 
 logger = logging.getLogger(__name__)
 router = Router()
@@ -32,13 +34,13 @@ async def save_user_clip(message: types.Message, bot: Bot):
             await DatabaseManager.log_system_message("INFO", f"Clip name '{clip_name}' already exists for user '{username}'.")
             return
 
-        if chat_id not in last_selected_segment:
-            await message.answer("⚠️ Najpierw wybierz segment za pomocą /klip.⚠️")
-            logger.info("No segment selected by user.")
-            await DatabaseManager.log_system_message("INFO", "No segment selected by user.")
+        if chat_id not in last_selected_segment and chat_id not in last_compiled_clip:
+            await message.answer("⚠️ Najpierw wybierz segment za pomocą /klip lub skompiluj klipy za pomocą /polaczklipy.⚠️")
+            logger.info("No segment selected or compiled clip available for user.")
+            await DatabaseManager.log_system_message("INFO", "No segment selected or compiled clip available for user.")
             return
 
-        segment_info = last_selected_segment[chat_id]
+        segment_info = last_selected_segment.get(chat_id) or last_compiled_clip.get(chat_id)
         logger.info(f"Segment Info: {segment_info}")
         await DatabaseManager.log_system_message("INFO", f"Segment Info: {segment_info}")
 
@@ -51,12 +53,20 @@ async def save_user_clip(message: types.Message, bot: Bot):
         if 'compiled_clip' in segment_info:
             output_filename = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4").name
             with open(output_filename, 'wb') as f:
-                f.write(segment_info['compiled_clip'].getvalue())
+                compiled_clip = segment_info['compiled_clip']
+                if isinstance(compiled_clip, bytes):
+                    f.write(compiled_clip)
+                else:
+                    f.write(compiled_clip.getvalue())
             is_compilation = True
         elif 'expanded_clip' in segment_info:
             output_filename = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4").name
             with open(output_filename, 'wb') as f:
-                f.write(segment_info['expanded_clip'].getvalue())
+                expanded_clip = segment_info['expanded_clip']
+                if isinstance(expanded_clip, bytes):
+                    f.write(expanded_clip)
+                else:
+                    f.write(expanded_clip.getvalue())
             start_time = segment_info['expanded_start']
             end_time = segment_info['expanded_end']
             season = segment_info['episode_info']['season']
@@ -64,8 +74,8 @@ async def save_user_clip(message: types.Message, bot: Bot):
         else:
             segment = segment_info
             clip_path = segment['video_path']
-            start_time = max(0, segment['start'] - 5)  # Extend 5 seconds before
-            end_time = segment['end'] + 5  # Extend 5 seconds after
+            start_time = max(0, segment['start'] - EXTEND_BEFORE)
+            end_time = segment['end'] + EXTEND_AFTER
             is_compilation = False
             season = segment['episode_info']['season']
             episode_number = segment['episode_info']['episode_number']

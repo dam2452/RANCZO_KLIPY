@@ -12,6 +12,9 @@ from bot.middlewares.error_middleware import ErrorHandlerMiddleware
 logger = logging.getLogger(__name__)
 router = Router()
 
+# Definicja last_compiled_clip
+last_compiled_clip = {}
+
 @router.message(Command(commands=['polaczklipy', 'concatclips', 'pk']))
 async def compile_selected_clips(message: types.Message, bot: Bot):
     try:
@@ -79,6 +82,15 @@ async def compile_selected_clips(message: types.Message, bot: Bot):
                 await DatabaseManager.log_system_message("WARNING", f"Compiled clip exceeds size limit: {file_size_mb:.2f} MB")
                 os.remove(compiled_output.name)
                 return
+
+            with open(compiled_output.name, 'rb') as f:
+                compiled_clip_data = f.read()
+
+            # Store the compiled clip in last_compiled_clip
+            last_compiled_clip[chat_id] = {
+                'compiled_clip': compiled_clip_data,
+                'is_compilation': True,
+            }
 
             # Send the compiled video
             await bot.send_video(chat_id, FSInputFile(compiled_output.name), supports_streaming=True, width=1920, height=1080)
