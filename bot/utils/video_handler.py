@@ -1,15 +1,21 @@
-import os
-import logging
-import tempfile
 import asyncio
+import logging
+import os
 import subprocess
+import tempfile
+
 from aiogram import Bot
 from aiogram.types import FSInputFile
-from bot.settings import EXTEND_BEFORE, EXTEND_AFTER
-from bot.utils.video_utils import VideoProcessor
+
+from bot.settings import (
+    EXTEND_AFTER,
+    EXTEND_BEFORE,
+)
 from bot.utils.database import DatabaseManager
+from bot.utils.video_utils import VideoProcessor
 
 logger = logging.getLogger(__name__)
+
 
 class VideoManager:
     def __init__(self, bot: Bot):
@@ -25,7 +31,10 @@ class VideoManager:
             await DatabaseManager.log_system_message("INFO", f"Clip size: {file_size:.2f} MB")
 
             if file_size > 50:  # Telegram has a 50 MB limit for video files
-                await self.bot.send_message(chat_id, "❌ Wyodrębniony klip jest za duży, aby go wysłać przez Telegram. Maksymalny rozmiar pliku to 50 MB.❌")
+                await self.bot.send_message(
+                    chat_id,
+                    "❌ Wyodrębniony klip jest za duży, aby go wysłać przez Telegram. Maksymalny rozmiar pliku to 50 MB.❌",
+                )
                 logger.warning(f"Clip size {file_size:.2f} MB exceeds the 50 MB limit.")
                 await DatabaseManager.log_system_message("WARNING", f"Clip size {file_size:.2f} MB exceeds the 50 MB limit.")
             else:
@@ -66,7 +75,7 @@ class VideoManager:
                 temp_file.close()
                 await DatabaseManager.log_system_message("INFO", f"Extracted clip from {video_path} ({start}-{end})")
             await self.concatenate_clips(temp_files, output_filename)
-            await DatabaseManager.log_system_message("INFO",f"Concatenated clips into {output_filename}")
+            await DatabaseManager.log_system_message("INFO", f"Concatenated clips into {output_filename}")
         finally:
             for temp_file in temp_files:
                 if os.path.exists(temp_file):
@@ -83,20 +92,21 @@ class VideoManager:
         command = [
             'ffmpeg', '-y', '-f', 'concat', '-safe', '0', '-i', concat_file.name,
             '-c', 'copy', '-movflags', '+faststart', '-fflags', '+genpts',
-            '-avoid_negative_ts', '1', output_file
+            '-avoid_negative_ts', '1', output_file,
         ]
 
         process = await asyncio.create_subprocess_exec(
             *command,
             stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
+            stderr=subprocess.PIPE,
         )
-        stdout, stderr = await process.communicate()
+        _, stderr = await process.communicate()
         os.remove(concat_file.name)
+
         if process.returncode != 0:
             logger.error(f"ffmpeg error: {stderr.decode()}")
             await DatabaseManager.log_system_message("ERROR", f"ffmpeg error: {stderr.decode()}")
             raise Exception(f"ffmpeg error: {stderr.decode()}")
-        else:
-            logger.info(f"Clips concatenated successfully into {output_file}")
-            await DatabaseManager.log_system_message("INFO", f"Clips concatenated successfully into {output_file}")
+
+        logger.info(f"Clips concatenated successfully into {output_file}")
+        await DatabaseManager.log_system_message("INFO", f"Clips concatenated successfully into {output_file}")

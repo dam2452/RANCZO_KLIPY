@@ -1,8 +1,13 @@
 import json
 import logging
 import os
-from elasticsearch import AsyncElasticsearch, helpers
+
+from elasticsearch import (
+    AsyncElasticsearch,
+    helpers,
+)
 import urllib3
+
 from bot.settings import settings
 from bot.utils.database import DatabaseManager
 
@@ -17,6 +22,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 es_host = settings.ES_HOST
 es_username = settings.ES_USERNAME
 es_password = settings.ES_PASSWORD
+
 
 async def connect_to_elasticsearch():
     """
@@ -38,6 +44,7 @@ async def connect_to_elasticsearch():
         await DatabaseManager.log_system_message("ERROR", f"Connection to Elasticsearch failed: {e}")
         return None
 
+
 async def delete_all_indices(es):
     """
     Deletes all indices in Elasticsearch.
@@ -58,6 +65,7 @@ async def delete_all_indices(es):
     except Exception as e:
         logger.error(f"Error deleting indices: {e}")
         await DatabaseManager.log_system_message("ERROR", f"Error deleting indices: {e}")
+
 
 async def index_transcriptions(base_path, es):
     """
@@ -87,7 +95,7 @@ async def index_transcriptions(base_path, es):
 
                             actions.append({
                                 "_index": "ranczo-transcriptions",
-                                "_source": segment
+                                "_source": segment,
                             })
 
     if actions:
@@ -99,6 +107,7 @@ async def index_transcriptions(base_path, es):
     else:
         logger.info("No data to index.")
         await DatabaseManager.log_system_message("INFO", "No data to index.")
+
 
 async def print_one_transcription(es, index="ranczo-transcriptions"):
     """
@@ -126,18 +135,21 @@ async def print_one_transcription(es, index="ranczo-transcriptions"):
         logger.error(f"Error retrieving document: {e}")
         await DatabaseManager.log_system_message("ERROR", f"Error retrieving document: {e}")
 
+
 async def main():
     es_client = await connect_to_elasticsearch()
     if es_client:
         try:
-            #Uncomment the following line if you need to delete all indices before indexing
+            # Uncomment the following line if you need to delete all indices before indexing
             await delete_all_indices(es_client)
             await index_transcriptions(base_path="../RANCZO-TRANSKRYPCJE", es=es_client)
-            #Print one transcription document
+            # Print one transcription document
             await print_one_transcription(es_client)
         finally:
             await es_client.close()  # Ensure the client is closed after use
 
+
 if __name__ == "__main__":
     import asyncio
+
     asyncio.run(main())

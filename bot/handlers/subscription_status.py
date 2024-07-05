@@ -1,13 +1,21 @@
-import logging
 from datetime import date
-from aiogram import Router, Dispatcher, types, Bot
+import logging
+
+from aiogram import (
+    Bot,
+    Dispatcher,
+    Router,
+    types,
+)
 from aiogram.filters import Command
+
 from bot.middlewares.auth_middleware import AuthorizationMiddleware
 from bot.middlewares.error_middleware import ErrorHandlerMiddleware
 from bot.utils.database import DatabaseManager
 
 logger = logging.getLogger(__name__)
 router = Router()
+
 
 class UserManager:
     @staticmethod
@@ -17,6 +25,7 @@ class UserManager:
             return None
         days_remaining = (subscription_end - date.today()).days
         return subscription_end, days_remaining
+
 
 @router.message(Command(commands=['subskrypcja', 'sub', 's']))
 async def check_subscription(message: types.Message, bot: Bot):
@@ -49,8 +58,10 @@ Dzięki za wsparcie projektu! 🎉
         await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania. Prosimy spróbować ponownie później.⚠️")
         await DatabaseManager.log_system_message("ERROR", f"Error in check_subscription for user '{message.from_user.username}': {e}")
 
+
 def register_subscription_handler(dispatcher: Dispatcher):
     dispatcher.include_router(router)
+
 
 # Ustawienie middleware'ów
 router.message.middleware(AuthorizationMiddleware())

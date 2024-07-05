@@ -1,9 +1,16 @@
 import logging
-from aiogram import Router, Bot, types, Dispatcher
+
+from aiogram import (
+    Bot,
+    Dispatcher,
+    Router,
+    types,
+)
 from aiogram.filters import Command
-from bot.utils.database import DatabaseManager
+
 from bot.middlewares.auth_middleware import AuthorizationMiddleware
 from bot.middlewares.error_middleware import ErrorHandlerMiddleware
+from bot.utils.database import DatabaseManager
 
 logger = logging.getLogger(__name__)
 router = Router()
@@ -18,11 +25,13 @@ number_to_emoji = {
     '6': '6️⃣',
     '7': '7️⃣',
     '8': '8️⃣',
-    '9': '9️⃣'
+    '9': '9️⃣',
 }
+
 
 def convert_number_to_emoji(number):
     return ''.join(number_to_emoji.get(digit, digit) for digit in str(number))
+
 
 @router.message(Command(commands=['mojeklipy', 'myclips', 'mk']))
 async def list_saved_clips(message: types.Message, bot: Bot):
@@ -41,7 +50,7 @@ async def list_saved_clips(message: types.Message, bot: Bot):
             await DatabaseManager.log_system_message("INFO", f"No saved clips found for user: {username}")
             return
 
-        response = f"🎬 Twoje Zapisane Klipy 🎬\n\n"
+        response = "🎬 Twoje Zapisane Klipy 🎬\n\n"
         response += f"🎥 Użytkownik: @{username}\n\n"
         clip_lines = []
 
@@ -75,8 +84,10 @@ async def list_saved_clips(message: types.Message, bot: Bot):
         await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania. Prosimy spróbować ponownie później.⚠️")
         await DatabaseManager.log_system_message("ERROR", f"Error handling /mojeklipy command for user '{message.from_user.username}': {e}")
 
+
 def register_list_clips_handler(dispatcher: Dispatcher):
     dispatcher.include_router(router)
+
 
 # Ustawienie middleware'ów
 router.message.middleware(AuthorizationMiddleware())

@@ -1,13 +1,16 @@
 import logging
-from bot.utils.es_manager import connect_to_elasticsearch
-from bot.utils.database import DatabaseManager
+
+from aiogram import Dispatcher
+
 from bot.middlewares.auth_middleware import AuthorizationMiddleware
 from bot.middlewares.error_middleware import ErrorHandlerMiddleware
-from aiogram import Dispatcher
+from bot.utils.database import DatabaseManager
+from bot.utils.es_manager import connect_to_elasticsearch
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
 
 class SearchTranscriptions:
     def __init__(self, dispatcher: Dispatcher):
@@ -31,7 +34,10 @@ class SearchTranscriptions:
         - None if no matches are found.
         """
         logger.info(f"🔍 Searching for quote: '{quote}' with filters - Season: {season_filter}, Episode: {episode_filter}")
-        await DatabaseManager.log_system_message("INFO", f"Searching for quote: '{quote}' with filters - Season: {season_filter}, Episode: {episode_filter}")
+        await DatabaseManager.log_system_message(
+            "INFO",
+            f"Searching for quote: '{quote}' with filters - Season: {season_filter}, Episode: {episode_filter}",
+        )
         es = await connect_to_elasticsearch()
 
         if not es:
@@ -47,13 +53,13 @@ class SearchTranscriptions:
                         "match": {
                             "text": {
                                 "query": quote,
-                                "fuzziness": "AUTO"
-                            }
-                        }
+                                "fuzziness": "AUTO",
+                            },
+                        },
                     },
-                    "filter": []
-                }
-            }
+                    "filter": [],
+                },
+            },
         }
 
         # Add season filter if provided
@@ -103,9 +109,17 @@ class SearchTranscriptions:
             await DatabaseManager.log_system_message("ERROR", f"An error occurred while searching for segments: {e}")
             return None
 
-    async def find_segment_with_context(self, quote, context_size=30, season_filter=None, episode_filter=None, index='ranczo-transcriptions'):
-        logger.info(f"🔍 Searching for quote: '{quote}' with context size: {context_size}, filters - Season: {season_filter}, Episode: {episode_filter}")
-        await DatabaseManager.log_system_message("INFO", f"Searching for quote: '{quote}' with context size: {context_size}, filters - Season: {season_filter}, Episode: {episode_filter}")
+    async def find_segment_with_context(
+        self, quote, context_size=30, season_filter=None, episode_filter=None,
+        index='ranczo-transcriptions',
+    ):
+        logger.info(
+            f"🔍 Searching for quote: '{quote}' with context size: {context_size}, filters - Season: {season_filter}, Episode: {episode_filter}",
+        )
+        await DatabaseManager.log_system_message(
+            "INFO",
+            f"Searching for quote: '{quote}' with context size: {context_size}, filters - Season: {season_filter}, Episode: {episode_filter}",
+        )
         es = await connect_to_elasticsearch()
 
         if not es:
@@ -129,15 +143,15 @@ class SearchTranscriptions:
                 "bool": {
                     "must": [
                         {"term": {"episode_info.season": season_number}},
-                        {"term": {"episode_info.episode_number": episode_number}}
+                        {"term": {"episode_info.episode_number": episode_number}},
                     ],
                     "filter": [
-                        {"range": {"id": {"lt": segment_id}}}
-                    ]
-                }
+                        {"range": {"id": {"lt": segment_id}}},
+                    ],
+                },
             },
             "sort": [{"id": "desc"}],
-            "size": context_size
+            "size": context_size,
         }
 
         context_query_after = {
@@ -145,23 +159,25 @@ class SearchTranscriptions:
                 "bool": {
                     "must": [
                         {"term": {"episode_info.season": season_number}},
-                        {"term": {"episode_info.episode_number": episode_number}}
+                        {"term": {"episode_info.episode_number": episode_number}},
                     ],
                     "filter": [
-                        {"range": {"id": {"gt": segment_id}}}
-                    ]
-                }
+                        {"range": {"id": {"gt": segment_id}}},
+                    ],
+                },
             },
             "sort": [{"id": "asc"}],
-            "size": context_size
+            "size": context_size,
         }
 
         try:
             context_response_before = await es.search(index=index, body=context_query_before)
             context_response_after = await es.search(index=index, body=context_query_after)
 
-            context_segments_before = [{'id': hit['_source']['id'], 'text': hit['_source']['text']} for hit in context_response_before['hits']['hits']]
-            context_segments_after = [{'id': hit['_source']['id'], 'text': hit['_source']['text']} for hit in context_response_after['hits']['hits']]
+            context_segments_before = [{'id': hit['_source']['id'], 'text': hit['_source']['text']} for hit in
+                                       context_response_before['hits']['hits']]
+            context_segments_after = [{'id': hit['_source']['id'], 'text': hit['_source']['text']} for hit in
+                                      context_response_after['hits']['hits']]
 
             context_segments_before.reverse()
 
@@ -184,7 +200,7 @@ class SearchTranscriptions:
 
             return {
                 "target": segment,
-                "context": final_context_segments
+                "context": final_context_segments,
             }
 
         except Exception as e:
@@ -206,7 +222,10 @@ class SearchTranscriptions:
         - None if no matches are found.
         """
         logger.info(f"🔍 Searching for video path with filters - Season: {season}, Episode: {episode_number}")
-        await DatabaseManager.log_system_message("INFO", f"Searching for video path with filters - Season: {season}, Episode: {episode_number}")
+        await DatabaseManager.log_system_message(
+            "INFO",
+            f"Searching for video path with filters - Season: {season}, Episode: {episode_number}",
+        )
         es = await connect_to_elasticsearch()
 
         if not es:
@@ -219,10 +238,10 @@ class SearchTranscriptions:
                 "bool": {
                     "must": [
                         {"term": {"episode_info.season": season}},
-                        {"term": {"episode_info.episode_number": episode_number}}
-                    ]
-                }
-            }
+                        {"term": {"episode_info.episode_number": episode_number}},
+                    ],
+                },
+            },
         }
 
         try:
@@ -241,10 +260,10 @@ class SearchTranscriptions:
                 logger.info(f"✅ Found video path: {video_path}")
                 await DatabaseManager.log_system_message("INFO", f"Found video path: {video_path}")
                 return video_path
-            else:
-                logger.info("❌ Video path not found in the segment.")
-                await DatabaseManager.log_system_message("INFO", "Video path not found in the segment.")
-                return None
+
+            logger.info("❌ Video path not found in the segment.")
+            await DatabaseManager.log_system_message("INFO", "Video path not found in the segment.")
+            return None
 
         except Exception as e:
             logger.error(f"❌ An error occurred while searching for video path: {e}")
@@ -275,7 +294,7 @@ class SearchTranscriptions:
         query = {
             "size": 0,
             "query": {
-                "term": {"episode_info.season": season}
+                "term": {"episode_info.season": season},
             },
             "aggs": {
                 "unique_episodes": {
@@ -283,8 +302,8 @@ class SearchTranscriptions:
                         "field": "episode_info.episode_number",
                         "size": 1000,
                         "order": {
-                            "_key": "asc"
-                        }
+                            "_key": "asc",
+                        },
                     },
                     "aggs": {
                         "episode_info": {
@@ -295,14 +314,14 @@ class SearchTranscriptions:
                                         "episode_info.title",
                                         "episode_info.premiere_date",
                                         "episode_info.viewership",
-                                        "episode_info.episode_number"
-                                    ]
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+                                        "episode_info.episode_number",
+                                    ],
+                                },
+                            },
+                        },
+                    },
+                },
+            },
         }
 
         try:
@@ -321,7 +340,7 @@ class SearchTranscriptions:
                     "episode_number": episode_info.get('episode_number'),
                     "title": episode_info.get('title', 'Unknown'),
                     "premiere_date": episode_info.get('premiere_date', 'Unknown'),
-                    "viewership": episode_info.get('viewership', 'Unknown')
+                    "viewership": episode_info.get('viewership', 'Unknown'),
                 }
                 episodes.append(episode)
 

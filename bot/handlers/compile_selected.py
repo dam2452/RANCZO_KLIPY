@@ -1,19 +1,27 @@
 import logging
-import tempfile
 import os
-from aiogram import Router, Bot, types, Dispatcher
+import tempfile
+
+from aiogram import (
+    Bot,
+    Dispatcher,
+    Router,
+    types,
+)
 from aiogram.filters import Command
 from aiogram.types import FSInputFile
-from bot.utils.database import DatabaseManager
-from bot.utils.video_handler import VideoManager
+
 from bot.middlewares.auth_middleware import AuthorizationMiddleware
 from bot.middlewares.error_middleware import ErrorHandlerMiddleware
+from bot.utils.database import DatabaseManager
+from bot.utils.video_handler import VideoManager
 
 logger = logging.getLogger(__name__)
 router = Router()
 
 # Definicja last_compiled_clip
 last_compiled_clip = {}
+
 
 @router.message(Command(commands=['polaczklipy', 'concatclips', 'pk']))
 async def compile_selected_clips(message: types.Message, bot: Bot):
@@ -55,7 +63,7 @@ async def compile_selected_clips(message: types.Message, bot: Bot):
         try:
             temp_files = []
             for clip in selected_clips:
-                video_data, start_time, end_time = clip
+                video_data, _, _ = clip
 
                 # Create a temporary segment file
                 temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
@@ -77,7 +85,8 @@ async def compile_selected_clips(message: types.Message, bot: Bot):
             file_size_mb = os.path.getsize(compiled_output.name) / (1024 * 1024)
             if file_size_mb > 50:
                 await message.answer(
-                    "❌ Skompilowany klip jest za duży, aby go wysłać przez Telegram. Maksymalny rozmiar pliku to 50 MB. ❌")
+                    "❌ Skompilowany klip jest za duży, aby go wysłać przez Telegram. Maksymalny rozmiar pliku to 50 MB. ❌",
+                )
                 logger.warning(f"Compiled clip exceeds size limit: {file_size_mb:.2f} MB")
                 await DatabaseManager.log_system_message("WARNING", f"Compiled clip exceeds size limit: {file_size_mb:.2f} MB")
                 os.remove(compiled_output.name)
@@ -110,10 +119,15 @@ async def compile_selected_clips(message: types.Message, bot: Bot):
     except Exception as e:
         logger.error(f"Error handling /polaczklipy command for user '{message.from_user.username}': {e}", exc_info=True)
         await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania.⚠️")
-        await DatabaseManager.log_system_message("ERROR", f"Error handling /polaczklipy command for user '{message.from_user.username}': {e}")
+        await DatabaseManager.log_system_message(
+            "ERROR",
+            f"Error handling /polaczklipy command for user '{message.from_user.username}': {e}",
+        )
+
 
 def register_compile_selected_clips_command(dispatcher: Dispatcher):
     dispatcher.include_router(router)
+
 
 # Ustawienie middleware'ów
 router.message.middleware(AuthorizationMiddleware())

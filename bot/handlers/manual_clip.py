@@ -1,18 +1,25 @@
 import logging
 import os
-from datetime import datetime
-from aiogram import Bot, Dispatcher, types, Router
+
+from aiogram import (
+    Bot,
+    Dispatcher,
+    Router,
+    types,
+)
 from aiogram.filters import Command
-from bot.utils.transcription_search import SearchTranscriptions
-from bot.utils.video_handler import VideoManager
-from bot.utils.database import DatabaseManager
+
 from bot.middlewares.auth_middleware import AuthorizationMiddleware
 from bot.middlewares.error_middleware import ErrorHandlerMiddleware
+from bot.utils.database import DatabaseManager
+from bot.utils.transcription_search import SearchTranscriptions
+from bot.utils.video_handler import VideoManager
 
 logger = logging.getLogger(__name__)
 router = Router()
 
 last_manual_clip = {}  # Dictionary to store the last manual clip per chat ID
+
 
 def minutes_str_to_seconds(time_str):
     """ Convert time string in the format MM:SS.ms to seconds """
@@ -24,11 +31,13 @@ def minutes_str_to_seconds(time_str):
     except ValueError:
         return None
 
+
 def adjust_episode_number(absolute_episode):
     """ Adjust the absolute episode number to season and episode format """
     season = (absolute_episode - 1) // 13 + 1
     episode = (absolute_episode - 1) % 13 + 1
     return season, episode
+
 
 @router.message(Command(commands=['wytnij', 'cut', 'wyt', 'pawlos']))  # XD pawlos
 async def handle_manual_command(message: types.Message, bot: Bot):
@@ -38,7 +47,8 @@ async def handle_manual_command(message: types.Message, bot: Bot):
         content = message.text.split()
         if len(content) != 4:
             await message.answer(
-                "📋 Podaj poprawną komendę w formacie: /manual <sezon_odcinek> <czas_start> <czas_koniec>. Przykład: /manual S02E10 20:30.11")
+                "📋 Podaj poprawną komendę w formacie: /manual <sezon_odcinek> <czas_start> <czas_koniec>. Przykład: /manual S02E10 20:30.11",
+            )
             logger.info("Incorrect command format provided by user.")
             await DatabaseManager.log_system_message("INFO", "Incorrect command format provided by user.")
             return
@@ -85,7 +95,7 @@ async def handle_manual_command(message: types.Message, bot: Bot):
             return
 
         # Extract and send clip using VideoManager
-        clip_path = await video_manager.extract_and_send_clip(message.chat.id, video_path, start_seconds, end_seconds)
+        _ = await video_manager.extract_and_send_clip(message.chat.id, video_path, start_seconds, end_seconds)
         logger.info(f"Clip extracted and sent for command: /manual {episode} {start_time} {end_time}")
         await DatabaseManager.log_user_activity(message.from_user.username, f"/manual {episode} {start_time} {end_time}")
         await DatabaseManager.log_system_message("INFO", f"Clip extracted and sent for command: /manual {episode} {start_time} {end_time}")
@@ -97,8 +107,8 @@ async def handle_manual_command(message: types.Message, bot: Bot):
             'end': end_seconds,
             'episode_info': {
                 'season': season,
-                'episode_number': episode_number
-            }
+                'episode_number': episode_number,
+            },
         }
 
     except Exception as e:
@@ -106,8 +116,10 @@ async def handle_manual_command(message: types.Message, bot: Bot):
         await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania. Prosimy spróbować ponownie później.")
         await DatabaseManager.log_system_message("ERROR", f"An error occurred while handling manual command: {e}")
 
+
 def register_manual_handler(dispatcher: Dispatcher):
     dispatcher.include_router(router)
+
 
 # Ustawienie middleware'ów
 router.message.middleware(AuthorizationMiddleware())

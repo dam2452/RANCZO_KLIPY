@@ -1,18 +1,29 @@
 import logging
-from aiogram import Router, types, Bot, Dispatcher
+
+from aiogram import (
+    Bot,
+    Dispatcher,
+    Router,
+    types,
+)
 from aiogram.filters import Command
-from bot.utils.transcription_search import SearchTranscriptions
-from bot.utils.video_handler import VideoManager
-from bot.utils.database import DatabaseManager
+
 from bot.middlewares.auth_middleware import AuthorizationMiddleware
 from bot.middlewares.error_middleware import ErrorHandlerMiddleware
-from bot.settings import EXTEND_BEFORE, EXTEND_AFTER
+from bot.settings import (
+    EXTEND_AFTER,
+    EXTEND_BEFORE,
+)
+from bot.utils.database import DatabaseManager
+from bot.utils.transcription_search import SearchTranscriptions
+from bot.utils.video_handler import VideoManager
 
 logger = logging.getLogger(__name__)
 router = Router()
 
 # Definicja last_selected_segment
 last_selected_segment = {}
+
 
 @router.message(Command(commands=['klip', 'clip', 'k']))
 async def handle_clip_request(message: types.Message, bot: Bot):
@@ -55,8 +66,10 @@ async def handle_clip_request(message: types.Message, bot: Bot):
         await message.answer("⚠️ Wystąpił błąd podczas przetwarzania Twojego żądania.⚠️")
         await DatabaseManager.log_system_message("ERROR", f"An error occurred while handling clip request: {str(e)}")
 
+
 def register_clip_handlers(dispatcher: Dispatcher):
     dispatcher.include_router(router)
+
 
 # Ustawienie middleware'ów
 router.message.middleware(AuthorizationMiddleware())

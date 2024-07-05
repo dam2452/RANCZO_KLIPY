@@ -1,28 +1,38 @@
-import logging
-import tempfile
-import os
 from io import BytesIO
-from aiogram import Router, Bot, types, Dispatcher
+import logging
+import os
+import tempfile
+
+from aiogram import (
+    Bot,
+    Dispatcher,
+    Router,
+    types,
+)
 from aiogram.filters import Command
 from aiogram.types import FSInputFile
-from bot.utils.database import DatabaseManager
+
 from bot.handlers.clip_search import last_search_quotes
 from bot.handlers.handle_clip import last_selected_segment
-from bot.utils.video_handler import VideoManager
 from bot.middlewares.auth_middleware import AuthorizationMiddleware
 from bot.middlewares.error_middleware import ErrorHandlerMiddleware
+from bot.utils.database import DatabaseManager
+from bot.utils.video_handler import VideoManager
 
 logger = logging.getLogger(__name__)
 router = Router()
 
-@router.message(Command(commands=['kompiluj', 'compile','kom']))
+
+@router.message(Command(commands=['kompiluj', 'compile', 'kom']))
 async def compile_clips(message: types.Message, bot: Bot):
     chat_id = message.chat.id
     try:
         username = message.from_user.username
         content = message.text.split()
         if len(content) < 2:
-            await message.answer("🔄 Proszę podać indeksy segmentów do skompilowania, zakres lub 'wszystko' do kompilacji wszystkich segmentów.")
+            await message.answer(
+                "🔄 Proszę podać indeksy segmentów do skompilowania, zakres lub 'wszystko' do kompilacji wszystkich segmentów.",
+            )
             logger.info("No segments provided by user.")
             await DatabaseManager.log_system_message("INFO", "No segments provided by user.")
             return
@@ -40,7 +50,8 @@ async def compile_clips(message: types.Message, bot: Bot):
             if index.lower() == "wszystko":
                 selected_segments = segments
                 break
-            elif '-' in index:  # Check if it's a range
+
+            if '-' in index:  # Check if it's a range
                 try:
                     start, end = map(int, index.split('-'))
                     selected_segments.extend(segments[start - 1:end])  # Convert to 0-based index and include end
@@ -99,8 +110,10 @@ async def compile_clips(message: types.Message, bot: Bot):
         if 'compiled_output' in locals() and os.path.exists(compiled_output.name):
             os.remove(compiled_output.name)
 
+
 def register_compile_command(dispatcher: Dispatcher):
     dispatcher.include_router(router)
+
 
 # Ustawienie middleware'ów
 router.message.middleware(AuthorizationMiddleware())

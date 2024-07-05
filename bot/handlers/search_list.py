@@ -1,17 +1,28 @@
 import logging
-from aiogram import Router, Bot, types, Dispatcher
-from aiogram.types import FSInputFile
-from bot.handlers.clip_search import last_search_quotes, last_search_terms
-from tabulate import tabulate
-import tempfile
 import os
+import tempfile
+
+from aiogram import (
+    Bot,
+    Dispatcher,
+    Router,
+    types,
+)
 from aiogram.filters import Command
-from bot.utils.database import DatabaseManager
+from aiogram.types import FSInputFile
+from tabulate import tabulate
+
+from bot.handlers.clip_search import (
+    last_search_quotes,
+    last_search_terms,
+)
 from bot.middlewares.auth_middleware import AuthorizationMiddleware
 from bot.middlewares.error_middleware import ErrorHandlerMiddleware
+from bot.utils.database import DatabaseManager
 
 logger = logging.getLogger(__name__)
 router = Router()
+
 
 @router.message(Command(commands=['lista', 'list', 'l']))
 async def handle_list_request(message: types.Message, bot: Bot):
@@ -54,7 +65,10 @@ async def handle_list_request(message: types.Message, bot: Bot):
             line = [i, episode_formatted, episode_title, time_formatted]
             segment_lines.append(line)
 
-        table = tabulate(segment_lines, headers=["#", "Odcinek", "Tytuł", "Czas"], tablefmt="pipe", colalign=("left", "center", "left", "right"))
+        table = tabulate(
+            segment_lines, headers=["#", "Odcinek", "Tytuł", "Czas"], tablefmt="pipe",
+            colalign=("left", "center", "left", "right"),
+        )
         response += f"{table}\n"
 
         temp_dir = tempfile.gettempdir()
@@ -75,8 +89,10 @@ async def handle_list_request(message: types.Message, bot: Bot):
         await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania. Prosimy spróbować ponownie później.⚠️")
         await DatabaseManager.log_system_message("ERROR", f"Error in handle_list_request for user {username}: {e}")
 
+
 def register_list_command(dispatcher: Dispatcher):
     dispatcher.include_router(router)
+
 
 # Ustawienie middleware'ów
 router.message.middleware(AuthorizationMiddleware())

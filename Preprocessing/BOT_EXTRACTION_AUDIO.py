@@ -1,21 +1,23 @@
-import subprocess
-import os
-import json
 import argparse
+import json
+import os
+import subprocess
+
 
 def get_best_audio_stream(video_file):
     """Zwraca indeks najlepszej ścieżki audio na podstawie bitrate."""
     try:
         cmd = f'ffprobe -v quiet -print_format json -show_streams -select_streams a "{video_file}"'
-        result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+        result = subprocess.run(cmd, shell=True, capture_output=True, text=True, check=True)
         streams = json.loads(result.stdout)['streams']
-        
+
         # Upewniamy się, że wartości bitrate są traktowane jako liczby całkowite
         best_stream = max(streams, key=lambda s: int(s.get('bit_rate', 0)))
         return best_stream['index']
     except Exception as e:
         print(f"Błąd podczas wybierania ścieżki audio: {e}")
         return None
+
 
 def convert_and_normalize_audio(video_file, audio_index, output_audio_file):
     """Konwertuje wybraną ścieżkę audio do formatu WAV, mono, z normalizacją głośności."""
@@ -38,6 +40,7 @@ def convert_and_normalize_audio(video_file, audio_index, output_audio_file):
     except subprocess.CalledProcessError as e:
         print(f"Błąd podczas konwersji audio: {e}")
 
+
 def process_folder(input_folder, output_folder):
     """Przetwarza wszystkie pliki wideo w podanym folderze, zachowując strukturę folderów."""
     for root, _, files in os.walk(input_folder):
@@ -47,17 +50,23 @@ def process_folder(input_folder, output_folder):
                 relative_path = os.path.relpath(root, input_folder)
                 target_folder = os.path.join(output_folder, relative_path)
                 os.makedirs(target_folder, exist_ok=True)
-                
+
                 audio_index = get_best_audio_stream(video_path)
                 if audio_index is not None:
                     output_audio_file = os.path.join(target_folder, os.path.splitext(file)[0] + '.wav')
                     convert_and_normalize_audio(video_path, audio_index, output_audio_file)
 
+
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Przetwarza pliki wideo w podanym folderze, konwertując i normalizując audio do formatu WAV.")
+    parser = argparse.ArgumentParser(
+        description="Przetwarza pliki wideo w podanym folderze, konwertując i normalizując audio do formatu WAV.",
+    )
     parser.add_argument("input_folder", type=str, help="Folder wejściowy zawierający pliki wideo.")
-    parser.add_argument("output_folder", type=str, help="Folder wyjściowy do zapisywania znormalizowanych plików audio.")
+    parser.add_argument(
+        "output_folder", type=str,
+        help="Folder wyjściowy do zapisywania znormalizowanych plików audio.",
+    )
 
     args = parser.parse_args()
-    
+
     process_folder(args.input_folder, args.output_folder)

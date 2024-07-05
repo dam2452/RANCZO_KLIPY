@@ -1,15 +1,23 @@
 import logging
-from aiogram import Router, types, Bot, Dispatcher
+
+from aiogram import (
+    Bot,
+    Dispatcher,
+    Router,
+    types,
+)
 from aiogram.filters import Command
-from bot.utils.video_handler import VideoManager
-from bot.utils.database import DatabaseManager
+
 from bot.handlers.clip_search import last_search_quotes
 from bot.handlers.handle_clip import last_selected_segment
 from bot.middlewares.auth_middleware import AuthorizationMiddleware
 from bot.middlewares.error_middleware import ErrorHandlerMiddleware
+from bot.utils.database import DatabaseManager
+from bot.utils.video_handler import VideoManager
 
 logger = logging.getLogger(__name__)
 router = Router()
+
 
 @router.message(Command(commands=['wybierz', 'select', 'w']))
 async def handle_select_request(message: types.Message, bot: Bot):
@@ -57,8 +65,10 @@ async def handle_select_request(message: types.Message, bot: Bot):
         await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania. Prosimy spróbować ponownie później.⚠️")
         await DatabaseManager.log_system_message("ERROR", f"Error in select_quote for user '{username}': {e}")
 
+
 def register_select_command(dispatcher: Dispatcher):
     dispatcher.include_router(router)
+
 
 # Ustawienie middleware'ów
 router.message.middleware(AuthorizationMiddleware())

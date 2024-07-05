@@ -1,10 +1,12 @@
 import json
 import os
 
+
 def load_episode_info():
     with open('EpisodeInfo.json', 'r', encoding='utf-8') as file:
         episode_info = json.load(file)
     return episode_info
+
 
 def add_episode_info_to_transcriptions(base_path="RANCZO-TRANSKRYPCJE"):
     episode_info = load_episode_info()
@@ -26,13 +28,13 @@ def add_episode_info_to_transcriptions(base_path="RANCZO-TRANSKRYPCJE"):
                     # Dodajemy informacje o sezonie do danych odcinka
                     episode_info_data_with_season = {
                         "season": season,  # Dodajemy numer sezonu
-                        **episode_info_data
+                        **episode_info_data,
                     }
 
                     # Tworzymy nowy słownik z rozszerzonymi informacjami o odcinku na początku
                     updated_transcriptions = {
                         "episode_info": episode_info_data_with_season,
-                        "segments": transcriptions.get("segments", [])
+                        "segments": transcriptions.get("segments", []),
                     }
 
                     # Zapisujemy zmodyfikowane transkrypcje z powrotem do pliku
@@ -43,6 +45,7 @@ def add_episode_info_to_transcriptions(base_path="RANCZO-TRANSKRYPCJE"):
                     print(f"File not found: {transcriptions_path}")
             else:
                 print(f"No episode info available for Season {season}, Episode {episode}. Skipping...")
+
 
 if __name__ == "__main__":
     add_episode_info_to_transcriptions()

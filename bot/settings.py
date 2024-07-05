@@ -1,12 +1,17 @@
 import os
+
 from dotenv import load_dotenv
-from pydantic import Field, ValidationError
+from pydantic import (
+    Field,
+    ValidationError,
+)
 from pydantic_settings import BaseSettings
 
 # Ensure the .env file is loaded
 env_path = os.path.join(os.path.dirname(__file__), '..', '.env')
 if os.path.exists(env_path):
     load_dotenv(env_path)
+
 
 class Settings(BaseSettings):
     TELEGRAM_BOT_TOKEN: str = Field(..., env='TELEGRAM_BOT_TOKEN')
@@ -28,10 +33,11 @@ class Settings(BaseSettings):
     class Config:
         env_file = env_path
 
+
 try:
     settings = Settings()
 except ValidationError as e:
-    raise ValueError(f"Configuration error: {e}")
+    raise ValueError(f"Configuration error: {e}") from e
 
 # Access settings via the settings instance
 TELEGRAM_BOT_TOKEN = settings.TELEGRAM_BOT_TOKEN

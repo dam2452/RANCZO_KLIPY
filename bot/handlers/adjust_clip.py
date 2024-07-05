@@ -1,27 +1,43 @@
 import logging
 import os
 import tempfile
-from aiogram import types, Router, Dispatcher, Bot
+
+from aiogram import (
+    Bot,
+    Dispatcher,
+    Router,
+    types,
+)
 from aiogram.filters import Command
-from bot.handlers.handle_clip import last_selected_segment
+
 from bot.handlers.clip_search import last_search_quotes
-from bot.utils.video_handler import VideoManager, VideoProcessor
-from bot.utils.database import DatabaseManager
+from bot.handlers.handle_clip import last_selected_segment
 from bot.middlewares.auth_middleware import AuthorizationMiddleware
 from bot.middlewares.error_middleware import ErrorHandlerMiddleware
-from bot.settings import EXTEND_BEFORE, EXTEND_AFTER
+from bot.settings import (
+    EXTEND_AFTER,
+    EXTEND_BEFORE,
+)
+from bot.utils.database import DatabaseManager
+from bot.utils.video_handler import (
+    VideoManager,
+    VideoProcessor,
+)
 
 logger = logging.getLogger(__name__)
 router = Router()
 
-@router.message(Command(commands=['dostosuj', 'adjust','d']))
+
+@router.message(Command(commands=['dostosuj', 'adjust', 'd']))
 async def adjust_video_clip(message: types.Message, bot: Bot):
     try:
         chat_id = message.chat.id
         content = message.text.split()
 
         if len(content) not in (3, 4):
-            await message.answer("📝 Podaj czas w formacie `<float> <float>` lub `<index> <float> <float>`. Przykład: /dostosuj 10.5 -15.2 lub /dostosuj 1 10.5 -15.2")
+            await message.answer(
+                "📝 Podaj czas w formacie `<float> <float>` lub `<index> <float> <float>`. Przykład: /dostosuj 10.5 -15.2 lub /dostosuj 1 10.5 -15.2",
+            )
             logger.info("Invalid number of arguments provided by user.")
             await DatabaseManager.log_system_message("INFO", "Invalid number of arguments provided by user.")
             return
@@ -56,8 +72,7 @@ async def adjust_video_clip(message: types.Message, bot: Bot):
         start_time = original_start_time - before_adjustment
         end_time = original_end_time + after_adjustment
 
-        if start_time < 0:
-            start_time = 0
+        start_time = max(0, start_time)
         if end_time <= start_time:
             await message.answer("⚠️ Czas zakończenia musi być późniejszy niż czas rozpoczęcia.⚠️")
             logger.info("End time must be later than start time.")
@@ -75,7 +90,8 @@ async def adjust_video_clip(message: types.Message, bot: Bot):
 
             if file_size > 50:
                 await message.answer(
-                    "❌ Wyodrębniony klip jest za duży, aby go wysłać przez Telegram. Maksymalny rozmiar pliku to 50 MB.❌")
+                    "❌ Wyodrębniony klip jest za duży, aby go wysłać przez Telegram. Maksymalny rozmiar pliku to 50 MB.❌",
+                )
                 logger.warning(f"Clip size {file_size:.2f} MB exceeds the 50 MB limit.")
                 await DatabaseManager.log_system_message("WARNING", f"Clip size {file_size:.2f} MB exceeds the 50 MB limit.")
             else:
@@ -105,8 +121,10 @@ async def adjust_video_clip(message: types.Message, bot: Bot):
         await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania. Prosimy spróbować ponownie później.⚠️")
         await DatabaseManager.log_system_message("ERROR", f"Error in adjust_video_clip for user '{message.from_user.username}': {e}")
 
+
 def register_adjust_handler(dispatcher: Dispatcher):
     dispatcher.include_router(router)
+
 
 # Ustawienie middleware'ów
 router.message.middleware(AuthorizationMiddleware())

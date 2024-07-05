@@ -1,17 +1,23 @@
 import asyncio
 import logging
 import subprocess
+
 import ffmpeg
+
 from bot.utils.database import DatabaseManager
 
 logger = logging.getLogger(__name__)
+
 
 class VideoProcessor:
     @staticmethod
     async def extract_clip(video_path: str, start_time: int, end_time: int, output_filename: str):
         duration = end_time - start_time
         logger.info(f"Extracting clip from {video_path}, start: {start_time}, end: {end_time}, duration: {duration}")
-        await DatabaseManager.log_system_message("INFO", f"Extracting clip from {video_path}, start: {start_time}, end: {end_time}, duration: {duration}")
+        await DatabaseManager.log_system_message(
+            "INFO",
+            f"Extracting clip from {video_path}, start: {start_time}, end: {end_time}, duration: {duration}",
+        )
 
         command = [
             'ffmpeg',
@@ -23,15 +29,15 @@ class VideoProcessor:
             '-movflags', '+faststart',
             '-fflags', '+genpts',
             '-avoid_negative_ts', '1',
-            output_filename
+            output_filename,
         ]
 
         process = await asyncio.create_subprocess_exec(
             *command,
             stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
+            stderr=subprocess.PIPE,
         )
-        stdout, stderr = await process.communicate()
+        _, stderr = await process.communicate()
         if process.returncode != 0:
             error_message = f"❌ Błąd FFmpeg: {stderr.decode()}"
             logger.error(error_message)

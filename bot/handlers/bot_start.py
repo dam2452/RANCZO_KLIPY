@@ -1,12 +1,20 @@
 import logging
-from aiogram import Router, Dispatcher, types, Bot
+
+from aiogram import (
+    Bot,
+    Dispatcher,
+    Router,
+    types,
+)
 from aiogram.filters import Command
+
 from bot.middlewares.auth_middleware import AuthorizationMiddleware
 from bot.middlewares.error_middleware import ErrorHandlerMiddleware
 from bot.utils.database import DatabaseManager
 
 logger = logging.getLogger(__name__)
 router = Router()
+
 
 @router.message(Command(commands=['start', 's', 'help', 'h']))
 async def handle_start(message: types.Message, bot: Bot):
@@ -31,22 +39,22 @@ Aby uzyskać pełną listę komend, użyj /start lista.
         elif len(content) == 2 and content[1] == 'lista':
             lista_message = """```🐐RanczoKlipy-Działy_Komend🐐
 ═══════════════════════════════════════
-🔍 Wyszukiwanie i przeglądanie klipów 
+🔍 Wyszukiwanie i przeglądanie klipów
 👉 /start wyszukiwanie
 ═══════════════════════════════════════
-✂️ Edycja klipów                      
+✂️ Edycja klipów
 👉 /start edycja
 ═══════════════════════════════════════
-📁 Zarządzanie zapisanymi klipami     
+📁 Zarządzanie zapisanymi klipami
 👉 /start zarządzanie
 ═══════════════════════════════════════
-🛠️ Raportowanie błędów              
-👉 /start raportowanie  
+🛠️ Raportowanie błędów
+👉 /start raportowanie
 ═══════════════════════════════════════
-🔔 Subskrypcje                       
+🔔 Subskrypcje
 👉 /start subskrypcje
 ═══════════════════════════════════════
-📜 Wszystkie komendy                 
+📜 Wszystkie komendy
 👉 /start all
 ═══════════════════════════════════════
 ```"""
@@ -176,8 +184,10 @@ Aby uzyskać pełną listę komend, użyj /start lista.
         await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania. Prosimy spróbować ponownie później.")
         await DatabaseManager.log_system_message("ERROR", f"Error in handle_start for user '{message.from_user.username}': {e}")
 
+
 def register_start_command(dispatcher: Dispatcher):
     dispatcher.include_router(router)
+
 
 # Ustawienie middleware'ów
 router.message.middleware(AuthorizationMiddleware())

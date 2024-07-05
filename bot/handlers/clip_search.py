@@ -1,10 +1,17 @@
 import logging
-from aiogram import Router, Bot, types, Dispatcher
+
+from aiogram import (
+    Bot,
+    Dispatcher,
+    Router,
+    types,
+)
 from aiogram.filters import Command
+
 from bot.middlewares.auth_middleware import AuthorizationMiddleware
 from bot.middlewares.error_middleware import ErrorHandlerMiddleware
-from bot.utils.transcription_search import SearchTranscriptions
 from bot.utils.database import DatabaseManager
+from bot.utils.transcription_search import SearchTranscriptions
 
 logger = logging.getLogger(__name__)
 router = Router()
@@ -12,7 +19,8 @@ router = Router()
 last_search_quotes = {}
 last_search_terms = {}  # Store search terms
 
-@router.message(Command(commands=['szukaj', 'search', 'sz',]))
+
+@router.message(Command(commands=['szukaj', 'search', 'sz']))
 async def handle_search_request(message: types.Message, bot: Bot):
     try:
         chat_id = message.chat.id
@@ -64,7 +72,10 @@ async def handle_search_request(message: types.Message, bot: Bot):
             episode_info = segment.get('episode_info', {})
             total_episode_number = episode_info.get('episode_number', 'Unknown')
             season_number = (total_episode_number - 1) // 13 + 1 if isinstance(total_episode_number, int) else 'Unknown'
-            episode_number_in_season = (total_episode_number - 1) % 13 + 1 if isinstance(total_episode_number, int) else 'Unknown'
+            episode_number_in_season = (total_episode_number - 1) % 13 + 1 if isinstance(
+                total_episode_number,
+                int,
+            ) else 'Unknown'
 
             season = str(season_number).zfill(2)
             episode_number = str(episode_number_in_season).zfill(2)
@@ -88,8 +99,10 @@ async def handle_search_request(message: types.Message, bot: Bot):
         await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania. Prosimy spróbować ponownie później.⚠️")
         await DatabaseManager.log_system_message("ERROR", f"Error in handle_search_request for user '{message.from_user.username}': {e}")
 
+
 def register_search_command(dispatcher: Dispatcher):
     dispatcher.include_router(router)
+
 
 # Ustawienie middleware'ów
 router.message.middleware(AuthorizationMiddleware())
