@@ -82,8 +82,8 @@ async def save_user_clip(message: types.Message, bot: Bot):
         else:
             segment = segment_info
             clip_path = segment['video_path']
-            start_time = segment['start'] - EXTEND_BEFORE
-            end_time = segment['end'] + EXTEND_AFTER
+            start_time = segment['start']# - EXTEND_BEFORE
+            end_time = segment['end']# + EXTEND_AFTER
             is_compilation = False
             season = segment['episode_info']['season']
             episode_number = segment['episode_info']['episode_number']
