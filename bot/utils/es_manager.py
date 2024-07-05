@@ -1,8 +1,10 @@
 import json
 import logging
 import os
+
 from elasticsearch import AsyncElasticsearch, helpers
 import urllib3
+
 from bot.settings import settings
 
 # Configure basic logging settings
@@ -82,7 +84,7 @@ async def index_transcriptions(base_path, es):
 
                             actions.append({
                                 "_index": "ranczo-transcriptions",
-                                "_source": segment
+                                "_source": segment,
                             })
 
     if actions:

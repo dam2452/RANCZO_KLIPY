@@ -1,10 +1,12 @@
 import logging
-from aiogram import Router, types, Bot, Dispatcher
+
+from aiogram import Bot, Dispatcher, Router, types
 from aiogram.filters import Command
-from bot.utils.transcription_search import SearchTranscriptions
-from bot.utils.video_handler import VideoManager
+
 from bot.middlewares.auth_middleware import AuthorizationMiddleware
 from bot.middlewares.error_middleware import ErrorHandlerMiddleware
+from bot.utils.transcription_search import SearchTranscriptions
+from bot.utils.video_handler import VideoManager
 
 logger = logging.getLogger(__name__)
 router = Router()
@@ -22,7 +24,8 @@ async def handle_clip_request(message: types.Message, bot: Bot):
         content = message.text.split()
         if len(content) < 2:
             await message.answer(
-                "🔎 Podaj cytat, który chcesz znaleźć. Przykład: /klip Nie szkoda panu tego pięknego gabinetu?")
+                "🔎 Podaj cytat, który chcesz znaleźć. Przykład: /klip Nie szkoda panu tego pięknego gabinetu?",
+            )
             logger.info("No quote provided by user.")
             return
 

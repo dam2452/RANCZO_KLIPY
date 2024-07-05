@@ -1,10 +1,12 @@
-import os
-import logging
-import tempfile
 import asyncio
+import logging
+import os
 import subprocess
+import tempfile
+
 from aiogram import Bot
 from aiogram.types import FSInputFile
+
 from bot.utils.video_utils import VideoProcessor
 
 logger = logging.getLogger(__name__)
@@ -23,8 +25,10 @@ class VideoManager:
             logger.info(f"Clip size: {file_size:.2f} MB")
 
             if file_size > 50:  # Telegram has a 50 MB limit for video files
-                await self.bot.send_message(chat_id,
-                                            "❌ Wyodrębniony klip jest za duży, aby go wysłać przez Telegram. Maksymalny rozmiar pliku to 50 MB.❌")
+                await self.bot.send_message(
+                    chat_id,
+                    "❌ Wyodrębniony klip jest za duży, aby go wysłać przez Telegram. Maksymalny rozmiar pliku to 50 MB.❌",
+                )
                 logger.warning(f"Clip size {file_size:.2f} MB exceeds the 50 MB limit.")
             else:
                 input_file = FSInputFile(output_filename)
@@ -76,13 +80,13 @@ class VideoManager:
         command = [
             'ffmpeg', '-y', '-f', 'concat', '-safe', '0', '-i', concat_file.name,
             '-c', 'copy', '-movflags', '+faststart', '-fflags', '+genpts',
-            '-avoid_negative_ts', '1', output_file
+            '-avoid_negative_ts', '1', output_file,
         ]
 
         process = await asyncio.create_subprocess_exec(
             *command,
             stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
+            stderr=subprocess.PIPE,
         )
         stdout, stderr = await process.communicate()
         os.remove(concat_file.name)

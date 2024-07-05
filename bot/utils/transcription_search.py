@@ -1,8 +1,10 @@
 import logging
-from bot.utils.es_manager import connect_to_elasticsearch
+
+from aiogram import Dispatcher
+
 from bot.middlewares.auth_middleware import AuthorizationMiddleware
 from bot.middlewares.error_middleware import ErrorHandlerMiddleware
-from aiogram import Dispatcher
+from bot.utils.es_manager import connect_to_elasticsearch
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -14,8 +16,10 @@ class SearchTranscriptions:
         dispatcher.message.middleware(AuthorizationMiddleware())
         dispatcher.message.middleware(ErrorHandlerMiddleware())
 
-    async def find_segment_by_quote(self, quote, season_filter=None, episode_filter=None, index='ranczo-transcriptions',
-                                    return_all=False):
+    async def find_segment_by_quote(
+        self, quote, season_filter=None, episode_filter=None, index='ranczo-transcriptions',
+        return_all=False,
+    ):
         """
         Searches for a segment by a given quote with optional season and episode filters.
 
@@ -32,7 +36,8 @@ class SearchTranscriptions:
         - None if no matches are found.
         """
         logger.info(
-            f"🔍 Searching for quote: '{quote}' with filters - Season: {season_filter}, Episode: {episode_filter}")
+            f"🔍 Searching for quote: '{quote}' with filters - Season: {season_filter}, Episode: {episode_filter}",
+        )
         es = await connect_to_elasticsearch()
 
         if not es:
@@ -47,13 +52,13 @@ class SearchTranscriptions:
                         "match": {
                             "text": {
                                 "query": quote,
-                                "fuzziness": "AUTO"
-                            }
-                        }
+                                "fuzziness": "AUTO",
+                            },
+                        },
                     },
-                    "filter": []
-                }
-            }
+                    "filter": [],
+                },
+            },
         }
 
         # Add season filter if provided
@@ -63,7 +68,8 @@ class SearchTranscriptions:
         # Add episode filter if provided
         if episode_filter:
             query["query"]["bool"]["filter"].append(
-                {"term": {"episode_info.episode_number": episode_filter}})  # Global number of episode
+                {"term": {"episode_info.episode_number": episode_filter}},
+            )  # Global number of episode
 
         size = 10000 if return_all else 1
 
@@ -101,10 +107,13 @@ class SearchTranscriptions:
             logger.error(f"❌ An error occurred while searching for segments: {e}❌")
             return None
 
-    async def find_segment_with_context(self, quote, context_size=30, season_filter=None, episode_filter=None,
-                                        index='ranczo-transcriptions'):
+    async def find_segment_with_context(
+        self, quote, context_size=30, season_filter=None, episode_filter=None,
+        index='ranczo-transcriptions',
+    ):
         logger.info(
-            f"🔍 Searching for quote: '{quote}' with context size: {context_size}, filters - Season: {season_filter}, Episode: {episode_filter}")
+            f"🔍 Searching for quote: '{quote}' with context size: {context_size}, filters - Season: {season_filter}, Episode: {episode_filter}",
+        )
         es = await connect_to_elasticsearch()
 
         if not es:
@@ -126,15 +135,15 @@ class SearchTranscriptions:
                 "bool": {
                     "must": [
                         {"term": {"episode_info.season": season_number}},
-                        {"term": {"episode_info.episode_number": episode_number}}
+                        {"term": {"episode_info.episode_number": episode_number}},
                     ],
                     "filter": [
-                        {"range": {"id": {"lt": segment_id}}}
-                    ]
-                }
+                        {"range": {"id": {"lt": segment_id}}},
+                    ],
+                },
             },
             "sort": [{"id": "desc"}],
-            "size": context_size
+            "size": context_size,
         }
 
         context_query_after = {
@@ -142,15 +151,15 @@ class SearchTranscriptions:
                 "bool": {
                     "must": [
                         {"term": {"episode_info.season": season_number}},
-                        {"term": {"episode_info.episode_number": episode_number}}
+                        {"term": {"episode_info.episode_number": episode_number}},
                     ],
                     "filter": [
-                        {"range": {"id": {"gt": segment_id}}}
-                    ]
-                }
+                        {"range": {"id": {"gt": segment_id}}},
+                    ],
+                },
             },
             "sort": [{"id": "asc"}],
-            "size": context_size
+            "size": context_size,
         }
 
         try:
@@ -165,7 +174,8 @@ class SearchTranscriptions:
             context_segments_before.reverse()
 
             context_segments = context_segments_before + [
-                {'id': segment['id'], 'text': segment['text']}] + context_segments_after
+                {'id': segment['id'], 'text': segment['text']},
+            ] + context_segments_after
 
             seen_ids = set()
             unique_context_segments = []
@@ -183,7 +193,7 @@ class SearchTranscriptions:
 
             return {
                 "target": segment,
-                "context": final_context_segments
+                "context": final_context_segments,
             }
 
         except Exception as e:
@@ -215,10 +225,10 @@ class SearchTranscriptions:
                 "bool": {
                     "must": [
                         {"term": {"episode_info.season": season}},
-                        {"term": {"episode_info.episode_number": episode_number}}
-                    ]
-                }
-            }
+                        {"term": {"episode_info.episode_number": episode_number}},
+                    ],
+                },
+            },
         }
 
         try:
@@ -265,7 +275,7 @@ class SearchTranscriptions:
         query = {
             "size": 0,
             "query": {
-                "term": {"episode_info.season": season}
+                "term": {"episode_info.season": season},
             },
             "aggs": {
                 "unique_episodes": {
@@ -273,8 +283,8 @@ class SearchTranscriptions:
                         "field": "episode_info.episode_number",
                         "size": 1000,
                         "order": {
-                            "_key": "asc"
-                        }
+                            "_key": "asc",
+                        },
                     },
                     "aggs": {
                         "episode_info": {
@@ -285,14 +295,14 @@ class SearchTranscriptions:
                                         "episode_info.title",
                                         "episode_info.premiere_date",
                                         "episode_info.viewership",
-                                        "episode_info.episode_number"
-                                    ]
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+                                        "episode_info.episode_number",
+                                    ],
+                                },
+                            },
+                        },
+                    },
+                },
+            },
         }
 
         try:
@@ -310,7 +320,7 @@ class SearchTranscriptions:
                     "episode_number": episode_info.get('episode_number'),
                     "title": episode_info.get('title', 'Unknown'),
                     "premiere_date": episode_info.get('premiere_date', 'Unknown'),
-                    "viewership": episode_info.get('viewership', 'Unknown')
+                    "viewership": episode_info.get('viewership', 'Unknown'),
                 }
                 episodes.append(episode)
 

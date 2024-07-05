@@ -1,6 +1,8 @@
 import logging
-from aiogram import Router, Bot, types, Dispatcher
+
+from aiogram import Bot, Dispatcher, Router, types
 from aiogram.filters import Command
+
 from bot.middlewares.auth_middleware import AuthorizationMiddleware
 from bot.middlewares.error_middleware import ErrorHandlerMiddleware
 from bot.utils.transcription_search import SearchTranscriptions
@@ -12,7 +14,7 @@ last_search_quotes = {}
 last_search_terms = {}  # Store search terms
 
 
-@router.message(Command(commands=['szukaj', 'search', 'sz', ]))
+@router.message(Command(commands=['szukaj', 'search', 'sz']))
 async def handle_search_request(message: types.Message, bot: Bot):
     try:
         chat_id = message.chat.id
@@ -59,8 +61,10 @@ async def handle_search_request(message: types.Message, bot: Bot):
             episode_info = segment.get('episode_info', {})
             total_episode_number = episode_info.get('episode_number', 'Unknown')
             season_number = (total_episode_number - 1) // 13 + 1 if isinstance(total_episode_number, int) else 'Unknown'
-            episode_number_in_season = (total_episode_number - 1) % 13 + 1 if isinstance(total_episode_number,
-                                                                                         int) else 'Unknown'
+            episode_number_in_season = (total_episode_number - 1) % 13 + 1 if isinstance(
+                total_episode_number,
+                int,
+            ) else 'Unknown'
 
             season = str(season_number).zfill(2)
             episode_number = str(episode_number_in_season).zfill(2)

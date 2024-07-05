@@ -1,9 +1,11 @@
 import logging
-from aiogram import Router, Bot, types, Dispatcher
+
+from aiogram import Bot, Dispatcher, Router, types
 from aiogram.filters import Command
-from bot.utils.database import DatabaseManager
+
 from bot.middlewares.auth_middleware import AuthorizationMiddleware
 from bot.middlewares.error_middleware import ErrorHandlerMiddleware
+from bot.utils.database import DatabaseManager
 
 logger = logging.getLogger(__name__)
 router = Router()
@@ -24,7 +26,7 @@ async def list_saved_clips(message: types.Message, bot: Bot):
             logger.info(f"No saved clips found for user: {username}")
             return
 
-        response = f"🎬 Twoje Zapisane Klipy 🎬\n\n"
+        response = "🎬 Twoje Zapisane Klipy 🎬\n\n"
         response += f"🎥 Użytkownik: @{username}\n\n"
         clip_lines = []
 

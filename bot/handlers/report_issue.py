@@ -1,9 +1,11 @@
 import logging
-from aiogram import Router, Dispatcher, types, Bot
+
+from aiogram import Bot, Dispatcher, Router, types
 from aiogram.filters import Command
-from bot.utils.database import DatabaseManager
+
 from bot.middlewares.auth_middleware import AuthorizationMiddleware
 from bot.middlewares.error_middleware import ErrorHandlerMiddleware
+from bot.utils.database import DatabaseManager
 
 logger = logging.getLogger(__name__)
 router = Router()

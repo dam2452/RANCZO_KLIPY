@@ -28,13 +28,13 @@ def add_episode_info_to_transcriptions(base_path="RANCZO-TRANSKRYPCJE"):
                     # Dodajemy informacje o sezonie do danych odcinka
                     episode_info_data_with_season = {
                         "season": season,  # Dodajemy numer sezonu
-                        **episode_info_data
+                        **episode_info_data,
                     }
 
                     # Tworzymy nowy słownik z rozszerzonymi informacjami o odcinku na początku
                     updated_transcriptions = {
                         "episode_info": episode_info_data_with_season,
-                        "segments": transcriptions.get("segments", [])
+                        "segments": transcriptions.get("segments", []),
                     }
 
                     # Zapisujemy zmodyfikowane transkrypcje z powrotem do pliku

@@ -1,6 +1,6 @@
+import argparse
 import os
 import subprocess
-import argparse
 
 
 def przetworz_folder(folder_wejsciowy, folder_wyjsciowy):
@@ -13,16 +13,21 @@ def przetworz_folder(folder_wejsciowy, folder_wyjsciowy):
             if plik.endswith(('.wav', '.mp3')):  # Poprawione sprawdzanie rozszerzeń
                 sciezka_wejsciowa = os.path.join(sciezka_katalogu, plik)
                 nazwa_pliku_wyjsciowego = plik.split('.')[0] + '_przetworzone.wav'
-                sciezka_wyjsciowa = os.path.join(folder_wyjsciowy, os.path.relpath(sciezka_katalogu, folder_wejsciowy),
-                                                 nazwa_pliku_wyjsciowego)
+                sciezka_wyjsciowa = os.path.join(
+                    folder_wyjsciowy, os.path.relpath(sciezka_katalogu, folder_wejsciowy),
+                    nazwa_pliku_wyjsciowego,
+                )
 
                 if not os.path.exists(os.path.dirname(sciezka_wyjsciowa)):
                     os.makedirs(os.path.dirname(sciezka_wyjsciowa))
 
                 # Poprawione wywołanie polecenia
                 subprocess.run(
-                    ["whisper", sciezka_wejsciowa, "--model", model, "--language", jezyk, "--device", urzadzenie,
-                     "--output_dir", folder_wyjsciowy])
+                    [
+                        "whisper", sciezka_wejsciowa, "--model", model, "--language", jezyk, "--device", urzadzenie,
+                        "--output_dir", folder_wyjsciowy,
+                    ], check=True,
+                )
 
 
 def main():

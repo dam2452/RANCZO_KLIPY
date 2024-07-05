@@ -1,0 +1,40 @@
+fail_fast: false
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: pretty-format-json
+        args: [--autofix]
+      - id: check-yaml
+      - id: check-json
+      - id: check-ast
+      - id: trailing-whitespace
+      - id: check-xml
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: ["--maxkb=2000"]
+      - id: check-symlinks
+      - id: check-executables-have-shebangs
+      - id: check-shebang-scripts-are-executable
+  - repo: https://github.com/Lucas-C/pre-commit-hooks
+    rev: v1.5.5
+    hooks:
+      - id: chmod
+        args: ["777"]
+        files: (.*scripts\/.*.py$|\.sh$)
+      - id: remove-tabs
+        args: [--whitespaces-count, '4']
+  - repo: https://github.com/PyCQA/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        args: ["--trailing-comma", "--multi-line=3", "--force-grid-wrap=0", "--combine-as", "--use-parentheses", "--balanced", "--force-sort-within-sections", "--combine-star" ]
+  - repo: https://github.com/PyCQA/pylint
+    rev: v3.2.5
+    hooks:
+      - id: pylint
+        args: ["--rcfile=./pylintrc"]
+  - repo: https://github.com/asottile/add-trailing-comma
+    rev: v3.1.0
+    hooks:
+      - id: add-trailing-comma

@@ -1,7 +1,9 @@
-import logging
 from datetime import date
-from aiogram import Router, Dispatcher, types, Bot
+import logging
+
+from aiogram import Bot, Dispatcher, Router, types
 from aiogram.filters import Command
+
 from bot.middlewares.auth_middleware import AuthorizationMiddleware
 from bot.middlewares.error_middleware import ErrorHandlerMiddleware
 from bot.utils.database import DatabaseManager

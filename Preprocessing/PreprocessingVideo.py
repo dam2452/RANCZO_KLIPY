@@ -1,10 +1,10 @@
+import argparse
 import os
 import subprocess
-import argparse
 
 
 def convert_videos(input_dir, output_dir):
-    for root, dirs, files in os.walk(input_dir):
+    for root, _, files in os.walk(input_dir):
         for file in files:
             if file.endswith(".mp4"):
                 input_path = os.path.join(root, file)
@@ -20,7 +20,7 @@ def convert_videos(input_dir, output_dir):
                     "-c:v", "h264_nvenc", "-preset", "slow", "-profile:v", "main",
                     "-cq:v", "31", "-c:a", "aac", "-b:a", "128k", "-ac", "2",
                     "-vf", "yadif=0:-1:0,scale=1920:1080",
-                    "-movflags", "+faststart", output_path
+                    "-movflags", "+faststart", output_path,
                 ]
 
                 print(f"Processing {input_path} to {output_path}")

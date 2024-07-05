@@ -1,6 +1,14 @@
-import asyncpg
 from datetime import date, timedelta
-from bot.settings import POSTGRES_HOST, POSTGRES_DB, POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_PORT
+
+import asyncpg
+
+from bot.settings import (
+    POSTGRES_DB,
+    POSTGRES_HOST,
+    POSTGRES_PASSWORD,
+    POSTGRES_PORT,
+    POSTGRES_USER,
+)
 
 
 class DatabaseManager:
@@ -11,7 +19,7 @@ class DatabaseManager:
             port=POSTGRES_PORT,
             database=POSTGRES_DB,
             user=POSTGRES_USER,
-            password=POSTGRES_PASSWORD
+            password=POSTGRES_PASSWORD,
         )
 
     @staticmethod
@@ -57,21 +65,27 @@ class DatabaseManager:
         await conn.close()
 
     @staticmethod
-    async def add_user(username, is_admin=False, is_moderator=False, full_name=None, email=None, phone=None,
-                       subscription_days=None):
+    async def add_user(
+        username, is_admin=False, is_moderator=False, full_name=None, email=None, phone=None,
+        subscription_days=None,
+    ):
         conn = await DatabaseManager.get_db_connection()
         subscription_end = date.today() + timedelta(days=subscription_days) if subscription_days else None
         async with conn.transaction():
-            await conn.execute('''
+            await conn.execute(
+                '''
                 INSERT INTO users (username, is_admin, is_moderator, full_name, email, phone, subscription_end)
                 VALUES ($1, $2, $3, $4, $5, $6, $7)
                 ON CONFLICT (username) DO NOTHING
-            ''', username, bool(is_admin), bool(is_moderator), full_name, email, phone, subscription_end)
+            ''', username, bool(is_admin), bool(is_moderator), full_name, email, phone, subscription_end,
+            )
         await conn.close()
 
     @staticmethod
-    async def update_user(username, is_admin=None, is_moderator=None, full_name=None, email=None, phone=None,
-                          subscription_end=None):
+    async def update_user(
+        username, is_admin=None, is_moderator=None, full_name=None, email=None, phone=None,
+        subscription_end=None,
+    ):
         conn = await DatabaseManager.get_db_connection()
         updates = []
         params = []
@@ -114,7 +128,8 @@ class DatabaseManager:
     async def get_all_users():
         conn = await DatabaseManager.get_db_connection()
         result = await conn.fetch(
-            'SELECT username, is_admin, is_moderator, full_name, email, phone, subscription_end FROM users')
+            'SELECT username, is_admin, is_moderator, full_name, email, phone, subscription_end FROM users',
+        )
         await conn.close()
         return result
 
@@ -135,8 +150,10 @@ class DatabaseManager:
     @staticmethod
     async def is_user_authorized(username):
         conn = await DatabaseManager.get_db_connection()
-        result = await conn.fetchrow('SELECT is_admin, is_moderator, subscription_end FROM users WHERE username = $1',
-                                     username)
+        result = await conn.fetchrow(
+            'SELECT is_admin, is_moderator, subscription_end FROM users WHERE username = $1',
+            username,
+        )
         await conn.close()
         if result:
             is_admin = result['is_admin']
@@ -163,11 +180,13 @@ class DatabaseManager:
     @staticmethod
     async def set_default_admin(admin_id):
         conn = await DatabaseManager.get_db_connection()
-        await conn.execute('''
+        await conn.execute(
+            '''
             INSERT INTO users (username, is_admin)
             VALUES ($1, TRUE)
             ON CONFLICT (username) DO NOTHING
-        ''', admin_id)
+        ''', admin_id,
+        )
         await conn.close()
 
     @staticmethod
@@ -175,13 +194,16 @@ class DatabaseManager:
         conn = await DatabaseManager.get_db_connection()
         result = await conn.fetch(
             'SELECT clip_name, start_time, end_time, season, episode_number, is_compilation FROM clips WHERE username = $1',
-            username)
+            username,
+        )
         await conn.close()
         return result
 
     @staticmethod
-    async def save_clip(chat_id, username, clip_name, video_data, start_time, end_time, is_compilation, season=None,
-                        episode_number=None):
+    async def save_clip(
+        chat_id, username, clip_name, video_data, start_time, end_time, is_compilation, season=None,
+        episode_number=None,
+    ):
         conn = await DatabaseManager.get_db_connection()
         async with conn.transaction():
             await conn.execute(
@@ -189,31 +211,35 @@ class DatabaseManager:
                 INSERT INTO clips (chat_id, username, clip_name, video_data, start_time, end_time, season, episode_number, is_compilation)
                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
                 """,
-                chat_id, username, clip_name, video_data, start_time, end_time, season, episode_number, is_compilation
+                chat_id, username, clip_name, video_data, start_time, end_time, season, episode_number, is_compilation,
             )
         await conn.close()
 
     @staticmethod
     async def get_clip_by_name(username, clip_name):
         conn = await DatabaseManager.get_db_connection()
-        result = await conn.fetchrow('''
+        result = await conn.fetchrow(
+            '''
             SELECT video_data, start_time, end_time
             FROM clips
             WHERE username = $1 AND clip_name = $2
-        ''', username, clip_name)
+        ''', username, clip_name,
+        )
         await conn.close()
         return result
 
     @staticmethod
     async def get_clip_by_index(username, index):
         conn = await DatabaseManager.get_db_connection()
-        clip = await conn.fetchrow('''
+        clip = await conn.fetchrow(
+            '''
             SELECT clip_name, start_time, end_time, season, episode_number, is_compilation
             FROM clips
             WHERE username = $1
             ORDER BY id
             LIMIT 1 OFFSET $2
-        ''', username, index - 1)
+        ''', username, index - 1,
+        )
         await conn.close()
 
         if clip:
@@ -224,11 +250,13 @@ class DatabaseManager:
     @staticmethod
     async def get_video_data_by_name(username, clip_name):
         conn = await DatabaseManager.get_db_connection()
-        result = await conn.fetchval('''
+        result = await conn.fetchval(
+            '''
             SELECT video_data
             FROM clips
             WHERE username = $1 AND clip_name = $2
-        ''', username, clip_name)
+        ''', username, clip_name,
+        )
         await conn.close()
 
         return result
@@ -236,23 +264,27 @@ class DatabaseManager:
     @staticmethod
     async def add_subscription(username, days):
         conn = await DatabaseManager.get_db_connection()
-        new_end_date = await conn.fetchval('''
+        new_end_date = await conn.fetchval(
+            '''
             UPDATE users
             SET subscription_end = COALESCE(subscription_end, CURRENT_DATE) + $1 * INTERVAL '1 day'
             WHERE username = $2
             RETURNING subscription_end
-        ''', days, username)
+        ''', days, username,
+        )
         await conn.close()
         return new_end_date
 
     @staticmethod
     async def remove_subscription(username):
         conn = await DatabaseManager.get_db_connection()
-        await conn.execute('''
+        await conn.execute(
+            '''
             UPDATE users
             SET subscription_end = NULL
             WHERE username = $1
-        ''', username)
+        ''', username,
+        )
         await conn.close()
 
     @staticmethod
@@ -266,20 +298,24 @@ class DatabaseManager:
     async def add_report(username, report):
         conn = await DatabaseManager.get_db_connection()
         async with conn.transaction():
-            await conn.execute('''
+            await conn.execute(
+                '''
                 INSERT INTO reports (username, report)
                 VALUES ($1, $2)
-            ''', username, report)
+            ''', username, report,
+            )
         await conn.close()
 
     @staticmethod
     async def delete_clip(username, clip_name):
         conn = await DatabaseManager.get_db_connection()
         async with conn.transaction():
-            result = await conn.execute('''
+            result = await conn.execute(
+                '''
                 DELETE FROM clips
                 WHERE username = $1 AND clip_name = $2
-            ''', username, clip_name)
+            ''', username, clip_name,
+            )
         await conn.close()
         return result
 
@@ -288,7 +324,7 @@ class DatabaseManager:
         conn = await DatabaseManager.get_db_connection()
         result = await conn.fetchval(
             'SELECT COUNT(*) FROM clips WHERE chat_id=$1 AND clip_name=$2',
-            chat_id, clip_name
+            chat_id, clip_name,
         )
         await conn.close()
         return result == 0

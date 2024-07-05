@@ -1,14 +1,14 @@
-import subprocess
-import os
-import json
 import argparse
+import json
+import os
+import subprocess
 
 
 def get_best_audio_stream(video_file):
     """Zwraca indeks najlepszej ścieżki audio na podstawie bitrate."""
     try:
         cmd = f'ffprobe -v quiet -print_format json -show_streams -select_streams a "{video_file}"'
-        result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+        result = subprocess.run(cmd, shell=True, capture_output=True, text=True, check=True)
         streams = json.loads(result.stdout)['streams']
 
         # Upewniamy się, że wartości bitrate są traktowane jako liczby całkowite
@@ -59,10 +59,13 @@ def process_folder(input_folder, output_folder):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Przetwarza pliki wideo w podanym folderze, konwertując i normalizując audio do formatu WAV.")
+        description="Przetwarza pliki wideo w podanym folderze, konwertując i normalizując audio do formatu WAV.",
+    )
     parser.add_argument("input_folder", type=str, help="Folder wejściowy zawierający pliki wideo.")
-    parser.add_argument("output_folder", type=str,
-                        help="Folder wyjściowy do zapisywania znormalizowanych plików audio.")
+    parser.add_argument(
+        "output_folder", type=str,
+        help="Folder wyjściowy do zapisywania znormalizowanych plików audio.",
+    )
 
     args = parser.parse_args()
 

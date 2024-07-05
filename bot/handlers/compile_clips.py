@@ -1,15 +1,17 @@
-import logging
-import tempfile
-import os
 from io import BytesIO
-from aiogram import Router, Bot, types, Dispatcher
+import logging
+import os
+import tempfile
+
+from aiogram import Bot, Dispatcher, Router, types
 from aiogram.filters import Command
 from aiogram.types import FSInputFile
+
 from bot.handlers.clip_search import last_search_quotes
 from bot.handlers.handle_clip import last_selected_segment
-from bot.utils.video_handler import VideoManager
 from bot.middlewares.auth_middleware import AuthorizationMiddleware
 from bot.middlewares.error_middleware import ErrorHandlerMiddleware
+from bot.utils.video_handler import VideoManager
 
 logger = logging.getLogger(__name__)
 router = Router()
@@ -22,7 +24,8 @@ async def compile_clips(message: types.Message, bot: Bot):
         content = message.text.split()
         if len(content) < 2:
             await message.answer(
-                "🔄 Proszę podać indeksy segmentów do skompilowania, zakres lub 'wszystko' do kompilacji wszystkich segmentów.")
+                "🔄 Proszę podać indeksy segmentów do skompilowania, zakres lub 'wszystko' do kompilacji wszystkich segmentów.",
+            )
             logger.info("No segments provided by user.")
             return
 
@@ -38,7 +41,8 @@ async def compile_clips(message: types.Message, bot: Bot):
             if index.lower() == "wszystko":
                 selected_segments = segments
                 break
-            elif '-' in index:  # Check if it's a range
+
+            if '-' in index:  # Check if it's a range
                 try:
                     start, end = map(int, index.split('-'))
                     selected_segments.extend(segments[start - 1:end])  # Convert to 0-based index and include end
@@ -69,7 +73,8 @@ async def compile_clips(message: types.Message, bot: Bot):
         file_size_mb = os.path.getsize(compiled_output.name) / (1024 * 1024)
         if file_size_mb > 50:
             await message.answer(
-                "❌ Skompilowany klip jest za duży, aby go wysłać przez Telegram. Maksymalny rozmiar pliku to 50 MB. ❌")
+                "❌ Skompilowany klip jest za duży, aby go wysłać przez Telegram. Maksymalny rozmiar pliku to 50 MB. ❌",
+            )
             logger.warning(f"Compiled clip exceeds size limit: {file_size_mb:.2f} MB")
             os.remove(compiled_output.name)
             return
@@ -81,8 +86,10 @@ async def compile_clips(message: types.Message, bot: Bot):
         compiled_output_io = BytesIO(compiled_data)
         last_selected_segment[chat_id] = {'compiled_clip': compiled_output_io, 'selected_segments': selected_segments}
 
-        await bot.send_video(chat_id, FSInputFile(compiled_output.name), supports_streaming=True, width=1920,
-                             height=1080)
+        await bot.send_video(
+            chat_id, FSInputFile(compiled_output.name), supports_streaming=True, width=1920,
+            height=1080,
+        )
         os.remove(compiled_output.name)
         logger.info(f"Compiled clip sent to user '{message.from_user.username}' and temporary files removed.")
 

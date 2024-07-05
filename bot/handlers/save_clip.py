@@ -1,13 +1,15 @@
 import logging
 import os
 import tempfile
-from aiogram import types, Router, Dispatcher, Bot
+
+from aiogram import Bot, Dispatcher, Router, types
 from aiogram.filters import Command
-from bot.utils.database import DatabaseManager
+
 from bot.handlers.handle_clip import last_selected_segment
-from bot.utils.video_handler import  VideoProcessor
-from bot.middlewares.error_middleware import ErrorHandlerMiddleware
 from bot.middlewares.auth_middleware import AuthorizationMiddleware
+from bot.middlewares.error_middleware import ErrorHandlerMiddleware
+from bot.utils.database import DatabaseManager
+from bot.utils.video_handler import VideoProcessor
 
 logger = logging.getLogger(__name__)
 router = Router()
@@ -96,7 +98,7 @@ async def save_user_clip(message: types.Message, bot: Bot):
             end_time=end_time,
             is_compilation=is_compilation,
             season=season,
-            episode_number=episode_number
+            episode_number=episode_number,
         )
 
         await message.answer(f"✅ Klip '{clip_name}' został zapisany pomyślnie.")

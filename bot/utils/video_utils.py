@@ -1,8 +1,9 @@
 import asyncio
 import logging
 import subprocess
-import ffmpeg
 from typing import Optional
+
+import ffmpeg
 
 logger = logging.getLogger(__name__)
 
@@ -22,13 +23,13 @@ class VideoProcessor:
             '-movflags', '+faststart',
             '-fflags', '+genpts',
             '-avoid_negative_ts', '1',
-            output_filename
+            output_filename,
         ]
 
         process = await asyncio.create_subprocess_exec(
             *command,
             stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
+            stderr=subprocess.PIPE,
         )
         stdout, stderr = await process.communicate()
         if process.returncode != 0:

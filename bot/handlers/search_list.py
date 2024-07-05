@@ -1,14 +1,16 @@
 import logging
-from aiogram import Router, Bot, types, Dispatcher
-from aiogram.types import FSInputFile
-from bot.handlers.clip_search import last_search_quotes, last_search_terms
-from tabulate import tabulate
-import tempfile
 import os
+import tempfile
+
+from aiogram import Bot, Dispatcher, Router, types
 from aiogram.filters import Command
-from bot.utils.database import DatabaseManager
+from aiogram.types import FSInputFile
+from tabulate import tabulate
+
+from bot.handlers.clip_search import last_search_quotes, last_search_terms
 from bot.middlewares.auth_middleware import AuthorizationMiddleware
 from bot.middlewares.error_middleware import ErrorHandlerMiddleware
+from bot.utils.database import DatabaseManager
 
 logger = logging.getLogger(__name__)
 router = Router()
@@ -40,8 +42,10 @@ async def handle_list_request(message: types.Message, bot: Bot):
             episode_info = segment.get('episode_info', {})
             total_episode_number = episode_info.get('episode_number', 'Unknown')
             season_number = (total_episode_number - 1) // 13 + 1 if isinstance(total_episode_number, int) else 'Unknown'
-            episode_number_in_season = (total_episode_number - 1) % 13 + 1 if isinstance(total_episode_number,
-                                                                                         int) else 'Unknown'
+            episode_number_in_season = (total_episode_number - 1) % 13 + 1 if isinstance(
+                total_episode_number,
+                int,
+            ) else 'Unknown'
 
             season = str(season_number).zfill(2)
             episode_number = str(episode_number_in_season).zfill(2)
@@ -54,13 +58,16 @@ async def handle_list_request(message: types.Message, bot: Bot):
             line = [i, episode_formatted, episode_title, time_formatted]
             segment_lines.append(line)
 
-        table = tabulate(segment_lines, headers=["#", "Odcinek", "Tytuł", "Czas"], tablefmt="pipe",
-                         colalign=("left", "center", "left", "right"))
+        table = tabulate(
+            segment_lines, headers=["#", "Odcinek", "Tytuł", "Czas"], tablefmt="pipe",
+            colalign=("left", "center", "left", "right"),
+        )
         response += f"{table}\n"
 
         temp_dir = tempfile.gettempdir()
         sanitized_search_term = "".join(
-            [c for c in search_term if c.isalpha() or c.isdigit() or c == ' ']).rstrip().replace(" ", "_")
+            [c for c in search_term if c.isalpha() or c.isdigit() or c == ' '],
+        ).rstrip().replace(" ", "_")
         file_name = os.path.join(temp_dir, f"Ranczo_Klipy_Wyniki_{sanitized_search_term}.txt")
         with open(file_name, 'w', encoding='utf-8') as file:
             file.write(response)

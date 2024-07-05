@@ -1,13 +1,15 @@
 import logging
-import tempfile
 import os
-from aiogram import Router, Bot, types, Dispatcher
+import tempfile
+
+from aiogram import Bot, Dispatcher, Router, types
 from aiogram.filters import Command
 from aiogram.types import FSInputFile
-from bot.utils.database import DatabaseManager
-from bot.utils.video_handler import VideoManager
+
 from bot.middlewares.auth_middleware import AuthorizationMiddleware
 from bot.middlewares.error_middleware import ErrorHandlerMiddleware
+from bot.utils.database import DatabaseManager
+from bot.utils.video_handler import VideoManager
 
 logger = logging.getLogger(__name__)
 router = Router()
@@ -49,7 +51,7 @@ async def compile_selected_clips(message: types.Message, bot: Bot):
         try:
             temp_files = []
             for clip in selected_clips:
-                video_data, start_time, end_time = clip
+                video_data, _, _ = clip
 
                 # Create a temporary segment file
                 temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
@@ -71,14 +73,17 @@ async def compile_selected_clips(message: types.Message, bot: Bot):
             file_size_mb = os.path.getsize(compiled_output.name) / (1024 * 1024)
             if file_size_mb > 50:
                 await message.answer(
-                    "❌ Skompilowany klip jest za duży, aby go wysłać przez Telegram. Maksymalny rozmiar pliku to 50 MB. ❌")
+                    "❌ Skompilowany klip jest za duży, aby go wysłać przez Telegram. Maksymalny rozmiar pliku to 50 MB. ❌",
+                )
                 logger.warning(f"Compiled clip exceeds size limit: {file_size_mb:.2f} MB")
                 os.remove(compiled_output.name)
                 return
 
             # Send the compiled video
-            await bot.send_video(chat_id, FSInputFile(compiled_output.name), supports_streaming=True, width=1920,
-                                 height=1080)
+            await bot.send_video(
+                chat_id, FSInputFile(compiled_output.name), supports_streaming=True, width=1920,
+                height=1080,
+            )
 
             # Clean up temporary files
             for temp_file in temp_files:

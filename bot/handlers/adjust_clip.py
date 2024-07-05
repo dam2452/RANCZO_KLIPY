@@ -1,14 +1,19 @@
 import logging
 import os
 import tempfile
-from aiogram import types, Router, Dispatcher, Bot
+
+from aiogram import Bot, Dispatcher, Router, types
 from aiogram.filters import Command
-from bot.handlers.handle_clip import last_selected_segment
+
 from bot.handlers.clip_search import last_search_quotes
-from bot.utils.video_handler import VideoManager, VideoProcessor
+from bot.handlers.handle_clip import (
+    EXTEND_AFTER,
+    EXTEND_BEFORE,
+    last_selected_segment,
+)
 from bot.middlewares.auth_middleware import AuthorizationMiddleware
 from bot.middlewares.error_middleware import ErrorHandlerMiddleware
-from bot.handlers.handle_clip import EXTEND_BEFORE, EXTEND_AFTER
+from bot.utils.video_handler import VideoManager, VideoProcessor
 
 logger = logging.getLogger(__name__)
 router = Router()
@@ -21,7 +26,9 @@ async def adjust_video_clip(message: types.Message, bot: Bot):
         content = message.text.split()
 
         if len(content) not in (3, 4):
-            await message.answer("📝 Podaj czas w formacie `<float> <float>` lub `<index> <float> <float>`. Przykład: /dostosuj 10.5 -15.2 lub /dostosuj 1 10.5 -15.2")
+            await message.answer(
+                "📝 Podaj czas w formacie `<float> <float>` lub `<index> <float> <float>`. Przykład: /dostosuj 10.5 -15.2 lub /dostosuj 1 10.5 -15.2",
+            )
             logger.info("Invalid number of arguments provided by user.")
             return
 
@@ -54,8 +61,7 @@ async def adjust_video_clip(message: types.Message, bot: Bot):
         end_time = original_end_time + after_adjustment
 
         # Ensure times are valid
-        if start_time < 0:
-            start_time = 0
+        start_time = max(0, start_time)
         if end_time <= start_time:
             await message.answer("⚠️ Czas zakończenia musi być późniejszy niż czas rozpoczęcia.⚠️")
             logger.info("End time must be later than start time.")

@@ -1,7 +1,9 @@
 import logging
 import os
-from aiogram import Bot, Dispatcher, types, Router
+
+from aiogram import Bot, Dispatcher, Router, types
 from aiogram.filters import Command
+
 from bot.utils.transcription_search import SearchTranscriptions
 from bot.utils.video_handler import VideoManager
 
@@ -35,7 +37,8 @@ async def handle_manual_command(message: types.Message, bot: Bot):
         content = message.text.split()
         if len(content) != 4:
             await message.answer(
-                "📋 Podaj poprawną komendę w formacie: /manual <sezon_odcinek> <czas_start> <czas_koniec>. Przykład: /manual S02E10 20:30.11")
+                "📋 Podaj poprawną komendę w formacie: /manual <sezon_odcinek> <czas_start> <czas_koniec>. Przykład: /manual S02E10 20:30.11",
+            )
             logger.info("Incorrect command format provided by user.")
             return
 

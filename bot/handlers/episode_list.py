@@ -1,6 +1,8 @@
 import logging
-from aiogram import Router, Dispatcher, types, Bot
+
+from aiogram import Bot, Dispatcher, Router, types
 from aiogram.filters import Command
+
 from bot.utils.transcription_search import SearchTranscriptions
 
 logger = logging.getLogger(__name__)
@@ -34,7 +36,8 @@ async def handle_episode_list_command(message: types.Message, bot: Bot):
         content = message.text.split()
         if len(content) != 2:
             await message.answer(
-                "📋 Podaj poprawną komendę w formacie: /listaodcinków <sezon>. Przykład: /listaodcinków 2")
+                "📋 Podaj poprawną komendę w formacie: /listaodcinków <sezon>. Przykład: /listaodcinków 2",
+            )
             logger.info("Incorrect command format provided by user.")
             return
 

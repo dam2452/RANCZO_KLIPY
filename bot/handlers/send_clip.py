@@ -1,12 +1,14 @@
 import logging
 import os
 import tempfile
-from aiogram import Router, Bot, types, Dispatcher
+
+from aiogram import Bot, Dispatcher, Router, types
 from aiogram.filters import Command
-from bot.utils.database import DatabaseManager
-from bot.utils.video_handler import VideoManager
+
 from bot.middlewares.auth_middleware import AuthorizationMiddleware
 from bot.middlewares.error_middleware import ErrorHandlerMiddleware
+from bot.utils.database import DatabaseManager
+from bot.utils.video_handler import VideoManager
 
 logger = logging.getLogger(__name__)
 router = Router()
