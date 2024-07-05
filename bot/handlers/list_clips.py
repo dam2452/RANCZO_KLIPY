@@ -8,6 +8,22 @@ from bot.middlewares.error_middleware import ErrorHandlerMiddleware
 logger = logging.getLogger(__name__)
 router = Router()
 
+number_to_emoji = {
+    '0': '0️⃣',
+    '1': '1️⃣',
+    '2': '2️⃣',
+    '3': '3️⃣',
+    '4': '4️⃣',
+    '5': '5️⃣',
+    '6': '6️⃣',
+    '7': '7️⃣',
+    '8': '8️⃣',
+    '9': '9️⃣'
+}
+
+def convert_number_to_emoji(number):
+    return ''.join(number_to_emoji.get(digit, digit) for digit in str(number))
+
 @router.message(Command(commands=['mojeklipy', 'myclips', 'mk']))
 async def list_saved_clips(message: types.Message, bot: Bot):
     try:
@@ -43,7 +59,8 @@ async def list_saved_clips(message: types.Message, bot: Bot):
                 episode_number_mod = (episode_number - 1) % 13 + 1
                 season_episode = f"S{season:02d}E{episode_number_mod:02d}"
 
-            line1 = f"{idx}️⃣ | 📺 {season_episode} | 🕒 {length_str}"
+            emoji_index = convert_number_to_emoji(idx)
+            line1 = f"{emoji_index} | 📺 {season_episode} | 🕒 {length_str}"
             line2 = f"👉 {clip_name}"
             clip_lines.append(f"{line1} \n{line2}")
 
