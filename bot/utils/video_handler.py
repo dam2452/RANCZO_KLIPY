@@ -45,7 +45,7 @@ class VideoManager:
         try:
             input_file = FSInputFile(file_path)
             await self.bot.send_video(chat_id, input_file, supports_streaming=True, width=1920, height=1080)
-            await DatabaseManager.log_user_activity(str(chat_id), f"Sent video file: {file_path}")
+            await DatabaseManager.log_system_message("INFO", f"Sent video file: {file_path}")
         except Exception as e:
             logger.error(f"Failed to send video clip: {e}", exc_info=True)
             await DatabaseManager.log_system_message("ERROR", f"Failed to send video clip: {e}")
