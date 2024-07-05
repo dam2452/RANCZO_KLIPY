@@ -106,7 +106,8 @@ disable=
     too-few-public-methods,
     consider-using-assignment-expr,
     import-error,
-    logging-fstring-interpolation
+    logging-fstring-interpolation,
+    consider-alternative-union-syntax
 
 
 [REPORTS]

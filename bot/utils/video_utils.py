@@ -31,7 +31,7 @@ class VideoProcessor:
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
-        stdout, stderr = await process.communicate()
+        _, stderr = await process.communicate()
         if process.returncode != 0:
             logger.error(f"FFmpeg error: {stderr.decode()}")
             raise Exception(f"❌ Błąd FFmpeg: {stderr.decode()}")
