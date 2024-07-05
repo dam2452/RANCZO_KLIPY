@@ -9,11 +9,12 @@ from bot.utils.video_utils import VideoProcessor
 
 logger = logging.getLogger(__name__)
 
+
 class VideoManager:
     def __init__(self, bot: Bot):
         self.bot = bot
 
-    async def extract_and_send_clip(self, chat_id: int, video_path: str, start_time: int, end_time: int):
+    async def extract_and_send_clip(self, chat_id: int, video_path: str, start_time: float, end_time: float):
         try:
             output_filename = tempfile.mktemp(suffix='.mp4')
             await VideoProcessor.extract_clip(video_path, start_time, end_time, output_filename)
@@ -22,7 +23,8 @@ class VideoManager:
             logger.info(f"Clip size: {file_size:.2f} MB")
 
             if file_size > 50:  # Telegram has a 50 MB limit for video files
-                await self.bot.send_message(chat_id, "❌ Wyodrębniony klip jest za duży, aby go wysłać przez Telegram. Maksymalny rozmiar pliku to 50 MB.❌")
+                await self.bot.send_message(chat_id,
+                                            "❌ Wyodrębniony klip jest za duży, aby go wysłać przez Telegram. Maksymalny rozmiar pliku to 50 MB.❌")
                 logger.warning(f"Clip size {file_size:.2f} MB exceeds the 50 MB limit.")
             else:
                 input_file = FSInputFile(output_filename)

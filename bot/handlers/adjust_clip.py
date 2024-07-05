@@ -12,7 +12,9 @@ from bot.handlers.handle_clip import EXTEND_BEFORE, EXTEND_AFTER
 
 logger = logging.getLogger(__name__)
 router = Router()
-@router.message(Command(commands=['dostosuj', 'adjust','d']))
+
+
+@router.message(Command(commands=['dostosuj', 'adjust', 'd']))
 async def adjust_video_clip(message: types.Message, bot: Bot):
     try:
         chat_id = message.chat.id
@@ -69,8 +71,7 @@ async def adjust_video_clip(message: types.Message, bot: Bot):
             logger.info(f"Clip size: {file_size:.2f} MB")
 
             if file_size > 50:  # Telegram has a 50 MB limit for video files
-                await message.answer(
-                    "❌ Wyodrębniony klip jest za duży, aby go wysłać przez Telegram. Maksymalny rozmiar pliku to 50 MB.❌")
+                await message.answer("❌ Wyodrębniony klip jest za duży, aby go wysłać przez Telegram. Maksymalny rozmiar pliku to 50 MB.❌")
                 logger.warning(f"Clip size {file_size:.2f} MB exceeds the 50 MB limit.")
             else:
                 # Send the adjusted video clip
@@ -86,15 +87,17 @@ async def adjust_video_clip(message: types.Message, bot: Bot):
             await message.answer(f"⚠️ Nie udało się zmienić klipu wideo: {str(e)}")
 
         # await message.answer(
-            # f"✅ Klip został zmodyfikowany do {VideoProcessor.convert_seconds_to_time_str(end_time - start_time)}.")
+        # f"✅ Klip został zmodyfikowany do {VideoProcessor.convert_seconds_to_time_str(end_time - start_time)}.")
         logger.info(f"Video clip adjusted successfully for user '{message.from_user.username}'.")
 
     except Exception as e:
         logger.error(f"Error in adjust_video_clip for user '{message.from_user.username}': {e}", exc_info=True)
         await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania. Prosimy spróbować ponownie później.⚠️")
 
+
 def register_adjust_handler(dispatcher: Dispatcher):
     dispatcher.include_router(router)
+
 
 # Ustawienie middleware'ów
 router.message.middleware(AuthorizationMiddleware())

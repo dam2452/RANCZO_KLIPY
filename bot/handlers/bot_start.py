@@ -7,6 +7,7 @@ from bot.middlewares.error_middleware import ErrorHandlerMiddleware
 logger = logging.getLogger(__name__)
 router = Router()
 
+
 @router.message(Command(commands=['start', 's', 'help', 'h']))
 async def handle_start(message: types.Message, bot: Bot):
     try:
@@ -158,8 +159,10 @@ Aby uzyskać pełną listę komend, użyj /start lista.
         logger.error(f"Error in handle_start for user '{message.from_user.username}': {e}", exc_info=True)
         await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania. Prosimy spróbować ponownie później.")
 
+
 def register_start_command(dispatcher: Dispatcher):
     dispatcher.include_router(router)
+
 
 # Ustawienie middleware'ów
 router.message.middleware(AuthorizationMiddleware())

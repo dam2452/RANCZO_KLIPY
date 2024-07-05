@@ -8,6 +8,7 @@ env_path = os.path.join(os.path.dirname(__file__), '..', '.env')
 if os.path.exists(env_path):
     load_dotenv(env_path)
 
+
 class Settings(BaseSettings):
     TELEGRAM_BOT_TOKEN: str = Field(..., env='TELEGRAM_BOT_TOKEN')
     DEFAULT_ADMIN: str = Field(..., env='DEFAULT_ADMIN')
@@ -24,6 +25,7 @@ class Settings(BaseSettings):
 
     class Config:
         env_file = env_path
+
 
 try:
     settings = Settings()

@@ -12,7 +12,8 @@ from bot.middlewares.error_middleware import ErrorHandlerMiddleware
 logger = logging.getLogger(__name__)
 router = Router()
 
-@router.message(Command(commands=['polaczklipy', 'concatclips','pk']))
+
+@router.message(Command(commands=['polaczklipy', 'concatclips', 'pk']))
 async def compile_selected_clips(message: types.Message, bot: Bot):
     try:
         username = message.from_user.username
@@ -76,7 +77,8 @@ async def compile_selected_clips(message: types.Message, bot: Bot):
                 return
 
             # Send the compiled video
-            await bot.send_video(chat_id, FSInputFile(compiled_output.name), supports_streaming=True, width=1920, height=1080)
+            await bot.send_video(chat_id, FSInputFile(compiled_output.name), supports_streaming=True, width=1920,
+                                 height=1080)
 
             # Clean up temporary files
             for temp_file in temp_files:
@@ -92,8 +94,10 @@ async def compile_selected_clips(message: types.Message, bot: Bot):
         logger.error(f"Error handling /polaczklipy command for user '{username}': {e}", exc_info=True)
         await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania.⚠️")
 
+
 def register_compile_selected_clips_command(dispatcher: Dispatcher):
     dispatcher.include_router(router)
+
 
 # Ustawienie middleware'ów
 router.message.middleware(AuthorizationMiddleware())

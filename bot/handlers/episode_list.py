@@ -13,6 +13,7 @@ def adjust_episode_number(absolute_episode):
     episode = (absolute_episode - 1) % 13 + 1
     return season, episode
 
+
 def split_message(message, max_length=4096):
     """ Splits a message into chunks to fit within the Telegram message length limit """
     parts = []
@@ -24,6 +25,8 @@ def split_message(message, max_length=4096):
         message = message[split_at:].lstrip()
     parts.append(message)
     return parts
+
+
 @router.message(Command(commands=['odcinki', 'episodes', 'o']))
 async def handle_episode_list_command(message: types.Message, bot: Bot):
     try:
@@ -49,19 +52,18 @@ async def handle_episode_list_command(message: types.Message, bot: Bot):
             absolute_episode_number = episode['episode_number'] % 13
             if absolute_episode_number == 0:
                 absolute_episode_number = 13
-            adjusted_season, adjusted_episode_number = adjust_episode_number(absolute_episode_number)
+            adjust_episode_number(absolute_episode_number)
             formatted_viewership = f"{episode['viewership']:,}".replace(',', '.')
 
             response += f"🎬 {episode['title']}: S{season:02d}E{absolute_episode_number:02d} ({episode['episode_number']}) \n"
             response += f"📅 Data premiery: {episode['premiere_date']}\n"
             response += f"👀 Oglądalność: {formatted_viewership}\n\n"
 
-
         # Split the response into smaller parts to avoid the Telegram message length limit
         response_parts = split_message(response)
 
         for part in response_parts:
-            await message.answer(part+"```", parse_mode="Markdown")
+            await message.answer(part + "```", parse_mode="Markdown")
 
         logger.info(f"Sent episode list for season {season} to user.")
 
@@ -69,5 +71,6 @@ async def handle_episode_list_command(message: types.Message, bot: Bot):
         logger.error(f"An error occurred while handling episode list command: {e}", exc_info=True)
         await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania. Prosimy spróbować ponownie później.")
 
+
 def register_episode_list_handler(dispatcher: Dispatcher):
-        dispatcher.include_router(router)
+    dispatcher.include_router(router)

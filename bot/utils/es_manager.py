@@ -17,6 +17,7 @@ es_host = settings.ES_HOST
 es_username = settings.ES_USERNAME
 es_password = settings.ES_PASSWORD
 
+
 async def connect_to_elasticsearch():
     """
     Establishes a connection to Elasticsearch.
@@ -35,6 +36,7 @@ async def connect_to_elasticsearch():
         logger.error(f"Connection to Elasticsearch failed: {e}")
         return None
 
+
 async def delete_all_indices(es):
     """
     Deletes all indices in Elasticsearch.
@@ -51,6 +53,7 @@ async def delete_all_indices(es):
         logger.info("All indices have been deleted.")
     except Exception as e:
         logger.error(f"Error deleting indices: {e}")
+
 
 async def index_transcriptions(base_path, es):
     """
@@ -89,6 +92,7 @@ async def index_transcriptions(base_path, es):
     else:
         logger.info("No data to index.")
 
+
 async def print_one_transcription(es, index="ranczo-transcriptions"):
     """
     Prints one transcription document from Elasticsearch in a more readable format.
@@ -112,18 +116,21 @@ async def print_one_transcription(es, index="ranczo-transcriptions"):
     except Exception as e:
         logger.error(f"Error retrieving document: {e}")
 
+
 async def main():
     es_client = await connect_to_elasticsearch()
     if es_client:
         try:
-            #Uncomment the following line if you need to delete all indices before indexing
+            # Uncomment the following line if you need to delete all indices before indexing
             await delete_all_indices(es_client)
             await index_transcriptions(base_path="../RANCZO-TRANSKRYPCJE", es=es_client)
-            #Print one transcription document
+            # Print one transcription document
             await print_one_transcription(es_client)
         finally:
             await es_client.close()  # Ensure the client is closed after use
 
+
 if __name__ == "__main__":
     import asyncio
+
     asyncio.run(main())

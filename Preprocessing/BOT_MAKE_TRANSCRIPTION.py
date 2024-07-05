@@ -2,6 +2,7 @@ import os
 import subprocess
 import argparse
 
+
 def przetworz_folder(folder_wejsciowy, folder_wyjsciowy):
     model = "large-v3"
     jezyk = "Polish"
@@ -12,13 +13,17 @@ def przetworz_folder(folder_wejsciowy, folder_wyjsciowy):
             if plik.endswith(('.wav', '.mp3')):  # Poprawione sprawdzanie rozszerzeń
                 sciezka_wejsciowa = os.path.join(sciezka_katalogu, plik)
                 nazwa_pliku_wyjsciowego = plik.split('.')[0] + '_przetworzone.wav'
-                sciezka_wyjsciowa = os.path.join(folder_wyjsciowy, os.path.relpath(sciezka_katalogu, folder_wejsciowy), nazwa_pliku_wyjsciowego)
+                sciezka_wyjsciowa = os.path.join(folder_wyjsciowy, os.path.relpath(sciezka_katalogu, folder_wejsciowy),
+                                                 nazwa_pliku_wyjsciowego)
 
                 if not os.path.exists(os.path.dirname(sciezka_wyjsciowa)):
                     os.makedirs(os.path.dirname(sciezka_wyjsciowa))
 
                 # Poprawione wywołanie polecenia
-                subprocess.run(["whisper", sciezka_wejsciowa, "--model", model, "--language", jezyk, "--device", urzadzenie, "--output_dir", folder_wyjsciowy])
+                subprocess.run(
+                    ["whisper", sciezka_wejsciowa, "--model", model, "--language", jezyk, "--device", urzadzenie,
+                     "--output_dir", folder_wyjsciowy])
+
 
 def main():
     parser = argparse.ArgumentParser(description='Przetwarzanie plików .wav i .mp3 za pomocą modelu whisper')
@@ -28,6 +33,7 @@ def main():
     args = parser.parse_args()
 
     przetworz_folder(args.folder_wejsciowy, args.folder_wyjsciowy)
+
 
 if __name__ == '__main__':
     main()

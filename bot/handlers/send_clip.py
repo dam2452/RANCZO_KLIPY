@@ -3,7 +3,6 @@ import os
 import tempfile
 from aiogram import Router, Bot, types, Dispatcher
 from aiogram.filters import Command
-from aiogram.types import FSInputFile
 from bot.utils.database import DatabaseManager
 from bot.utils.video_handler import VideoManager
 from bot.middlewares.auth_middleware import AuthorizationMiddleware
@@ -11,6 +10,8 @@ from bot.middlewares.error_middleware import ErrorHandlerMiddleware
 
 logger = logging.getLogger(__name__)
 router = Router()
+
+
 @router.message(Command(commands=['wyslij', 'send', 'wys']))
 async def send_clip(message: types.Message, bot: Bot):
     try:
@@ -60,8 +61,10 @@ async def send_clip(message: types.Message, bot: Bot):
         if os.path.exists(temp_file_path):
             os.remove(temp_file_path)  # Clean up the temporary file
 
+
 def register_send_clip_handler(dispatcher: Dispatcher):
     dispatcher.include_router(router)
+
 
 # Ustawienie middleware'ów
 router.message.middleware(AuthorizationMiddleware())

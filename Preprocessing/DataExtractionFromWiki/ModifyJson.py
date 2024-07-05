@@ -1,10 +1,12 @@
 import json
 import os
 
+
 def load_episode_info():
     with open('EpisodeInfo.json', 'r', encoding='utf-8') as file:
         episode_info = json.load(file)
     return episode_info
+
 
 def add_episode_info_to_transcriptions(base_path="RANCZO-TRANSKRYPCJE"):
     episode_info = load_episode_info()
@@ -43,6 +45,7 @@ def add_episode_info_to_transcriptions(base_path="RANCZO-TRANSKRYPCJE"):
                     print(f"File not found: {transcriptions_path}")
             else:
                 print(f"No episode info available for Season {season}, Episode {episode}. Skipping...")
+
 
 if __name__ == "__main__":
     add_episode_info_to_transcriptions()

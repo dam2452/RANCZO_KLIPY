@@ -13,6 +13,7 @@ from bot.middlewares.error_middleware import ErrorHandlerMiddleware
 logger = logging.getLogger(__name__)
 router = Router()
 
+
 @router.message(Command(commands=['lista', 'list', 'l']))
 async def handle_list_request(message: types.Message, bot: Bot):
     try:

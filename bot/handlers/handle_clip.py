@@ -14,12 +14,15 @@ EXTEND_AFTER = 5
 
 # Definicja last_selected_segment
 last_selected_segment = {}
+
+
 @router.message(Command(commands=['klip', 'clip', 'k']))
 async def handle_clip_request(message: types.Message, bot: Bot):
     try:
         content = message.text.split()
         if len(content) < 2:
-            await message.answer("🔎 Podaj cytat, który chcesz znaleźć. Przykład: /klip Nie szkoda panu tego pięknego gabinetu?")
+            await message.answer(
+                "🔎 Podaj cytat, który chcesz znaleźć. Przykład: /klip Nie szkoda panu tego pięknego gabinetu?")
             logger.info("No quote provided by user.")
             return
 
@@ -51,8 +54,10 @@ async def handle_clip_request(message: types.Message, bot: Bot):
         logger.error(f"An error occurred while handling clip request: {str(e)}")
         await message.answer("⚠️ Wystąpił błąd podczas przetwarzania Twojego żądania.⚠️")
 
+
 def register_clip_handlers(dispatcher: Dispatcher):
     dispatcher.include_router(router)
+
 
 # Ustawienie middleware'ów
 router.message.middleware(AuthorizationMiddleware())

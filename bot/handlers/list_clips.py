@@ -7,6 +7,8 @@ from bot.middlewares.error_middleware import ErrorHandlerMiddleware
 
 logger = logging.getLogger(__name__)
 router = Router()
+
+
 @router.message(Command(commands=['mojeklipy', 'myclips', 'mk']))
 async def list_saved_clips(message: types.Message, bot: Bot):
     try:
@@ -52,8 +54,10 @@ async def list_saved_clips(message: types.Message, bot: Bot):
         logger.error(f"Error handling /mojeklipy command for user '{message.from_user.username}': {e}", exc_info=True)
         await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania. Prosimy spróbować ponownie później.⚠️")
 
+
 def register_list_clips_handler(dispatcher: Dispatcher):
     dispatcher.include_router(router)
+
 
 # Ustawienie middleware'ów
 router.message.middleware(AuthorizationMiddleware())

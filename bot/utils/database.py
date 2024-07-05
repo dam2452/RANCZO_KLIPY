@@ -2,6 +2,7 @@ import asyncpg
 from datetime import date, timedelta
 from bot.settings import POSTGRES_HOST, POSTGRES_DB, POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_PORT
 
+
 class DatabaseManager:
     @staticmethod
     async def get_db_connection():
@@ -56,7 +57,8 @@ class DatabaseManager:
         await conn.close()
 
     @staticmethod
-    async def add_user(username, is_admin=False, is_moderator=False, full_name=None, email=None, phone=None, subscription_days=None):
+    async def add_user(username, is_admin=False, is_moderator=False, full_name=None, email=None, phone=None,
+                       subscription_days=None):
         conn = await DatabaseManager.get_db_connection()
         subscription_end = date.today() + timedelta(days=subscription_days) if subscription_days else None
         async with conn.transaction():
@@ -68,7 +70,8 @@ class DatabaseManager:
         await conn.close()
 
     @staticmethod
-    async def update_user(username, is_admin=None, is_moderator=None, full_name=None, email=None, phone=None, subscription_end=None):
+    async def update_user(username, is_admin=None, is_moderator=None, full_name=None, email=None, phone=None,
+                          subscription_end=None):
         conn = await DatabaseManager.get_db_connection()
         updates = []
         params = []
@@ -110,7 +113,8 @@ class DatabaseManager:
     @staticmethod
     async def get_all_users():
         conn = await DatabaseManager.get_db_connection()
-        result = await conn.fetch('SELECT username, is_admin, is_moderator, full_name, email, phone, subscription_end FROM users')
+        result = await conn.fetch(
+            'SELECT username, is_admin, is_moderator, full_name, email, phone, subscription_end FROM users')
         await conn.close()
         return result
 
@@ -131,7 +135,8 @@ class DatabaseManager:
     @staticmethod
     async def is_user_authorized(username):
         conn = await DatabaseManager.get_db_connection()
-        result = await conn.fetchrow('SELECT is_admin, is_moderator, subscription_end FROM users WHERE username = $1', username)
+        result = await conn.fetchrow('SELECT is_admin, is_moderator, subscription_end FROM users WHERE username = $1',
+                                     username)
         await conn.close()
         if result:
             is_admin = result['is_admin']
@@ -168,12 +173,15 @@ class DatabaseManager:
     @staticmethod
     async def get_saved_clips(username):
         conn = await DatabaseManager.get_db_connection()
-        result = await conn.fetch('SELECT clip_name, start_time, end_time, season, episode_number, is_compilation FROM clips WHERE username = $1', username)
+        result = await conn.fetch(
+            'SELECT clip_name, start_time, end_time, season, episode_number, is_compilation FROM clips WHERE username = $1',
+            username)
         await conn.close()
         return result
 
     @staticmethod
-    async def save_clip(chat_id, username, clip_name, video_data, start_time, end_time, is_compilation, season=None, episode_number=None):
+    async def save_clip(chat_id, username, clip_name, video_data, start_time, end_time, is_compilation, season=None,
+                        episode_number=None):
         conn = await DatabaseManager.get_db_connection()
         async with conn.transaction():
             await conn.execute(
@@ -210,7 +218,7 @@ class DatabaseManager:
 
         if clip:
             clip_name, start_time, end_time, season, episode_number, is_compilation = clip
-            return (clip_name, start_time, end_time, season, episode_number, is_compilation)
+            return clip_name, start_time, end_time, season, episode_number, is_compilation
         return None
 
     @staticmethod

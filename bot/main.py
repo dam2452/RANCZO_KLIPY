@@ -8,7 +8,7 @@ from bot.handlers import register_handlers
 from bot.utils.database import DatabaseManager
 from bot.middlewares.auth_middleware import AuthorizationMiddleware  # Import AuthorizationMiddleware
 from bot.middlewares.error_middleware import ErrorHandlerMiddleware  # Import ErrorHandlerMiddleware
-from bot.handlers.adjust_clip import register_adjust_handler
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -20,6 +20,7 @@ dp = Dispatcher(storage=MemoryStorage())
 # Add middlewares
 dp.update.middleware(AuthorizationMiddleware())  # Register AuthorizationMiddleware
 dp.update.middleware(ErrorHandlerMiddleware())  # Register ErrorHandlerMiddleware
+
 
 async def on_startup():
     try:
@@ -37,6 +38,7 @@ async def on_startup():
     except Exception as e:
         logger.error(f"❌ Failed to register handlers: {e} ❌")
 
+
 async def main():
     try:
         await on_startup()
@@ -44,6 +46,7 @@ async def main():
         await dp.start_polling(bot)
     except Exception as e:
         logger.error(f"❌ Bot encountered an error: {e} ❌")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

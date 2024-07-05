@@ -2,12 +2,14 @@ import asyncio
 import logging
 import subprocess
 import ffmpeg
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 
+
 class VideoProcessor:
     @staticmethod
-    async def extract_clip(video_path: str, start_time: int, end_time: int, output_filename: str):
+    async def extract_clip(video_path: str, start_time: float, end_time: float, output_filename: str):
         duration = end_time - start_time
 
         command = [
@@ -47,7 +49,7 @@ class VideoProcessor:
         return h * 3600 + m * 60 + s
 
     @staticmethod
-    def get_video_duration(file_path: str) -> float:
+    def get_video_duration(file_path: str) -> Optional[float]:
         try:
             probe = ffmpeg.probe(file_path)
             duration = float(probe['format']['duration'])
