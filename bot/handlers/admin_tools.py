@@ -11,6 +11,7 @@ from tabulate import tabulate
 from bot.middlewares.auth_middleware import AuthorizationMiddleware
 from bot.middlewares.error_middleware import ErrorHandlerMiddleware
 from bot.utils.database import DatabaseManager
+from bot.utils.transcription_search import SearchTranscriptions
 
 logger = logging.getLogger(__name__)
 router = Router()
@@ -19,10 +20,7 @@ router = Router()
 # Definicja UserManager dla łatwiejszego dostępu do funkcji zarządzania użytkownikami
 class UserManager:
     @staticmethod
-    async def add_user(
-        username, is_admin=False, is_moderator=False, full_name=None, email=None, phone=None,
-        subscription_days=None,
-    ):
+    async def add_user(username, is_admin=False, is_moderator=False, full_name=None, email=None, phone=None, subscription_days=None):
         await DatabaseManager.add_user(username, is_admin, is_moderator, full_name, email, phone, subscription_days)
 
     @staticmethod
@@ -30,10 +28,7 @@ class UserManager:
         await DatabaseManager.remove_user(username)
 
     @staticmethod
-    async def update_user(
-        username, is_admin=None, is_moderator=None, full_name=None, email=None, phone=None,
-        subscription_end=None,
-    ):
+    async def update_user(username, is_admin=None, is_moderator=None, full_name=None, email=None, phone=None, subscription_end=None):
         await DatabaseManager.update_user(username, is_admin, is_moderator, full_name, email, phone, subscription_end)
 
     @staticmethod
@@ -102,7 +97,7 @@ async def admin_help(message: types.Message):
     logger.info("Admin help message sent to user.")
 
 
-@router.message(Command('addwhitelist'))
+@router.message(Command(commands=['addwhitelist', 'addw']))
 async def add_to_whitelist(message: types.Message):
     if not await UserManager.is_user_admin(message.from_user.username) and not await UserManager.is_user_moderator(
             message.from_user.username,
@@ -135,7 +130,7 @@ async def add_to_whitelist(message: types.Message):
     logger.info(f"User {username} added to whitelist by {message.from_user.username}.")
 
 
-@router.message(Command('removewhitelist'))
+@router.message(Command(commands=['removewhitelist', 'removew']))
 async def remove_from_whitelist(message: types.Message):
     if not await UserManager.is_user_admin(message.from_user.username) and not await UserManager.is_user_moderator(
             message.from_user.username,
@@ -156,7 +151,7 @@ async def remove_from_whitelist(message: types.Message):
     logger.info(f"User {username} removed from whitelist by {message.from_user.username}.")
 
 
-@router.message(Command('updatewhitelist'))
+@router.message(Command(commands=['updatewhitelist', 'updatew']))
 async def update_whitelist(message: types.Message):
     if not await UserManager.is_user_admin(message.from_user.username) and not await UserManager.is_user_moderator(
             message.from_user.username,
@@ -189,7 +184,7 @@ async def update_whitelist(message: types.Message):
     logger.info(f"User {username} updated by {message.from_user.username}.")
 
 
-@router.message(Command('listwhitelist'))
+@router.message(Command(commands=['listwhitelist', 'listw']))
 async def list_whitelist(message: types.Message):
     if not await UserManager.is_user_admin(message.from_user.username) and not await UserManager.is_user_moderator(
             message.from_user.username,
@@ -213,7 +208,7 @@ async def list_whitelist(message: types.Message):
     logger.info("Whitelist sent to user.")
 
 
-@router.message(Command('listadmins'))
+@router.message(Command(commands=['listadmins', 'listad']))
 async def list_admins(message: types.Message):
     if not await UserManager.is_user_admin(message.from_user.username) and not await UserManager.is_user_moderator(
             message.from_user.username,
@@ -236,7 +231,7 @@ async def list_admins(message: types.Message):
     logger.info("Admin list sent to user.")
 
 
-@router.message(Command('listmoderators'))
+@router.message(Command(commands=['listmoderators', 'listmod']))
 async def list_moderators(message: types.Message):
     if not await UserManager.is_user_admin(message.from_user.username) and not await UserManager.is_user_moderator(
             message.from_user.username,
@@ -259,7 +254,7 @@ async def list_moderators(message: types.Message):
     logger.info("Moderator list sent to user.")
 
 
-@router.message(Command('addsubscription'))
+@router.message(Command(commands=['addsubscription', 'addsub']))
 async def add_subscription_command(message: types.Message):
     if not await UserManager.is_user_admin(message.from_user.username):
         await message.answer("❌ Nie masz uprawnień do zarządzania subskrypcjami.❌ ")
@@ -280,7 +275,7 @@ async def add_subscription_command(message: types.Message):
     logger.info(f"Subscription for user {username} extended by {message.from_user.username}.")
 
 
-@router.message(Command('removesubscription'))
+@router.message(Command(commands=['removesubscription', 'removesub']))
 async def remove_subscription_command(message: types.Message):
     if not await UserManager.is_user_admin(message.from_user.username):
         await message.answer("❌ Nie masz uprawnień do zarządzania subskrypcjami.❌")
@@ -300,7 +295,7 @@ async def remove_subscription_command(message: types.Message):
     logger.info(f"Subscription for user {username} removed by {message.from_user.username}.")
 
 
-@router.message(Command('transkrypcja'))
+@router.message(Command(commands=['transkrypcja', 'trans']))
 async def handle_transcription_request(message: types.Message):
     if not await UserManager.is_user_admin(message.from_user.username) and not await UserManager.is_user_moderator(
             message.from_user.username,
@@ -318,8 +313,9 @@ async def handle_transcription_request(message: types.Message):
     quote = ' '.join(content[1:])
     logger.info(f"Searching transcription for quote: '{quote}'")
 
-    context_size = 30
-    result = await find_segment_with_context(quote, context_size)
+    search_transcriptions = SearchTranscriptions(router)
+    context_size = 15
+    result = await search_transcriptions.find_segment_with_context(quote, context_size)
 
     if not result:
         await message.answer("❌ Nie znaleziono pasujących segmentów.❌")
@@ -328,11 +324,12 @@ async def handle_transcription_request(message: types.Message):
 
     context_segments = result['context']
 
-    response = f"🔍 Transkrypcja dla cytatu: '{quote}'\n\n"
+    response = f"🔍 Transkrypcja dla cytatu: \"{quote}\"\n\n```\n"
     for segment in context_segments:
-        response += f"🆔 ID: {segment['id']} - {segment['text']}\n"
+        response += f"🆔 {segment['id']} - {segment['text']}\n"
+    response += "```"
 
-    await message.answer(response)
+    await message.answer(response, parse_mode='Markdown')
     logger.info(f"Transcription for quote '{quote}' sent to user '{message.from_user.username}'.")
 
 
