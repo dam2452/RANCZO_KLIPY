@@ -41,8 +41,14 @@ async def save_user_clip(message: types.Message, bot: Bot):
             return
 
         segment_info = last_selected_segment.get(chat_id) or last_compiled_clip.get(chat_id)
-        logger.info(f"Segment Info: {segment_info}")
-        await DatabaseManager.log_system_message("INFO", f"Segment Info: {segment_info}")
+
+        # Log relevant segment information, avoiding binary data
+        if 'episode_info' in segment_info:
+            logger.info(f"Segment Info: {segment_info['episode_info']}")
+            await DatabaseManager.log_system_message("INFO", f"Segment Info: {segment_info['episode_info']}")
+        else:
+            logger.info("Segment Info: Compiled clip without episode info")
+            await DatabaseManager.log_system_message("INFO", "Segment Info: Compiled clip without episode info")
 
         start_time = 0
         end_time = 0
@@ -67,10 +73,10 @@ async def save_user_clip(message: types.Message, bot: Bot):
                     f.write(expanded_clip)
                 else:
                     f.write(expanded_clip.getvalue())
-            start_time = segment_info['expanded_start']
-            end_time = segment_info['expanded_end']
-            season = segment_info['episode_info']['season']
-            episode_number = segment_info['episode_info']['episode_number']
+            start_time = segment_info.get('expanded_start', 0)
+            end_time = segment_info.get('expanded_end', 0)
+            season = segment_info.get('episode_info', {}).get('season')
+            episode_number = segment_info.get('episode_info', {}).get('episode_number')
         else:
             segment = segment_info
             clip_path = segment['video_path']
