@@ -9,6 +9,7 @@ from elasticsearch import (
 import urllib3
 
 from bot.settings import settings
+from bot.utils.database import DatabaseManager
 
 # Configure basic logging settings
 logging.basicConfig(level=logging.INFO)
@@ -21,7 +22,6 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 es_host = settings.ES_HOST
 es_username = settings.ES_USERNAME
 es_password = settings.ES_PASSWORD
-
 
 async def connect_to_elasticsearch():
     """
@@ -36,11 +36,12 @@ async def connect_to_elasticsearch():
         if not await es.ping():
             raise ValueError("Failed to connect to Elasticsearch.")
         logger.info("Connected to Elasticsearch.")
+        await DatabaseManager.log_system_message("INFO", "Connected to Elasticsearch.")
         return es
     except Exception as e:
         logger.error(f"Connection to Elasticsearch failed: {e}")
+        await DatabaseManager.log_system_message("ERROR", f"Connection to Elasticsearch failed: {e}")
         return None
-
 
 async def delete_all_indices(es):
     """
@@ -50,15 +51,18 @@ async def delete_all_indices(es):
         all_indices = await es.indices.get(index="_all")
         if not all_indices:
             logger.info("No indices to delete.")
+            await DatabaseManager.log_system_message("INFO", "No indices to delete.")
             return
 
         for index in all_indices:
             await es.indices.delete(index=index)
             logger.info(f"Deleted index: {index}")
+            await DatabaseManager.log_system_message("INFO", f"Deleted index: {index}")
         logger.info("All indices have been deleted.")
+        await DatabaseManager.log_system_message("INFO", "All indices have been deleted.")
     except Exception as e:
         logger.error(f"Error deleting indices: {e}")
-
+        await DatabaseManager.log_system_message("ERROR", f"Error deleting indices: {e}")
 
 async def index_transcriptions(base_path, es):
     """
@@ -72,6 +76,7 @@ async def index_transcriptions(base_path, es):
                 if episode_file.endswith('.json'):
                     file_path = os.path.join(season_path, episode_file)
                     logger.info(f"Processing file: {file_path}")
+                    await DatabaseManager.log_system_message("INFO", f"Processing file: {file_path}")
 
                     with open(file_path, 'r', encoding='utf-8') as f:
                         data = json.load(f)
@@ -92,11 +97,13 @@ async def index_transcriptions(base_path, es):
 
     if actions:
         logger.info(f"Indexing {len(actions)} segments.")
+        await DatabaseManager.log_system_message("INFO", f"Indexing {len(actions)} segments.")
         await helpers.async_bulk(es, actions)
         logger.info("Data indexed successfully.")
+        await DatabaseManager.log_system_message("INFO", "Data indexed successfully.")
     else:
         logger.info("No data to index.")
-
+        await DatabaseManager.log_system_message("INFO", "No data to index.")
 
 async def print_one_transcription(es, index="ranczo-transcriptions"):
     """
@@ -116,26 +123,26 @@ async def print_one_transcription(es, index="ranczo-transcriptions"):
                               f"Timestamp: {document.get('timestamp', 'No timestamp available')}"
             logger.info("Retrieved document:")
             print(readable_output)
+            await DatabaseManager.log_system_message("INFO", "Retrieved document:\n" + readable_output)
         else:
             logger.info("No documents found.")
+            await DatabaseManager.log_system_message("INFO", "No documents found.")
     except Exception as e:
         logger.error(f"Error retrieving document: {e}")
-
+        await DatabaseManager.log_system_message("ERROR", f"Error retrieving document: {e}")
 
 async def main():
     es_client = await connect_to_elasticsearch()
     if es_client:
         try:
-            # Uncomment the following line if you need to delete all indices before indexing
+            #Uncomment the following line if you need to delete all indices before indexing
             await delete_all_indices(es_client)
             await index_transcriptions(base_path="../RANCZO-TRANSKRYPCJE", es=es_client)
-            # Print one transcription document
+            #Print one transcription document
             await print_one_transcription(es_client)
         finally:
             await es_client.close()  # Ensure the client is closed after use
 
-
 if __name__ == "__main__":
     import asyncio
-
     asyncio.run(main())

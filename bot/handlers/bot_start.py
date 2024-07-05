@@ -10,6 +10,7 @@ from aiogram.filters import Command
 
 from bot.middlewares.auth_middleware import AuthorizationMiddleware
 from bot.middlewares.error_middleware import ErrorHandlerMiddleware
+from bot.utils.database import DatabaseManager
 
 logger = logging.getLogger(__name__)
 router = Router()
@@ -32,6 +33,8 @@ Aby uzyskać pełną listę komend, użyj /start lista.
 ```"""
             await message.answer(basic_message, parse_mode='Markdown')
             logger.info(f"Basic start message sent to user '{username}'.")
+            await DatabaseManager.log_user_activity(username, "/start")
+            await DatabaseManager.log_system_message("INFO", f"Basic start message sent to user '{username}'.")
 
         elif len(content) == 2 and content[1] == 'lista':
             lista_message = """```🐐RanczoKlipy-Działy_Komend🐐
@@ -57,6 +60,8 @@ Aby uzyskać pełną listę komend, użyj /start lista.
 ```"""
             await message.answer(lista_message, parse_mode='Markdown')
             logger.info(f"List of sections sent to user '{username}'.")
+            await DatabaseManager.log_user_activity(username, "/start lista")
+            await DatabaseManager.log_system_message("INFO", f"List of sections sent to user '{username}'.")
 
         elif len(content) == 2 and content[1] == 'all':
             full_message = """```🐐Witaj_w_RanczoKlipy!🐐
@@ -100,6 +105,8 @@ Aby uzyskać pełną listę komend, użyj /start lista.
 ```"""
             await message.answer(full_message, parse_mode='Markdown')
             logger.info(f"Full start message sent to user '{username}'.")
+            await DatabaseManager.log_user_activity(username, "/start all")
+            await DatabaseManager.log_system_message("INFO", f"Full start message sent to user '{username}'.")
 
         elif len(content) == 2 and content[1] == 'wyszukiwanie':
             wyszukiwanie_message = """```🐐RanczoKlipy-Wyszukiwanie_klipów🐐
@@ -113,6 +120,8 @@ Aby uzyskać pełną listę komend, użyj /start lista.
 ```"""
             await message.answer(wyszukiwanie_message, parse_mode='Markdown')
             logger.info(f"Wyszukiwanie klipów message sent to user '{username}'.")
+            await DatabaseManager.log_user_activity(username, "/start wyszukiwanie")
+            await DatabaseManager.log_system_message("INFO", f"Wyszukiwanie klipów message sent to user '{username}'.")
 
         elif len(content) == 2 and content[1] == 'edycja':
             edycja_message = """```🐐RanczoKlipy-Edycja_klipów🐐
@@ -127,6 +136,8 @@ Aby uzyskać pełną listę komend, użyj /start lista.
 ```"""
             await message.answer(edycja_message, parse_mode='Markdown')
             logger.info(f"Edycja klipów message sent to user '{username}'.")
+            await DatabaseManager.log_user_activity(username, "/start edycja")
+            await DatabaseManager.log_system_message("INFO", f"Edycja klipów message sent to user '{username}'.")
 
         elif len(content) == 2 and content[1] == 'zarządzanie':
             zarzadzanie_message = """```🐐RanczoKlipy-Zarządzanie_zapisanymi_klipami🐐
@@ -141,6 +152,8 @@ Aby uzyskać pełną listę komend, użyj /start lista.
 ```"""
             await message.answer(zarzadzanie_message, parse_mode='Markdown')
             logger.info(f"Zarządzanie zapisanymi klipami message sent to user '{username}'.")
+            await DatabaseManager.log_user_activity(username, "/start zarządzanie")
+            await DatabaseManager.log_system_message("INFO", f"Zarządzanie zapisanymi klipami message sent to user '{username}'.")
 
         elif len(content) == 2 and content[1] == 'raportowanie':
             raportowanie_message = """```🐐RanczoKlipy-Raportowanie_błędów🐐
@@ -151,6 +164,8 @@ Aby uzyskać pełną listę komend, użyj /start lista.
 ```"""
             await message.answer(raportowanie_message, parse_mode='Markdown')
             logger.info(f"Raportowanie błędów message sent to user '{username}'.")
+            await DatabaseManager.log_user_activity(username, "/start raportowanie")
+            await DatabaseManager.log_system_message("INFO", f"Raportowanie błędów message sent to user '{username}'.")
 
         elif len(content) == 2 and content[1] == 'subskrypcje':
             subskrypcje_message = """```🐐RanczoKlipy-Subskrypcje🐐
@@ -161,10 +176,13 @@ Aby uzyskać pełną listę komend, użyj /start lista.
 ```"""
             await message.answer(subskrypcje_message, parse_mode='Markdown')
             logger.info(f"Subskrypcje message sent to user '{username}'.")
+            await DatabaseManager.log_user_activity(username, "/start subskrypcje")
+            await DatabaseManager.log_system_message("INFO", f"Subskrypcje message sent to user '{username}'.")
 
     except Exception as e:
         logger.error(f"Error in handle_start for user '{message.from_user.username}': {e}", exc_info=True)
         await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania. Prosimy spróbować ponownie później.")
+        await DatabaseManager.log_system_message("ERROR", f"Error in handle_start for user '{message.from_user.username}': {e}")
 
 
 def register_start_command(dispatcher: Dispatcher):

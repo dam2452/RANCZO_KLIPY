@@ -27,6 +27,9 @@ class Settings(BaseSettings):
     ES_USERNAME: str = Field(..., env='ES_USERNAME')
     ES_PASSWORD: str = Field(..., env='ES_PASSWORD')
 
+    EXTEND_BEFORE: int = Field(5, env='EXTEND_BEFORE')
+    EXTEND_AFTER: int = Field(5, env='EXTEND_AFTER')
+
     class Config:
         env_file = env_path
 
@@ -45,3 +48,6 @@ POSTGRES_PASSWORD = settings.POSTGRES_PASSWORD
 POSTGRES_HOST = settings.POSTGRES_HOST
 POSTGRES_PORT = settings.POSTGRES_PORT
 POSTGRES_DB = settings.POSTGRES_DB
+
+EXTEND_BEFORE = settings.EXTEND_BEFORE
+EXTEND_AFTER = settings.EXTEND_AFTER

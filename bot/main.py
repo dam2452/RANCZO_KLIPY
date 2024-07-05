@@ -9,14 +9,27 @@ from aiogram import (
 from aiogram.fsm.storage.memory import MemoryStorage
 
 from bot.handlers import register_handlers
-from bot.middlewares.auth_middleware import AuthorizationMiddleware
-from bot.middlewares.error_middleware import ErrorHandlerMiddleware
+from bot.middlewares.auth_middleware import AuthorizationMiddleware  # Import AuthorizationMiddleware
+from bot.middlewares.error_middleware import ErrorHandlerMiddleware  # Import ErrorHandlerMiddleware
 from bot.settings import settings
 from bot.utils.database import DatabaseManager
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+class DBLogHandler(logging.Handler):
+    def __init__(self):
+        super().__init__()
+        self.loop = None
+
+    def emit(self, record):
+        if self.loop is not None:
+            self.loop.create_task(self.log_to_db(record))
+
+    async def log_to_db(self, record):
+        log_message = self.format(record)
+        await DatabaseManager.log_system_message(record.levelname, log_message)
 
 # Initialize bot and dispatcher
 bot = Bot(token=settings.TELEGRAM_BOT_TOKEN)
@@ -25,7 +38,6 @@ dp = Dispatcher(storage=MemoryStorage())
 # Add middlewares
 dp.update.middleware(AuthorizationMiddleware())  # Register AuthorizationMiddleware
 dp.update.middleware(ErrorHandlerMiddleware())  # Register ErrorHandlerMiddleware
-
 
 async def on_startup():
     try:
@@ -43,7 +55,6 @@ async def on_startup():
     except Exception as e:
         logger.error(f"❌ Failed to register handlers: {e} ❌")
 
-
 async def main():
     try:
         await on_startup()
@@ -52,6 +63,9 @@ async def main():
     except Exception as e:
         logger.error(f"❌ Bot encountered an error: {e} ❌")
 
-
 if __name__ == "__main__":
+    loop = asyncio.get_event_loop()
+    db_log_handler = DBLogHandler()
+    db_log_handler.loop = loop
+    logging.getLogger().addHandler(db_log_handler)
     asyncio.run(main())

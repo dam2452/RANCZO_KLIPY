@@ -10,6 +10,7 @@ from aiogram.filters import Command
 
 from bot.middlewares.auth_middleware import AuthorizationMiddleware
 from bot.middlewares.error_middleware import ErrorHandlerMiddleware
+from bot.utils.database import DatabaseManager
 from bot.utils.transcription_search import SearchTranscriptions
 
 logger = logging.getLogger(__name__)
@@ -27,19 +28,24 @@ async def handle_search_request(message: types.Message, bot: Bot):
         if len(content) < 2:
             await message.answer("🔍 Podaj cytat, który chcesz znaleźć. Przykład: /szukaj geniusz")
             logger.info("No search quote provided by user.")
+            await DatabaseManager.log_system_message("INFO", "No search quote provided by user.")
             return
 
         quote = ' '.join(content[1:])
         last_search_terms[chat_id] = quote  # Store the search term
         logger.info(f"User '{message.from_user.username}' is searching for quote: '{quote}'")
+        await DatabaseManager.log_user_activity(message.from_user.username, f"/szukaj {quote}")
+        await DatabaseManager.log_system_message("INFO", f"User '{message.from_user.username}' is searching for quote: '{quote}'")
 
         search_transcriptions = SearchTranscriptions(router)
         segments = await search_transcriptions.find_segment_by_quote(quote, return_all=True)
         logger.info(f"Segments found for quote '{quote}': {segments}")
+        await DatabaseManager.log_system_message("INFO", f"Segments found for quote '{quote}': {segments}")
 
         if not segments:
             await message.answer("❌ Nie znaleziono pasujących cytatów.❌")
             logger.info(f"No segments found for quote: '{quote}'")
+            await DatabaseManager.log_system_message("INFO", f"No segments found for quote: '{quote}'")
             return
 
         unique_segments = {}
@@ -86,10 +92,12 @@ async def handle_search_request(message: types.Message, bot: Bot):
 
         await message.answer(response, parse_mode='Markdown')
         logger.info(f"Search results for quote '{quote}' sent to user '{message.from_user.username}'.")
+        await DatabaseManager.log_system_message("INFO", f"Search results for quote '{quote}' sent to user '{message.from_user.username}'.")
 
     except Exception as e:
         logger.error(f"Error in handle_search_request for user '{message.from_user.username}': {e}", exc_info=True)
         await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania. Prosimy spróbować ponownie później.⚠️")
+        await DatabaseManager.log_system_message("ERROR", f"Error in handle_search_request for user '{message.from_user.username}': {e}")
 
 
 def register_search_command(dispatcher: Dispatcher):

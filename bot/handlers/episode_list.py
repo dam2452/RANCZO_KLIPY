@@ -8,18 +8,19 @@ from aiogram import (
 )
 from aiogram.filters import Command
 
+from bot.middlewares.auth_middleware import AuthorizationMiddleware
+from bot.middlewares.error_middleware import ErrorHandlerMiddleware
+from bot.utils.database import DatabaseManager
 from bot.utils.transcription_search import SearchTranscriptions
 
 logger = logging.getLogger(__name__)
 router = Router()
-
 
 def adjust_episode_number(absolute_episode):
     """ Adjust the absolute episode number to season and episode format """
     season = (absolute_episode - 1) // 13 + 1
     episode = (absolute_episode - 1) % 13 + 1
     return season, episode
-
 
 def split_message(message, max_length=4096):
     """ Splits a message into chunks to fit within the Telegram message length limit """
@@ -33,7 +34,6 @@ def split_message(message, max_length=4096):
     parts.append(message)
     return parts
 
-
 @router.message(Command(commands=['odcinki', 'episodes', 'o']))
 async def handle_episode_list_command(message: types.Message, bot: Bot):
     try:
@@ -44,6 +44,7 @@ async def handle_episode_list_command(message: types.Message, bot: Bot):
                 "📋 Podaj poprawną komendę w formacie: /listaodcinków <sezon>. Przykład: /listaodcinków 2",
             )
             logger.info("Incorrect command format provided by user.")
+            await DatabaseManager.log_system_message("INFO", "Incorrect command format provided by user.")
             return
 
         season = int(content[1])
@@ -53,6 +54,7 @@ async def handle_episode_list_command(message: types.Message, bot: Bot):
         if not episodes:
             await message.answer(f"❌ Nie znaleziono odcinków dla sezonu {season}.")
             logger.info(f"No episodes found for season {season}.")
+            await DatabaseManager.log_system_message("INFO", f"No episodes found for season {season}.")
             return
 
         response = f"📃 Lista odcinków dla sezonu {season}:\n\n```\n"
@@ -60,7 +62,7 @@ async def handle_episode_list_command(message: types.Message, bot: Bot):
             absolute_episode_number = episode['episode_number'] % 13
             if absolute_episode_number == 0:
                 absolute_episode_number = 13
-            adjust_episode_number(absolute_episode_number)
+            adjusted_season, adjusted_episode_number = adjust_episode_number(absolute_episode_number)
             formatted_viewership = f"{episode['viewership']:,}".replace(',', '.')
 
             response += f"🎬 {episode['title']}: S{season:02d}E{absolute_episode_number:02d} ({episode['episode_number']}) \n"
@@ -73,12 +75,18 @@ async def handle_episode_list_command(message: types.Message, bot: Bot):
         for part in response_parts:
             await message.answer(part + "```", parse_mode="Markdown")
 
-        logger.info(f"Sent episode list for season {season} to user.")
+        logger.info(f"Sent episode list for season {season} to user '{message.from_user.username}'.")
+        await DatabaseManager.log_user_activity(message.from_user.username, f"/odcinki {season}")
+        await DatabaseManager.log_system_message("INFO", f"Sent episode list for season {season} to user '{message.from_user.username}'.")
 
     except Exception as e:
         logger.error(f"An error occurred while handling episode list command: {e}", exc_info=True)
         await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania. Prosimy spróbować ponownie później.")
-
+        await DatabaseManager.log_system_message("ERROR", f"An error occurred while handling episode list command: {e}")
 
 def register_episode_list_handler(dispatcher: Dispatcher):
     dispatcher.include_router(router)
+
+# Ustawienie middleware'ów
+router.message.middleware(AuthorizationMiddleware())
+router.message.middleware(ErrorHandlerMiddleware())

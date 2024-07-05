@@ -1,17 +1,19 @@
 import asyncio
 import logging
 import subprocess
-from typing import Optional
 
 import ffmpeg
 
-logger = logging.getLogger(__name__)
+from bot.utils.database import DatabaseManager
 
+logger = logging.getLogger(__name__)
 
 class VideoProcessor:
     @staticmethod
-    async def extract_clip(video_path: str, start_time: float, end_time: float, output_filename: str):
+    async def extract_clip(video_path: str, start_time: int, end_time: int, output_filename: str):
         duration = end_time - start_time
+        logger.info(f"Extracting clip from {video_path}, start: {start_time}, end: {end_time}, duration: {duration}")
+        await DatabaseManager.log_system_message("INFO", f"Extracting clip from {video_path}, start: {start_time}, end: {end_time}, duration: {duration}")
 
         command = [
             'ffmpeg',
@@ -31,11 +33,16 @@ class VideoProcessor:
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
-        _, stderr = await process.communicate()
+        stdout, stderr = await process.communicate()
         if process.returncode != 0:
-            logger.error(f"FFmpeg error: {stderr.decode()}")
-            raise Exception(f"❌ Błąd FFmpeg: {stderr.decode()}")
-        logger.info(f"Clip extracted successfully: {output_filename}")
+            error_message = f"❌ Błąd FFmpeg: {stderr.decode()}"
+            logger.error(error_message)
+            await DatabaseManager.log_system_message("ERROR", error_message)
+            raise Exception(error_message)
+
+        success_message = f"Clip extracted successfully: {output_filename}"
+        logger.info(success_message)
+        await DatabaseManager.log_system_message("INFO", success_message)
 
     @staticmethod
     def convert_seconds_to_time_str(seconds: int) -> str:
@@ -50,12 +57,15 @@ class VideoProcessor:
         return h * 3600 + m * 60 + s
 
     @staticmethod
-    def get_video_duration(file_path: str) -> Optional[float]:
+    async def get_video_duration(file_path: str) -> float:
         try:
             probe = ffmpeg.probe(file_path)
             duration = float(probe['format']['duration'])
             logger.info(f"Video duration for '{file_path}': {duration} seconds")
+            await DatabaseManager.log_system_message("INFO", f"Video duration for '{file_path}': {duration} seconds")
             return duration
         except ffmpeg.Error as e:
-            logger.error(f"Error getting video duration for '{file_path}': {e}")
+            error_message = f"Error getting video duration for '{file_path}': {e}"
+            logger.error(error_message)
+            await DatabaseManager.log_system_message("ERROR", error_message)
             return None

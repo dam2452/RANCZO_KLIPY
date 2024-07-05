@@ -1,10 +1,14 @@
 import logging
 
 from aiogram import BaseMiddleware
-from aiogram.types import Message
+from aiogram.types import (
+    Message,
+    Update,
+)
+
+from bot.utils.database import DatabaseManager
 
 logger = logging.getLogger(__name__)
-
 
 class ErrorHandlerMiddleware(BaseMiddleware):
     async def __call__(self, handler, event, data):
@@ -13,7 +17,9 @@ class ErrorHandlerMiddleware(BaseMiddleware):
         except Exception as e:
             message = event if isinstance(event, Message) else None
             if message:
-                await message.answer(
-                    "⚠️ Wystąpił błąd podczas przetwarzania Twojego żądania. Prosimy spróbować ponownie później.⚠️",
-                )
-            logger.error(f"An error occurred: {e}", exc_info=True)
+                await message.answer("⚠️ Wystąpił błąd podczas przetwarzania Twojego żądania. Prosimy spróbować ponownie później.⚠️")
+                await DatabaseManager.log_system_message("ERROR", f"Error processing request from user '{message.from_user.username}': {e}")
+
+            error_message = f"An error occurred: {e}"
+            logger.error(error_message, exc_info=True)
+            await DatabaseManager.log_system_message("ERROR", error_message)

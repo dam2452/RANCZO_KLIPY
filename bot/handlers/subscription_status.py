@@ -16,7 +16,6 @@ from bot.utils.database import DatabaseManager
 logger = logging.getLogger(__name__)
 router = Router()
 
-
 class UserManager:
     @staticmethod
     async def get_subscription_status(username: str):
@@ -25,7 +24,6 @@ class UserManager:
             return None
         days_remaining = (subscription_end - date.today()).days
         return subscription_end, days_remaining
-
 
 @router.message(Command(commands=['subskrypcja', 'sub', 's']))
 async def check_subscription(message: types.Message, bot: Bot):
@@ -36,6 +34,7 @@ async def check_subscription(message: types.Message, bot: Bot):
         if subscription_status is None:
             await message.answer("🚫 Nie masz aktywnej subskrypcji.🚫")
             logger.info(f"No active subscription found for user '{username}'.")
+            await DatabaseManager.log_system_message("INFO", f"No active subscription found for user '{username}'.")
             return
 
         subscription_end, days_remaining = subscription_status
@@ -50,15 +49,15 @@ Dzięki za wsparcie projektu! 🎉
 """
         await message.answer(response, parse_mode='Markdown')
         logger.info(f"Subscription status sent to user '{username}'.")
+        await DatabaseManager.log_system_message("INFO", f"Subscription status sent to user '{username}'.")
 
     except Exception as e:
         logger.error(f"Error in check_subscription for user '{message.from_user.username}': {e}", exc_info=True)
         await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania. Prosimy spróbować ponownie później.⚠️")
-
+        await DatabaseManager.log_system_message("ERROR", f"Error in check_subscription for user '{message.from_user.username}': {e}")
 
 def register_subscription_handler(dispatcher: Dispatcher):
     dispatcher.include_router(router)
-
 
 # Ustawienie middleware'ów
 router.message.middleware(AuthorizationMiddleware())
