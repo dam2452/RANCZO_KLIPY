@@ -70,12 +70,10 @@ async def save_user_clip(message: types.Message, bot: Bot):
             season = segment['episode_info']['season']
             episode_number = segment['episode_info']['episode_number']
 
-            # Extract the clip
             video_manager = VideoManager(bot)
             output_filename = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4").name
             await VideoProcessor.extract_clip(clip_path, start_time, end_time, output_filename)
 
-        # Verify the video length using ffmpeg-python
         actual_duration = await VideoProcessor.get_video_duration(output_filename)
         if actual_duration is None:
             await message.answer("❌ Nie udało się zweryfikować długości klipu.❌")
@@ -86,14 +84,11 @@ async def save_user_clip(message: types.Message, bot: Bot):
 
         end_time = start_time + int(actual_duration)
 
-        # Read the extracted clip data
         with open(output_filename, 'rb') as file:
             video_data = file.read()
 
-        # Remove the temporary file
         os.remove(output_filename)
 
-        # Save the clip to the database
         await DatabaseManager.save_clip(
             chat_id=chat_id,
             username=username,

@@ -11,7 +11,6 @@ from bot.settings import EXTEND_BEFORE, EXTEND_AFTER
 logger = logging.getLogger(__name__)
 router = Router()
 
-
 # Definicja last_selected_segment
 last_selected_segment = {}
 
@@ -29,7 +28,6 @@ async def handle_clip_request(message: types.Message, bot: Bot):
         logger.info(f"User '{message.from_user.username}' is searching for quote: '{quote}'")
         await DatabaseManager.log_user_activity(message.from_user.username, f"/klip {quote}")
 
-        # Korzystanie z SearchTranscriptions
         search_transcriptions = SearchTranscriptions(router)
         segments = await search_transcriptions.find_segment_by_quote(quote, return_all=False)
         logger.info(f"Segments found for quote '{quote}': {segments}")
@@ -41,7 +39,7 @@ async def handle_clip_request(message: types.Message, bot: Bot):
             await DatabaseManager.log_system_message("INFO", f"No segments found for quote: '{quote}'")
             return
 
-        segment = segments[0] if isinstance(segments, list) else segments  # Handle dictionary response
+        segment = segments[0] if isinstance(segments, list) else segments
         video_path = segment['video_path']
         start_time = max(0, segment['start'] - EXTEND_BEFORE)
         end_time = segment['end'] + EXTEND_AFTER
@@ -49,7 +47,6 @@ async def handle_clip_request(message: types.Message, bot: Bot):
         video_manager = VideoManager(bot)
         await video_manager.extract_and_send_clip(message.chat.id, video_path, start_time, end_time)
 
-        # Zapisz segment jako ostatnio wybrany
         last_selected_segment[message.chat.id] = segment
         logger.info(f"Segment saved as last selected for chat ID '{message.chat.id}'")
         await DatabaseManager.log_system_message("INFO", f"Segment saved as last selected for chat ID '{message.chat.id}'")
