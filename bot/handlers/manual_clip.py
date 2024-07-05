@@ -12,6 +12,8 @@ from bot.middlewares.error_middleware import ErrorHandlerMiddleware
 logger = logging.getLogger(__name__)
 router = Router()
 
+last_manual_clip = {}  # Dictionary to store the last manual clip per chat ID
+
 def minutes_str_to_seconds(time_str):
     """ Convert time string in the format MM:SS.ms to seconds """
     try:
@@ -83,10 +85,21 @@ async def handle_manual_command(message: types.Message, bot: Bot):
             return
 
         # Extract and send clip using VideoManager
-        await video_manager.extract_and_send_clip(message.chat.id, video_path, start_seconds, end_seconds)
+        clip_path = await video_manager.extract_and_send_clip(message.chat.id, video_path, start_seconds, end_seconds)
         logger.info(f"Clip extracted and sent for command: /manual {episode} {start_time} {end_time}")
         await DatabaseManager.log_user_activity(message.from_user.username, f"/manual {episode} {start_time} {end_time}")
         await DatabaseManager.log_system_message("INFO", f"Clip extracted and sent for command: /manual {episode} {start_time} {end_time}")
+
+        # Save the clip information to last_manual_clip
+        last_manual_clip[message.chat.id] = {
+            'video_path': video_path,
+            'start': start_seconds,
+            'end': end_seconds,
+            'episode_info': {
+                'season': season,
+                'episode_number': episode_number
+            }
+        }
 
     except Exception as e:
         logger.error(f"An error occurred while handling manual command: {e}", exc_info=True)

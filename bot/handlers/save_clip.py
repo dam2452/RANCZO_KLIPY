@@ -6,6 +6,7 @@ from aiogram.filters import Command
 from bot.utils.database import DatabaseManager
 from bot.handlers.handle_clip import last_selected_segment
 from bot.handlers.compile_selected import last_compiled_clip
+from bot.handlers.manual_clip import last_manual_clip
 from bot.utils.video_handler import VideoManager, VideoProcessor
 from bot.middlewares.error_middleware import ErrorHandlerMiddleware
 from bot.middlewares.auth_middleware import AuthorizationMiddleware
@@ -34,27 +35,28 @@ async def save_user_clip(message: types.Message, bot: Bot):
             await DatabaseManager.log_system_message("INFO", f"Clip name '{clip_name}' already exists for user '{username}'.")
             return
 
-        if chat_id not in last_selected_segment and chat_id not in last_compiled_clip:
-            await message.answer("⚠️ Najpierw wybierz segment za pomocą /klip lub skompiluj klipy za pomocą /polaczklipy.⚠️")
-            logger.info("No segment selected or compiled clip available for user.")
-            await DatabaseManager.log_system_message("INFO", "No segment selected or compiled clip available for user.")
+        if chat_id not in last_selected_segment and chat_id not in last_compiled_clip and chat_id not in last_manual_clip:
+            await message.answer("⚠️ Najpierw wybierz segment za pomocą /klip, /wytnij lub skompiluj klipy za pomocą /polaczklipy.⚠️")
+            logger.info("No segment selected, manual clip, or compiled clip available for user.")
+            await DatabaseManager.log_system_message("INFO", "No segment selected, manual clip, or compiled clip available for user.")
             return
 
-        segment_info = last_selected_segment.get(chat_id) or last_compiled_clip.get(chat_id)
+        segment_info = last_selected_segment.get(chat_id) or last_compiled_clip.get(chat_id) or last_manual_clip.get(chat_id)
 
         # Log relevant segment information, avoiding binary data
         if 'episode_info' in segment_info:
             logger.info(f"Segment Info: {segment_info['episode_info']}")
             await DatabaseManager.log_system_message("INFO", f"Segment Info: {segment_info['episode_info']}")
         else:
-            logger.info("Segment Info: Compiled clip without episode info")
-            await DatabaseManager.log_system_message("INFO", "Segment Info: Compiled clip without episode info")
+            logger.info("Segment Info: Compiled or manual clip without episode info")
+            await DatabaseManager.log_system_message("INFO", "Segment Info: Compiled or manual clip without episode info")
 
         start_time = 0
         end_time = 0
         is_compilation = False
         season = None
         episode_number = None
+        clip_path = None
 
         if 'compiled_clip' in segment_info:
             output_filename = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4").name
@@ -80,7 +82,7 @@ async def save_user_clip(message: types.Message, bot: Bot):
         else:
             segment = segment_info
             clip_path = segment['video_path']
-            start_time = max(0, segment['start'] - EXTEND_BEFORE)
+            start_time = segment['start'] - EXTEND_BEFORE
             end_time = segment['end'] + EXTEND_AFTER
             is_compilation = False
             season = segment['episode_info']['season']
