@@ -36,7 +36,7 @@ async def save_user_clip(message: types.Message, bot: Bot):
             return
 
         if chat_id not in last_selected_segment and chat_id not in last_compiled_clip and chat_id not in last_manual_clip:
-            await message.answer("⚠️ Najpierw wybierz segment za pomocą /klip, /wytnij lub skompiluj klipy za pomocą /polaczklipy.⚠️")
+            await message.answer("⚠️ Najpierw wybierz segment za pomocą /klip, /wytnij lub skompiluj klipy.⚠️")
             logger.info("No segment selected, manual clip, or compiled clip available for user.")
             await DatabaseManager.log_system_message("INFO", "No segment selected, manual clip, or compiled clip available for user.")
             return

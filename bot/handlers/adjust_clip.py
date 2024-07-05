@@ -41,7 +41,7 @@ async def adjust_video_clip(message: types.Message, bot: Bot):
             before_adjustment = float(content[1])
             after_adjustment = float(content[2])
             if chat_id not in last_selected_segment:
-                await message.answer("⚠️ Najpierw wybierz segment za pomocą /klip.⚠️")
+                await message.answer("⚠️ Najpierw wybierz cytat za pomocą /klip.⚠️")
                 logger.info("No segment selected by user.")
                 await DatabaseManager.log_system_message("INFO", "No segment selected by user.")
                 return
