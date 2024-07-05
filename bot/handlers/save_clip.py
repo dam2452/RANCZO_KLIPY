@@ -117,7 +117,7 @@ async def save_user_clip(message: types.Message, bot: Bot):
             episode_number=episode_number
         )
 
-        await message.answer(f"✅ Klip '{clip_name}' został zapisany pomyślnie.")
+        await message.answer(f"✅ Klip '{clip_name}' został zapisany pomyślnie. ✅")
         logger.info(f"Clip '{clip_name}' saved successfully for user '{username}'.")
         await DatabaseManager.log_system_message("INFO", f"Clip '{clip_name}' saved successfully for user '{username}'.")
 
