@@ -36,7 +36,8 @@ async def adjust_video_clip(message: types.Message, bot: Bot):
 
         if len(content) not in (3, 4):
             await message.answer(
-                "📝 Podaj czas w formacie `<float> <float>` lub `<index> <float> <float>`. Przykład: /dostosuj 10.5 -15.2 lub /dostosuj 1 10.5 -15.2")
+                "📝 Podaj czas w formacie `<float> <float>` lub `<index> <float> <float>`. Przykład: /dostosuj 10.5 -15.2 lub /dostosuj 1 10.5 -15.2",
+            )
             logger.info("Invalid number of arguments provided by user.")
             await DatabaseManager.log_system_message("INFO", "Invalid number of arguments provided by user.")
             return
@@ -71,8 +72,7 @@ async def adjust_video_clip(message: types.Message, bot: Bot):
         start_time = original_start_time - before_adjustment
         end_time = original_end_time + after_adjustment
 
-        if start_time < 0:
-            start_time = 0
+        start_time = max(0, start_time)
         if end_time <= start_time:
             await message.answer("⚠️ Czas zakończenia musi być późniejszy niż czas rozpoczęcia.⚠️")
             logger.info("End time must be later than start time.")

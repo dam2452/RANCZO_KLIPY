@@ -95,7 +95,7 @@ async def handle_manual_command(message: types.Message, bot: Bot):
             return
 
         # Extract and send clip using VideoManager
-        clip_path = await video_manager.extract_and_send_clip(message.chat.id, video_path, start_seconds, end_seconds)
+        _ = await video_manager.extract_and_send_clip(message.chat.id, video_path, start_seconds, end_seconds)
         logger.info(f"Clip extracted and sent for command: /manual {episode} {start_time} {end_time}")
         await DatabaseManager.log_user_activity(message.from_user.username, f"/manual {episode} {start_time} {end_time}")
         await DatabaseManager.log_system_message("INFO", f"Clip extracted and sent for command: /manual {episode} {start_time} {end_time}")

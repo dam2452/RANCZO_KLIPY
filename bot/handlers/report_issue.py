@@ -1,4 +1,3 @@
-from datetime import date
 import logging
 
 from aiogram import (

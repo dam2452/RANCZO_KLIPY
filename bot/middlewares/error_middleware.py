@@ -1,10 +1,7 @@
 import logging
 
 from aiogram import BaseMiddleware
-from aiogram.types import (
-    Message,
-    Update,
-)
+from aiogram.types import Message
 
 from bot.utils.database import DatabaseManager
 

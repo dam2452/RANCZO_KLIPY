@@ -23,8 +23,10 @@ async def delete_saved_clip(message: types.Message, bot: Bot):
         if not username or not await DatabaseManager.is_user_authorized(username):
             await message.answer("❌ Nie masz uprawnień do korzystania z tego bota.❌")
             logger.warning("Unauthorized access attempt: Unable to identify user or user not authorized.")
-            await DatabaseManager.log_system_message("WARNING",
-                                                     "Unauthorized access attempt: Unable to identify user or user not authorized.")
+            await DatabaseManager.log_system_message(
+                "WARNING",
+                "Unauthorized access attempt: Unable to identify user or user not authorized.",
+            )
             return
 
         command_parts = message.text.split(maxsplit=1)

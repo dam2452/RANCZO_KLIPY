@@ -50,7 +50,7 @@ async def list_saved_clips(message: types.Message, bot: Bot):
             await DatabaseManager.log_system_message("INFO", f"No saved clips found for user: {username}")
             return
 
-        response = f"🎬 Twoje Zapisane Klipy 🎬\n\n"
+        response = "🎬 Twoje Zapisane Klipy 🎬\n\n"
         response += f"🎥 Użytkownik: @{username}\n\n"
         clip_lines = []
 

@@ -63,7 +63,7 @@ async def compile_selected_clips(message: types.Message, bot: Bot):
         try:
             temp_files = []
             for clip in selected_clips:
-                video_data, start_time, end_time = clip
+                video_data, _, _ = clip
 
                 # Create a temporary segment file
                 temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
@@ -119,8 +119,10 @@ async def compile_selected_clips(message: types.Message, bot: Bot):
     except Exception as e:
         logger.error(f"Error handling /polaczklipy command for user '{message.from_user.username}': {e}", exc_info=True)
         await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania.⚠️")
-        await DatabaseManager.log_system_message("ERROR",
-                                                 f"Error handling /polaczklipy command for user '{message.from_user.username}': {e}")
+        await DatabaseManager.log_system_message(
+            "ERROR",
+            f"Error handling /polaczklipy command for user '{message.from_user.username}': {e}",
+        )
 
 
 def register_compile_selected_clips_command(dispatcher: Dispatcher):

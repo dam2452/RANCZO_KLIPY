@@ -14,8 +14,10 @@ class VideoProcessor:
     async def extract_clip(video_path: str, start_time: int, end_time: int, output_filename: str):
         duration = end_time - start_time
         logger.info(f"Extracting clip from {video_path}, start: {start_time}, end: {end_time}, duration: {duration}")
-        await DatabaseManager.log_system_message("INFO",
-                                                 f"Extracting clip from {video_path}, start: {start_time}, end: {end_time}, duration: {duration}")
+        await DatabaseManager.log_system_message(
+            "INFO",
+            f"Extracting clip from {video_path}, start: {start_time}, end: {end_time}, duration: {duration}",
+        )
 
         command = [
             'ffmpeg',
@@ -35,7 +37,7 @@ class VideoProcessor:
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
-        stdout, stderr = await process.communicate()
+        _, stderr = await process.communicate()
         if process.returncode != 0:
             error_message = f"❌ Błąd FFmpeg: {stderr.decode()}"
             logger.error(error_message)

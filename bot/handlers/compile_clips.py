@@ -31,7 +31,8 @@ async def compile_clips(message: types.Message, bot: Bot):
         content = message.text.split()
         if len(content) < 2:
             await message.answer(
-                "🔄 Proszę podać indeksy segmentów do skompilowania, zakres lub 'wszystko' do kompilacji wszystkich segmentów.")
+                "🔄 Proszę podać indeksy segmentów do skompilowania, zakres lub 'wszystko' do kompilacji wszystkich segmentów.",
+            )
             logger.info("No segments provided by user.")
             await DatabaseManager.log_system_message("INFO", "No segments provided by user.")
             return
@@ -49,7 +50,8 @@ async def compile_clips(message: types.Message, bot: Bot):
             if index.lower() == "wszystko":
                 selected_segments = segments
                 break
-            elif '-' in index:  # Check if it's a range
+
+            if '-' in index:  # Check if it's a range
                 try:
                     start, end = map(int, index.split('-'))
                     selected_segments.extend(segments[start - 1:end])  # Convert to 0-based index and include end

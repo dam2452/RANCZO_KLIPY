@@ -34,8 +34,10 @@ class SearchTranscriptions:
         - None if no matches are found.
         """
         logger.info(f"🔍 Searching for quote: '{quote}' with filters - Season: {season_filter}, Episode: {episode_filter}")
-        await DatabaseManager.log_system_message("INFO",
-                                                 f"Searching for quote: '{quote}' with filters - Season: {season_filter}, Episode: {episode_filter}")
+        await DatabaseManager.log_system_message(
+            "INFO",
+            f"Searching for quote: '{quote}' with filters - Season: {season_filter}, Episode: {episode_filter}",
+        )
         es = await connect_to_elasticsearch()
 
         if not es:
@@ -107,12 +109,17 @@ class SearchTranscriptions:
             await DatabaseManager.log_system_message("ERROR", f"An error occurred while searching for segments: {e}")
             return None
 
-    async def find_segment_with_context(self, quote, context_size=30, season_filter=None, episode_filter=None,
-                                        index='ranczo-transcriptions'):
+    async def find_segment_with_context(
+        self, quote, context_size=30, season_filter=None, episode_filter=None,
+        index='ranczo-transcriptions',
+    ):
         logger.info(
-            f"🔍 Searching for quote: '{quote}' with context size: {context_size}, filters - Season: {season_filter}, Episode: {episode_filter}")
-        await DatabaseManager.log_system_message("INFO",
-                                                 f"Searching for quote: '{quote}' with context size: {context_size}, filters - Season: {season_filter}, Episode: {episode_filter}")
+            f"🔍 Searching for quote: '{quote}' with context size: {context_size}, filters - Season: {season_filter}, Episode: {episode_filter}",
+        )
+        await DatabaseManager.log_system_message(
+            "INFO",
+            f"Searching for quote: '{quote}' with context size: {context_size}, filters - Season: {season_filter}, Episode: {episode_filter}",
+        )
         es = await connect_to_elasticsearch()
 
         if not es:
@@ -215,8 +222,10 @@ class SearchTranscriptions:
         - None if no matches are found.
         """
         logger.info(f"🔍 Searching for video path with filters - Season: {season}, Episode: {episode_number}")
-        await DatabaseManager.log_system_message("INFO",
-                                                 f"Searching for video path with filters - Season: {season}, Episode: {episode_number}")
+        await DatabaseManager.log_system_message(
+            "INFO",
+            f"Searching for video path with filters - Season: {season}, Episode: {episode_number}",
+        )
         es = await connect_to_elasticsearch()
 
         if not es:
@@ -251,10 +260,10 @@ class SearchTranscriptions:
                 logger.info(f"✅ Found video path: {video_path}")
                 await DatabaseManager.log_system_message("INFO", f"Found video path: {video_path}")
                 return video_path
-            else:
-                logger.info("❌ Video path not found in the segment.")
-                await DatabaseManager.log_system_message("INFO", "Video path not found in the segment.")
-                return None
+
+            logger.info("❌ Video path not found in the segment.")
+            await DatabaseManager.log_system_message("INFO", "Video path not found in the segment.")
+            return None
 
         except Exception as e:
             logger.error(f"❌ An error occurred while searching for video path: {e}")

@@ -8,15 +8,13 @@ from aiogram import (
 from aiogram.filters import Command
 from tabulate import tabulate
 
+from bot.middlewares.auth_middleware import AuthorizationMiddleware
+from bot.middlewares.error_middleware import ErrorHandlerMiddleware
 from bot.utils.database import DatabaseManager
 from bot.utils.transcription_search import SearchTranscriptions
 
 logger = logging.getLogger(__name__)
 router = Router()
-
-# Middleware
-from bot.middlewares.auth_middleware import AuthorizationMiddleware
-from bot.middlewares.error_middleware import ErrorHandlerMiddleware
 
 
 # Definicja UserManager dla łatwiejszego dostępu do funkcji zarządzania użytkownikami
@@ -65,7 +63,8 @@ class UserManager:
 @router.message(Command('admin'))
 async def admin_help(message: types.Message):
     if not await UserManager.is_user_admin(message.from_user.username) and not await UserManager.is_user_moderator(
-            message.from_user.username):
+            message.from_user.username,
+    ):
         await message.answer("❌ Nie masz uprawnień do zarządzania whitelistą.❌")
         logger.warning(f"Unauthorized access attempt by user: {message.from_user.username}")
         await DatabaseManager.log_system_message("WARNING", f"Unauthorized access attempt by user: {message.from_user.username}")
@@ -103,7 +102,8 @@ async def admin_help(message: types.Message):
 @router.message(Command(commands=['addwhitelist', 'addw']))
 async def add_to_whitelist(message: types.Message):
     if not await UserManager.is_user_admin(message.from_user.username) and not await UserManager.is_user_moderator(
-            message.from_user.username):
+            message.from_user.username,
+    ):
         await message.answer("❌ Nie masz uprawnień do zarządzania whitelistą.❌")
         logger.warning(f"Unauthorized access attempt by user: {message.from_user.username}")
         await DatabaseManager.log_system_message("WARNING", f"Unauthorized access attempt by user: {message.from_user.username}")
@@ -124,8 +124,10 @@ async def add_to_whitelist(message: types.Message):
         if is_admin or is_moderator:
             await message.answer("❌ Moderator nie może nadawać statusu admina ani moderatora. ❌")
             logger.warning(f"Moderator {message.from_user.username} attempted to assign admin or moderator status.")
-            await DatabaseManager.log_system_message("WARNING",
-                                                     f"Moderator {message.from_user.username} attempted to assign admin or moderator status.")
+            await DatabaseManager.log_system_message(
+                "WARNING",
+                f"Moderator {message.from_user.username} attempted to assign admin or moderator status.",
+            )
             return
 
     full_name = params[3] if len(params) > 3 else None
@@ -140,7 +142,8 @@ async def add_to_whitelist(message: types.Message):
 @router.message(Command(commands=['removewhitelist', 'removew']))
 async def remove_from_whitelist(message: types.Message):
     if not await UserManager.is_user_admin(message.from_user.username) and not await UserManager.is_user_moderator(
-            message.from_user.username):
+            message.from_user.username,
+    ):
         await message.answer("❌ Nie masz uprawnień do zarządzania whitelistą.❌")
         logger.warning(f"Unauthorized access attempt by user: {message.from_user.username}")
         await DatabaseManager.log_system_message("WARNING", f"Unauthorized access attempt by user: {message.from_user.username}")
@@ -163,7 +166,8 @@ async def remove_from_whitelist(message: types.Message):
 @router.message(Command(commands=['updatewhitelist', 'updatew']))
 async def update_whitelist(message: types.Message):
     if not await UserManager.is_user_admin(message.from_user.username) and not await UserManager.is_user_moderator(
-            message.from_user.username):
+            message.from_user.username,
+    ):
         await message.answer("❌ Nie masz uprawnień do zarządzania whitelistą.❌")
         logger.warning(f"Unauthorized access attempt by user: {message.from_user.username}")
         await DatabaseManager.log_system_message("WARNING", f"Unauthorized access attempt by user: {message.from_user.username}")
@@ -184,8 +188,10 @@ async def update_whitelist(message: types.Message):
         if is_admin or is_moderator:
             await message.answer("❌ Moderator nie może nadawać statusu admina ani moderatora.❌")
             logger.warning(f"Moderator {message.from_user.username} attempted to assign admin or moderator status.")
-            await DatabaseManager.log_system_message("WARNING",
-                                                     f"Moderator {message.from_user.username} attempted to assign admin or moderator status.")
+            await DatabaseManager.log_system_message(
+                "WARNING",
+                f"Moderator {message.from_user.username} attempted to assign admin or moderator status.",
+            )
             return
 
     full_name = params[3] if len(params) > 3 else None
@@ -200,7 +206,8 @@ async def update_whitelist(message: types.Message):
 @router.message(Command(commands=['listwhitelist', 'listw']))
 async def list_whitelist(message: types.Message):
     if not await UserManager.is_user_admin(message.from_user.username) and not await UserManager.is_user_moderator(
-            message.from_user.username):
+            message.from_user.username,
+    ):
         await message.answer("❌ Nie masz uprawnień do zarządzania whitelistą.❌")
         logger.warning(f"Unauthorized access attempt by user: {message.from_user.username}")
         await DatabaseManager.log_system_message("WARNING", f"Unauthorized access attempt by user: {message.from_user.username}")
@@ -226,7 +233,8 @@ async def list_whitelist(message: types.Message):
 @router.message(Command(commands=['listadmins', 'listad']))
 async def list_admins(message: types.Message):
     if not await UserManager.is_user_admin(message.from_user.username) and not await UserManager.is_user_moderator(
-            message.from_user.username):
+            message.from_user.username,
+    ):
         await message.answer("❌ Nie masz uprawnień do zarządzania whitelistą.❌")
         logger.warning(f"Unauthorized access attempt by user: {message.from_user.username}")
         await DatabaseManager.log_system_message("WARNING", f"Unauthorized access attempt by user: {message.from_user.username}")
@@ -251,7 +259,8 @@ async def list_admins(message: types.Message):
 @router.message(Command(commands=['listmoderators', 'listmod']))
 async def list_moderators(message: types.Message):
     if not await UserManager.is_user_admin(message.from_user.username) and not await UserManager.is_user_moderator(
-            message.from_user.username):
+            message.from_user.username,
+    ):
         await message.answer("❌ Nie masz uprawnień do zarządzania whitelistą.❌")
         logger.warning(f"Unauthorized access attempt by user: {message.from_user.username}")
         await DatabaseManager.log_system_message("WARNING", f"Unauthorized access attempt by user: {message.from_user.username}")
@@ -351,7 +360,6 @@ async def handle_transcription_request(message: types.Message):
         await DatabaseManager.log_system_message("INFO", f"No segments found for quote: '{quote}'")
         return
 
-    target_segment = result['target']
     context_segments = result['context']
 
     response = f"🔍 Transkrypcja dla cytatu: \"{quote}\"\n\n```\n"

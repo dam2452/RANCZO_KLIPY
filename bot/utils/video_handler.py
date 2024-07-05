@@ -31,8 +31,10 @@ class VideoManager:
             await DatabaseManager.log_system_message("INFO", f"Clip size: {file_size:.2f} MB")
 
             if file_size > 50:  # Telegram has a 50 MB limit for video files
-                await self.bot.send_message(chat_id,
-                                            "❌ Wyodrębniony klip jest za duży, aby go wysłać przez Telegram. Maksymalny rozmiar pliku to 50 MB.❌")
+                await self.bot.send_message(
+                    chat_id,
+                    "❌ Wyodrębniony klip jest za duży, aby go wysłać przez Telegram. Maksymalny rozmiar pliku to 50 MB.❌",
+                )
                 logger.warning(f"Clip size {file_size:.2f} MB exceeds the 50 MB limit.")
                 await DatabaseManager.log_system_message("WARNING", f"Clip size {file_size:.2f} MB exceeds the 50 MB limit.")
             else:
@@ -98,7 +100,7 @@ class VideoManager:
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
-        stdout, stderr = await process.communicate()
+        _, stderr = await process.communicate()
         os.remove(concat_file.name)
 
         if process.returncode != 0:

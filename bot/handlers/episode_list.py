@@ -65,7 +65,7 @@ async def handle_episode_list_command(message: types.Message, bot: Bot):
             absolute_episode_number = episode['episode_number'] % 13
             if absolute_episode_number == 0:
                 absolute_episode_number = 13
-            adjusted_season, adjusted_episode_number = adjust_episode_number(absolute_episode_number)
+            _, _ = adjust_episode_number(absolute_episode_number)
             formatted_viewership = f"{episode['viewership']:,}".replace(',', '.')
 
             response += f"🎬 {episode['title']}: S{season:02d}E{absolute_episode_number:02d} ({episode['episode_number']}) \n"

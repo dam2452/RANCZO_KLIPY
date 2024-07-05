@@ -15,10 +15,6 @@ from bot.handlers.handle_clip import last_selected_segment
 from bot.handlers.manual_clip import last_manual_clip
 from bot.middlewares.auth_middleware import AuthorizationMiddleware
 from bot.middlewares.error_middleware import ErrorHandlerMiddleware
-from bot.settings import (
-    EXTEND_AFTER,
-    EXTEND_BEFORE,
-)
 from bot.utils.database import DatabaseManager
 from bot.utils.video_handler import (
     VideoManager,
@@ -102,7 +98,7 @@ async def save_user_clip(message: types.Message, bot: Bot):
             season = segment['episode_info']['season']
             episode_number = segment['episode_info']['episode_number']
 
-            video_manager = VideoManager(bot)
+            _ = VideoManager(bot)
             output_filename = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4").name
             await VideoProcessor.extract_clip(clip_path, start_time, end_time, output_filename)
 
@@ -110,8 +106,10 @@ async def save_user_clip(message: types.Message, bot: Bot):
         if actual_duration is None:
             await message.answer("❌ Nie udało się zweryfikować długości klipu.❌")
             logger.error(f"Failed to verify the length of the clip '{clip_name}' for user '{username}'.")
-            await DatabaseManager.log_system_message("ERROR",
-                                                     f"Failed to verify the length of the clip '{clip_name}' for user '{username}'.")
+            await DatabaseManager.log_system_message(
+                "ERROR",
+                f"Failed to verify the length of the clip '{clip_name}' for user '{username}'.",
+            )
             os.remove(output_filename)
             return
 

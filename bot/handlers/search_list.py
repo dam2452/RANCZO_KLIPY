@@ -65,8 +65,10 @@ async def handle_list_request(message: types.Message, bot: Bot):
             line = [i, episode_formatted, episode_title, time_formatted]
             segment_lines.append(line)
 
-        table = tabulate(segment_lines, headers=["#", "Odcinek", "Tytuł", "Czas"], tablefmt="pipe",
-                         colalign=("left", "center", "left", "right"))
+        table = tabulate(
+            segment_lines, headers=["#", "Odcinek", "Tytuł", "Czas"], tablefmt="pipe",
+            colalign=("left", "center", "left", "right"),
+        )
         response += f"{table}\n"
 
         temp_dir = tempfile.gettempdir()
