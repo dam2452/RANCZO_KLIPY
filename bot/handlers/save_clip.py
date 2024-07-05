@@ -2,7 +2,12 @@ import logging
 import os
 import tempfile
 
-from aiogram import Bot, Dispatcher, Router, types
+from aiogram import (
+    Bot,
+    Dispatcher,
+    Router,
+    types,
+)
 from aiogram.filters import Command
 
 from bot.handlers.handle_clip import last_selected_segment

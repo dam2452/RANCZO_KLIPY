@@ -28,7 +28,7 @@ repos:
     rev: 5.13.2
     hooks:
       - id: isort
-        args: ["--trailing-comma", "--multi-line=3", "--force-grid-wrap=0", "--combine-as", "--use-parentheses", "--balanced", "--force-sort-within-sections", "--combine-star" ]
+        args: ["--trailing-comma", "--multi-line=3", "--force-grid-wrap=2", "--combine-as", "--use-parentheses",  "--force-sort-within-sections", "--line-length=140"]
   - repo: https://github.com/PyCQA/pylint
     rev: v3.2.5
     hooks:

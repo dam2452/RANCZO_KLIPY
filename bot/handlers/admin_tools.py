@@ -1,6 +1,10 @@
 import logging
 
-from aiogram import Dispatcher, Router, types
+from aiogram import (
+    Dispatcher,
+    Router,
+    types,
+)
 from aiogram.filters import Command
 from tabulate import tabulate
 

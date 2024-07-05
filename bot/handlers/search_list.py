@@ -2,12 +2,20 @@ import logging
 import os
 import tempfile
 
-from aiogram import Bot, Dispatcher, Router, types
+from aiogram import (
+    Bot,
+    Dispatcher,
+    Router,
+    types,
+)
 from aiogram.filters import Command
 from aiogram.types import FSInputFile
 from tabulate import tabulate
 
-from bot.handlers.clip_search import last_search_quotes, last_search_terms
+from bot.handlers.clip_search import (
+    last_search_quotes,
+    last_search_terms,
+)
 from bot.middlewares.auth_middleware import AuthorizationMiddleware
 from bot.middlewares.error_middleware import ErrorHandlerMiddleware
 from bot.utils.database import DatabaseManager

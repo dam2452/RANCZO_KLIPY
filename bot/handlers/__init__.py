@@ -5,9 +5,7 @@ from bot.handlers.admin_tools import register_admin_handlers
 from bot.handlers.bot_start import register_start_command
 from bot.handlers.clip_search import register_search_command
 from bot.handlers.compile_clips import register_compile_command
-from bot.handlers.compile_selected import (
-    register_compile_selected_clips_command,
-)
+from bot.handlers.compile_selected import register_compile_selected_clips_command
 from bot.handlers.delete_clip import register_delete_clip_handler
 from bot.handlers.episode_list import register_episode_list_handler
 from bot.handlers.handle_clip import register_clip_handlers

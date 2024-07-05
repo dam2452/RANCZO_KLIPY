@@ -1,6 +1,11 @@
 import logging
 
-from aiogram import Bot, Dispatcher, Router, types
+from aiogram import (
+    Bot,
+    Dispatcher,
+    Router,
+    types,
+)
 from aiogram.filters import Command
 
 from bot.handlers.clip_search import last_search_quotes

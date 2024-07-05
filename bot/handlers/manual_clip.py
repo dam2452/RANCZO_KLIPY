@@ -1,7 +1,12 @@
 import logging
 import os
 
-from aiogram import Bot, Dispatcher, Router, types
+from aiogram import (
+    Bot,
+    Dispatcher,
+    Router,
+    types,
+)
 from aiogram.filters import Command
 
 from bot.utils.transcription_search import SearchTranscriptions

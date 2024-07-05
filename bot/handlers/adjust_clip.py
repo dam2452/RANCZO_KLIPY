@@ -2,7 +2,12 @@ import logging
 import os
 import tempfile
 
-from aiogram import Bot, Dispatcher, Router, types
+from aiogram import (
+    Bot,
+    Dispatcher,
+    Router,
+    types,
+)
 from aiogram.filters import Command
 
 from bot.handlers.clip_search import last_search_quotes
@@ -13,7 +18,10 @@ from bot.handlers.handle_clip import (
 )
 from bot.middlewares.auth_middleware import AuthorizationMiddleware
 from bot.middlewares.error_middleware import ErrorHandlerMiddleware
-from bot.utils.video_handler import VideoManager, VideoProcessor
+from bot.utils.video_handler import (
+    VideoManager,
+    VideoProcessor,
+)
 
 logger = logging.getLogger(__name__)
 router = Router()

@@ -2,7 +2,10 @@ import json
 import logging
 import os
 
-from elasticsearch import AsyncElasticsearch, helpers
+from elasticsearch import (
+    AsyncElasticsearch,
+    helpers,
+)
 import urllib3
 
 from bot.settings import settings
