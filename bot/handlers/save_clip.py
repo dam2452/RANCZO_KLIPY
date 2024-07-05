@@ -11,7 +11,8 @@ from bot.middlewares.auth_middleware import AuthorizationMiddleware
 
 logger = logging.getLogger(__name__)
 router = Router()
-@router.message(Command(commands=['zapisz', 'save','z']))
+
+@router.message(Command(commands=['zapisz', 'save', 'z']))
 async def save_user_clip(message: types.Message, bot: Bot):
     try:
         username = message.from_user.username
@@ -20,6 +21,7 @@ async def save_user_clip(message: types.Message, bot: Bot):
         if len(content) < 2:
             await message.answer("📝 Podaj nazwę klipu. Przykład: /zapisz nazwa_klipu")
             logger.info("No clip name provided by user.")
+            await DatabaseManager.log_system_message("INFO", "No clip name provided by user.")
             return
 
         clip_name = content[1]
@@ -27,15 +29,18 @@ async def save_user_clip(message: types.Message, bot: Bot):
         if not await DatabaseManager.is_clip_name_unique(chat_id, clip_name):
             await message.answer("⚠️ Klip o takiej nazwie już istnieje. Wybierz inną nazwę.⚠️")
             logger.info(f"Clip name '{clip_name}' already exists for user '{username}'.")
+            await DatabaseManager.log_system_message("INFO", f"Clip name '{clip_name}' already exists for user '{username}'.")
             return
 
         if chat_id not in last_selected_segment:
             await message.answer("⚠️ Najpierw wybierz segment za pomocą /klip.⚠️")
             logger.info("No segment selected by user.")
+            await DatabaseManager.log_system_message("INFO", "No segment selected by user.")
             return
 
         segment_info = last_selected_segment[chat_id]
         logger.info(f"Segment Info: {segment_info}")
+        await DatabaseManager.log_system_message("INFO", f"Segment Info: {segment_info}")
 
         start_time = 0
         end_time = 0
@@ -71,10 +76,11 @@ async def save_user_clip(message: types.Message, bot: Bot):
             await VideoProcessor.extract_clip(clip_path, start_time, end_time, output_filename)
 
         # Verify the video length using ffmpeg-python
-        actual_duration = VideoProcessor.get_video_duration(output_filename)
+        actual_duration = await VideoProcessor.get_video_duration(output_filename)
         if actual_duration is None:
             await message.answer("❌ Nie udało się zweryfikować długości klipu.❌")
             logger.error(f"Failed to verify the length of the clip '{clip_name}' for user '{username}'.")
+            await DatabaseManager.log_system_message("ERROR", f"Failed to verify the length of the clip '{clip_name}' for user '{username}'.")
             os.remove(output_filename)
             return
 
@@ -102,10 +108,12 @@ async def save_user_clip(message: types.Message, bot: Bot):
 
         await message.answer(f"✅ Klip '{clip_name}' został zapisany pomyślnie.")
         logger.info(f"Clip '{clip_name}' saved successfully for user '{username}'.")
+        await DatabaseManager.log_system_message("INFO", f"Clip '{clip_name}' saved successfully for user '{username}'.")
 
     except Exception as e:
         logger.error(f"Error handling /zapisz command for user '{message.from_user.username}': {e}", exc_info=True)
         await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania. Prosimy spróbować ponownie później.⚠️")
+        await DatabaseManager.log_system_message("ERROR", f"Error handling /zapisz command for user '{message.from_user.username}': {e}")
 
 def register_save_handler(dispatcher: Dispatcher):
     dispatcher.include_router(router)

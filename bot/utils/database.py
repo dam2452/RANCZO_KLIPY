@@ -53,6 +53,42 @@ class DatabaseManager:
                     FOREIGN KEY (username) REFERENCES users (username)
                 )
             ''')
+            await conn.execute('''
+                CREATE TABLE IF NOT EXISTS user_logs (
+                    id SERIAL PRIMARY KEY,
+                    username TEXT NOT NULL,
+                    command TEXT NOT NULL,
+                    timestamp TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+            await conn.execute('''
+                CREATE TABLE IF NOT EXISTS system_logs (
+                    id SERIAL PRIMARY KEY,
+                    log_level TEXT NOT NULL,
+                    log_message TEXT NOT NULL,
+                    timestamp TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+        await conn.close()
+
+    @staticmethod
+    async def log_user_activity(username, command):
+        conn = await DatabaseManager.get_db_connection()
+        async with conn.transaction():
+            await conn.execute('''
+                INSERT INTO user_logs (username, command)
+                VALUES ($1, $2)
+            ''', username, command)
+        await conn.close()
+
+    @staticmethod
+    async def log_system_message(log_level, log_message):
+        conn = await DatabaseManager.get_db_connection()
+        async with conn.transaction():
+            await conn.execute('''
+                INSERT INTO system_logs (log_level, log_message)
+                VALUES ($1, $2)
+            ''', log_level, log_message)
         await conn.close()
 
     @staticmethod

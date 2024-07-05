@@ -2,10 +2,12 @@ import logging
 from aiogram import Router, Dispatcher, types, Bot
 from aiogram.filters import Command
 from bot.utils.transcription_search import SearchTranscriptions
+from bot.utils.database import DatabaseManager
+from bot.middlewares.auth_middleware import AuthorizationMiddleware
+from bot.middlewares.error_middleware import ErrorHandlerMiddleware
 
 logger = logging.getLogger(__name__)
 router = Router()
-
 
 def adjust_episode_number(absolute_episode):
     """ Adjust the absolute episode number to season and episode format """
@@ -24,6 +26,7 @@ def split_message(message, max_length=4096):
         message = message[split_at:].lstrip()
     parts.append(message)
     return parts
+
 @router.message(Command(commands=['odcinki', 'episodes', 'o']))
 async def handle_episode_list_command(message: types.Message, bot: Bot):
     try:
@@ -33,6 +36,7 @@ async def handle_episode_list_command(message: types.Message, bot: Bot):
             await message.answer(
                 "📋 Podaj poprawną komendę w formacie: /listaodcinków <sezon>. Przykład: /listaodcinków 2")
             logger.info("Incorrect command format provided by user.")
+            await DatabaseManager.log_system_message("INFO", "Incorrect command format provided by user.")
             return
 
         season = int(content[1])
@@ -42,6 +46,7 @@ async def handle_episode_list_command(message: types.Message, bot: Bot):
         if not episodes:
             await message.answer(f"❌ Nie znaleziono odcinków dla sezonu {season}.")
             logger.info(f"No episodes found for season {season}.")
+            await DatabaseManager.log_system_message("INFO", f"No episodes found for season {season}.")
             return
 
         response = f"📃 Lista odcinków dla sezonu {season}:\n\n```\n"
@@ -56,18 +61,24 @@ async def handle_episode_list_command(message: types.Message, bot: Bot):
             response += f"📅 Data premiery: {episode['premiere_date']}\n"
             response += f"👀 Oglądalność: {formatted_viewership}\n\n"
 
-
         # Split the response into smaller parts to avoid the Telegram message length limit
         response_parts = split_message(response)
 
         for part in response_parts:
-            await message.answer(part+"```", parse_mode="Markdown")
+            await message.answer(part + "```", parse_mode="Markdown")
 
-        logger.info(f"Sent episode list for season {season} to user.")
+        logger.info(f"Sent episode list for season {season} to user '{message.from_user.username}'.")
+        await DatabaseManager.log_user_activity(message.from_user.username, f"/odcinki {season}")
+        await DatabaseManager.log_system_message("INFO", f"Sent episode list for season {season} to user '{message.from_user.username}'.")
 
     except Exception as e:
         logger.error(f"An error occurred while handling episode list command: {e}", exc_info=True)
         await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania. Prosimy spróbować ponownie później.")
+        await DatabaseManager.log_system_message("ERROR", f"An error occurred while handling episode list command: {e}")
 
 def register_episode_list_handler(dispatcher: Dispatcher):
-        dispatcher.include_router(router)
+    dispatcher.include_router(router)
+
+# Ustawienie middleware'ów
+router.message.middleware(AuthorizationMiddleware())
+router.message.middleware(ErrorHandlerMiddleware())

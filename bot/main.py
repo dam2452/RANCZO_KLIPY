@@ -3,15 +3,28 @@ import asyncio
 import os
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
-from bot.settings import settings  # Import settings
+from bot.settings import settings
 from bot.handlers import register_handlers
 from bot.utils.database import DatabaseManager
 from bot.middlewares.auth_middleware import AuthorizationMiddleware  # Import AuthorizationMiddleware
 from bot.middlewares.error_middleware import ErrorHandlerMiddleware  # Import ErrorHandlerMiddleware
-from bot.handlers.adjust_clip import register_adjust_handler
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+class DBLogHandler(logging.Handler):
+    def __init__(self):
+        super().__init__()
+        self.loop = None
+
+    def emit(self, record):
+        if self.loop is not None:
+            self.loop.create_task(self.log_to_db(record))
+
+    async def log_to_db(self, record):
+        log_message = self.format(record)
+        await DatabaseManager.log_system_message(record.levelname, log_message)
 
 # Initialize bot and dispatcher
 bot = Bot(token=settings.TELEGRAM_BOT_TOKEN)
@@ -46,4 +59,8 @@ async def main():
         logger.error(f"❌ Bot encountered an error: {e} ❌")
 
 if __name__ == "__main__":
+    loop = asyncio.get_event_loop()
+    db_log_handler = DBLogHandler()
+    db_log_handler.loop = loop
+    logging.getLogger().addHandler(db_log_handler)
     asyncio.run(main())

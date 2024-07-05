@@ -14,19 +14,23 @@ from bot.middlewares.error_middleware import ErrorHandlerMiddleware
 
 logger = logging.getLogger(__name__)
 router = Router()
+
 @router.message(Command(commands=['kompiluj', 'compile','kom']))
 async def compile_clips(message: types.Message, bot: Bot):
     chat_id = message.chat.id
     try:
+        username = message.from_user.username
         content = message.text.split()
         if len(content) < 2:
             await message.answer("🔄 Proszę podać indeksy segmentów do skompilowania, zakres lub 'wszystko' do kompilacji wszystkich segmentów.")
             logger.info("No segments provided by user.")
+            await DatabaseManager.log_system_message("INFO", "No segments provided by user.")
             return
 
         if chat_id not in last_search_quotes or not last_search_quotes[chat_id]:
             await message.answer("🔍 Najpierw wykonaj wyszukiwanie za pomocą /szukaj.")
             logger.info("No previous search results found for user.")
+            await DatabaseManager.log_system_message("INFO", "No previous search results found for user.")
             return
 
         segments = last_search_quotes[chat_id]
@@ -43,6 +47,7 @@ async def compile_clips(message: types.Message, bot: Bot):
                 except ValueError:
                     await message.answer(f"⚠️ Podano nieprawidłowy zakres segmentów: {index} ⚠️")
                     logger.warning(f"Invalid range provided by user: {index}")
+                    await DatabaseManager.log_system_message("WARNING", f"Invalid range provided by user: {index}")
                     return
             else:
                 try:
@@ -50,11 +55,13 @@ async def compile_clips(message: types.Message, bot: Bot):
                 except (ValueError, IndexError):
                     await message.answer(f"⚠️ Podano nieprawidłowy indeks segmentu: {index} ⚠️")
                     logger.warning(f"Invalid index provided by user: {index}")
+                    await DatabaseManager.log_system_message("WARNING", f"Invalid index provided by user: {index}")
                     return
 
         if not selected_segments:
             await message.answer("❌ Nie znaleziono pasujących segmentów do kompilacji.❌")
             logger.info("No matching segments found for compilation.")
+            await DatabaseManager.log_system_message("INFO", "No matching segments found for compilation.")
             return
 
         video_manager = VideoManager(bot)
@@ -68,6 +75,7 @@ async def compile_clips(message: types.Message, bot: Bot):
         if file_size_mb > 50:
             await message.answer("❌ Skompilowany klip jest za duży, aby go wysłać przez Telegram. Maksymalny rozmiar pliku to 50 MB. ❌")
             logger.warning(f"Compiled clip exceeds size limit: {file_size_mb:.2f} MB")
+            await DatabaseManager.log_system_message("WARNING", f"Compiled clip exceeds size limit: {file_size_mb:.2f} MB")
             os.remove(compiled_output.name)
             return
 
@@ -80,11 +88,14 @@ async def compile_clips(message: types.Message, bot: Bot):
 
         await bot.send_video(chat_id, FSInputFile(compiled_output.name), supports_streaming=True, width=1920, height=1080)
         os.remove(compiled_output.name)
-        logger.info(f"Compiled clip sent to user '{message.from_user.username}' and temporary files removed.")
+        logger.info(f"Compiled clip sent to user '{username}' and temporary files removed.")
+        await DatabaseManager.log_user_activity(username, f"/kompiluj {' '.join(content[1:])}")
+        await DatabaseManager.log_system_message("INFO", f"Compiled clip sent to user '{username}' and temporary files removed.")
 
     except Exception as e:
         logger.error(f"An error occurred while compiling clips: {e}", exc_info=True)
         await message.answer("⚠️ Wystąpił błąd podczas kompilacji klipów.⚠️")
+        await DatabaseManager.log_system_message("ERROR", f"An error occurred while compiling clips: {e}")
         if 'compiled_output' in locals() and os.path.exists(compiled_output.name):
             os.remove(compiled_output.name)
 

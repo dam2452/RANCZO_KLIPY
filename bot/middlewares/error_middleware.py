@@ -1,6 +1,7 @@
 import logging
 from aiogram import BaseMiddleware
 from aiogram.types import Update, Message
+from bot.utils.database import DatabaseManager
 
 logger = logging.getLogger(__name__)
 
@@ -12,4 +13,8 @@ class ErrorHandlerMiddleware(BaseMiddleware):
             message = event if isinstance(event, Message) else None
             if message:
                 await message.answer("⚠️ Wystąpił błąd podczas przetwarzania Twojego żądania. Prosimy spróbować ponownie później.⚠️")
-            logger.error(f"An error occurred: {e}", exc_info=True)
+                await DatabaseManager.log_system_message("ERROR", f"Error processing request from user '{message.from_user.username}': {e}")
+
+            error_message = f"An error occurred: {e}"
+            logger.error(error_message, exc_info=True)
+            await DatabaseManager.log_system_message("ERROR", error_message)

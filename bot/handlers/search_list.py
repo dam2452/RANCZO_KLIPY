@@ -22,11 +22,13 @@ async def handle_list_request(message: types.Message, bot: Bot):
         if not await DatabaseManager.is_user_authorized(username):
             await message.answer("❌ Nie masz uprawnień do korzystania z tego bota.❌")
             logger.warning(f"Unauthorized access attempt by user: {username}")
+            await DatabaseManager.log_system_message("WARNING", f"Unauthorized access attempt by user: {username}")
             return
 
         if chat_id not in last_search_quotes or chat_id not in last_search_terms:
             await message.answer("🔍 Nie znaleziono wcześniejszych wyników wyszukiwania.")
             logger.info(f"No previous search results found for chat ID {chat_id}.")
+            await DatabaseManager.log_system_message("INFO", f"No previous search results found for chat ID {chat_id}.")
             return
 
         segments = last_search_quotes[chat_id]
@@ -39,8 +41,7 @@ async def handle_list_request(message: types.Message, bot: Bot):
             episode_info = segment.get('episode_info', {})
             total_episode_number = episode_info.get('episode_number', 'Unknown')
             season_number = (total_episode_number - 1) // 13 + 1 if isinstance(total_episode_number, int) else 'Unknown'
-            episode_number_in_season = (total_episode_number - 1) % 13 + 1 if isinstance(total_episode_number,
-                                                                                         int) else 'Unknown'
+            episode_number_in_season = (total_episode_number - 1) % 13 + 1 if isinstance(total_episode_number, int) else 'Unknown'
 
             season = str(season_number).zfill(2)
             episode_number = str(episode_number_in_season).zfill(2)
@@ -53,13 +54,11 @@ async def handle_list_request(message: types.Message, bot: Bot):
             line = [i, episode_formatted, episode_title, time_formatted]
             segment_lines.append(line)
 
-        table = tabulate(segment_lines, headers=["#", "Odcinek", "Tytuł", "Czas"], tablefmt="pipe",
-                         colalign=("left", "center", "left", "right"))
+        table = tabulate(segment_lines, headers=["#", "Odcinek", "Tytuł", "Czas"], tablefmt="pipe", colalign=("left", "center", "left", "right"))
         response += f"{table}\n"
 
         temp_dir = tempfile.gettempdir()
-        sanitized_search_term = "".join(
-            [c for c in search_term if c.isalpha() or c.isdigit() or c == ' ']).rstrip().replace(" ", "_")
+        sanitized_search_term = "".join([c for c in search_term if c.isalpha() or c.isdigit() or c == ' ']).rstrip().replace(" ", "_")
         file_name = os.path.join(temp_dir, f"Ranczo_Klipy_Wyniki_{sanitized_search_term}.txt")
         with open(file_name, 'w', encoding='utf-8') as file:
             file.write(response)
@@ -68,15 +67,16 @@ async def handle_list_request(message: types.Message, bot: Bot):
         await bot.send_document(chat_id, input_file, caption="📄 Znalezione cytaty")
         os.remove(file_name)
         logger.info(f"List of search results for term '{search_term}' sent to user {username}.")
+        await DatabaseManager.log_user_activity(username, f"/lista {search_term}")
+        await DatabaseManager.log_system_message("INFO", f"List of search results for term '{search_term}' sent to user {username}.")
 
     except Exception as e:
         logger.error(f"Error in handle_list_request for user {username}: {e}", exc_info=True)
         await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania. Prosimy spróbować ponownie później.⚠️")
-
+        await DatabaseManager.log_system_message("ERROR", f"Error in handle_list_request for user {username}: {e}")
 
 def register_list_command(dispatcher: Dispatcher):
     dispatcher.include_router(router)
-
 
 # Ustawienie middleware'ów
 router.message.middleware(AuthorizationMiddleware())

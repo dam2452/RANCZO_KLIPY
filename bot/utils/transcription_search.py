@@ -1,5 +1,6 @@
 import logging
 from bot.utils.es_manager import connect_to_elasticsearch
+from bot.utils.database import DatabaseManager
 from bot.middlewares.auth_middleware import AuthorizationMiddleware
 from bot.middlewares.error_middleware import ErrorHandlerMiddleware
 from aiogram import Dispatcher
@@ -8,14 +9,12 @@ from aiogram import Dispatcher
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-
 class SearchTranscriptions:
     def __init__(self, dispatcher: Dispatcher):
         dispatcher.message.middleware(AuthorizationMiddleware())
         dispatcher.message.middleware(ErrorHandlerMiddleware())
 
-    async def find_segment_by_quote(self, quote, season_filter=None, episode_filter=None, index='ranczo-transcriptions',
-                                    return_all=False):
+    async def find_segment_by_quote(self, quote, season_filter=None, episode_filter=None, index='ranczo-transcriptions', return_all=False):
         """
         Searches for a segment by a given quote with optional season and episode filters.
 
@@ -31,12 +30,13 @@ class SearchTranscriptions:
         - The first matching segment if return_all is False.
         - None if no matches are found.
         """
-        logger.info(
-            f"🔍 Searching for quote: '{quote}' with filters - Season: {season_filter}, Episode: {episode_filter}")
+        logger.info(f"🔍 Searching for quote: '{quote}' with filters - Season: {season_filter}, Episode: {episode_filter}")
+        await DatabaseManager.log_system_message("INFO", f"Searching for quote: '{quote}' with filters - Season: {season_filter}, Episode: {episode_filter}")
         es = await connect_to_elasticsearch()
 
         if not es:
             logger.error("❌ Failed to connect to Elasticsearch.❌")
+            await DatabaseManager.log_system_message("ERROR", "Failed to connect to Elasticsearch.")
             return None
 
         # Construct the base query
@@ -62,8 +62,7 @@ class SearchTranscriptions:
 
         # Add episode filter if provided
         if episode_filter:
-            query["query"]["bool"]["filter"].append(
-                {"term": {"episode_info.episode_number": episode_filter}})  # Global number of episode
+            query["query"]["bool"]["filter"].append({"term": {"episode_info.episode_number": episode_filter}})  # Global number of episode
 
         size = 10000 if return_all else 1
 
@@ -73,6 +72,7 @@ class SearchTranscriptions:
 
             if not hits:
                 logger.info("❌ No segments found matching the query.❌")
+                await DatabaseManager.log_system_message("INFO", "No segments found matching the query.")
                 return None
 
             unique_segments = {}
@@ -91,6 +91,7 @@ class SearchTranscriptions:
                     unique_segments[unique_key] = segment
 
             logger.info(f"✅ Found {len(unique_segments)} unique segments matching the query.✅")
+            await DatabaseManager.log_system_message("INFO", f"Found {len(unique_segments)} unique segments matching the query.")
 
             if return_all:
                 return list(unique_segments.values())
@@ -99,21 +100,23 @@ class SearchTranscriptions:
 
         except Exception as e:
             logger.error(f"❌ An error occurred while searching for segments: {e}❌")
+            await DatabaseManager.log_system_message("ERROR", f"An error occurred while searching for segments: {e}")
             return None
 
-    async def find_segment_with_context(self, quote, context_size=30, season_filter=None, episode_filter=None,
-                                        index='ranczo-transcriptions'):
-        logger.info(
-            f"🔍 Searching for quote: '{quote}' with context size: {context_size}, filters - Season: {season_filter}, Episode: {episode_filter}")
+    async def find_segment_with_context(self, quote, context_size=30, season_filter=None, episode_filter=None, index='ranczo-transcriptions'):
+        logger.info(f"🔍 Searching for quote: '{quote}' with context size: {context_size}, filters - Season: {season_filter}, Episode: {episode_filter}")
+        await DatabaseManager.log_system_message("INFO", f"Searching for quote: '{quote}' with context size: {context_size}, filters - Season: {season_filter}, Episode: {episode_filter}")
         es = await connect_to_elasticsearch()
 
         if not es:
             logger.error("❌ Failed to connect to Elasticsearch.❌")
+            await DatabaseManager.log_system_message("ERROR", "Failed to connect to Elasticsearch.")
             return None
 
         segment = await self.find_segment_by_quote(quote, season_filter, episode_filter, index, return_all=False)
         if not segment:
             logger.info("❌ No segments found matching the query.❌")
+            await DatabaseManager.log_system_message("INFO", "No segments found matching the query.")
             return None
 
         segment = segment[0] if isinstance(segment, list) else segment
@@ -157,15 +160,12 @@ class SearchTranscriptions:
             context_response_before = await es.search(index=index, body=context_query_before)
             context_response_after = await es.search(index=index, body=context_query_after)
 
-            context_segments_before = [{'id': hit['_source']['id'], 'text': hit['_source']['text']} for hit in
-                                       context_response_before['hits']['hits']]
-            context_segments_after = [{'id': hit['_source']['id'], 'text': hit['_source']['text']} for hit in
-                                      context_response_after['hits']['hits']]
+            context_segments_before = [{'id': hit['_source']['id'], 'text': hit['_source']['text']} for hit in context_response_before['hits']['hits']]
+            context_segments_after = [{'id': hit['_source']['id'], 'text': hit['_source']['text']} for hit in context_response_after['hits']['hits']]
 
             context_segments_before.reverse()
 
-            context_segments = context_segments_before + [
-                {'id': segment['id'], 'text': segment['text']}] + context_segments_after
+            context_segments = context_segments_before + [{'id': segment['id'], 'text': segment['text']}] + context_segments_after
 
             seen_ids = set()
             unique_context_segments = []
@@ -175,6 +175,7 @@ class SearchTranscriptions:
                     seen_ids.add(seg['id'])
 
             logger.info(f"✅ Found {len(unique_context_segments)} unique segments for context.✅")
+            await DatabaseManager.log_system_message("INFO", f"Found {len(unique_context_segments)} unique segments for context.")
 
             target_index = unique_context_segments.index({'id': segment['id'], 'text': segment['text']})
             start_index = max(target_index - context_size, 0)
@@ -188,6 +189,7 @@ class SearchTranscriptions:
 
         except Exception as e:
             logger.error(f"❌ An error occurred while searching for segment with context: {e} ❌")
+            await DatabaseManager.log_system_message("ERROR", f"An error occurred while searching for segment with context: {e}")
             return None
 
     async def find_video_path_by_episode(self, season, episode_number, index='ranczo-transcriptions'):
@@ -204,10 +206,12 @@ class SearchTranscriptions:
         - None if no matches are found.
         """
         logger.info(f"🔍 Searching for video path with filters - Season: {season}, Episode: {episode_number}")
+        await DatabaseManager.log_system_message("INFO", f"Searching for video path with filters - Season: {season}, Episode: {episode_number}")
         es = await connect_to_elasticsearch()
 
         if not es:
             logger.error("❌ Failed to connect to Elasticsearch.")
+            await DatabaseManager.log_system_message("ERROR", "Failed to connect to Elasticsearch.")
             return None
 
         query = {
@@ -227,6 +231,7 @@ class SearchTranscriptions:
 
             if not hits:
                 logger.info("❌ No segments found matching the query.")
+                await DatabaseManager.log_system_message("INFO", "No segments found matching the query.")
                 return None
 
             segment = hits[0]['_source']
@@ -234,13 +239,16 @@ class SearchTranscriptions:
 
             if video_path:
                 logger.info(f"✅ Found video path: {video_path}")
+                await DatabaseManager.log_system_message("INFO", f"Found video path: {video_path}")
                 return video_path
             else:
                 logger.info("❌ Video path not found in the segment.")
+                await DatabaseManager.log_system_message("INFO", "Video path not found in the segment.")
                 return None
 
         except Exception as e:
             logger.error(f"❌ An error occurred while searching for video path: {e}")
+            await DatabaseManager.log_system_message("ERROR", f"An error occurred while searching for video path: {e}")
             return None
 
     async def find_episodes_by_season(self, season, index='ranczo-transcriptions'):
@@ -256,10 +264,12 @@ class SearchTranscriptions:
         - None if no matches are found.
         """
         logger.info(f"🔍 Searching for episodes in season {season}")
+        await DatabaseManager.log_system_message("INFO", f"Searching for episodes in season {season}")
         es = await connect_to_elasticsearch()
 
         if not es:
             logger.error("❌ Failed to connect to Elasticsearch.")
+            await DatabaseManager.log_system_message("ERROR", "Failed to connect to Elasticsearch.")
             return None
 
         query = {
@@ -301,6 +311,7 @@ class SearchTranscriptions:
 
             if not buckets:
                 logger.info(f"❌ No episodes found for season {season}.")
+                await DatabaseManager.log_system_message("INFO", f"No episodes found for season {season}.")
                 return None
 
             episodes = []
@@ -315,8 +326,10 @@ class SearchTranscriptions:
                 episodes.append(episode)
 
             logger.info(f"✅ Found {len(episodes)} episodes for season {season}.")
+            await DatabaseManager.log_system_message("INFO", f"Found {len(episodes)} episodes for season {season}.")
             return episodes
 
         except Exception as e:
             logger.error(f"❌ An error occurred while searching for episodes: {e}")
+            await DatabaseManager.log_system_message("ERROR", f"An error occurred while searching for episodes: {e}")
             return None
