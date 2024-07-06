@@ -1,8 +1,10 @@
 import asyncio
+import json
 import logging
 import os
 import subprocess
 import tempfile
+from typing import List
 
 from aiogram import Bot
 from aiogram.types import FSInputFile
@@ -60,7 +62,7 @@ class VideoManager:
             await DatabaseManager.log_system_message("ERROR", f"Failed to send video clip: {e}")
             await self.bot.send_message(chat_id, f"⚠️ Nie udało się wysłać klipu wideo: {str(e)}")
 
-    async def extract_and_concatenate_clips(self, segments, output_filename) -> None:
+    async def extract_and_concatenate_clips(self, segments: List[json], output_filename: str) -> None:
         temp_files = []
         try:
             for segment in segments:
@@ -83,7 +85,7 @@ class VideoManager:
                     await DatabaseManager.log_system_message("INFO", f"Temporary file '{temp_file}' removed after concatenation.")
 
     @staticmethod
-    async def concatenate_clips(segment_files, output_file) -> None:
+    async def concatenate_clips(segment_files: List[str], output_file: str) -> None:
         concat_file_content = "\n".join([f"file '{file}'" for file in segment_files])
         concat_file = tempfile.NamedTemporaryFile(delete=False, mode='w', suffix=".txt")
         concat_file.write(concat_file_content)

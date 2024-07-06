@@ -1,7 +1,13 @@
+import json
 import logging
+from typing import (
+    List,
+    Optional,
+    Union,
+)
 
 from aiogram import Dispatcher
-from typing import Optional
+from elastic_transport import ObjectApiResponse
 
 from bot.middlewares.auth_middleware import AuthorizationMiddleware
 from bot.middlewares.error_middleware import ErrorHandlerMiddleware
@@ -19,7 +25,10 @@ class SearchTranscriptions:
         dispatcher.message.middleware(ErrorHandlerMiddleware())
 
     @staticmethod
-    async def find_segment_by_quote(quote, season_filter=None, episode_filter=None, index='ranczo-transcriptions', return_all=False) -> Optional[dict or list]:
+    async def find_segment_by_quote(
+        quote: str, season_filter: Optional[int] = None, episode_filter: Optional[int] = None,
+        index: str = 'ranczo-transcriptions', return_all: bool = False,
+    ) -> Optional[Union[List[ObjectApiResponse], ObjectApiResponse]]:
         """
         Searches for a segment by a given quote with optional season and episode filters.
 
@@ -112,9 +121,9 @@ class SearchTranscriptions:
             return None
 
     async def find_segment_with_context(
-        self, quote, context_size=30, season_filter=None, episode_filter=None,
-        index='ranczo-transcriptions',
-    ) -> Optional[dict]:
+            self, quote: str, context_size: int = 30, season_filter: Optional[str] = None, episode_filter: Optional[str] = None,
+            index: str = 'ranczo-transcriptions',
+    ) -> Optional[json]:
         logger.info(
             f"🔍 Searching for quote: '{quote}' with context size: {context_size}, filters - Season: {season_filter}, Episode: {episode_filter}",
         )
@@ -211,7 +220,7 @@ class SearchTranscriptions:
             return None
 
     @staticmethod
-    async def find_video_path_by_episode(season, episode_number, index='ranczo-transcriptions') -> Optional[str]:
+    async def find_video_path_by_episode(season: int, episode_number: int, index: str = 'ranczo-transcriptions') -> Optional[str]:
         """
         Finds the video path for a given season and episode number.
 
@@ -274,7 +283,7 @@ class SearchTranscriptions:
             return None
 
     @staticmethod
-    async def find_episodes_by_season(season, index='ranczo-transcriptions') -> Optional[list]:
+    async def find_episodes_by_season(season: int, index: str = 'ranczo-transcriptions') -> Optional[List[json]]:
         """
         Finds all episodes for a given season.
 

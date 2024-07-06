@@ -1,6 +1,8 @@
+import json
 import logging
 import os
 import tempfile
+from typing import Dict
 
 from aiogram import (
     Bot,
@@ -19,8 +21,7 @@ from bot.utils.video_handler import VideoManager
 logger = logging.getLogger(__name__)
 router = Router()
 
-# Definicja last_compiled_clip
-last_compiled_clip = {}
+last_compiled_clip: Dict[int, json] = {}
 
 
 @router.message(Command(commands=['polaczklipy', 'concatclips', 'pk']))

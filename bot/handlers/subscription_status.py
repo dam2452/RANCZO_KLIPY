@@ -1,5 +1,9 @@
 from datetime import date
 import logging
+from typing import (
+    Optional,
+    Tuple,
+)
 
 from aiogram import (
     Bot,
@@ -8,7 +12,6 @@ from aiogram import (
     types,
 )
 from aiogram.filters import Command
-from typing import Optional
 
 from bot.middlewares.auth_middleware import AuthorizationMiddleware
 from bot.middlewares.error_middleware import ErrorHandlerMiddleware
@@ -20,7 +23,7 @@ router = Router()
 
 class UserManager:
     @staticmethod
-    async def get_subscription_status(username: str) -> Optional[tuple[date, int]]: # TO DO: Change return type
+    async def get_subscription_status(username: str) -> Optional[Tuple[date, int]]:
         subscription_end = await DatabaseManager.get_user_subscription(username)
         if subscription_end is None:
             return None

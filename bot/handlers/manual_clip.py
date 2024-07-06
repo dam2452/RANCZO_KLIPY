@@ -1,5 +1,11 @@
+import json
 import logging
 import os
+from typing import (
+    Dict,
+    Optional,
+    Tuple,
+)
 
 from aiogram import (
     Bot,
@@ -8,7 +14,6 @@ from aiogram import (
     types,
 )
 from aiogram.filters import Command
-from typing import Optional
 
 from bot.middlewares.auth_middleware import AuthorizationMiddleware
 from bot.middlewares.error_middleware import ErrorHandlerMiddleware
@@ -20,10 +25,10 @@ logger = logging.getLogger(__name__)
 router = Router()
 dis = Dispatcher()
 
-last_manual_clip = {}  # Dictionary to store the last manual clip per chat ID
+last_manual_clip: Dict[int, json] = {}
 
 
-def minutes_str_to_seconds(time_str) -> Optional[float]:
+def minutes_str_to_seconds(time_str: str) -> Optional[float]:
     """ Convert time string in the format MM:SS.ms to seconds """
     try:
         minutes, seconds = time_str.split(':')
@@ -34,7 +39,7 @@ def minutes_str_to_seconds(time_str) -> Optional[float]:
         return None
 
 
-def adjust_episode_number(absolute_episode) -> Optional[tuple[int, int]]:
+def adjust_episode_number(absolute_episode: int) -> Optional[Tuple[int, int]]:
     """ Adjust the absolute episode number to season and episode format """
     season = (absolute_episode - 1) // 13 + 1
     episode = (absolute_episode - 1) % 13 + 1
