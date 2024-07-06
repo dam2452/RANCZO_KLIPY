@@ -1,5 +1,8 @@
 import logging
-from typing import Awaitable
+from typing import (
+    Awaitable,
+    Optional,
+)
 
 from aiogram import BaseMiddleware
 from aiogram.types import Message
@@ -10,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 class AuthorizationMiddleware(BaseMiddleware):
-    async def __call__(self, handler, event, data) -> Awaitable: # TODO: Change return type
+    async def __call__(self, handler, event, data) -> Optional[Awaitable]:
         if not isinstance(event, Message):
             return await handler(event, data)
 

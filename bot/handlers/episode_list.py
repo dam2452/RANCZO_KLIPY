@@ -1,4 +1,9 @@
 import logging
+from typing import (
+    List,
+    Optional,
+    Tuple,
+)
 
 from aiogram import (
     Bot,
@@ -7,7 +12,6 @@ from aiogram import (
     types,
 )
 from aiogram.filters import Command
-from typing import Optional
 
 from bot.middlewares.auth_middleware import AuthorizationMiddleware
 from bot.middlewares.error_middleware import ErrorHandlerMiddleware
@@ -18,14 +22,15 @@ logger = logging.getLogger(__name__)
 router = Router()
 dis = Dispatcher()
 
-def adjust_episode_number(absolute_episode) -> Optional[tuple[int, int]]:
+
+def adjust_episode_number(absolute_episode: int) -> Optional[Tuple[int, int]]:
     """ Adjust the absolute episode number to season and episode format """
     season = (absolute_episode - 1) // 13 + 1
     episode = (absolute_episode - 1) % 13 + 1
     return season, episode
 
 
-def split_message(message, max_length=4096) -> Optional[list[str]]:
+def split_message(message: types.Message, max_length: int = 4096) -> Optional[List[str]]:
     """ Splits a message into chunks to fit within the Telegram message length limit """
     parts = []
     while len(message) > max_length:

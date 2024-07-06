@@ -1,6 +1,9 @@
 from datetime import date
 import logging
-from typing import Optional
+from typing import (
+    Optional,
+    Tuple,
+)
 
 from aiogram import (
     Bot,
@@ -20,7 +23,7 @@ router = Router()
 
 class UserManager:
     @staticmethod
-    async def get_subscription_status(username: str) -> Optional[tuple[date, int]]: # TODO: Change return type
+    async def get_subscription_status(username: str) -> Optional[Tuple[date, int]]:
         subscription_end = await DatabaseManager.get_user_subscription(username)
         if subscription_end is None:
             return None

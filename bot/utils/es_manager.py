@@ -12,28 +12,22 @@ import urllib3
 from bot.settings import settings
 from bot.utils.database import DatabaseManager
 
-# Configure basic logging settings
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Disable warnings regarding untrusted HTTPS requests
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-# Elasticsearch settings
 es_host = settings.ES_HOST
 es_username = settings.ES_USERNAME
 es_password = settings.ES_PASSWORD
 
 
-async def connect_to_elasticsearch() -> Optional[AsyncElasticsearch]: # TODO: Change return type
-    """
-    Establishes a connection to Elasticsearch.
-    """
+async def connect_to_elasticsearch() -> Optional[AsyncElasticsearch]:
     try:
         es = AsyncElasticsearch(
             hosts=[es_host],
-            basic_auth=(es_username, es_password),  # Use 'basic_auth' instead of 'http_auth'
-            verify_certs=False,  # Set to True in production for security
+            basic_auth=(es_username, es_password),
+            verify_certs=False,
         )
         if not await es.ping():
             raise ValueError("Failed to connect to Elasticsearch.")
@@ -46,10 +40,7 @@ async def connect_to_elasticsearch() -> Optional[AsyncElasticsearch]: # TODO: Ch
         return None
 
 
-async def delete_all_indices(es) -> None:
-    """
-    Deletes all indices in Elasticsearch.
-    """
+async def delete_all_indices(es: AsyncElasticsearch) -> None:
     try:
         all_indices = await es.indices.get(index="_all")
         if not all_indices:
@@ -68,10 +59,7 @@ async def delete_all_indices(es) -> None:
         await DatabaseManager.log_system_message("ERROR", f"Error deleting indices: {e}")
 
 
-async def index_transcriptions(base_path, es) -> None:
-    """
-    Indexes transcription files from the given base path.
-    """
+async def index_transcriptions(base_path: str, es: AsyncElasticsearch) -> None:
     actions = []
     for season_dir in os.listdir(base_path):
         season_path = os.path.join(base_path, season_dir)
@@ -86,13 +74,12 @@ async def index_transcriptions(base_path, es) -> None:
                         data = json.load(f)
                         episode_info = data.get('episode_info', {})
 
-                        # Convert Windows paths to Linux paths
                         video_path = os.path.join("bot/RANCZO-WIDEO", season_dir, episode_file.replace('.json', '.mp4'))
-                        video_path = video_path.replace("\\", "/")  # Ensure the path is in Linux format
+                        video_path = video_path.replace("\\", "/")
 
                         for segment in data.get('segments', []):
                             segment['episode_info'] = episode_info
-                            segment['video_path'] = video_path  # Add video path
+                            segment['video_path'] = video_path
 
                             actions.append({
                                 "_index": "ranczo-transcriptions",
@@ -110,17 +97,12 @@ async def index_transcriptions(base_path, es) -> None:
         await DatabaseManager.log_system_message("INFO", "No data to index.")
 
 
-async def print_one_transcription(es, index="ranczo-transcriptions") -> None:
-    """
-    Prints one transcription document from Elasticsearch in a more readable format.
-    """
+async def print_one_transcription(es: AsyncElasticsearch, index: str = "ranczo-transcriptions") -> None:
     try:
         response = await es.search(index=index, size=1)
         if response['hits']['hits']:
             document = response['hits']['hits'][0]['_source']
-            # Normalize path for output
             document['video_path'] = document['video_path'].replace("\\", "/")
-            # Create a more readable output format
             readable_output = f"Document ID: {response['hits']['hits'][0]['_id']}\n" \
                               f"Episode Info: {document['episode_info']}\n" \
                               f"Video Path: {document['video_path']}\n" \
@@ -141,13 +123,11 @@ async def main() -> None:
     es_client = await connect_to_elasticsearch()
     if es_client:
         try:
-            # Uncomment the following line if you need to delete all indices before indexing
             await delete_all_indices(es_client)
             await index_transcriptions(base_path="../RANCZO-TRANSKRYPCJE", es=es_client)
-            # Print one transcription document
             await print_one_transcription(es_client)
         finally:
-            await es_client.close()  # Ensure the client is closed after use
+            await es_client.close()
 
 
 if __name__ == "__main__":

@@ -1,5 +1,8 @@
 import logging
-from typing import Awaitable
+from typing import (
+    Awaitable,
+    Optional,
+)
 
 from aiogram import BaseMiddleware
 from aiogram.types import Message
@@ -10,7 +13,8 @@ logger = logging.getLogger(__name__)
 
 
 class ErrorHandlerMiddleware(BaseMiddleware):
-    async def __call__(self, handler, event, data) -> Awaitable: # TODO: Change return type
+    # TODO: hints
+    async def __call__(self, handler, event, data) -> Optional[Awaitable]:
         try:
             return await handler(event, data)
         except Exception as e:

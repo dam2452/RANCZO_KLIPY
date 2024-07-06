@@ -29,7 +29,7 @@ number_to_emoji = {
 }
 
 
-def convert_number_to_emoji(number) -> str:
+def convert_number_to_emoji(number: int) -> str:
     return ''.join(number_to_emoji.get(digit, digit) for digit in str(number))
 
 

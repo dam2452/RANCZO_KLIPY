@@ -60,7 +60,8 @@ class VideoManager:
             await DatabaseManager.log_system_message("ERROR", f"Failed to send video clip: {e}")
             await self.bot.send_message(chat_id, f"⚠️ Nie udało się wysłać klipu wideo: {str(e)}")
 
-    async def extract_and_concatenate_clips(self, segments, output_filename) -> None:
+# TODO: segment
+    async def extract_and_concatenate_clips(self, segments, output_filename: str) -> None:
         temp_files = []
         try:
             for segment in segments:
@@ -82,8 +83,9 @@ class VideoManager:
                     os.remove(temp_file)
                     await DatabaseManager.log_system_message("INFO", f"Temporary file '{temp_file}' removed after concatenation.")
 
+    # TODO: segment
     @staticmethod
-    async def concatenate_clips(segment_files, output_file) -> None:
+    async def concatenate_clips(segment_files, output_file: str) -> None:
         concat_file_content = "\n".join([f"file '{file}'" for file in segment_files])
         concat_file = tempfile.NamedTemporaryFile(delete=False, mode='w', suffix=".txt")
         concat_file.write(concat_file_content)

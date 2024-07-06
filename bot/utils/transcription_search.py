@@ -1,7 +1,7 @@
 import logging
+from typing import Optional
 
 from aiogram import Dispatcher
-from typing import Optional
 
 from bot.middlewares.auth_middleware import AuthorizationMiddleware
 from bot.middlewares.error_middleware import ErrorHandlerMiddleware
@@ -18,6 +18,7 @@ class SearchTranscriptions:
         dispatcher.message.middleware(AuthorizationMiddleware())
         dispatcher.message.middleware(ErrorHandlerMiddleware())
 
+    # TODO: args + lepszy return type
     @staticmethod
     async def find_segment_by_quote(quote, season_filter=None, episode_filter=None, index='ranczo-transcriptions', return_all=False) -> Optional[dict or list]:
         """
@@ -111,6 +112,7 @@ class SearchTranscriptions:
             await DatabaseManager.log_system_message("ERROR", f"An error occurred while searching for segments: {e}")
             return None
 
+    # TODO: args + lepszy return type
     async def find_segment_with_context(
         self, quote, context_size=30, season_filter=None, episode_filter=None,
         index='ranczo-transcriptions',
@@ -210,6 +212,7 @@ class SearchTranscriptions:
             await DatabaseManager.log_system_message("ERROR", f"An error occurred while searching for segment with context: {e}")
             return None
 
+    # TODO: args
     @staticmethod
     async def find_video_path_by_episode(season, episode_number, index='ranczo-transcriptions') -> Optional[str]:
         """
@@ -273,6 +276,7 @@ class SearchTranscriptions:
             await DatabaseManager.log_system_message("ERROR", f"An error occurred while searching for video path: {e}")
             return None
 
+    # TODO: args + lepszy return type
     @staticmethod
     async def find_episodes_by_season(season, index='ranczo-transcriptions') -> Optional[list]:
         """

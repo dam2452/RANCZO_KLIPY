@@ -1,5 +1,9 @@
+from datetime import date
 import logging
-from typing import Optional
+from typing import (
+    List,
+    Optional,
+)
 
 from aiogram import (
     Dispatcher,
@@ -7,6 +11,7 @@ from aiogram import (
     types,
 )
 from aiogram.filters import Command
+import asyncpg
 from tabulate import tabulate
 
 from bot.middlewares.auth_middleware import AuthorizationMiddleware
@@ -22,43 +27,51 @@ dis = Dispatcher()
 # Definicja UserManager dla łatwiejszego dostępu do funkcji zarządzania użytkownikami
 class UserManager:
     @staticmethod
-    async def add_user(username, is_admin=False, is_moderator=False, full_name=None, email=None, phone=None, subscription_days=None) -> None:
+    async def add_user(
+        username: str, is_admin: Optional[bool] = False, is_moderator: Optional[bool] = False,
+        full_name: Optional[str] = None, email: Optional[str] = None, phone: Optional[str] = None,
+        subscription_days: Optional[int] = None,
+    ) -> None:
         await DatabaseManager.add_user(username, is_admin, is_moderator, full_name, email, phone, subscription_days)
 
     @staticmethod
-    async def remove_user(username) -> None:
+    async def remove_user(username: str) -> None:
         await DatabaseManager.remove_user(username)
 
     @staticmethod
-    async def update_user(username, is_admin=None, is_moderator=None, full_name=None, email=None, phone=None, subscription_end=None) -> None:
+    async def update_user(
+        username: str, is_admin: Optional[bool] = False, is_moderator: Optional[bool] = False,
+        full_name: Optional[str] = None, email: Optional[str] = None, phone: Optional[str] = None,
+        subscription_end: Optional[int] = None,
+    ) -> None:
         await DatabaseManager.update_user(username, is_admin, is_moderator, full_name, email, phone, subscription_end)
 
     @staticmethod
-    async def get_all_users() -> Optional[list]: # TODO: Change return type
+    async def get_all_users() -> Optional[List[asyncpg.Record]]:
         return await DatabaseManager.get_all_users()
 
     @staticmethod
-    async def get_admin_users() -> Optional[list]: # TODO: Change return type
+    async def get_admin_users() -> Optional[List[asyncpg.Record]]:
         return await DatabaseManager.get_admin_users()
 
     @staticmethod
-    async def get_moderator_users() -> Optional[list]: # TODO: Change return type
+    async def get_moderator_users() -> Optional[List[asyncpg.Record]]:
         return await DatabaseManager.get_moderator_users()
 
     @staticmethod
-    async def add_subscription(username, days) -> Optional[str]: # TODO: Change return type
+    async def add_subscription(username: str, days: int) -> Optional[date]:
         return await DatabaseManager.add_subscription(username, days)
 
     @staticmethod
-    async def remove_subscription(username) -> None:
+    async def remove_subscription(username: str) -> None:
         await DatabaseManager.remove_subscription(username)
 
     @staticmethod
-    async def is_user_admin(username) -> Optional[bool]: # TODO: Change return type
+    async def is_user_admin(username: str) -> Optional[bool]:
         return await DatabaseManager.is_user_admin(username)
 
     @staticmethod
-    async def is_user_moderator(username) -> Optional[bool]: # TODO: Change return type
+    async def is_user_moderator(username: str) -> Optional[bool]:
         return await DatabaseManager.is_user_moderator(username)
 
 
