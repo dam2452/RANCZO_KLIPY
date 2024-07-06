@@ -7,6 +7,7 @@ from aiogram import (
 )
 from aiogram.filters import Command
 from tabulate import tabulate
+from typing import Optional
 
 from bot.middlewares.auth_middleware import AuthorizationMiddleware
 from bot.middlewares.error_middleware import ErrorHandlerMiddleware
@@ -15,6 +16,7 @@ from bot.utils.transcription_search import SearchTranscriptions
 
 logger = logging.getLogger(__name__)
 router = Router()
+dis = Dispatcher()
 
 
 # Definicja UserManager dla łatwiejszego dostępu do funkcji zarządzania użytkownikami
@@ -32,19 +34,19 @@ class UserManager:
         await DatabaseManager.update_user(username, is_admin, is_moderator, full_name, email, phone, subscription_end)
 
     @staticmethod
-    async def get_all_users() -> list or None:
+    async def get_all_users() -> Optional[list]: # TO DO: Change return type
         return await DatabaseManager.get_all_users()
 
     @staticmethod
-    async def get_admin_users() -> list or None:
+    async def get_admin_users() -> Optional[list]: # TO DO: Change return type
         return await DatabaseManager.get_admin_users()
 
     @staticmethod
-    async def get_moderator_users() -> list or None:
+    async def get_moderator_users() -> Optional[list]: # TO DO: Change return type
         return await DatabaseManager.get_moderator_users()
 
     @staticmethod
-    async def add_subscription(username, days) -> str or None:
+    async def add_subscription(username, days) -> Optional[str]: # TO DO: Change return type
         return await DatabaseManager.add_subscription(username, days)
 
     @staticmethod
@@ -52,11 +54,11 @@ class UserManager:
         await DatabaseManager.remove_subscription(username)
 
     @staticmethod
-    async def is_user_admin(username) -> bool or None:
+    async def is_user_admin(username) -> Optional[bool]: # TO DO: Change return type
         return await DatabaseManager.is_user_admin(username)
 
     @staticmethod
-    async def is_user_moderator(username) -> bool or None:
+    async def is_user_moderator(username) -> Optional[bool]: # TO DO: Change return type
         return await DatabaseManager.is_user_moderator(username)
 
 
@@ -350,7 +352,7 @@ async def handle_transcription_request(message: types.Message) -> None:
     logger.info(f"Searching transcription for quote: '{quote}'")
     await DatabaseManager.log_user_activity(message.from_user.username, f"/transkrypcja {quote}")
 
-    search_transcriptions = SearchTranscriptions(router)
+    search_transcriptions = SearchTranscriptions(dis)
     context_size = 15
     result = await search_transcriptions.find_segment_with_context(quote, context_size)
 

@@ -2,9 +2,10 @@ import argparse
 import json
 import os
 import subprocess
+from typing import Optional
 
 
-def get_best_audio_stream(video_file) -> int or None:
+def get_best_audio_stream(video_file) -> Optional[int]:
     """Zwraca indeks najlepszej ścieżki audio na podstawie bitrate."""
     try:
         cmd = f'ffprobe -v quiet -print_format json -show_streams -select_streams a "{video_file}"'

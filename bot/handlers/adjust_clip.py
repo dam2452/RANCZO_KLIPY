@@ -122,7 +122,7 @@ async def adjust_video_clip(message: types.Message, bot: Bot) -> None:
         await DatabaseManager.log_system_message("ERROR", f"Error in adjust_video_clip for user '{message.from_user.username}': {e}")
 
 
-def register_adjust_handler(dispatcher: Dispatcher):
+def register_adjust_handler(dispatcher: Dispatcher) -> None:
     dispatcher.include_router(router)
 
 

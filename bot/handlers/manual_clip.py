@@ -8,6 +8,7 @@ from aiogram import (
     types,
 )
 from aiogram.filters import Command
+from typing import Optional
 
 from bot.middlewares.auth_middleware import AuthorizationMiddleware
 from bot.middlewares.error_middleware import ErrorHandlerMiddleware
@@ -22,7 +23,7 @@ dis = Dispatcher()
 last_manual_clip = {}  # Dictionary to store the last manual clip per chat ID
 
 
-def minutes_str_to_seconds(time_str) -> float or None:
+def minutes_str_to_seconds(time_str) -> Optional[float]:
     """ Convert time string in the format MM:SS.ms to seconds """
     try:
         minutes, seconds = time_str.split(':')
@@ -33,7 +34,7 @@ def minutes_str_to_seconds(time_str) -> float or None:
         return None
 
 
-def adjust_episode_number(absolute_episode) -> tuple[int, int] or None:
+def adjust_episode_number(absolute_episode) -> Optional[tuple[int, int]]:
     """ Adjust the absolute episode number to season and episode format """
     season = (absolute_episode - 1) // 13 + 1
     episode = (absolute_episode - 1) % 13 + 1

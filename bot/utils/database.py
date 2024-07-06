@@ -4,6 +4,11 @@ from datetime import (
 )
 
 import asyncpg
+from typing import (
+    # Coroutine,
+    # Any,
+    Optional,
+)
 
 from bot.settings import (
     POSTGRES_DB,
@@ -16,7 +21,7 @@ from bot.settings import (
 
 class DatabaseManager:
     @staticmethod
-    async def get_db_connection() -> asyncpg.Connection or None:
+    async def get_db_connection() -> Optional[asyncpg.Connection]: # TO DO: Change return type
         return await asyncpg.connect(
             host=POSTGRES_HOST,
             port=POSTGRES_PORT,
@@ -168,7 +173,7 @@ class DatabaseManager:
         await conn.close()
 
     @staticmethod
-    async def get_all_users() -> list[asyncpg.Record] or None:
+    async def get_all_users() -> Optional[list[asyncpg.Record]]: # TO DO: Change return type
         conn = await DatabaseManager.get_db_connection()
         result = await conn.fetch(
             'SELECT username, is_admin, is_moderator, full_name, email, phone, subscription_end FROM users',
@@ -177,21 +182,21 @@ class DatabaseManager:
         return result
 
     @staticmethod
-    async def get_admin_users() -> list[asyncpg.Record] or None:
+    async def get_admin_users() -> Optional[list[asyncpg.Record]]: # TO DO: Change return type
         conn = await DatabaseManager.get_db_connection()
         result = await conn.fetch('SELECT username, full_name, email, phone FROM users WHERE is_admin = TRUE')
         await conn.close()
         return result
 
     @staticmethod
-    async def get_moderator_users() -> list[asyncpg.Record] or None:
+    async def get_moderator_users() -> Optional[list[asyncpg.Record]]: # TO DO: Change return type
         conn = await DatabaseManager.get_db_connection()
         result = await conn.fetch('SELECT username, full_name, email, phone FROM users WHERE is_moderator = TRUE')
         await conn.close()
         return result
 
     @staticmethod
-    async def is_user_authorized(username) -> bool or None:
+    async def is_user_authorized(username) -> bool:
         conn = await DatabaseManager.get_db_connection()
         result = await conn.fetchrow(
             'SELECT is_admin, is_moderator, subscription_end FROM users WHERE username = $1',
@@ -207,14 +212,14 @@ class DatabaseManager:
         return False
 
     @staticmethod
-    async def is_user_admin(username) -> bool or None:
+    async def is_user_admin(username) -> Optional[bool]: # TO DO: Change return type
         conn = await DatabaseManager.get_db_connection()
         result = await conn.fetchval('SELECT is_admin FROM users WHERE username = $1', username)
         await conn.close()
         return result
 
     @staticmethod
-    async def is_user_moderator(username) -> bool or None:
+    async def is_user_moderator(username) -> Optional[bool]: # TO DO: Change return type
         conn = await DatabaseManager.get_db_connection()
         result = await conn.fetchval('SELECT is_moderator FROM users WHERE username = $1', username)
         await conn.close()
@@ -233,7 +238,7 @@ class DatabaseManager:
         await conn.close()
 
     @staticmethod
-    async def get_saved_clips(username) -> list[asyncpg.Record] or None:
+    async def get_saved_clips(username) -> Optional[list[asyncpg.Record]]: # TO DO: Change return type
         conn = await DatabaseManager.get_db_connection()
         result = await conn.fetch(
             'SELECT clip_name, start_time, end_time, season, episode_number, is_compilation FROM clips WHERE username = $1',
@@ -259,7 +264,7 @@ class DatabaseManager:
         await conn.close()
 
     @staticmethod
-    async def get_clip_by_name(username, clip_name) -> asyncpg.Record or None:
+    async def get_clip_by_name(username, clip_name) -> Optional[tuple[bytes, int, int]]: # TO DO: Change return type
         conn = await DatabaseManager.get_db_connection()
         result = await conn.fetchrow(
             '''
@@ -272,7 +277,7 @@ class DatabaseManager:
         return result
 
     @staticmethod
-    async def get_clip_by_index(username, index) -> tuple[str, int, int, int, int, bool] or None:
+    async def get_clip_by_index(username, index) -> Optional[tuple[str, int, int, int, int, bool]]: # TO DO: Change return type
         conn = await DatabaseManager.get_db_connection()
         clip = await conn.fetchrow(
             '''
@@ -291,7 +296,7 @@ class DatabaseManager:
         return None
 
     @staticmethod
-    async def get_video_data_by_name(username, clip_name) -> bytes or None:
+    async def get_video_data_by_name(username, clip_name) -> Optional[bytes]: # TO DO: Change return type
         conn = await DatabaseManager.get_db_connection()
         result = await conn.fetchval(
             '''
@@ -305,7 +310,7 @@ class DatabaseManager:
         return result
 
     @staticmethod
-    async def add_subscription(username, days) -> date or None:
+    async def add_subscription(username, days) -> Optional[date]: # TO DO: Change return type
         conn = await DatabaseManager.get_db_connection()
         new_end_date = await conn.fetchval(
             '''
@@ -331,7 +336,7 @@ class DatabaseManager:
         await conn.close()
 
     @staticmethod
-    async def get_user_subscription(username) -> date or None:
+    async def get_user_subscription(username) -> Optional[date]: # TO DO: Change return type
         conn = await DatabaseManager.get_db_connection()
         subscription_end = await conn.fetchval('SELECT subscription_end FROM users WHERE username = $1', username)
         await conn.close()
@@ -350,7 +355,7 @@ class DatabaseManager:
         await conn.close()
 
     @staticmethod
-    async def delete_clip(username, clip_name) -> asyncpg.Record or None:
+    async def delete_clip(username, clip_name) -> Optional[asyncpg.Record]: # TO DO: Change return type
         conn = await DatabaseManager.get_db_connection()
         async with conn.transaction():
             result = await conn.execute(
@@ -363,7 +368,7 @@ class DatabaseManager:
         return result
 
     @staticmethod
-    async def is_clip_name_unique(chat_id: int, clip_name: str) -> bool or None:
+    async def is_clip_name_unique(chat_id: int, clip_name: str) -> bool:
         conn = await DatabaseManager.get_db_connection()
         result = await conn.fetchval(
             'SELECT COUNT(*) FROM clips WHERE chat_id=$1 AND clip_name=$2',

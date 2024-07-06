@@ -8,6 +8,7 @@ from aiogram import (
     types,
 )
 from aiogram.filters import Command
+from typing import Optional
 
 from bot.middlewares.auth_middleware import AuthorizationMiddleware
 from bot.middlewares.error_middleware import ErrorHandlerMiddleware
@@ -19,7 +20,7 @@ router = Router()
 
 class UserManager:
     @staticmethod
-    async def get_subscription_status(username: str) -> tuple[None, None] or tuple[date, int] or None:
+    async def get_subscription_status(username: str) -> Optional[tuple[date, int]]: # TO DO: Change return type
         subscription_end = await DatabaseManager.get_user_subscription(username)
         if subscription_end is None:
             return None

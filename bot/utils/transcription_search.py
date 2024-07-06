@@ -1,6 +1,7 @@
 import logging
 
 from aiogram import Dispatcher
+from typing import Optional
 
 from bot.middlewares.auth_middleware import AuthorizationMiddleware
 from bot.middlewares.error_middleware import ErrorHandlerMiddleware
@@ -18,7 +19,7 @@ class SearchTranscriptions:
         dispatcher.message.middleware(ErrorHandlerMiddleware())
 
     @staticmethod
-    async def find_segment_by_quote(quote, season_filter=None, episode_filter=None, index='ranczo-transcriptions', return_all=False) -> list or dict or None:
+    async def find_segment_by_quote(quote, season_filter=None, episode_filter=None, index='ranczo-transcriptions', return_all=False) -> Optional[dict or list]:
         """
         Searches for a segment by a given quote with optional season and episode filters.
 
@@ -113,7 +114,7 @@ class SearchTranscriptions:
     async def find_segment_with_context(
         self, quote, context_size=30, season_filter=None, episode_filter=None,
         index='ranczo-transcriptions',
-    ) -> dict or None:
+    ) -> Optional[dict]:
         logger.info(
             f"🔍 Searching for quote: '{quote}' with context size: {context_size}, filters - Season: {season_filter}, Episode: {episode_filter}",
         )
@@ -210,7 +211,7 @@ class SearchTranscriptions:
             return None
 
     @staticmethod
-    async def find_video_path_by_episode(season, episode_number, index='ranczo-transcriptions') -> str or None:
+    async def find_video_path_by_episode(season, episode_number, index='ranczo-transcriptions') -> Optional[str]:
         """
         Finds the video path for a given season and episode number.
 
@@ -273,7 +274,7 @@ class SearchTranscriptions:
             return None
 
     @staticmethod
-    async def find_episodes_by_season(season, index='ranczo-transcriptions') -> list or None:
+    async def find_episodes_by_season(season, index='ranczo-transcriptions') -> Optional[list]:
         """
         Finds all episodes for a given season.
 

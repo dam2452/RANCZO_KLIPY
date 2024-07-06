@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import subprocess
+from typing import Optional
 
 import ffmpeg
 
@@ -49,19 +50,19 @@ class VideoProcessor:
         await DatabaseManager.log_system_message("INFO", success_message)
 
     @staticmethod
-    def convert_seconds_to_time_str(seconds: int) -> str or None:
+    def convert_seconds_to_time_str(seconds: int) -> Optional[str]:
         hours = int(seconds // 3600)
         minutes = int((seconds % 3600) // 60)
         seconds = int(seconds % 60)
         return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
 
     @staticmethod
-    def time_str_to_seconds(time_str: str) -> int or None:
+    def time_str_to_seconds(time_str: str) -> Optional[int]:
         h, m, s = map(int, time_str.split(':'))
         return h * 3600 + m * 60 + s
 
     @staticmethod
-    async def get_video_duration(file_path: str) -> float or None:
+    async def get_video_duration(file_path: str) -> Optional[float]:
         try:
             probe = ffmpeg.probe(file_path)
             duration = float(probe['format']['duration'])
