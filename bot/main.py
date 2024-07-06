@@ -20,15 +20,15 @@ logger = logging.getLogger(__name__)
 
 
 class DBLogHandler(logging.Handler):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.loop = None
 
-    def emit(self, record):
+    def emit(self, record) -> None:
         if self.loop is not None:
             self.loop.create_task(self.log_to_db(record))
 
-    async def log_to_db(self, record):
+    async def log_to_db(self, record) -> None:
         log_message = self.format(record)
         await DatabaseManager.log_system_message(record.levelname, log_message)
 
@@ -42,7 +42,7 @@ dp.update.middleware(AuthorizationMiddleware())  # Register AuthorizationMiddlew
 dp.update.middleware(ErrorHandlerMiddleware())  # Register ErrorHandlerMiddleware
 
 
-async def on_startup():
+async def on_startup() -> None:
     try:
         # Initialize the database
         await DatabaseManager.init_db()
@@ -59,7 +59,7 @@ async def on_startup():
         logger.error(f"❌ Failed to register handlers: {e} ❌")
 
 
-async def main():
+async def main() -> None:
     try:
         await on_startup()
         logger.info("🚀 Bot started successfully.🚀")

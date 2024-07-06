@@ -29,7 +29,7 @@ router = Router()
 
 
 @router.message(Command(commands=['dostosuj', 'adjust', 'd']))
-async def adjust_video_clip(message: types.Message, bot: Bot):
+async def adjust_video_clip(message: types.Message, bot: Bot) -> None:
     try:
         chat_id = message.chat.id
         content = message.text.split()

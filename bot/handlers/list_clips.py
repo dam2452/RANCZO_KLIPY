@@ -29,12 +29,12 @@ number_to_emoji = {
 }
 
 
-def convert_number_to_emoji(number):
+def convert_number_to_emoji(number) -> str:
     return ''.join(number_to_emoji.get(digit, digit) for digit in str(number))
 
 
 @router.message(Command(commands=['mojeklipy', 'myclips', 'mk']))
-async def list_saved_clips(message: types.Message, bot: Bot):
+async def list_saved_clips(message: types.Message, bot: Bot) -> None:
     try:
         username = message.from_user.username
         if not username or not await DatabaseManager.is_user_authorized(username):
@@ -85,7 +85,7 @@ async def list_saved_clips(message: types.Message, bot: Bot):
         await DatabaseManager.log_system_message("ERROR", f"Error handling /mojeklipy command for user '{message.from_user.username}': {e}")
 
 
-def register_list_clips_handler(dispatcher: Dispatcher):
+def register_list_clips_handler(dispatcher: Dispatcher) -> None:
     dispatcher.include_router(router)
 
 

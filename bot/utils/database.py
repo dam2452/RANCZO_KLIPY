@@ -16,7 +16,7 @@ from bot.settings import (
 
 class DatabaseManager:
     @staticmethod
-    async def get_db_connection():
+    async def get_db_connection() -> asyncpg.Connection or None:
         return await asyncpg.connect(
             host=POSTGRES_HOST,
             port=POSTGRES_PORT,
@@ -26,7 +26,7 @@ class DatabaseManager:
         )
 
     @staticmethod
-    async def init_db():
+    async def init_db() -> None:
         conn = await DatabaseManager.get_db_connection()
         async with conn.transaction():
             await conn.execute('''
@@ -84,7 +84,7 @@ class DatabaseManager:
         await conn.close()
 
     @staticmethod
-    async def log_user_activity(username, command):
+    async def log_user_activity(username, command) -> None:
         conn = await DatabaseManager.get_db_connection()
         async with conn.transaction():
             await conn.execute(
@@ -96,7 +96,7 @@ class DatabaseManager:
         await conn.close()
 
     @staticmethod
-    async def log_system_message(log_level, log_message):
+    async def log_system_message(log_level, log_message) -> None:
         conn = await DatabaseManager.get_db_connection()
         async with conn.transaction():
             await conn.execute(
@@ -111,7 +111,7 @@ class DatabaseManager:
     async def add_user(
         username, is_admin=False, is_moderator=False, full_name=None, email=None, phone=None,
         subscription_days=None,
-    ):
+    ) -> None:
         conn = await DatabaseManager.get_db_connection()
         subscription_end = date.today() + timedelta(days=subscription_days) if subscription_days else None
         async with conn.transaction():
@@ -128,7 +128,7 @@ class DatabaseManager:
     async def update_user(
         username, is_admin=None, is_moderator=None, full_name=None, email=None, phone=None,
         subscription_end=None,
-    ):
+    ) -> None:
         conn = await DatabaseManager.get_db_connection()
         updates = []
         params = []
@@ -161,14 +161,14 @@ class DatabaseManager:
         await conn.close()
 
     @staticmethod
-    async def remove_user(username):
+    async def remove_user(username) -> None:
         conn = await DatabaseManager.get_db_connection()
         async with conn.transaction():
             await conn.execute('DELETE FROM users WHERE username = $1', username)
         await conn.close()
 
     @staticmethod
-    async def get_all_users():
+    async def get_all_users() -> list[asyncpg.Record] or None:
         conn = await DatabaseManager.get_db_connection()
         result = await conn.fetch(
             'SELECT username, is_admin, is_moderator, full_name, email, phone, subscription_end FROM users',
@@ -177,21 +177,21 @@ class DatabaseManager:
         return result
 
     @staticmethod
-    async def get_admin_users():
+    async def get_admin_users() -> list[asyncpg.Record] or None:
         conn = await DatabaseManager.get_db_connection()
         result = await conn.fetch('SELECT username, full_name, email, phone FROM users WHERE is_admin = TRUE')
         await conn.close()
         return result
 
     @staticmethod
-    async def get_moderator_users():
+    async def get_moderator_users() -> list[asyncpg.Record] or None:
         conn = await DatabaseManager.get_db_connection()
         result = await conn.fetch('SELECT username, full_name, email, phone FROM users WHERE is_moderator = TRUE')
         await conn.close()
         return result
 
     @staticmethod
-    async def is_user_authorized(username):
+    async def is_user_authorized(username) -> bool or None:
         conn = await DatabaseManager.get_db_connection()
         result = await conn.fetchrow(
             'SELECT is_admin, is_moderator, subscription_end FROM users WHERE username = $1',
@@ -207,21 +207,21 @@ class DatabaseManager:
         return False
 
     @staticmethod
-    async def is_user_admin(username):
+    async def is_user_admin(username) -> bool or None:
         conn = await DatabaseManager.get_db_connection()
         result = await conn.fetchval('SELECT is_admin FROM users WHERE username = $1', username)
         await conn.close()
         return result
 
     @staticmethod
-    async def is_user_moderator(username):
+    async def is_user_moderator(username) -> bool or None:
         conn = await DatabaseManager.get_db_connection()
         result = await conn.fetchval('SELECT is_moderator FROM users WHERE username = $1', username)
         await conn.close()
         return result
 
     @staticmethod
-    async def set_default_admin(admin_id):
+    async def set_default_admin(admin_id) -> None:
         conn = await DatabaseManager.get_db_connection()
         await conn.execute(
             '''
@@ -233,7 +233,7 @@ class DatabaseManager:
         await conn.close()
 
     @staticmethod
-    async def get_saved_clips(username):
+    async def get_saved_clips(username) -> list[asyncpg.Record] or None:
         conn = await DatabaseManager.get_db_connection()
         result = await conn.fetch(
             'SELECT clip_name, start_time, end_time, season, episode_number, is_compilation FROM clips WHERE username = $1',
@@ -246,7 +246,7 @@ class DatabaseManager:
     async def save_clip(
         chat_id, username, clip_name, video_data, start_time, end_time, is_compilation, season=None,
         episode_number=None,
-    ):
+    ) -> None:
         conn = await DatabaseManager.get_db_connection()
         async with conn.transaction():
             await conn.execute(
@@ -259,7 +259,7 @@ class DatabaseManager:
         await conn.close()
 
     @staticmethod
-    async def get_clip_by_name(username, clip_name):
+    async def get_clip_by_name(username, clip_name) -> asyncpg.Record or None:
         conn = await DatabaseManager.get_db_connection()
         result = await conn.fetchrow(
             '''
@@ -272,7 +272,7 @@ class DatabaseManager:
         return result
 
     @staticmethod
-    async def get_clip_by_index(username, index):
+    async def get_clip_by_index(username, index) -> tuple[str, int, int, int, int, bool] or None:
         conn = await DatabaseManager.get_db_connection()
         clip = await conn.fetchrow(
             '''
@@ -291,7 +291,7 @@ class DatabaseManager:
         return None
 
     @staticmethod
-    async def get_video_data_by_name(username, clip_name):
+    async def get_video_data_by_name(username, clip_name) -> bytes or None:
         conn = await DatabaseManager.get_db_connection()
         result = await conn.fetchval(
             '''
@@ -305,7 +305,7 @@ class DatabaseManager:
         return result
 
     @staticmethod
-    async def add_subscription(username, days):
+    async def add_subscription(username, days) -> date or None:
         conn = await DatabaseManager.get_db_connection()
         new_end_date = await conn.fetchval(
             '''
@@ -319,7 +319,7 @@ class DatabaseManager:
         return new_end_date
 
     @staticmethod
-    async def remove_subscription(username):
+    async def remove_subscription(username) -> None:
         conn = await DatabaseManager.get_db_connection()
         await conn.execute(
             '''
@@ -331,14 +331,14 @@ class DatabaseManager:
         await conn.close()
 
     @staticmethod
-    async def get_user_subscription(username):
+    async def get_user_subscription(username) -> date or None:
         conn = await DatabaseManager.get_db_connection()
         subscription_end = await conn.fetchval('SELECT subscription_end FROM users WHERE username = $1', username)
         await conn.close()
         return subscription_end
 
     @staticmethod
-    async def add_report(username, report):
+    async def add_report(username, report) -> None:
         conn = await DatabaseManager.get_db_connection()
         async with conn.transaction():
             await conn.execute(
@@ -350,7 +350,7 @@ class DatabaseManager:
         await conn.close()
 
     @staticmethod
-    async def delete_clip(username, clip_name):
+    async def delete_clip(username, clip_name) -> asyncpg.Record or None:
         conn = await DatabaseManager.get_db_connection()
         async with conn.transaction():
             result = await conn.execute(
@@ -363,7 +363,7 @@ class DatabaseManager:
         return result
 
     @staticmethod
-    async def is_clip_name_unique(chat_id: int, clip_name: str) -> bool:
+    async def is_clip_name_unique(chat_id: int, clip_name: str) -> bool or None:
         conn = await DatabaseManager.get_db_connection()
         result = await conn.fetchval(
             'SELECT COUNT(*) FROM clips WHERE chat_id=$1 AND clip_name=$2',

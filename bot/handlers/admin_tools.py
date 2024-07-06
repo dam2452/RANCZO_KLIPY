@@ -20,48 +20,48 @@ router = Router()
 # Definicja UserManager dla łatwiejszego dostępu do funkcji zarządzania użytkownikami
 class UserManager:
     @staticmethod
-    async def add_user(username, is_admin=False, is_moderator=False, full_name=None, email=None, phone=None, subscription_days=None):
+    async def add_user(username, is_admin=False, is_moderator=False, full_name=None, email=None, phone=None, subscription_days=None) -> None:
         await DatabaseManager.add_user(username, is_admin, is_moderator, full_name, email, phone, subscription_days)
 
     @staticmethod
-    async def remove_user(username):
+    async def remove_user(username) -> None:
         await DatabaseManager.remove_user(username)
 
     @staticmethod
-    async def update_user(username, is_admin=None, is_moderator=None, full_name=None, email=None, phone=None, subscription_end=None):
+    async def update_user(username, is_admin=None, is_moderator=None, full_name=None, email=None, phone=None, subscription_end=None) -> None:
         await DatabaseManager.update_user(username, is_admin, is_moderator, full_name, email, phone, subscription_end)
 
     @staticmethod
-    async def get_all_users():
+    async def get_all_users() -> list or None:
         return await DatabaseManager.get_all_users()
 
     @staticmethod
-    async def get_admin_users():
+    async def get_admin_users() -> list or None:
         return await DatabaseManager.get_admin_users()
 
     @staticmethod
-    async def get_moderator_users():
+    async def get_moderator_users() -> list or None:
         return await DatabaseManager.get_moderator_users()
 
     @staticmethod
-    async def add_subscription(username, days):
+    async def add_subscription(username, days) -> str or None:
         return await DatabaseManager.add_subscription(username, days)
 
     @staticmethod
-    async def remove_subscription(username):
+    async def remove_subscription(username) -> None:
         await DatabaseManager.remove_subscription(username)
 
     @staticmethod
-    async def is_user_admin(username):
+    async def is_user_admin(username) -> bool or None:
         return await DatabaseManager.is_user_admin(username)
 
     @staticmethod
-    async def is_user_moderator(username):
+    async def is_user_moderator(username) -> bool or None:
         return await DatabaseManager.is_user_moderator(username)
 
 
 @router.message(Command('admin'))
-async def admin_help(message: types.Message):
+async def admin_help(message: types.Message) -> None:
     if not await UserManager.is_user_admin(message.from_user.username) and not await UserManager.is_user_moderator(
             message.from_user.username,
     ):
@@ -100,7 +100,7 @@ async def admin_help(message: types.Message):
 
 
 @router.message(Command(commands=['addwhitelist', 'addw']))
-async def add_to_whitelist(message: types.Message):
+async def add_to_whitelist(message: types.Message) -> None:
     if not await UserManager.is_user_admin(message.from_user.username) and not await UserManager.is_user_moderator(
             message.from_user.username,
     ):
@@ -140,7 +140,7 @@ async def add_to_whitelist(message: types.Message):
 
 
 @router.message(Command(commands=['removewhitelist', 'removew']))
-async def remove_from_whitelist(message: types.Message):
+async def remove_from_whitelist(message: types.Message) -> None:
     if not await UserManager.is_user_admin(message.from_user.username) and not await UserManager.is_user_moderator(
             message.from_user.username,
     ):
@@ -164,7 +164,7 @@ async def remove_from_whitelist(message: types.Message):
 
 
 @router.message(Command(commands=['updatewhitelist', 'updatew']))
-async def update_whitelist(message: types.Message):
+async def update_whitelist(message: types.Message) -> None:
     if not await UserManager.is_user_admin(message.from_user.username) and not await UserManager.is_user_moderator(
             message.from_user.username,
     ):
@@ -204,7 +204,7 @@ async def update_whitelist(message: types.Message):
 
 
 @router.message(Command(commands=['listwhitelist', 'listw']))
-async def list_whitelist(message: types.Message):
+async def list_whitelist(message: types.Message) -> None:
     if not await UserManager.is_user_admin(message.from_user.username) and not await UserManager.is_user_moderator(
             message.from_user.username,
     ):
@@ -231,7 +231,7 @@ async def list_whitelist(message: types.Message):
 
 
 @router.message(Command(commands=['listadmins', 'listad']))
-async def list_admins(message: types.Message):
+async def list_admins(message: types.Message) -> None:
     if not await UserManager.is_user_admin(message.from_user.username) and not await UserManager.is_user_moderator(
             message.from_user.username,
     ):
@@ -257,7 +257,7 @@ async def list_admins(message: types.Message):
 
 
 @router.message(Command(commands=['listmoderators', 'listmod']))
-async def list_moderators(message: types.Message):
+async def list_moderators(message: types.Message) -> None:
     if not await UserManager.is_user_admin(message.from_user.username) and not await UserManager.is_user_moderator(
             message.from_user.username,
     ):
@@ -283,7 +283,7 @@ async def list_moderators(message: types.Message):
 
 
 @router.message(Command(commands=['addsubscription', 'addsub']))
-async def add_subscription_command(message: types.Message):
+async def add_subscription_command(message: types.Message) -> None:
     if not await UserManager.is_user_admin(message.from_user.username):
         await message.answer("❌ Nie masz uprawnień do zarządzania subskrypcjami.❌ ")
         logger.warning(f"Unauthorized access attempt by user: {message.from_user.username}")
@@ -307,7 +307,7 @@ async def add_subscription_command(message: types.Message):
 
 
 @router.message(Command(commands=['removesubscription', 'removesub']))
-async def remove_subscription_command(message: types.Message):
+async def remove_subscription_command(message: types.Message) -> None:
     if not await UserManager.is_user_admin(message.from_user.username):
         await message.answer("❌ Nie masz uprawnień do zarządzania subskrypcjami.❌")
         logger.warning(f"Unauthorized access attempt by user: {message.from_user.username}")
@@ -330,7 +330,7 @@ async def remove_subscription_command(message: types.Message):
 
 
 @router.message(Command(commands=['transkrypcja', 'trans']))
-async def handle_transcription_request(message: types.Message):
+async def handle_transcription_request(message: types.Message) -> None:
     if not await UserManager.is_user_admin(message.from_user.username) and not await UserManager.is_user_moderator(
             message.from_user.username,
     ):
@@ -372,7 +372,7 @@ async def handle_transcription_request(message: types.Message):
     await DatabaseManager.log_system_message("INFO", f"Transcription for quote '{quote}' sent to user '{message.from_user.username}'.")
 
 
-def register_admin_handlers(dispatcher: Dispatcher):
+def register_admin_handlers(dispatcher: Dispatcher) -> None:
     dispatcher.include_router(router)
 
 

@@ -20,7 +20,7 @@ router = Router()
 
 
 @router.message(Command(commands=['wyslij', 'send', 'wys']))
-async def send_clip(message: types.Message, bot: Bot):
+async def send_clip(message: types.Message, bot: Bot) -> None:
     try:
         username = message.from_user.username
 
@@ -79,7 +79,7 @@ async def send_clip(message: types.Message, bot: Bot):
             os.remove(temp_file_path)  # Clean up the temporary file
 
 
-def register_send_clip_handler(dispatcher: Dispatcher):
+def register_send_clip_handler(dispatcher: Dispatcher) -> None:
     dispatcher.include_router(router)
 
 

@@ -26,7 +26,7 @@ last_selected_segment = {}
 
 
 @router.message(Command(commands=['klip', 'clip', 'k']))
-async def handle_clip_request(message: types.Message, bot: Bot):
+async def handle_clip_request(message: types.Message, bot: Bot) -> None:
     try:
         content = message.text.split()
         if len(content) < 2:
@@ -67,7 +67,7 @@ async def handle_clip_request(message: types.Message, bot: Bot):
         await DatabaseManager.log_system_message("ERROR", f"An error occurred while handling clip request: {str(e)}")
 
 
-def register_clip_handlers(dispatcher: Dispatcher):
+def register_clip_handlers(dispatcher: Dispatcher) -> None:
     dispatcher.include_router(router)
 
 

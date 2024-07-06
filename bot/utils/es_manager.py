@@ -24,7 +24,7 @@ es_username = settings.ES_USERNAME
 es_password = settings.ES_PASSWORD
 
 
-async def connect_to_elasticsearch():
+async def connect_to_elasticsearch() -> AsyncElasticsearch or None:
     """
     Establishes a connection to Elasticsearch.
     """
@@ -45,7 +45,7 @@ async def connect_to_elasticsearch():
         return None
 
 
-async def delete_all_indices(es):
+async def delete_all_indices(es) -> None:
     """
     Deletes all indices in Elasticsearch.
     """
@@ -67,7 +67,7 @@ async def delete_all_indices(es):
         await DatabaseManager.log_system_message("ERROR", f"Error deleting indices: {e}")
 
 
-async def index_transcriptions(base_path, es):
+async def index_transcriptions(base_path, es) -> None:
     """
     Indexes transcription files from the given base path.
     """
@@ -109,7 +109,7 @@ async def index_transcriptions(base_path, es):
         await DatabaseManager.log_system_message("INFO", "No data to index.")
 
 
-async def print_one_transcription(es, index="ranczo-transcriptions"):
+async def print_one_transcription(es, index="ranczo-transcriptions") -> None:
     """
     Prints one transcription document from Elasticsearch in a more readable format.
     """
@@ -136,7 +136,7 @@ async def print_one_transcription(es, index="ranczo-transcriptions"):
         await DatabaseManager.log_system_message("ERROR", f"Error retrieving document: {e}")
 
 
-async def main():
+async def main() -> None:
     es_client = await connect_to_elasticsearch()
     if es_client:
         try:

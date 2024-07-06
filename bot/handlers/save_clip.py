@@ -26,7 +26,7 @@ router = Router()
 
 
 @router.message(Command(commands=['zapisz', 'save', 'z']))
-async def save_user_clip(message: types.Message, bot: Bot):
+async def save_user_clip(message: types.Message, bot: Bot) -> None:
     try:
         username = message.from_user.username
         chat_id = message.chat.id
@@ -142,7 +142,7 @@ async def save_user_clip(message: types.Message, bot: Bot):
         await DatabaseManager.log_system_message("ERROR", f"Error handling /zapisz command for user '{message.from_user.username}': {e}")
 
 
-def register_save_handler(dispatcher: Dispatcher):
+def register_save_handler(dispatcher: Dispatcher) -> None:
     dispatcher.include_router(router)
 
 

@@ -17,7 +17,7 @@ router = Router()
 
 
 @router.message(Command(commands=['usunklip', 'deleteclip', 'uk']))
-async def delete_saved_clip(message: types.Message, bot: Bot):
+async def delete_saved_clip(message: types.Message, bot: Bot) -> None:
     try:
         username = message.from_user.username
         if not username or not await DatabaseManager.is_user_authorized(username):
@@ -57,7 +57,7 @@ async def delete_saved_clip(message: types.Message, bot: Bot):
         await DatabaseManager.log_system_message("ERROR", f"Error handling /usunklip command for user '{message.from_user.username}': {e}")
 
 
-def register_delete_clip_handler(dispatcher: Dispatcher):
+def register_delete_clip_handler(dispatcher: Dispatcher) -> None:
     dispatcher.include_router(router)
 
 

@@ -24,7 +24,7 @@ router = Router()
 
 
 @router.message(Command(commands=['kompiluj', 'compile', 'kom']))
-async def compile_clips(message: types.Message, bot: Bot):
+async def compile_clips(message: types.Message, bot: Bot) -> None:
     chat_id = message.chat.id
     try:
         username = message.from_user.username
@@ -111,7 +111,7 @@ async def compile_clips(message: types.Message, bot: Bot):
             os.remove(compiled_output.name)
 
 
-def register_compile_command(dispatcher: Dispatcher):
+def register_compile_command(dispatcher: Dispatcher) -> None:
     dispatcher.include_router(router)
 
 

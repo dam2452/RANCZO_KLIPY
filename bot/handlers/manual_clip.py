@@ -21,7 +21,7 @@ router = Router()
 last_manual_clip = {}  # Dictionary to store the last manual clip per chat ID
 
 
-def minutes_str_to_seconds(time_str):
+def minutes_str_to_seconds(time_str) -> float or None:
     """ Convert time string in the format MM:SS.ms to seconds """
     try:
         minutes, seconds = time_str.split(':')
@@ -32,7 +32,7 @@ def minutes_str_to_seconds(time_str):
         return None
 
 
-def adjust_episode_number(absolute_episode):
+def adjust_episode_number(absolute_episode) -> tuple[int, int] or None:
     """ Adjust the absolute episode number to season and episode format """
     season = (absolute_episode - 1) // 13 + 1
     episode = (absolute_episode - 1) % 13 + 1
@@ -40,7 +40,7 @@ def adjust_episode_number(absolute_episode):
 
 
 @router.message(Command(commands=['wytnij', 'cut', 'wyt', 'pawlos']))  # XD pawlos
-async def handle_manual_command(message: types.Message, bot: Bot):
+async def handle_manual_command(message: types.Message, bot: Bot) -> None:
     try:
         search_transcriptions = SearchTranscriptions(router)
         video_manager = VideoManager(bot)
@@ -117,7 +117,7 @@ async def handle_manual_command(message: types.Message, bot: Bot):
         await DatabaseManager.log_system_message("ERROR", f"An error occurred while handling manual command: {e}")
 
 
-def register_manual_handler(dispatcher: Dispatcher):
+def register_manual_handler(dispatcher: Dispatcher) -> None:
     dispatcher.include_router(router)
 
 

@@ -25,7 +25,7 @@ router = Router()
 
 
 @router.message(Command(commands=['lista', 'list', 'l']))
-async def handle_list_request(message: types.Message, bot: Bot):
+async def handle_list_request(message: types.Message, bot: Bot) -> None:
     try:
         username = message.from_user.username
         chat_id = message.chat.id
@@ -90,7 +90,7 @@ async def handle_list_request(message: types.Message, bot: Bot):
         await DatabaseManager.log_system_message("ERROR", f"Error in handle_list_request for user {username}: {e}")
 
 
-def register_list_command(dispatcher: Dispatcher):
+def register_list_command(dispatcher: Dispatcher) -> None:
     dispatcher.include_router(router)
 
 

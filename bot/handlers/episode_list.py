@@ -17,14 +17,14 @@ logger = logging.getLogger(__name__)
 router = Router()
 
 
-def adjust_episode_number(absolute_episode):
+def adjust_episode_number(absolute_episode) -> tuple[int, int] or None:
     """ Adjust the absolute episode number to season and episode format """
     season = (absolute_episode - 1) // 13 + 1
     episode = (absolute_episode - 1) % 13 + 1
     return season, episode
 
 
-def split_message(message, max_length=4096):
+def split_message(message, max_length=4096) -> list[str] or str or None:
     """ Splits a message into chunks to fit within the Telegram message length limit """
     parts = []
     while len(message) > max_length:
@@ -38,7 +38,7 @@ def split_message(message, max_length=4096):
 
 
 @router.message(Command(commands=['odcinki', 'episodes', 'o']))
-async def handle_episode_list_command(message: types.Message, bot: Bot):
+async def handle_episode_list_command(message: types.Message, bot: Bot) -> None:
     try:
         search_transcriptions = SearchTranscriptions(router)
         content = message.text.split()
@@ -88,7 +88,7 @@ async def handle_episode_list_command(message: types.Message, bot: Bot):
         await DatabaseManager.log_system_message("ERROR", f"An error occurred while handling episode list command: {e}")
 
 
-def register_episode_list_handler(dispatcher: Dispatcher):
+def register_episode_list_handler(dispatcher: Dispatcher) -> None:
     dispatcher.include_router(router)
 
 

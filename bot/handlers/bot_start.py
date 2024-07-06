@@ -17,7 +17,7 @@ router = Router()
 
 
 @router.message(Command(commands=['start', 's', 'help', 'h']))
-async def handle_start(message: types.Message, bot: Bot):
+async def handle_start(message: types.Message, bot: Bot) -> None:
     try:
         username = message.from_user.username
         content = message.text.split()
@@ -185,7 +185,7 @@ Aby uzyskać pełną listę komend, użyj /start lista.
         await DatabaseManager.log_system_message("ERROR", f"Error in handle_start for user '{message.from_user.username}': {e}")
 
 
-def register_start_command(dispatcher: Dispatcher):
+def register_start_command(dispatcher: Dispatcher) -> None:
     dispatcher.include_router(router)
 
 

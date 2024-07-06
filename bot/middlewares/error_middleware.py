@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 class ErrorHandlerMiddleware(BaseMiddleware):
-    async def __call__(self, handler, event, data):
+    async def __call__(self, handler, event, data) -> None or bool:
         try:
             return await handler(event, data)
         except Exception as e:

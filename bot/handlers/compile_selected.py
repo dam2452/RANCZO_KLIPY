@@ -24,7 +24,7 @@ last_compiled_clip = {}
 
 
 @router.message(Command(commands=['polaczklipy', 'concatclips', 'pk']))
-async def compile_selected_clips(message: types.Message, bot: Bot):
+async def compile_selected_clips(message: types.Message, bot: Bot) -> None:
     try:
         username = message.from_user.username
         if not await DatabaseManager.is_user_authorized(username):
@@ -125,7 +125,7 @@ async def compile_selected_clips(message: types.Message, bot: Bot):
         )
 
 
-def register_compile_selected_clips_command(dispatcher: Dispatcher):
+def register_compile_selected_clips_command(dispatcher: Dispatcher) -> None:
     dispatcher.include_router(router)
 
 

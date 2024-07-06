@@ -19,7 +19,7 @@ router = Router()
 
 class UserManager:
     @staticmethod
-    async def get_subscription_status(username: str):
+    async def get_subscription_status(username: str) -> tuple[None, None] or tuple[date, int] or None:
         subscription_end = await DatabaseManager.get_user_subscription(username)
         if subscription_end is None:
             return None
@@ -28,7 +28,7 @@ class UserManager:
 
 
 @router.message(Command(commands=['subskrypcja', 'sub', 's']))
-async def check_subscription(message: types.Message, bot: Bot):
+async def check_subscription(message: types.Message, bot: Bot) -> None:
     try:
         username = message.from_user.username
 
@@ -59,7 +59,7 @@ Dzięki za wsparcie projektu! 🎉
         await DatabaseManager.log_system_message("ERROR", f"Error in check_subscription for user '{message.from_user.username}': {e}")
 
 
-def register_subscription_handler(dispatcher: Dispatcher):
+def register_subscription_handler(dispatcher: Dispatcher) -> None:
     dispatcher.include_router(router)
 
 

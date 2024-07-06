@@ -20,7 +20,7 @@ router = Router()
 
 
 @router.message(Command(commands=['wybierz', 'select', 'w']))
-async def handle_select_request(message: types.Message, bot: Bot):
+async def handle_select_request(message: types.Message, bot: Bot) -> None:
     try:
         chat_id = message.chat.id
         username = message.from_user.username
@@ -66,7 +66,7 @@ async def handle_select_request(message: types.Message, bot: Bot):
         await DatabaseManager.log_system_message("ERROR", f"Error in select_quote for user '{username}': {e}")
 
 
-def register_select_command(dispatcher: Dispatcher):
+def register_select_command(dispatcher: Dispatcher) -> None:
     dispatcher.include_router(router)
 
 

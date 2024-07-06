@@ -18,10 +18,10 @@ logger = logging.getLogger(__name__)
 
 
 class VideoManager:
-    def __init__(self, bot: Bot):
+    def __init__(self, bot: Bot) -> None:
         self.bot = bot
 
-    async def extract_and_send_clip(self, chat_id: int, video_path: str, start_time: int, end_time: int):
+    async def extract_and_send_clip(self, chat_id: int, video_path: str, start_time: int, end_time: int) -> None:
         try:
             output_filename = tempfile.mktemp(suffix='.mp4')
             await VideoProcessor.extract_clip(video_path, start_time, end_time, output_filename)
@@ -50,7 +50,7 @@ class VideoManager:
             await DatabaseManager.log_system_message("ERROR", f"Failed to send video clip: {e}")
             await self.bot.send_message(chat_id, f"⚠️ Nie udało się wysłać klipu wideo: {str(e)}")
 
-    async def send_video(self, chat_id: int, file_path: str):
+    async def send_video(self, chat_id: int, file_path: str) -> None:
         try:
             input_file = FSInputFile(file_path)
             await self.bot.send_video(chat_id, input_file, supports_streaming=True, width=1920, height=1080)
@@ -60,7 +60,7 @@ class VideoManager:
             await DatabaseManager.log_system_message("ERROR", f"Failed to send video clip: {e}")
             await self.bot.send_message(chat_id, f"⚠️ Nie udało się wysłać klipu wideo: {str(e)}")
 
-    async def extract_and_concatenate_clips(self, segments, output_filename):
+    async def extract_and_concatenate_clips(self, segments, output_filename) -> None:
         temp_files = []
         try:
             for segment in segments:
@@ -83,7 +83,7 @@ class VideoManager:
                     await DatabaseManager.log_system_message("INFO", f"Temporary file '{temp_file}' removed after concatenation.")
 
     @staticmethod
-    async def concatenate_clips(segment_files, output_file):
+    async def concatenate_clips(segment_files, output_file) -> None:
         concat_file_content = "\n".join([f"file '{file}'" for file in segment_files])
         concat_file = tempfile.NamedTemporaryFile(delete=False, mode='w', suffix=".txt")
         concat_file.write(concat_file_content)

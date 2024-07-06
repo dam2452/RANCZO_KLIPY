@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 class AuthorizationMiddleware(BaseMiddleware):
-    async def __call__(self, handler, event, data):
+    async def __call__(self, handler, event, data) -> None or bool:
         if not isinstance(event, Message):
             return await handler(event, data)
 

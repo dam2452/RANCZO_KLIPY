@@ -13,11 +13,11 @@ logger = logging.getLogger(__name__)
 
 
 class SearchTranscriptions:
-    def __init__(self, dispatcher: Dispatcher):
+    def __init__(self, dispatcher: Dispatcher) -> None:
         dispatcher.message.middleware(AuthorizationMiddleware())
         dispatcher.message.middleware(ErrorHandlerMiddleware())
 
-    async def find_segment_by_quote(self, quote, season_filter=None, episode_filter=None, index='ranczo-transcriptions', return_all=False):
+    async def find_segment_by_quote(self, quote, season_filter=None, episode_filter=None, index='ranczo-transcriptions', return_all=False) -> list or dict or None:
         """
         Searches for a segment by a given quote with optional season and episode filters.
 
@@ -112,7 +112,7 @@ class SearchTranscriptions:
     async def find_segment_with_context(
         self, quote, context_size=30, season_filter=None, episode_filter=None,
         index='ranczo-transcriptions',
-    ):
+    ) -> dict or None:
         logger.info(
             f"🔍 Searching for quote: '{quote}' with context size: {context_size}, filters - Season: {season_filter}, Episode: {episode_filter}",
         )
@@ -208,7 +208,7 @@ class SearchTranscriptions:
             await DatabaseManager.log_system_message("ERROR", f"An error occurred while searching for segment with context: {e}")
             return None
 
-    async def find_video_path_by_episode(self, season, episode_number, index='ranczo-transcriptions'):
+    async def find_video_path_by_episode(self, season, episode_number, index='ranczo-transcriptions') -> str or None:
         """
         Finds the video path for a given season and episode number.
 
@@ -270,7 +270,7 @@ class SearchTranscriptions:
             await DatabaseManager.log_system_message("ERROR", f"An error occurred while searching for video path: {e}")
             return None
 
-    async def find_episodes_by_season(self, season, index='ranczo-transcriptions'):
+    async def find_episodes_by_season(self, season, index='ranczo-transcriptions') -> list or None:
         """
         Finds all episodes for a given season.
 

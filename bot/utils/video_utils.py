@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 class VideoProcessor:
     @staticmethod
-    async def extract_clip(video_path: str, start_time: int, end_time: int, output_filename: str):
+    async def extract_clip(video_path: str, start_time: int, end_time: int, output_filename: str) -> None:
         duration = end_time - start_time
         logger.info(f"Extracting clip from {video_path}, start: {start_time}, end: {end_time}, duration: {duration}")
         await DatabaseManager.log_system_message(
@@ -49,19 +49,19 @@ class VideoProcessor:
         await DatabaseManager.log_system_message("INFO", success_message)
 
     @staticmethod
-    def convert_seconds_to_time_str(seconds: int) -> str:
+    def convert_seconds_to_time_str(seconds: int) -> str or None:
         hours = int(seconds // 3600)
         minutes = int((seconds % 3600) // 60)
         seconds = int(seconds % 60)
         return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
 
     @staticmethod
-    def time_str_to_seconds(time_str: str) -> int:
+    def time_str_to_seconds(time_str: str) -> int or None:
         h, m, s = map(int, time_str.split(':'))
         return h * 3600 + m * 60 + s
 
     @staticmethod
-    async def get_video_duration(file_path: str) -> float:
+    async def get_video_duration(file_path: str) -> float or None:
         try:
             probe = ffmpeg.probe(file_path)
             duration = float(probe['format']['duration'])

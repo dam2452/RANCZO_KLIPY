@@ -19,7 +19,7 @@ from bot.handlers.send_clip import register_send_clip_handler
 from bot.handlers.subscription_status import register_subscription_handler
 
 
-async def register_handlers(dispatcher: Dispatcher):
+async def register_handlers(dispatcher: Dispatcher) -> None:
     register_compile_selected_clips_command(dispatcher)
     register_adjust_handler(dispatcher)
     register_clip_handlers(dispatcher)

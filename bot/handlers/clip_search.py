@@ -21,7 +21,7 @@ last_search_terms = {}  # Store search terms
 
 
 @router.message(Command(commands=['szukaj', 'search', 'sz']))
-async def handle_search_request(message: types.Message, bot: Bot):
+async def handle_search_request(message: types.Message, bot: Bot) -> None:
     try:
         chat_id = message.chat.id
         content = message.text.split()
@@ -100,7 +100,7 @@ async def handle_search_request(message: types.Message, bot: Bot):
         await DatabaseManager.log_system_message("ERROR", f"Error in handle_search_request for user '{message.from_user.username}': {e}")
 
 
-def register_search_command(dispatcher: Dispatcher):
+def register_search_command(dispatcher: Dispatcher) -> None:
     dispatcher.include_router(router)
 
 

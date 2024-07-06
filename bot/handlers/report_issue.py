@@ -17,7 +17,7 @@ router = Router()
 
 
 @router.message(Command(commands=['report', 'zglos', 'r']))
-async def handle_report(message: types.Message, bot: Bot):
+async def handle_report(message: types.Message, bot: Bot) -> None:
     try:
         username = message.from_user.username
         if not username or not await DatabaseManager.is_user_authorized(username):
@@ -46,7 +46,7 @@ async def handle_report(message: types.Message, bot: Bot):
         await DatabaseManager.log_system_message("ERROR", f"Error handling /report command for user '{message.from_user.username}': {e}")
 
 
-def register_report_handler(dispatcher: Dispatcher):
+def register_report_handler(dispatcher: Dispatcher) -> None:
     dispatcher.include_router(router)
 
 
