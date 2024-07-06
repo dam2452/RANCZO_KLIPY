@@ -4,7 +4,7 @@ import os
 import subprocess
 
 
-def get_best_audio_stream(video_file):
+def get_best_audio_stream(video_file) -> int or None:
     """Zwraca indeks najlepszej ścieżki audio na podstawie bitrate."""
     try:
         cmd = f'ffprobe -v quiet -print_format json -show_streams -select_streams a "{video_file}"'
@@ -19,7 +19,7 @@ def get_best_audio_stream(video_file):
         return None
 
 
-def convert_and_normalize_audio(video_file, audio_index, output_audio_file):
+def convert_and_normalize_audio(video_file, audio_index, output_audio_file) -> None:
     """Konwertuje wybraną ścieżkę audio do formatu WAV, mono, z normalizacją głośności."""
     try:
         # Konwersja do formatu WAV, mono
@@ -41,7 +41,7 @@ def convert_and_normalize_audio(video_file, audio_index, output_audio_file):
         print(f"Błąd podczas konwersji audio: {e}")
 
 
-def process_folder(input_folder, output_folder):
+def process_folder(input_folder, output_folder) -> None:
     """Przetwarza wszystkie pliki wideo w podanym folderze, zachowując strukturę folderów."""
     for root, _, files in os.walk(input_folder):
         for file in files:

@@ -3,7 +3,7 @@ import os
 import subprocess
 
 
-def przetworz_folder(folder_wejsciowy, folder_wyjsciowy):
+def przetworz_folder(folder_wejsciowy, folder_wyjsciowy) -> None:
     model = "large-v3"
     jezyk = "Polish"
     urzadzenie = "cuda"
@@ -30,7 +30,7 @@ def przetworz_folder(folder_wejsciowy, folder_wyjsciowy):
                 )
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(description='Przetwarzanie plików .wav i .mp3 za pomocą modelu whisper')
     parser.add_argument('folder_wejsciowy', type=str, help='Ścieżka do folderu wejściowego')
     parser.add_argument('folder_wyjsciowy', type=str, help='Ścieżka do folderu wyjściowego')

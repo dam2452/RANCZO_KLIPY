@@ -3,7 +3,7 @@ import os
 import subprocess
 
 
-def convert_videos(input_dir, output_dir):
+def convert_videos(input_dir, output_dir) -> None:
     for root, _, files in os.walk(input_dir):
         for file in files:
             if file.endswith(".mp4"):
