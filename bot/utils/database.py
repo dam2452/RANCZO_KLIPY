@@ -2,13 +2,9 @@ from datetime import (
     date,
     timedelta,
 )
+from typing import Optional  # Coroutine,; Any,
 
 import asyncpg
-from typing import (
-    # Coroutine,
-    # Any,
-    Optional,
-)
 
 from bot.settings import (
     POSTGRES_DB,
@@ -21,7 +17,7 @@ from bot.settings import (
 
 class DatabaseManager:
     @staticmethod
-    async def get_db_connection() -> Optional[asyncpg.Connection]: # TO DO: Change return type
+    async def get_db_connection() -> Optional[asyncpg.Connection]: # TODO: Change return type
         return await asyncpg.connect(
             host=POSTGRES_HOST,
             port=POSTGRES_PORT,
@@ -173,7 +169,7 @@ class DatabaseManager:
         await conn.close()
 
     @staticmethod
-    async def get_all_users() -> Optional[list[asyncpg.Record]]: # TO DO: Change return type
+    async def get_all_users() -> Optional[list[asyncpg.Record]]: # TODO: Change return type
         conn = await DatabaseManager.get_db_connection()
         result = await conn.fetch(
             'SELECT username, is_admin, is_moderator, full_name, email, phone, subscription_end FROM users',
@@ -182,14 +178,14 @@ class DatabaseManager:
         return result
 
     @staticmethod
-    async def get_admin_users() -> Optional[list[asyncpg.Record]]: # TO DO: Change return type
+    async def get_admin_users() -> Optional[list[asyncpg.Record]]: # TODO: Change return type
         conn = await DatabaseManager.get_db_connection()
         result = await conn.fetch('SELECT username, full_name, email, phone FROM users WHERE is_admin = TRUE')
         await conn.close()
         return result
 
     @staticmethod
-    async def get_moderator_users() -> Optional[list[asyncpg.Record]]: # TO DO: Change return type
+    async def get_moderator_users() -> Optional[list[asyncpg.Record]]: # TODO: Change return type
         conn = await DatabaseManager.get_db_connection()
         result = await conn.fetch('SELECT username, full_name, email, phone FROM users WHERE is_moderator = TRUE')
         await conn.close()
@@ -212,14 +208,14 @@ class DatabaseManager:
         return False
 
     @staticmethod
-    async def is_user_admin(username) -> Optional[bool]: # TO DO: Change return type
+    async def is_user_admin(username) -> Optional[bool]: # TODO: Change return type
         conn = await DatabaseManager.get_db_connection()
         result = await conn.fetchval('SELECT is_admin FROM users WHERE username = $1', username)
         await conn.close()
         return result
 
     @staticmethod
-    async def is_user_moderator(username) -> Optional[bool]: # TO DO: Change return type
+    async def is_user_moderator(username) -> Optional[bool]: # TODO: Change return type
         conn = await DatabaseManager.get_db_connection()
         result = await conn.fetchval('SELECT is_moderator FROM users WHERE username = $1', username)
         await conn.close()
@@ -238,7 +234,7 @@ class DatabaseManager:
         await conn.close()
 
     @staticmethod
-    async def get_saved_clips(username) -> Optional[list[asyncpg.Record]]: # TO DO: Change return type
+    async def get_saved_clips(username) -> Optional[list[asyncpg.Record]]: # TODO: Change return type
         conn = await DatabaseManager.get_db_connection()
         result = await conn.fetch(
             'SELECT clip_name, start_time, end_time, season, episode_number, is_compilation FROM clips WHERE username = $1',
@@ -264,7 +260,7 @@ class DatabaseManager:
         await conn.close()
 
     @staticmethod
-    async def get_clip_by_name(username, clip_name) -> Optional[tuple[bytes, int, int]]: # TO DO: Change return type
+    async def get_clip_by_name(username, clip_name) -> Optional[tuple[bytes, int, int]]: # TODO: Change return type
         conn = await DatabaseManager.get_db_connection()
         result = await conn.fetchrow(
             '''
@@ -277,7 +273,7 @@ class DatabaseManager:
         return result
 
     @staticmethod
-    async def get_clip_by_index(username, index) -> Optional[tuple[str, int, int, int, int, bool]]: # TO DO: Change return type
+    async def get_clip_by_index(username, index) -> Optional[tuple[str, int, int, int, int, bool]]: # TODO: Change return type
         conn = await DatabaseManager.get_db_connection()
         clip = await conn.fetchrow(
             '''
@@ -296,7 +292,7 @@ class DatabaseManager:
         return None
 
     @staticmethod
-    async def get_video_data_by_name(username, clip_name) -> Optional[bytes]: # TO DO: Change return type
+    async def get_video_data_by_name(username, clip_name) -> Optional[bytes]: # TODO: Change return type
         conn = await DatabaseManager.get_db_connection()
         result = await conn.fetchval(
             '''
@@ -310,7 +306,7 @@ class DatabaseManager:
         return result
 
     @staticmethod
-    async def add_subscription(username, days) -> Optional[date]: # TO DO: Change return type
+    async def add_subscription(username, days) -> Optional[date]: # TODO: Change return type
         conn = await DatabaseManager.get_db_connection()
         new_end_date = await conn.fetchval(
             '''
@@ -336,7 +332,7 @@ class DatabaseManager:
         await conn.close()
 
     @staticmethod
-    async def get_user_subscription(username) -> Optional[date]: # TO DO: Change return type
+    async def get_user_subscription(username) -> Optional[date]: # TODO: Change return type
         conn = await DatabaseManager.get_db_connection()
         subscription_end = await conn.fetchval('SELECT subscription_end FROM users WHERE username = $1', username)
         await conn.close()
@@ -355,7 +351,7 @@ class DatabaseManager:
         await conn.close()
 
     @staticmethod
-    async def delete_clip(username, clip_name) -> Optional[asyncpg.Record]: # TO DO: Change return type
+    async def delete_clip(username, clip_name) -> Optional[asyncpg.Record]: # TODO: Change return type
         conn = await DatabaseManager.get_db_connection()
         async with conn.transaction():
             result = await conn.execute(

@@ -1,13 +1,13 @@
 import json
 import logging
 import os
+from typing import Optional
 
 from elasticsearch import (
     AsyncElasticsearch,
     helpers,
 )
 import urllib3
-from typing import Optional
 
 from bot.settings import settings
 from bot.utils.database import DatabaseManager
@@ -25,7 +25,7 @@ es_username = settings.ES_USERNAME
 es_password = settings.ES_PASSWORD
 
 
-async def connect_to_elasticsearch() -> Optional[AsyncElasticsearch]: # TO DO: Change return type
+async def connect_to_elasticsearch() -> Optional[AsyncElasticsearch]: # TODO: Change return type
     """
     Establishes a connection to Elasticsearch.
     """

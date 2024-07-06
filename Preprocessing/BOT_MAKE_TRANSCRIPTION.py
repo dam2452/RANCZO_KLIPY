@@ -3,7 +3,7 @@ import os
 import subprocess
 
 
-def przetworz_folder(folder_wejsciowy, folder_wyjsciowy) -> None:
+def przetworz_folder(folder_wejsciowy: str, folder_wyjsciowy: str) -> None:
     model = "large-v3"
     jezyk = "Polish"
     urzadzenie = "cuda"

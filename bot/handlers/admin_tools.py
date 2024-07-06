@@ -1,4 +1,5 @@
 import logging
+from typing import Optional
 
 from aiogram import (
     Dispatcher,
@@ -7,7 +8,6 @@ from aiogram import (
 )
 from aiogram.filters import Command
 from tabulate import tabulate
-from typing import Optional
 
 from bot.middlewares.auth_middleware import AuthorizationMiddleware
 from bot.middlewares.error_middleware import ErrorHandlerMiddleware
@@ -34,19 +34,19 @@ class UserManager:
         await DatabaseManager.update_user(username, is_admin, is_moderator, full_name, email, phone, subscription_end)
 
     @staticmethod
-    async def get_all_users() -> Optional[list]: # TO DO: Change return type
+    async def get_all_users() -> Optional[list]: # TODO: Change return type
         return await DatabaseManager.get_all_users()
 
     @staticmethod
-    async def get_admin_users() -> Optional[list]: # TO DO: Change return type
+    async def get_admin_users() -> Optional[list]: # TODO: Change return type
         return await DatabaseManager.get_admin_users()
 
     @staticmethod
-    async def get_moderator_users() -> Optional[list]: # TO DO: Change return type
+    async def get_moderator_users() -> Optional[list]: # TODO: Change return type
         return await DatabaseManager.get_moderator_users()
 
     @staticmethod
-    async def add_subscription(username, days) -> Optional[str]: # TO DO: Change return type
+    async def add_subscription(username, days) -> Optional[str]: # TODO: Change return type
         return await DatabaseManager.add_subscription(username, days)
 
     @staticmethod
@@ -54,11 +54,11 @@ class UserManager:
         await DatabaseManager.remove_subscription(username)
 
     @staticmethod
-    async def is_user_admin(username) -> Optional[bool]: # TO DO: Change return type
+    async def is_user_admin(username) -> Optional[bool]: # TODO: Change return type
         return await DatabaseManager.is_user_admin(username)
 
     @staticmethod
-    async def is_user_moderator(username) -> Optional[bool]: # TO DO: Change return type
+    async def is_user_moderator(username) -> Optional[bool]: # TODO: Change return type
         return await DatabaseManager.is_user_moderator(username)
 
 

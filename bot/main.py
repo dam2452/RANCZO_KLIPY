@@ -1,6 +1,9 @@
 import asyncio
+from asyncio.selector_events import BaseSelectorEventLoop
 import logging
+from logging import LogRecord
 import os
+from typing import Optional
 
 from aiogram import (
     Bot,
@@ -9,12 +12,12 @@ from aiogram import (
 from aiogram.fsm.storage.memory import MemoryStorage
 
 from bot.handlers import register_handlers
-from bot.middlewares.auth_middleware import AuthorizationMiddleware  # Import AuthorizationMiddleware
-from bot.middlewares.error_middleware import ErrorHandlerMiddleware  # Import ErrorHandlerMiddleware
+from bot.middlewares.auth_middleware import AuthorizationMiddleware
+from bot.middlewares.error_middleware import ErrorHandlerMiddleware
 from bot.settings import settings
 from bot.utils.database import DatabaseManager
 
-# Configure logging
+# TODO loglevel from env
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -22,13 +25,13 @@ logger = logging.getLogger(__name__)
 class DBLogHandler(logging.Handler):
     def __init__(self) -> None:
         super().__init__()
-        self.loop = None
+        self.loop: Optional[asyncio.selector_events.BaseSelectorEventLoop] = None
 
-    def emit(self, record) -> None:
+    def emit(self, record: LogRecord) -> None:
         if self.loop is not None:
             self.loop.create_task(self.log_to_db(record))
 
-    async def log_to_db(self, record) -> None:
+    async def log_to_db(self, record: LogRecord) -> None:
         log_message = self.format(record)
         await DatabaseManager.log_system_message(record.levelname, log_message)
 
@@ -38,8 +41,8 @@ bot = Bot(token=settings.TELEGRAM_BOT_TOKEN)
 dp = Dispatcher(storage=MemoryStorage())
 
 # Add middlewares
-dp.update.middleware(AuthorizationMiddleware())  # Register AuthorizationMiddleware
-dp.update.middleware(ErrorHandlerMiddleware())  # Register ErrorHandlerMiddleware
+dp.update.middleware(AuthorizationMiddleware())
+dp.update.middleware(ErrorHandlerMiddleware())
 
 
 async def on_startup() -> None:
@@ -69,8 +72,7 @@ async def main() -> None:
 
 
 if __name__ == "__main__":
-    loop = asyncio.get_event_loop()
     db_log_handler = DBLogHandler()
-    db_log_handler.loop = loop
+    db_log_handler.loop = asyncio.get_event_loop()
     logging.getLogger().addHandler(db_log_handler)
     asyncio.run(main())

@@ -2,13 +2,13 @@ import json
 import os
 
 
-def load_episode_info():
+def load_episode_info() -> json:
     with open('EpisodeInfo.json', 'r', encoding='utf-8') as file:
         episode_info = json.load(file)
     return episode_info
 
 
-def add_episode_info_to_transcriptions(base_path="RANCZO-TRANSKRYPCJE"):
+def add_episode_info_to_transcriptions(base_path: str = "RANCZO-TRANSKRYPCJE") -> None:
     episode_info = load_episode_info()
 
     for season in range(1, 11):  # Dla 10 sezonów

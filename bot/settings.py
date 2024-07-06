@@ -8,7 +8,7 @@ from pydantic import (
 from pydantic_settings import BaseSettings
 
 # Ensure the .env file is loaded
-env_path = os.path.join(os.path.dirname(__file__), '..', '.env')
+env_path: str = os.path.join(os.path.dirname(__file__), '..', '.env')
 if os.path.exists(env_path):
     load_dotenv(env_path)
 
@@ -31,9 +31,10 @@ class Settings(BaseSettings):
     EXTEND_AFTER: int = Field(5, env='EXTEND_AFTER')
 
     class Config:
-        env_file = env_path
+        env_file: str = env_path
 
 
+# TODO: useless instantiation, use class static members directly
 try:
     settings = Settings()
 except ValidationError as e:
