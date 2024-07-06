@@ -20,6 +20,7 @@ from bot.utils.video_handler import VideoManager
 
 logger = logging.getLogger(__name__)
 router = Router()
+dis = Dispatcher()
 
 # Definicja last_selected_segment
 last_selected_segment = {}
@@ -39,7 +40,7 @@ async def handle_clip_request(message: types.Message, bot: Bot) -> None:
         logger.info(f"User '{message.from_user.username}' is searching for quote: '{quote}'")
         await DatabaseManager.log_user_activity(message.from_user.username, f"/klip {quote}")
 
-        search_transcriptions = SearchTranscriptions(router)
+        search_transcriptions = SearchTranscriptions(dis)
         segments = await search_transcriptions.find_segment_by_quote(quote, return_all=False)
         logger.info(f"Segments found for quote '{quote}': {segments}")
         await DatabaseManager.log_system_message("INFO", f"Segments found for quote '{quote}': {segments}")

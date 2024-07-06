@@ -17,6 +17,7 @@ from bot.utils.video_handler import VideoManager
 
 logger = logging.getLogger(__name__)
 router = Router()
+dis = Dispatcher()
 
 last_manual_clip = {}  # Dictionary to store the last manual clip per chat ID
 
@@ -42,7 +43,7 @@ def adjust_episode_number(absolute_episode) -> tuple[int, int] or None:
 @router.message(Command(commands=['wytnij', 'cut', 'wyt', 'pawlos']))  # XD pawlos
 async def handle_manual_command(message: types.Message, bot: Bot) -> None:
     try:
-        search_transcriptions = SearchTranscriptions(router)
+        search_transcriptions = SearchTranscriptions(dis)
         video_manager = VideoManager(bot)
         content = message.text.split()
         if len(content) != 4:

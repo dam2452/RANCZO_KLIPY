@@ -17,7 +17,8 @@ class SearchTranscriptions:
         dispatcher.message.middleware(AuthorizationMiddleware())
         dispatcher.message.middleware(ErrorHandlerMiddleware())
 
-    async def find_segment_by_quote(self, quote, season_filter=None, episode_filter=None, index='ranczo-transcriptions', return_all=False) -> list or dict or None:
+    @staticmethod
+    async def find_segment_by_quote(quote, season_filter=None, episode_filter=None, index='ranczo-transcriptions', return_all=False) -> list or dict or None:
         """
         Searches for a segment by a given quote with optional season and episode filters.
 
@@ -208,7 +209,8 @@ class SearchTranscriptions:
             await DatabaseManager.log_system_message("ERROR", f"An error occurred while searching for segment with context: {e}")
             return None
 
-    async def find_video_path_by_episode(self, season, episode_number, index='ranczo-transcriptions') -> str or None:
+    @staticmethod
+    async def find_video_path_by_episode(season, episode_number, index='ranczo-transcriptions') -> str or None:
         """
         Finds the video path for a given season and episode number.
 
@@ -270,7 +272,8 @@ class SearchTranscriptions:
             await DatabaseManager.log_system_message("ERROR", f"An error occurred while searching for video path: {e}")
             return None
 
-    async def find_episodes_by_season(self, season, index='ranczo-transcriptions') -> list or None:
+    @staticmethod
+    async def find_episodes_by_season(season, index='ranczo-transcriptions') -> list or None:
         """
         Finds all episodes for a given season.
 

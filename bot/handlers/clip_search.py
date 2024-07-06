@@ -15,6 +15,7 @@ from bot.utils.transcription_search import SearchTranscriptions
 
 logger = logging.getLogger(__name__)
 router = Router()
+dis = Dispatcher()
 
 last_search_quotes = {}
 last_search_terms = {}  # Store search terms
@@ -37,7 +38,7 @@ async def handle_search_request(message: types.Message, bot: Bot) -> None:
         await DatabaseManager.log_user_activity(message.from_user.username, f"/szukaj {quote}")
         await DatabaseManager.log_system_message("INFO", f"User '{message.from_user.username}' is searching for quote: '{quote}'")
 
-        search_transcriptions = SearchTranscriptions(router)
+        search_transcriptions = SearchTranscriptions(dis)
         segments = await search_transcriptions.find_segment_by_quote(quote, return_all=True)
         logger.info(f"Segments found for quote '{quote}': {segments}")
         await DatabaseManager.log_system_message("INFO", f"Segments found for quote '{quote}': {segments}")

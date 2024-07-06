@@ -15,7 +15,7 @@ from bot.utils.transcription_search import SearchTranscriptions
 
 logger = logging.getLogger(__name__)
 router = Router()
-
+dis = Dispatcher()
 
 def adjust_episode_number(absolute_episode) -> tuple[int, int] or None:
     """ Adjust the absolute episode number to season and episode format """
@@ -40,7 +40,7 @@ def split_message(message, max_length=4096) -> list[str] or str or None:
 @router.message(Command(commands=['odcinki', 'episodes', 'o']))
 async def handle_episode_list_command(message: types.Message, bot: Bot) -> None:
     try:
-        search_transcriptions = SearchTranscriptions(router)
+        search_transcriptions = SearchTranscriptions(dis)
         content = message.text.split()
         if len(content) != 2:
             await message.answer(
