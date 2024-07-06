@@ -105,6 +105,7 @@ disable=
     protected-access,
     too-few-public-methods,
     consider-using-assignment-expr,
+    consider-using-alias,
     import-error,
     logging-fstring-interpolation,
     consider-alternative-union-syntax

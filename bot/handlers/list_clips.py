@@ -1,4 +1,5 @@
 import logging
+from typing import Dict
 
 from aiogram import (
     Bot,
@@ -15,7 +16,7 @@ from bot.utils.database import DatabaseManager
 logger = logging.getLogger(__name__)
 router = Router()
 
-number_to_emoji = {
+number_to_emoji: Dict[str, str] = {
     '0': '0️⃣',
     '1': '1️⃣',
     '2': '2️⃣',

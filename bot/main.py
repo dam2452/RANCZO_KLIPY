@@ -1,5 +1,5 @@
 import asyncio
-from asyncio.selector_events import BaseSelectorEventLoop
+from asyncio.selector_events import BaseSelectorEventLoop  # pylint: disable=unused-import
 import logging
 from logging import LogRecord
 import os

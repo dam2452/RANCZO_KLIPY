@@ -247,10 +247,9 @@ class DatabaseManager:
         await conn.close()
         return result
 
-    # TODO: video_data?
     @staticmethod
     async def save_clip(
-            chat_id: int, username: str, clip_name: str, video_data, start_time: int, end_time: int, is_compilation: bool,
+            chat_id: int, username: str, clip_name: str, video_data: bytes, start_time: int, end_time: int, is_compilation: bool,
             season: Optional[int] = None, episode_number: Optional[int] = None,
     ) -> None:
         conn = await DatabaseManager.get_db_connection()

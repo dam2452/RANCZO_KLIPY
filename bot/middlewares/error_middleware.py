@@ -1,11 +1,17 @@
 import logging
 from typing import (
+    Any,
     Awaitable,
+    Callable,
+    Dict,
     Optional,
 )
 
 from aiogram import BaseMiddleware
-from aiogram.types import Message
+from aiogram.types import (
+    Message,
+    TelegramObject,
+)
 
 from bot.utils.database import DatabaseManager
 
@@ -13,8 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 class ErrorHandlerMiddleware(BaseMiddleware):
-    # TODO: hints
-    async def __call__(self, handler, event, data) -> Optional[Awaitable]:
+    async def __call__(self, handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]], event: TelegramObject, data: Dict[str, Any]) -> Optional[Awaitable]:
         try:
             return await handler(event, data)
         except Exception as e:

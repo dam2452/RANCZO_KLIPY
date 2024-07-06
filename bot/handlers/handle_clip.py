@@ -1,4 +1,6 @@
+import json
 import logging
+from typing import Dict
 
 from aiogram import (
     Bot,
@@ -22,8 +24,7 @@ logger = logging.getLogger(__name__)
 router = Router()
 dis = Dispatcher()
 
-# Definicja last_selected_segment
-last_selected_segment = {}
+last_selected_segment: Dict[int, json] = {}
 
 
 @router.message(Command(commands=['klip', 'clip', 'k']))

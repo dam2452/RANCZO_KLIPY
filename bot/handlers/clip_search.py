@@ -1,4 +1,9 @@
+import json
 import logging
+from typing import (
+    Dict,
+    List,
+)
 
 from aiogram import (
     Bot,
@@ -17,8 +22,8 @@ logger = logging.getLogger(__name__)
 router = Router()
 dis = Dispatcher()
 
-last_search_quotes = {}
-last_search_terms = {}  # Store search terms
+last_search_quotes: Dict[int, List[json]] = {}
+last_search_terms: Dict[int, str] = {}
 
 
 @router.message(Command(commands=['szukaj', 'search', 'sz']))

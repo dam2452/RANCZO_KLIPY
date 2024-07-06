@@ -1,6 +1,8 @@
+import json
 import logging
 import os
 from typing import (
+    Dict,
     Optional,
     Tuple,
 )
@@ -23,7 +25,7 @@ logger = logging.getLogger(__name__)
 router = Router()
 dis = Dispatcher()
 
-last_manual_clip = {}  # Dictionary to store the last manual clip per chat ID
+last_manual_clip: Dict[int, json] = {}
 
 
 def minutes_str_to_seconds(time_str: str) -> Optional[float]:
