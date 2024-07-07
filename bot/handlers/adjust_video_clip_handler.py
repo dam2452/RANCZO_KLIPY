@@ -32,25 +32,17 @@ class AdjustVideoClipHandler(BotMessageHandler):
             before_adjustment = float(content[2])
             after_adjustment = float(content[3])
             if chat_id not in last_search_quotes:
-                await message.answer("🔍 Najpierw wykonaj wyszukiwanie za pomocą /szukaj.")
-                await self._log_system_message(logging.INFO, "No previous search results found for user.")
-                return
+                return await self.__reply_no_previous_searches(message)
             segments = last_search_quotes[chat_id]
             segment_info = segments[index]
         elif len(content) == 3:
             before_adjustment = float(content[1])
             after_adjustment = float(content[2])
             if chat_id not in last_selected_segment:
-                await message.answer("⚠️ Najpierw wybierz cytat za pomocą /klip.⚠️")
-                await self._log_system_message(logging.INFO, "No segment selected by user.")
-                return
+                return await self.__reply_no_previous_searches(message)
             segment_info = last_selected_segment[chat_id]
         else:
-            await message.answer(
-                "📝 Podaj czas w formacie `<float> <float>` lub `<index> <float> <float>`. Przykład: /dostosuj 10.5 -15.2 lub /dostosuj 1 10.5 -15.2",
-            )
-            await self._log_system_message(logging.INFO, "Invalid number of arguments provided by user.")
-            return
+            return await self.__reply_invalid_args_count(message)
 
         await self._log_system_message(logging.INFO, f"Segment Info: {segment_info}")
 
@@ -62,9 +54,7 @@ class AdjustVideoClipHandler(BotMessageHandler):
 
         start_time = max(0, start_time)
         if end_time <= start_time:
-            await message.answer("⚠️ Czas zakończenia musi być późniejszy niż czas rozpoczęcia.⚠️")
-            await self._log_system_message(logging.INFO, "End time must be later than start time.")
-            return
+            return await self.__reply_invalid_interval(message)
 
         clip_path = segment_info['video_path']
         output_filename = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4").name
@@ -95,3 +85,20 @@ class AdjustVideoClipHandler(BotMessageHandler):
         await self._log_system_message(logging.INFO, f"Updated segment info for chat ID '{chat_id}'")
         await self._log_system_message(logging.INFO, f"Video clip adjusted successfully for user '{message.from_user.username}'.")
 
+    async def __reply_no_previous_searches(self, message: Message) -> None:
+        await message.answer("🔍 Najpierw wykonaj wyszukiwanie za pomocą /szukaj.")
+        await self._log_system_message(logging.INFO, "No previous search results found for user.")
+
+    async def __reply_no_quotes_selected(self, message: Message) -> None:
+        await message.answer("⚠️ Najpierw wybierz cytat za pomocą /klip.⚠️")
+        await self._log_system_message(logging.INFO, "No segment selected by user.")
+
+    async def __reply_invalid_args_count(self, message: Message) -> None:
+        await message.answer(
+            "📝 Podaj czas w formacie `<float> <float>` lub `<index> <float> <float>`. Przykład: /dostosuj 10.5 -15.2 lub /dostosuj 1 10.5 -15.2",
+        )
+        await self._log_system_message(logging.INFO, "Invalid number of arguments provided by user.")
+
+    async def __reply_invalid_interval(self, message: Message) -> None:
+        await message.answer("⚠️ Czas zakończenia musi być późniejszy niż czas rozpoczęcia.⚠️")
+        await self._log_system_message(logging.INFO, "End time must be later than start time.")
