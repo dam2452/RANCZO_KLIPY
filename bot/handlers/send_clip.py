@@ -83,6 +83,5 @@ def register_send_clip_handler(dispatcher: Dispatcher) -> None:
     dispatcher.include_router(router)
 
 
-# Ustawienie middleware'ów
 router.message.middleware(AuthorizationMiddleware())
 router.message.middleware(ErrorHandlerMiddleware())

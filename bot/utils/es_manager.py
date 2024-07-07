@@ -9,7 +9,7 @@ from elasticsearch import (
 )
 import urllib3
 
-from bot.settings import settings
+from bot.settings import Settings
 from bot.utils.database import DatabaseManager
 
 logging.basicConfig(level=logging.INFO)
@@ -17,16 +17,12 @@ logger = logging.getLogger(__name__)
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-es_host = settings.ES_HOST
-es_username = settings.ES_USERNAME
-es_password = settings.ES_PASSWORD
-
 
 async def connect_to_elasticsearch() -> Optional[AsyncElasticsearch]:
     try:
         es = AsyncElasticsearch(
-            hosts=[es_host],
-            basic_auth=(es_username, es_password),
+            hosts=[Settings.ES_HOST],
+            basic_auth=(Settings.ES_USER, Settings.ES_PASS),
             verify_certs=False,
         )
         if not await es.ping():

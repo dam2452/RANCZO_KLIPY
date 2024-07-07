@@ -30,8 +30,7 @@ def adjust_episode_number(absolute_episode: int) -> Optional[Tuple[int, int]]:
     return season, episode
 
 
-def split_message(message: types.Message, max_length: int = 4096) -> Optional[List[str]]:
-    """ Splits a message into chunks to fit within the Telegram message length limit """
+def split_message(message: str, max_length: int = 4096) -> Optional[List[str]]:
     parts = []
     while len(message) > max_length:
         split_at = message.rfind('\n', 0, max_length)
@@ -98,6 +97,5 @@ def register_episode_list_handler(dispatcher: Dispatcher) -> None:
     dispatcher.include_router(router)
 
 
-# Ustawienie middleware'ów
 router.message.middleware(AuthorizationMiddleware())
 router.message.middleware(ErrorHandlerMiddleware())

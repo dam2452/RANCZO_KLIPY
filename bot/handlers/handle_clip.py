@@ -12,10 +12,7 @@ from aiogram.filters import Command
 
 from bot.middlewares.auth_middleware import AuthorizationMiddleware
 from bot.middlewares.error_middleware import ErrorHandlerMiddleware
-from bot.settings import (
-    EXTEND_AFTER,
-    EXTEND_BEFORE,
-)
+from bot.settings import Settings
 from bot.utils.database import DatabaseManager
 from bot.utils.transcription_search import SearchTranscriptions
 from bot.utils.video_handler import VideoManager
@@ -54,8 +51,8 @@ async def handle_clip_request(message: types.Message, bot: Bot) -> None:
 
         segment = segments[0] if isinstance(segments, list) else segments
         video_path = segment['video_path']
-        start_time = max(0, segment['start'] - EXTEND_BEFORE)
-        end_time = segment['end'] + EXTEND_AFTER
+        start_time = max(0, segment['start'] - Settings.EXTEND_BEFORE)
+        end_time = segment['end'] + Settings.EXTEND_AFTER
 
         video_manager = VideoManager(bot)
         await video_manager.extract_and_send_clip(message.chat.id, video_path, start_time, end_time)
@@ -73,6 +70,5 @@ def register_clip_handlers(dispatcher: Dispatcher) -> None:
     dispatcher.include_router(router)
 
 
-# Ustawienie middleware'ów
 router.message.middleware(AuthorizationMiddleware())
 router.message.middleware(ErrorHandlerMiddleware())

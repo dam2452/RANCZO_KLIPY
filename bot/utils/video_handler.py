@@ -9,10 +9,7 @@ from typing import List
 from aiogram import Bot
 from aiogram.types import FSInputFile
 
-from bot.settings import (
-    EXTEND_AFTER,
-    EXTEND_BEFORE,
-)
+from bot.settings import Settings
 from bot.utils.database import DatabaseManager
 from bot.utils.video_utils import VideoProcessor
 
@@ -23,7 +20,7 @@ class VideoManager:
     def __init__(self, bot: Bot) -> None:
         self.bot = bot
 
-    async def extract_and_send_clip(self, chat_id: int, video_path: str, start_time: int, end_time: int) -> None:
+    async def extract_and_send_clip(self, chat_id: int, video_path: str, start_time: float, end_time: float) -> None:
         try:
             output_filename = tempfile.mktemp(suffix='.mp4')
             await VideoProcessor.extract_clip(video_path, start_time, end_time, output_filename)
@@ -67,8 +64,8 @@ class VideoManager:
         try:
             for segment in segments:
                 video_path = segment['video_path']
-                start = max(0, segment['start'] - EXTEND_BEFORE)  # Extend 5 seconds before
-                end = segment['end'] + EXTEND_AFTER  # Extend 5 seconds after
+                start = max(0, segment['start'] - Settings.EXTEND_BEFORE)
+                end = segment['end'] + Settings.EXTEND_AFTER
 
                 temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
                 temp_files.append(temp_file.name)

@@ -1,10 +1,7 @@
 import os
 
 from dotenv import load_dotenv
-from pydantic import (
-    Field,
-    ValidationError,
-)
+from pydantic import Field
 from pydantic_settings import BaseSettings
 
 # Ensure the .env file is loaded
@@ -29,26 +26,3 @@ class Settings(BaseSettings):
 
     EXTEND_BEFORE: int = Field(5, env='EXTEND_BEFORE')
     EXTEND_AFTER: int = Field(5, env='EXTEND_AFTER')
-
-    class Config:
-        env_file: str = env_path
-
-
-# TODO: useless instantiation, use class static members directly
-try:
-    settings = Settings()
-except ValidationError as e:
-    raise ValueError(f"Configuration error: {e}") from e
-
-# Access settings via the settings instance
-TELEGRAM_BOT_TOKEN = settings.TELEGRAM_BOT_TOKEN
-DEFAULT_ADMIN = settings.DEFAULT_ADMIN
-
-POSTGRES_USER = settings.POSTGRES_USER
-POSTGRES_PASSWORD = settings.POSTGRES_PASSWORD
-POSTGRES_HOST = settings.POSTGRES_HOST
-POSTGRES_PORT = settings.POSTGRES_PORT
-POSTGRES_DB = settings.POSTGRES_DB
-
-EXTEND_BEFORE = settings.EXTEND_BEFORE
-EXTEND_AFTER = settings.EXTEND_AFTER

@@ -14,7 +14,7 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from bot.handlers import register_handlers
 from bot.middlewares.auth_middleware import AuthorizationMiddleware
 from bot.middlewares.error_middleware import ErrorHandlerMiddleware
-from bot.settings import settings
+from bot.settings import Settings
 from bot.utils.database import DatabaseManager
 
 # TODO loglevel from env
@@ -36,11 +36,9 @@ class DBLogHandler(logging.Handler):
         await DatabaseManager.log_system_message(record.levelname, log_message)
 
 
-# Initialize bot and dispatcher
-bot = Bot(token=settings.TELEGRAM_BOT_TOKEN)
+bot = Bot(token=Settings.TELEGRAM_BOT_TOKEN)
 dp = Dispatcher(storage=MemoryStorage())
 
-# Add middlewares
 dp.update.middleware(AuthorizationMiddleware())
 dp.update.middleware(ErrorHandlerMiddleware())
 

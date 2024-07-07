@@ -24,7 +24,6 @@ router = Router()
 dis = Dispatcher()
 
 
-# Definicja UserManager dla łatwiejszego dostępu do funkcji zarządzania użytkownikami
 class UserManager:
     @staticmethod
     async def add_user(
@@ -391,6 +390,5 @@ def register_admin_handlers(dispatcher: Dispatcher) -> None:
     dispatcher.include_router(router)
 
 
-# Ustawienie middleware'ów
 router.message.middleware(AuthorizationMiddleware())
 router.message.middleware(ErrorHandlerMiddleware())

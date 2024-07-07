@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 class VideoProcessor:
     @staticmethod
-    async def extract_clip(video_path: str, start_time: int, end_time: int, output_filename: str) -> None:
+    async def extract_clip(video_path: str, start_time: float, end_time: float, output_filename: str) -> None:
         duration = end_time - start_time
         logger.info(f"Extracting clip from {video_path}, start: {start_time}, end: {end_time}, duration: {duration}")
         await DatabaseManager.log_system_message(

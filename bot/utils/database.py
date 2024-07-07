@@ -10,24 +10,18 @@ from typing import (
 
 import asyncpg
 
-from bot.settings import (
-    POSTGRES_DB,
-    POSTGRES_HOST,
-    POSTGRES_PASSWORD,
-    POSTGRES_PORT,
-    POSTGRES_USER,
-)
+from bot.settings import Settings
 
 
 class DatabaseManager:
     @staticmethod
     async def get_db_connection() -> Optional[asyncpg.Connection]:
         return await asyncpg.connect(
-            host=POSTGRES_HOST,
-            port=POSTGRES_PORT,
-            database=POSTGRES_DB,
-            user=POSTGRES_USER,
-            password=POSTGRES_PASSWORD,
+            host=Settings.POSTGRES_HOST,
+            port=Settings.POSTGRES_PORT,
+            database=Settings.POSTGRES_DB,
+            user=Settings.POSTGRES_USER,
+            password=Settings.POSTGRES_PASSWORD,
         )
 
     @staticmethod

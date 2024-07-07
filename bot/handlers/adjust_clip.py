@@ -14,10 +14,7 @@ from bot.handlers.clip_search import last_search_quotes
 from bot.handlers.handle_clip import last_selected_segment
 from bot.middlewares.auth_middleware import AuthorizationMiddleware
 from bot.middlewares.error_middleware import ErrorHandlerMiddleware
-from bot.settings import (
-    EXTEND_AFTER,
-    EXTEND_BEFORE,
-)
+from bot.settings import Settings
 from bot.utils.database import DatabaseManager
 from bot.utils.video_handler import (
     VideoManager,
@@ -66,8 +63,8 @@ async def adjust_video_clip(message: types.Message, bot: Bot) -> None:
         logger.info(f"Segment Info: {segment_info}")
         await DatabaseManager.log_system_message("INFO", f"Segment Info: {segment_info}")
 
-        original_start_time = segment_info['start'] - EXTEND_BEFORE
-        original_end_time = segment_info['end'] + EXTEND_AFTER
+        original_start_time = segment_info['start'] - Settings.EXTEND_BEFORE
+        original_end_time = segment_info['end'] + Settings.EXTEND_AFTER
 
         start_time = original_start_time - before_adjustment
         end_time = original_end_time + after_adjustment
@@ -126,6 +123,5 @@ def register_adjust_handler(dispatcher: Dispatcher) -> None:
     dispatcher.include_router(router)
 
 
-# Ustawienie middleware'ów
 router.message.middleware(AuthorizationMiddleware())
 router.message.middleware(ErrorHandlerMiddleware())
