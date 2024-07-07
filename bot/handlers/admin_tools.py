@@ -299,7 +299,7 @@ def format_user(user: asyncpg.Record) -> str:
 
 
 def get_users_string(users: List[asyncpg.Record]) -> str:
-    return "\n".join(map(format_user, users)) + "\n"
+    return "\n".join([format_user(user) for user in users]) + "\n"
 
 
 @router.message(Command(commands=['addsubscription', 'addsub']))

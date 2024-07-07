@@ -13,7 +13,7 @@ import asyncpg
 from bot.settings import Settings
 
 
-class DatabaseManager:
+class DatabaseManager:  # pylint: disable=too-many-public-methods
     @staticmethod
     async def get_db_connection() -> Optional[asyncpg.Connection]:
         return await asyncpg.connect(
@@ -83,7 +83,7 @@ class DatabaseManager:
         await conn.close()
 
     @staticmethod
-    async def log_user_activity(username, command) -> None:
+    async def log_user_activity(username: str, command: str) -> None:
         conn = await DatabaseManager.get_db_connection()
         async with conn.transaction():
             await conn.execute(
