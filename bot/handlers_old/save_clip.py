@@ -10,9 +10,9 @@ from aiogram import (
 )
 from aiogram.filters import Command
 
-from bot.handlers.compile_selected import last_compiled_clip
-from bot.handlers.handle_clip import last_selected_segment
-from bot.handlers.manual_clip import last_manual_clip
+from bot.handlers_old.compile_selected import last_compiled_clip
+from bot.handlers_old.handle_clip import last_selected_segment
+from bot.handlers_old.manual_clip import last_manual_clip
 from bot.middlewares.auth_middleware import AuthorizationMiddleware
 from bot.middlewares.error_middleware import ErrorHandlerMiddleware
 from bot.utils.database import DatabaseManager

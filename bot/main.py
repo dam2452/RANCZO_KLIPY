@@ -1,9 +1,12 @@
 import asyncio
-from asyncio.selector_events import BaseSelectorEventLoop  # pylint: disable=unused-import
+import asyncio.selector_events
 import logging
 from logging import LogRecord
 import os
-from typing import Optional
+from typing import (
+    List,
+    Optional,
+)
 
 from aiogram import (
     Bot,
@@ -11,7 +14,10 @@ from aiogram import (
 )
 from aiogram.fsm.storage.memory import MemoryStorage
 
-from bot.handlers import register_handlers
+from bot.handlers import (
+    adjust_video_clip_handler,
+    bot_message_handler,
+)
 from bot.middlewares.auth_middleware import AuthorizationMiddleware
 from bot.middlewares.error_middleware import ErrorHandlerMiddleware
 from bot.settings import Settings
@@ -42,6 +48,11 @@ dp.update.middleware(AuthorizationMiddleware())
 dp.update.middleware(ErrorHandlerMiddleware())
 
 
+handlers: List[bot_message_handler.BotMessageHandler] = [
+    adjust_video_clip_handler.AdjustVideoClipHandler(bot),
+]
+
+
 async def on_startup() -> None:
     try:
         await DatabaseManager.init_db()
@@ -51,10 +62,12 @@ async def on_startup() -> None:
         logger.error(f"❌ Failed to initialize database or set default admin: {e} ❌")
 
     try:
-        await register_handlers(dp)
+        for handler in handlers:
+            handler.register(dp)
+
         logger.info("🔧 Handlers registered successfully. 🔧")
     except Exception as e:
-        logger.error(f"❌ Failed to register handlers: {e} ❌")
+        logger.error(f"❌ Failed to register handlers_old: {e} ❌")
 
 
 async def main() -> None:

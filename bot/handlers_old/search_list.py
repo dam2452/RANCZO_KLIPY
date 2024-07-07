@@ -12,7 +12,7 @@ from aiogram.filters import Command
 from aiogram.types import FSInputFile
 from tabulate import tabulate
 
-from bot.handlers.clip_search import (
+from bot.handlers_old.clip_search import (
     last_search_quotes,
     last_search_terms,
 )

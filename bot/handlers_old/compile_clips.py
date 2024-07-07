@@ -12,8 +12,8 @@ from aiogram import (
 from aiogram.filters import Command
 from aiogram.types import FSInputFile
 
-from bot.handlers.clip_search import last_search_quotes
-from bot.handlers.handle_clip import last_selected_segment
+from bot.handlers_old.clip_search import last_search_quotes
+from bot.handlers_old.handle_clip import last_selected_segment
 from bot.middlewares.auth_middleware import AuthorizationMiddleware
 from bot.middlewares.error_middleware import ErrorHandlerMiddleware
 from bot.utils.database import DatabaseManager
