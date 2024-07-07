@@ -11,7 +11,10 @@ from aiogram.types import FSInputFile
 
 from bot.settings import Settings
 from bot.utils.database import DatabaseManager
-from bot.utils.video_utils import VideoProcessor
+from bot.utils.video_utils import (
+    FFmpegException,
+    VideoProcessor,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -105,9 +108,9 @@ class VideoManager:
         os.remove(concat_file.name)
 
         if process.returncode != 0:
-            logger.error(f"ffmpeg error: {stderr.decode()}")
-            await DatabaseManager.log_system_message("ERROR", f"ffmpeg error: {stderr.decode()}")
-            raise Exception(f"ffmpeg error: {stderr.decode()}")
+            err = FFmpegException(stderr.decode(), process.returncode)
+            await DatabaseManager.log_system_message("ERROR", err.message)
+            raise err
 
         logger.info(f"Clips concatenated successfully into {output_file}")
         await DatabaseManager.log_system_message("INFO", f"Clips concatenated successfully into {output_file}")

@@ -27,9 +27,9 @@ dis = Dispatcher()
 class UserManager:
     @staticmethod
     async def add_user(
-        username: str, is_admin: Optional[bool] = False, is_moderator: Optional[bool] = False,
-        full_name: Optional[str] = None, email: Optional[str] = None, phone: Optional[str] = None,
-        subscription_days: Optional[int] = None,
+            username: str, is_admin: Optional[bool] = False, is_moderator: Optional[bool] = False,
+            full_name: Optional[str] = None, email: Optional[str] = None, phone: Optional[str] = None,
+            subscription_days: Optional[int] = None,
     ) -> None:
         await DatabaseManager.add_user(username, is_admin, is_moderator, full_name, email, phone, subscription_days)
 
@@ -39,9 +39,9 @@ class UserManager:
 
     @staticmethod
     async def update_user(
-        username: str, is_admin: Optional[bool] = False, is_moderator: Optional[bool] = False,
-        full_name: Optional[str] = None, email: Optional[str] = None, phone: Optional[str] = None,
-        subscription_end: Optional[int] = None,
+            username: str, is_admin: Optional[bool] = False, is_moderator: Optional[bool] = False,
+            full_name: Optional[str] = None, email: Optional[str] = None, phone: Optional[str] = None,
+            subscription_end: Optional[int] = None,
     ) -> None:
         await DatabaseManager.update_user(username, is_admin, is_moderator, full_name, email, phone, subscription_end)
 
@@ -262,8 +262,7 @@ async def list_admins(message: types.Message) -> None:
         return
 
     response = "📃 Lista adminów:\n"
-    for user in users:
-        response += f"👤 Username: {user['username']}, 📛 Full Name: {user['full_name']}, ✉️ Email: {user['email']}, 📞 Phone: {user['phone']}\n"
+    response += get_users_string(users)
 
     await message.answer(response)
     logger.info("Admin list sent to user.")
@@ -288,12 +287,19 @@ async def list_moderators(message: types.Message) -> None:
         return
 
     response = "📃 Lista moderatorów 📃\n"
-    for user in users:
-        response += f"👤 Username: {user['username']}, 📛 Full Name: {user['full_name']}, ✉️ Email: {user['email']}, 📞 Phone: {user['phone']}\n"
+    response += get_users_string(users)
 
     await message.answer(response)
     logger.info("Moderator list sent to user.")
     await DatabaseManager.log_system_message("INFO", "Moderator list sent to user.")
+
+
+def format_user(user: asyncpg.Record) -> str:
+    return f"👤 Username: {user['username']}, 📛 Full Name: {user['full_name']}, ✉️ Email: {user['email']}, 📞 Phone: {user['phone']}"
+
+
+def get_users_string(users: List[asyncpg.Record]) -> str:
+    return "\n".join(map(format_user, users)) + "\n"
 
 
 @router.message(Command(commands=['addsubscription', 'addsub']))

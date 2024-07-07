@@ -25,8 +25,8 @@ class SearchTranscriptions:
 
     @staticmethod
     async def find_segment_by_quote(
-        quote: str, season_filter: Optional[int] = None, episode_filter: Optional[int] = None,
-        index: str = 'ranczo-transcriptions', return_all: bool = False,
+            quote: str, season_filter: Optional[int] = None, episode_filter: Optional[int] = None,
+            index: str = 'ranczo-transcriptions', return_all: bool = False,
     ) -> Optional[Union[List[ObjectApiResponse], ObjectApiResponse]]:
         """
         Searches for a segment by a given quote with optional season and episode filters.
@@ -120,13 +120,9 @@ class SearchTranscriptions:
             self, quote: str, context_size: int = 30, season_filter: Optional[str] = None, episode_filter: Optional[str] = None,
             index: str = 'ranczo-transcriptions',
     ) -> Optional[json]:
-        logger.info(
-            f"🔍 Searching for quote: '{quote}' with context size: {context_size}, filters - Season: {season_filter}, Episode: {episode_filter}",
-        )
-        await DatabaseManager.log_system_message(
-            "INFO",
-            f"Searching for quote: '{quote}' with context size: {context_size}, filters - Season: {season_filter}, Episode: {episode_filter}",
-        )
+        log = f"🔍 Searching for quote: '{quote}' with context size: {context_size}. Season: {season_filter}, Episode: {episode_filter}"
+        logger.info(log)
+        await DatabaseManager.log_system_message("INFO", log)
         es = await connect_to_elasticsearch()
 
         if not es:

@@ -10,6 +10,12 @@ from bot.utils.database import DatabaseManager
 logger = logging.getLogger(__name__)
 
 
+class FFmpegException(Exception):
+    def __init__(self, stderr: str, return_code: int) -> None:
+        self.message = f"FFMpeg error ({return_code}): {stderr}"
+        super().__init__(self.message)
+
+
 class VideoProcessor:
     @staticmethod
     async def extract_clip(video_path: str, start_time: float, end_time: float, output_filename: str) -> None:
@@ -40,10 +46,10 @@ class VideoProcessor:
         )
         _, stderr = await process.communicate()
         if process.returncode != 0:
-            error_message = f"❌ Błąd FFmpeg: {stderr.decode()}"
-            logger.error(error_message)
-            await DatabaseManager.log_system_message("ERROR", error_message)
-            raise Exception(error_message)
+            err = FFmpegException(stderr.decode(), process.returncode)
+            logger.error(err.message)
+            await DatabaseManager.log_system_message("ERROR", err.message)
+            raise err
 
         success_message = f"Clip extracted successfully: {output_filename}"
         logger.info(success_message)
@@ -58,7 +64,7 @@ class VideoProcessor:
 
     @staticmethod
     def time_str_to_seconds(time_str: str) -> Optional[int]:
-        h, m, s = map(int, time_str.split(':'))
+        h, m, s = [int(part) for part in time_str.split(':')]
         return h * 3600 + m * 60 + s
 
     @staticmethod
