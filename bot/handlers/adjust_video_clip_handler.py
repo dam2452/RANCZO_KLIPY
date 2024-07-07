@@ -24,23 +24,21 @@ class AdjustVideoClipHandler(BotMessageHandler):
         return "adjust_video_clip"
 
     async def _do_handle(self, message: Message) -> None:
-        chat_id = message.chat.id
         content = message.text.split()
 
+        before_adjustment = float(content[-2])
+        after_adjustment = float(content[-1])
+
         if len(content) == 4:
-            index = int(content[1]) - 1
-            before_adjustment = float(content[2])
-            after_adjustment = float(content[3])
-            if chat_id not in last_search_quotes:
+            if message.chat.id not in last_search_quotes:
                 return await self.__reply_no_previous_searches(message)
-            segments = last_search_quotes[chat_id]
+            index = int(content[1]) - 1
+            segments = last_search_quotes[message.chat.id]
             segment_info = segments[index]
         elif len(content) == 3:
-            before_adjustment = float(content[1])
-            after_adjustment = float(content[2])
-            if chat_id not in last_selected_segment:
-                return await self.__reply_no_previous_searches(message)
-            segment_info = last_selected_segment[chat_id]
+            if message.chat.id not in last_selected_segment:
+                return await self.__reply_no_quotes_selected(message)
+            segment_info = last_selected_segment[message.chat.id]
         else:
             return await self.__reply_invalid_args_count(message)
 
@@ -49,22 +47,28 @@ class AdjustVideoClipHandler(BotMessageHandler):
         original_start_time = segment_info['start'] - Settings.EXTEND_BEFORE
         original_end_time = segment_info['end'] + Settings.EXTEND_AFTER
 
-        start_time = original_start_time - before_adjustment
+        start_time = max(0, original_start_time - before_adjustment)
         end_time = original_end_time + after_adjustment
 
-        start_time = max(0, start_time)
         if end_time <= start_time:
             return await self.__reply_invalid_interval(message)
 
-        clip_path = segment_info['video_path']
-        output_filename = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4").name
+        with tempfile.NamedTemporaryFile(suffix=".mp4") as output_file:
+            try:
+                await VideoProcessor.extract_clip(segment_info['video_path'], start_time, end_time, output_file.name)
+            except FFmpegException as e:
+                await message.answer(f"⚠️ Nie udało się zmienić klipu wideo: {str(e)}")
+                await self._log_system_message(logging.ERROR, f"Failed to adjust video clip: {e}")
+            else:
+                await self.__try_send_video(message, output_file.name)
 
-        try:
-            await VideoProcessor.extract_clip(clip_path, start_time, end_time, output_filename)
-        except FFmpegException as e:
-            await message.answer(f"⚠️ Nie udało się zmienić klipu wideo: {str(e)}")
-            await self._log_system_message(logging.ERROR, f"Failed to adjust video clip: {e}")
+        segment_info['start'] = start_time
+        segment_info['end'] = end_time
+        last_selected_segment[message.chat.id] = segment_info
+        await self._log_system_message(logging.INFO, f"Updated segment info for chat ID '{message.chat.id}'")
+        await self._log_system_message(logging.INFO, f"Video clip adjusted successfully for user '{message.from_user.username}'.")
 
+    async def __try_send_video(self, message: Message, output_filename: str) -> None:
         file_size_mb = os.path.getsize(output_filename) / (1024 * 1024)
         await self._log_system_message(logging.INFO, f"Clip size: {file_size_mb:.2f} MB")
 
@@ -72,18 +76,12 @@ class AdjustVideoClipHandler(BotMessageHandler):
             await message.answer(
                 f"❌ Wyodrębniony klip jest za duży, aby go wysłać przez Telegram. Maksymalny rozmiar pliku to {self.MAX_TELEGRAM_FILE_SIZE_MB} MB.❌",
             )
-            await self._log_system_message(logging.WARNING, f"Clip size {file_size_mb:.2f} MB exceeds the {self.MAX_TELEGRAM_FILE_SIZE_MB} MB limit.")
+            await self._log_system_message(
+                logging.WARNING,
+                f"Clip size {file_size_mb:.2f} MB exceeds the {self.MAX_TELEGRAM_FILE_SIZE_MB} MB limit.",
+            )
         else:
-            await VideoManager(self._bot).send_video(chat_id, output_filename)
-
-        os.remove(output_filename)
-        await self._log_system_message(logging.INFO, f"Temporary file '{output_filename}' removed after sending clip.")
-
-        segment_info['start'] = start_time
-        segment_info['end'] = end_time
-        last_selected_segment[chat_id] = segment_info
-        await self._log_system_message(logging.INFO, f"Updated segment info for chat ID '{chat_id}'")
-        await self._log_system_message(logging.INFO, f"Video clip adjusted successfully for user '{message.from_user.username}'.")
+            await VideoManager(self._bot).send_video(message.chat.id, output_filename)
 
     async def __reply_no_previous_searches(self, message: Message) -> None:
         await message.answer("🔍 Najpierw wykonaj wyszukiwanie za pomocą /szukaj.")

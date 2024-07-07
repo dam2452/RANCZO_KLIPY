@@ -110,7 +110,6 @@ disable=
     logging-fstring-interpolation,
     consider-alternative-union-syntax
 
-
 [REPORTS]
 
 # Set the output format. Available formats are text, parseable, colorized, msvs
@@ -201,7 +200,7 @@ redefining-builtins-modules=six.moves,past.builtins,future.builtins,builtins,io
 [FORMAT]
 
 # Maximum number of characters on a single line.
-max-line-length=140
+max-line-length=160
 
 # Regexp for a line that is allowed to be longer than the limit.
 ignore-long-lines=^\s*(# )?<?https?://\S+>?$

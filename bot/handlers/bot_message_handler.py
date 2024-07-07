@@ -66,7 +66,7 @@ class BotMessageHandler(ABC):
     async def handle(self, message: Message) -> None:
         try:
             await self._do_handle(message)
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-exception-caught
             self._logger.error(f"Error in {self.get_action_name()} for user '{message.from_user.username}': {e}", exc_info=True)
             await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania. Prosimy spróbować ponownie później.⚠️")
             await DatabaseManager.log_system_message("ERROR", f"Error in {self.get_action_name()} for user '{message.from_user.username}': {e}")
