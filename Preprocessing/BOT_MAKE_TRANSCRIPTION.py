@@ -10,7 +10,7 @@ def przetworz_folder(folder_wejsciowy: str, folder_wyjsciowy: str) -> None:
 
     for sciezka_katalogu, _, lista_plikow in os.walk(folder_wejsciowy):
         for plik in lista_plikow:
-            if plik.endswith(('.wav', '.mp3')):  # Poprawione sprawdzanie rozszerzeń
+            if plik.endswith(('.wav', '.mp3')):
                 sciezka_wejsciowa = os.path.join(sciezka_katalogu, plik)
                 nazwa_pliku_wyjsciowego = plik.split('.')[0] + '_przetworzone.wav'
                 sciezka_wyjsciowa = os.path.join(
@@ -21,7 +21,6 @@ def przetworz_folder(folder_wejsciowy: str, folder_wyjsciowy: str) -> None:
                 if not os.path.exists(os.path.dirname(sciezka_wyjsciowa)):
                     os.makedirs(os.path.dirname(sciezka_wyjsciowa))
 
-                # Poprawione wywołanie polecenia
                 subprocess.run(
                     [
                         "whisper", sciezka_wejsciowa, "--model", model, "--language", jezyk, "--device", urzadzenie,

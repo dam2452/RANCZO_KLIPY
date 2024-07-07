@@ -34,7 +34,6 @@ def convert_and_normalize_audio(video_file: str, audio_index: int, output_audio_
         subprocess.run(normalize_cmd, shell=True, check=True)
         print(f"Audio znormalizowane: {temp_output_audio_file}")
 
-        # Zamiana plików
         os.replace(temp_output_audio_file, output_audio_file)
         print(f"Zastąpiono oryginalny plik znormalizowanym audio: {output_audio_file}")
 

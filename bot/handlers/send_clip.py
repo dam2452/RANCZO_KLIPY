@@ -64,7 +64,7 @@ async def send_clip(message: types.Message, bot: Bot) -> None:
         video_manager = VideoManager(bot)
         await video_manager.send_video(message.chat.id, temp_file_path)
 
-        os.remove(temp_file_path)  # Clean up the temporary file
+        os.remove(temp_file_path)
         logger.info(f"Clip '{clip_name}' sent to user '{username}' and temporary file removed.")
         await DatabaseManager.log_system_message("INFO", f"Clip '{clip_name}' sent to user '{username}' and temporary file removed.")
 
@@ -76,7 +76,7 @@ async def send_clip(message: types.Message, bot: Bot) -> None:
             f"An error occurred while sending clip '{clip_name}' for user '{username}': {str(e)}",
         )
         if os.path.exists(temp_file_path):
-            os.remove(temp_file_path)  # Clean up the temporary file
+            os.remove(temp_file_path)
 
 
 def register_send_clip_handler(dispatcher: Dispatcher) -> None:

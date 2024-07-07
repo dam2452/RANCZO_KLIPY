@@ -16,10 +16,7 @@ from bot.handlers.manual_clip import last_manual_clip
 from bot.middlewares.auth_middleware import AuthorizationMiddleware
 from bot.middlewares.error_middleware import ErrorHandlerMiddleware
 from bot.utils.database import DatabaseManager
-from bot.utils.video_handler import (
-    VideoManager,
-    VideoProcessor,
-)
+from bot.utils.video_handler import VideoProcessor
 
 logger = logging.getLogger(__name__)
 router = Router()
@@ -53,7 +50,6 @@ async def save_user_clip(message: types.Message, bot: Bot) -> None:
 
         segment_info = last_selected_segment.get(chat_id) or last_compiled_clip.get(chat_id) or last_manual_clip.get(chat_id)
 
-        # Log relevant segment information, avoiding binary data
         if 'episode_info' in segment_info:
             logger.info(f"Segment Info: {segment_info['episode_info']}")
             await DatabaseManager.log_system_message("INFO", f"Segment Info: {segment_info['episode_info']}")
@@ -98,7 +94,6 @@ async def save_user_clip(message: types.Message, bot: Bot) -> None:
             season = segment['episode_info']['season']
             episode_number = segment['episode_info']['episode_number']
 
-            _ = VideoManager(bot)
             output_filename = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4").name
             await VideoProcessor.extract_clip(clip_path, start_time, end_time, output_filename)
 

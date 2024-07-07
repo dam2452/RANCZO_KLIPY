@@ -38,7 +38,7 @@ async def handle_search_request(message: types.Message, bot: Bot) -> None:
             return
 
         quote = ' '.join(content[1:])
-        last_search_terms[chat_id] = quote  # Store the search term
+        last_search_terms[chat_id] = quote
         logger.info(f"User '{message.from_user.username}' is searching for quote: '{quote}'")
         await DatabaseManager.log_user_activity(message.from_user.username, f"/szukaj {quote}")
         await DatabaseManager.log_system_message("INFO", f"User '{message.from_user.username}' is searching for quote: '{quote}'")
@@ -63,7 +63,7 @@ async def handle_search_request(message: types.Message, bot: Bot) -> None:
             start_time = segment.get('start', 'Unknown')
 
             if season == 'Unknown' or episode_number == 'Unknown':
-                continue  # Skip segments with unknown season or episode number
+                continue
 
             unique_key = f"{title}-{season}-{episode_number}-{start_time}"
             if unique_key not in unique_segments:

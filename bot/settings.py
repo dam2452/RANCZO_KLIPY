@@ -4,7 +4,6 @@ from dotenv import load_dotenv
 from pydantic import Field
 from pydantic_settings import BaseSettings
 
-# Ensure the .env file is loaded
 env_path: str = os.path.join(os.path.dirname(__file__), '..', '.env')
 if os.path.exists(env_path):
     load_dotenv(env_path)

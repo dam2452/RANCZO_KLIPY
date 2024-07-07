@@ -57,7 +57,6 @@ async def handle_episode_list_command(message: types.Message, bot: Bot) -> None:
 
         season = int(content[1])
 
-        # Pobieranie listy odcinków z Elasticsearch
         episodes = await search_transcriptions.find_episodes_by_season(season)
         if not episodes:
             await message.answer(f"❌ Nie znaleziono odcinków dla sezonu {season}.")
@@ -77,7 +76,6 @@ async def handle_episode_list_command(message: types.Message, bot: Bot) -> None:
             response += f"📅 Data premiery: {episode['premiere_date']}\n"
             response += f"👀 Oglądalność: {formatted_viewership}\n\n"
 
-        # Split the response into smaller parts to avoid the Telegram message length limit
         response_parts = split_message(response)
 
         for part in response_parts:

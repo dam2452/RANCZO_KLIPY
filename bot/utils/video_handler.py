@@ -17,6 +17,8 @@ logger = logging.getLogger(__name__)
 
 
 class VideoManager:
+    TELEGRAM_FILE_SIZE_LIMIT_MB: int = 50
+
     def __init__(self, bot: Bot) -> None:
         self.bot = bot
 
@@ -29,7 +31,7 @@ class VideoManager:
             logger.info(f"Clip size: {file_size:.2f} MB")
             await DatabaseManager.log_system_message("INFO", f"Clip size: {file_size:.2f} MB")
 
-            if file_size > 50:  # Telegram has a 50 MB limit for video files
+            if file_size > VideoManager.TELEGRAM_FILE_SIZE_LIMIT_MB:
                 await self.bot.send_message(
                     chat_id,
                     "❌ Wyodrębniony klip jest za duży, aby go wysłać przez Telegram. Maksymalny rozmiar pliku to 50 MB.❌",

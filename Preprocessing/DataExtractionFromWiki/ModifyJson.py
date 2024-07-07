@@ -11,8 +11,8 @@ def load_episode_info() -> json:
 def add_episode_info_to_transcriptions(base_path: str = "RANCZO-TRANSKRYPCJE") -> None:
     episode_info = load_episode_info()
 
-    for season in range(1, 11):  # Dla 10 sezonów
-        for episode in range(1, 14):  # Zakładając maksymalnie 13 odcinków na sezon
+    for season in range(1, 11):
+        for episode in range(1, 14):
             episode_file_name = f"Ranczo_S{season:02d}E{episode:02d}.json"
             season_str = str(season)
             episodes_in_season = episode_info.get(season_str, [])
@@ -25,19 +25,16 @@ def add_episode_info_to_transcriptions(base_path: str = "RANCZO-TRANSKRYPCJE") -
                     with open(transcriptions_path, 'r', encoding='utf-8') as file:
                         transcriptions = json.load(file)
 
-                    # Dodajemy informacje o sezonie do danych odcinka
                     episode_info_data_with_season = {
-                        "season": season,  # Dodajemy numer sezonu
+                        "season": season,
                         **episode_info_data,
                     }
 
-                    # Tworzymy nowy słownik z rozszerzonymi informacjami o odcinku na początku
                     updated_transcriptions = {
                         "episode_info": episode_info_data_with_season,
                         "segments": transcriptions.get("segments", []),
                     }
 
-                    # Zapisujemy zmodyfikowane transkrypcje z powrotem do pliku
                     with open(transcriptions_path, 'w', encoding='utf-8') as file:
                         json.dump(updated_transcriptions, file, ensure_ascii=False, indent=4)
                     print(f"Updated: {transcriptions_path}")

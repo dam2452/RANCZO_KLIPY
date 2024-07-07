@@ -79,7 +79,6 @@ async def compile_clips(message: types.Message, bot: Bot) -> None:
         compiled_output = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
         compiled_output.close()
 
-        # Extract and concatenate segments
         await video_manager.extract_and_concatenate_clips(selected_segments, compiled_output.name)
 
         file_size_mb = os.path.getsize(compiled_output.name) / (1024 * 1024)
@@ -90,7 +89,6 @@ async def compile_clips(message: types.Message, bot: Bot) -> None:
             os.remove(compiled_output.name)
             return
 
-        # Store compiled clip info for saving
         with open(compiled_output.name, 'rb') as f:
             compiled_data = f.read()
 

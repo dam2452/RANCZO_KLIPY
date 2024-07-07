@@ -46,7 +46,7 @@ def adjust_episode_number(absolute_episode: int) -> Optional[Tuple[int, int]]:
     return season, episode
 
 
-@router.message(Command(commands=['wytnij', 'cut', 'wyt', 'pawlos']))  # XD pawlos
+@router.message(Command(commands=['wytnij', 'cut', 'wyt', 'pawlos']))
 async def handle_manual_command(message: types.Message, bot: Bot) -> None:
     try:
         search_transcriptions = SearchTranscriptions(dis)
@@ -64,7 +64,6 @@ async def handle_manual_command(message: types.Message, bot: Bot) -> None:
         start_time = content[2]  # Format: 20:30.11
         end_time = content[3]  # Format: 21:32.50
 
-        # Parse season and episode
         if episode[0] != 'S' or 'E' not in episode:
             await message.answer("❌ Błędny format sezonu i odcinka. Użyj formatu SxxExx. Przykład: S02E10")
             logger.info("Incorrect season/episode format provided by user.")
@@ -74,10 +73,8 @@ async def handle_manual_command(message: types.Message, bot: Bot) -> None:
         season = int(episode[1:3])
         episode_number = int(episode[4:6])
 
-        # Calculate absolute episode number
         absolute_episode_number = (season - 1) * 13 + episode_number
 
-        # Pobieranie ścieżki wideo z Elasticsearch
         video_path = await search_transcriptions.find_video_path_by_episode(season, absolute_episode_number)
         if not video_path or not os.path.exists(video_path):
             await message.answer("❌ Plik wideo nie istnieje dla podanego sezonu i odcinka.")
@@ -85,7 +82,6 @@ async def handle_manual_command(message: types.Message, bot: Bot) -> None:
             await DatabaseManager.log_system_message("INFO", f"Video file does not exist: {video_path}")
             return
 
-        # Calculate start and end time in seconds
         start_seconds = minutes_str_to_seconds(start_time)
         end_seconds = minutes_str_to_seconds(end_time)
 
@@ -101,13 +97,11 @@ async def handle_manual_command(message: types.Message, bot: Bot) -> None:
             await DatabaseManager.log_system_message("INFO", "End time must be later than start time.")
             return
 
-        # Extract and send clip using VideoManager
-        _ = await video_manager.extract_and_send_clip(message.chat.id, video_path, start_seconds, end_seconds)
+        await video_manager.extract_and_send_clip(message.chat.id, video_path, start_seconds, end_seconds)
         logger.info(f"Clip extracted and sent for command: /manual {episode} {start_time} {end_time}")
         await DatabaseManager.log_user_activity(message.from_user.username, f"/manual {episode} {start_time} {end_time}")
         await DatabaseManager.log_system_message("INFO", f"Clip extracted and sent for command: /manual {episode} {start_time} {end_time}")
 
-        # Save the clip information to last_manual_clip
         last_manual_clip[message.chat.id] = {
             'video_path': video_path,
             'start': start_seconds,

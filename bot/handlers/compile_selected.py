@@ -66,21 +66,17 @@ async def compile_selected_clips(message: types.Message, bot: Bot) -> None:
             for clip in selected_clips:
                 video_data, _, _ = clip
 
-                # Create a temporary segment file
                 temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
                 temp_files.append(temp_file.name)
 
                 with open(temp_file.name, 'wb') as f:
                     f.write(video_data)
 
-            # Create the output file
             compiled_output = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
             compiled_output.close()
 
-            # Create an instance of VideoManager
             video_manager = VideoManager(bot)
 
-            # Concatenate segments using the concat demuxer
             await video_manager.concatenate_clips(temp_files, compiled_output.name)
 
             file_size_mb = os.path.getsize(compiled_output.name) / (1024 * 1024)
@@ -96,16 +92,13 @@ async def compile_selected_clips(message: types.Message, bot: Bot) -> None:
             with open(compiled_output.name, 'rb') as f:
                 compiled_clip_data = f.read()
 
-            # Store the compiled clip in last_compiled_clip
             last_compiled_clip[chat_id] = {
                 'compiled_clip': compiled_clip_data,
                 'is_compilation': True,
             }
 
-            # Send the compiled video
             await bot.send_video(chat_id, FSInputFile(compiled_output.name), supports_streaming=True, width=1920, height=1080)
 
-            # Clean up temporary files
             for temp_file in temp_files:
                 os.remove(temp_file)
             os.remove(compiled_output.name)

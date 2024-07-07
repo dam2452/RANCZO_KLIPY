@@ -48,13 +48,12 @@ async def handle_select_request(message: types.Message, bot: Bot) -> None:
 
         segment = segments[index]
         video_path = segment['video_path']
-        start_time = max(0, segment['start'] - 5)  # Extend 5 seconds before
-        end_time = segment['end'] + 5  # Extend 5 seconds after
+        start_time = max(0, segment['start'] - 5)
+        end_time = segment['end'] + 5
 
         video_manager = VideoManager(bot)
         await video_manager.extract_and_send_clip(chat_id, video_path, start_time, end_time)
 
-        # Zapisz segment jako ostatnio wybrany
         last_selected_segment[chat_id] = segment
         logger.info(f"Segment {segment['id']} selected by user '{username}'.")
         await DatabaseManager.log_user_activity(username, f"/wybierz {index + 1}")

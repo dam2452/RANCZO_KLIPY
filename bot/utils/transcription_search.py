@@ -14,7 +14,6 @@ from bot.middlewares.error_middleware import ErrorHandlerMiddleware
 from bot.utils.database import DatabaseManager
 from bot.utils.es_manager import connect_to_elasticsearch
 
-# Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -56,7 +55,6 @@ class SearchTranscriptions:
             await DatabaseManager.log_system_message("ERROR", "Failed to connect to Elasticsearch.")
             return None
 
-        # Construct the base query
         query = {
             "query": {
                 "bool": {
@@ -73,13 +71,11 @@ class SearchTranscriptions:
             },
         }
 
-        # Add season filter if provided
         if season_filter:
             query["query"]["bool"]["filter"].append({"term": {"episode_info.season": season_filter}})
 
-        # Add episode filter if provided
         if episode_filter:
-            query["query"]["bool"]["filter"].append({"term": {"episode_info.episode_number": episode_filter}})  # Global number of episode
+            query["query"]["bool"]["filter"].append({"term": {"episode_info.episode_number": episode_filter}})
 
         size = 10000 if return_all else 1
 

@@ -17,7 +17,6 @@ from bot.middlewares.error_middleware import ErrorHandlerMiddleware
 from bot.settings import Settings
 from bot.utils.database import DatabaseManager
 
-# TODO loglevel from env
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -45,7 +44,6 @@ dp.update.middleware(ErrorHandlerMiddleware())
 
 async def on_startup() -> None:
     try:
-        # Initialize the database
         await DatabaseManager.init_db()
         await DatabaseManager.set_default_admin(os.getenv("DEFAULT_ADMIN"))
         logger.info("📦 Database initialized and default admin set. 📦")
@@ -53,7 +51,6 @@ async def on_startup() -> None:
         logger.error(f"❌ Failed to initialize database or set default admin: {e} ❌")
 
     try:
-        # Register all handlers
         await register_handlers(dp)
         logger.info("🔧 Handlers registered successfully. 🔧")
     except Exception as e:
