@@ -45,7 +45,7 @@ async def compile_selected_clips(message: types.Message, bot: Bot) -> None:
 
         clip_names = content[1:]
 
-        selected_clips = []
+        selected_clips_data = []
         for clip_name in clip_names:
             clip = await DatabaseManager.get_clip_by_name(username, clip_name)
             if not clip:
@@ -53,9 +53,9 @@ async def compile_selected_clips(message: types.Message, bot: Bot) -> None:
                 logger.info(f"Clip '{clip_name}' not found for user '{username}'.")
                 await DatabaseManager.log_system_message("INFO", f"Clip '{clip_name}' not found for user '{username}'.")
                 return
-            selected_clips.append(clip)
+            selected_clips_data.append(clip[0])
 
-        if not selected_clips:
+        if not selected_clips_data:
             await message.answer("❌ Nie znaleziono pasujących klipów do kompilacji.")
             logger.info("No matching clips found for compilation.")
             await DatabaseManager.log_system_message("INFO", "No matching clips found for compilation.")
@@ -63,9 +63,7 @@ async def compile_selected_clips(message: types.Message, bot: Bot) -> None:
 
         try:
             temp_files = []
-            for clip in selected_clips:
-                video_data, _, _ = clip
-
+            for video_data in selected_clips_data:
                 temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
                 temp_files.append(temp_file.name)
 
