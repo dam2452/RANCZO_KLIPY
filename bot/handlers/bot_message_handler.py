@@ -45,8 +45,6 @@ class BotMessageHandler(ABC):
         logging.CRITICAL: "CRITICAL",
     }
 
-    MAX_TELEGRAM_FILE_SIZE_MB: int = 50
-
     def __init__(self, bot: Bot, middlewares: Optional[List[BaseMiddleware]] = None):
         self._bot = bot
         self._logger = logging.getLogger(__name__)
