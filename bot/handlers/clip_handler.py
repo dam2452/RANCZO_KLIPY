@@ -48,9 +48,8 @@ class HandleClipHandler(BotMessageHandler):
         start_time = max(0, segment['start'] - Settings.EXTEND_BEFORE)
         end_time = segment['end'] + Settings.EXTEND_AFTER
 
-        video_manager = VideoManager(self._bot)
         try:
-            await video_manager.extract_and_send_clip(message.chat.id, video_path, start_time, end_time)
+            await VideoManager(self._bot).extract_and_send_clip(message.chat.id, video_path, start_time, end_time)
         except FFmpegException as e:
             return await self.__reply_extraction_failure(message, e)
 
