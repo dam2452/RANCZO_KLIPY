@@ -16,7 +16,6 @@ from bot.utils.video_handler import (
     FFmpegException,
     VideoManager,
 )
-logger = logging.getLogger(__name__)
 
 last_selected_segment: Dict[int, json] = {} #todo trzeba ta baze pod te sesje zrobić a nie się tak pierodlić
 
