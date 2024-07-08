@@ -31,8 +31,8 @@ class HandleClipHandler(BotMessageHandler):
     async def _do_handle(self, message: Message) -> None:
         content = message.text.split()
         if len(content) < 2:
-            await self.__reply_no_quote_provided(message)
-            return
+            return await self.__reply_no_quote_provided(message)
+
 
         quote = ' '.join(content[1:])
         # logger.info(f"User '{message.from_user.username}' is searching for quote: '{quote}'") #fixme a co z tym robimy bo tak sobie myśle że spoko by było wiedzieć co te usery wdupcają do tych wszystkich komend
@@ -42,8 +42,7 @@ class HandleClipHandler(BotMessageHandler):
         segments = await search_transcriptions.find_segment_by_quote(quote, return_all=False)
 
         if not segments:
-            await self.__reply_no_segments_found(message, quote)
-            return
+            return await self.__reply_no_segments_found(message, quote)
 
         segment = segments[0] if isinstance(segments, list) else segments
         video_path = segment['video_path']
