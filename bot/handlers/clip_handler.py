@@ -28,6 +28,7 @@ class HandleClipHandler(BotMessageHandler):
         return "handle_clip"  #todo nwm czy to jest super nazwa tak samo z reszta jak samego pliky .py
 
     async def _do_handle(self, message: Message) -> None:
+        await self.__log_user_activity(message.from_user.username, f"/klip {message.text}")
         content = message.text.split()
         if len(content) < 2:
             return await self.__reply_no_quote_provided(message)
