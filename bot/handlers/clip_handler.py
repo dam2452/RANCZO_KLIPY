@@ -32,10 +32,7 @@ class HandleClipHandler(BotMessageHandler):
         if len(content) < 2:
             return await self.__reply_no_quote_provided(message)
 
-
         quote = ' '.join(content[1:])
-        # logger.info(f"User '{message.from_user.username}' is searching for quote: '{quote}'") #fixme a co z tym robimy bo tak sobie myśle że spoko by było wiedzieć co te usery wdupcają do tych wszystkich komend
-        # await DatabaseManager.log_user_activity(message.from_user.username, f"/klip {quote}")
 
         search_transcriptions = SearchTranscriptions() #fixme kurła jak to teraz wykonac jak ja nie mam tego dispatchera żeby przekazać temu do argmeuntu XD musze się wycztać mocniej jak dziłają te dispatchery
         segments = await search_transcriptions.find_segment_by_quote(quote, return_all=False)
@@ -69,4 +66,6 @@ class HandleClipHandler(BotMessageHandler):
         await message.answer(f"⚠️ Nie udało się wyodrębnić klipu wideo: {exception}")
         await self._log_system_message(logging.ERROR, f"Failed to extract video clip: {exception}")
 
-
+    async def __log_user_activity(self, username: str, action: str) -> None:
+        await DatabaseManager.log_user_activity(username, action)
+        await self._log_system_message(logging.INFO, f"User '{username}' performed action: '{action}'")
