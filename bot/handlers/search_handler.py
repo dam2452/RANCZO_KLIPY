@@ -102,13 +102,11 @@ class HandleSearchRequest(BotMessageHandler):
         await self._log_system_message(logging.INFO, f"User '{username}' performed action: '{action}'")
 
     async def __log_error(self, message: Message, e: Exception) -> None:
-        logger.error(f"Error in {self.get_action_name()} for user '{message.from_user.username}': {e}", exc_info=True)
         await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania. Prosimy spróbować ponownie później.⚠️")
         await self._log_system_message(logging.ERROR,
                                        f"Error in {self.get_action_name()} for user '{message.from_user.username}': {e}")
 
     async def __send_search_results(self, message: Message, response: str, quote: str) -> None:
         await message.answer(response, parse_mode='Markdown')
-        logger.info(f"Search results for quote '{quote}' sent to user '{message.from_user.username}'.")
         await self._log_system_message(logging.INFO,
                                        f"Search results for quote '{quote}' sent to user '{message.from_user.username}'.")
