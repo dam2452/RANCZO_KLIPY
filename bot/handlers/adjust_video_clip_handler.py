@@ -23,6 +23,7 @@ class AdjustVideoClipHandler(BotMessageHandler):
         return "adjust_video_clip"
 
     async def _do_handle(self, message: Message) -> None:
+        await self._log_user_activity(message.from_user.username, f"/dostosuj {message.text}")
         content = message.text.split()
 
         if len(content) == 4:

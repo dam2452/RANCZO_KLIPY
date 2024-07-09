@@ -9,9 +9,7 @@ from aiogram.types import Message
 
 from bot_message_handler import BotMessageHandler
 
-from bot.utils.database import DatabaseManager
 from bot.utils.transcription_search import SearchTranscriptions
-
 
 last_search_quotes: Dict[int, List[json]] = {}  #todo trzeba ta baze pod te sesje zrobić a nie się tak pierodlić
 last_search_terms: Dict[int, str] = {}  #todo trzeba ta baze pod te sesje zrobić a nie się tak pierodlić
@@ -22,10 +20,10 @@ class HandleSearchRequest(BotMessageHandler):
         return ['szukaj', 'search', 'sz']
 
     def get_action_name(self) -> str:
-        return "handle_search"
+        return "search_handler"
 
     async def _do_handle(self, message: Message) -> None:
-        await self.__log_user_activity(message.from_user.username, f"/szukaj {message.text}")
+        await self._log_user_activity(message.from_user.username, f"/szukaj {message.text}")
         chat_id = message.chat.id
         content = message.text.split()
         if len(content) < 2:
@@ -36,14 +34,11 @@ class HandleSearchRequest(BotMessageHandler):
         last_search_terms[chat_id] = quote
 
         search_transcriptions = SearchTranscriptions()  #fixme kurła jak to teraz wykonac jak ja nie mam tego dispatchera żeby przekazać temu do argmeuntu XD musze się wycztać mocniej jak dziłają te dispatchery
-        segments = []  #fixme nie wiem czy to jest git w sensie cały ten try i wyjątek bo tam w klasie bazowej jest ten handle ale w adjust zrobiłeś ta funkcje z __ od tego i te try na koniec w /klip i /dostsuj wyjebalismy
-        try:
-            segments = await search_transcriptions.find_segment_by_quote(quote, return_all=True)
-            if not segments:
-                await self.__reply_no_segments_found(message, quote)
-                return
-        except Exception as e:
-            await self.__log_error(message, e)
+
+        segments = await search_transcriptions.find_segment_by_quote(quote, return_all=True)
+        if not segments:
+            await self.__reply_no_segments_found(message, quote)
+            return
 
         unique_segments = {}
         for segment in segments:
@@ -97,16 +92,9 @@ class HandleSearchRequest(BotMessageHandler):
         await message.answer("❌ Nie znaleziono pasujących cytatów.❌")
         await self._log_system_message(logging.INFO, f"No segments found for quote: '{quote}'")
 
-    async def __log_user_activity(self, username: str, action: str) -> None:
-        await DatabaseManager.log_user_activity(username, action)
-        await self._log_system_message(logging.INFO, f"User '{username}' performed action: '{action}'")
-
-    async def __log_error(self, message: Message, e: Exception) -> None:
-        await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania. Prosimy spróbować ponownie później.⚠️")
-        await self._log_system_message(logging.ERROR,
-                                       f"Error in {self.get_action_name()} for user '{message.from_user.username}': {e}")
-
     async def __send_search_results(self, message: Message, response: str, quote: str) -> None:
         await message.answer(response, parse_mode='Markdown')
         await self._log_system_message(logging.INFO,
                                        f"Search results for quote '{quote}' sent to user '{message.from_user.username}'.")
+
+    #todo jakiś specjalny błąd jak sie coś zjebie tylko nwm gdzie go dać

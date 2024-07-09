@@ -81,6 +81,10 @@ class BotMessageHandler(ABC):
         self._logger.log(level, message)
         await DatabaseManager.log_system_message(self.__LOG_LEVELS[level], message)
 
+    async def _log_user_activity(self, username: str, message: str) -> None:
+        await DatabaseManager.log_user_activity(username, message)
+        await self._log_system_message(logging.INFO, f"User '{username}' performed action: {message}")
+
     @abstractmethod
     async def _do_handle(self, message: Message) -> None:
         pass

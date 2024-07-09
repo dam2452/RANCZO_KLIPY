@@ -27,9 +27,10 @@ class SubscriptionStatusHandler(BotMessageHandler):
         return ['subskrypcja', 'subscription', 'sub']
 
     def get_action_name(self) -> str:
-        return "check_subscription"
+        return "subscription_handler"
 
     async def _do_handle(self, message: Message) -> None:
+        await self._log_user_activity(message.from_user.username, f"/subskrypcja {message.text}")
         username = message.from_user.username
         subscription_status = await UserManager.get_subscription_status(username)
 
@@ -45,7 +46,7 @@ class SubscriptionStatusHandler(BotMessageHandler):
 ⏳ **Pozostało dni:** {days_remaining}
 
 Dzięki za wsparcie projektu! 🎉
-"""
+"""#fixme jakieś magiczne patenty jak dłuższy teskt formatować ? XD
         await message.answer(response, parse_mode='Markdown')
         await self._log_system_message(logging.INFO, f"Subscription status sent to user '{username}'.")
 
