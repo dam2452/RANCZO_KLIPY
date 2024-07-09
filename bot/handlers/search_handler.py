@@ -22,7 +22,7 @@ class HandleSearchRequest(BotMessageHandler):
         return ['szukaj', 'search', 'sz']
 
     def get_action_name(self) -> str:
-        return "handle_search_request"
+        return "handle_search"
 
     async def _do_handle(self, message: Message) -> None:
         await self.__log_user_activity(message.from_user.username, f"/szukaj {message.text}")
