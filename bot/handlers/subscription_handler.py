@@ -10,7 +10,7 @@ from aiogram.types import Message
 
 from bot_message_handler import BotMessageHandler
 from bot.utils.database import DatabaseManager
-from bot.handlers.responses import get_subscription_status_response
+from bot.handlers.responses import format_subscription_status_response
 
 
 class UserManager: #fixme to też chyba do wywalenia wgl do osobnego pliku bo admin.py też z czegoś podbnego korzsyta a tak prosto z bazy ciągnąć bez żadnego checka to nwm
@@ -39,7 +39,7 @@ class SubscriptionStatusHandler(BotMessageHandler):
             return await self.__reply_no_subscription(message)
 
         subscription_end, days_remaining = subscription_status
-        response: str = get_subscription_status_response(username, subscription_end, days_remaining)
+        response: str = format_subscription_status_response(username, subscription_end, days_remaining)
 
         await message.answer(response, parse_mode='Markdown')
         await self._log_system_message(logging.INFO, f"Subscription status sent to user '{username}'.")

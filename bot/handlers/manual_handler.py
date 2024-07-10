@@ -98,7 +98,8 @@ class ManualClipHandler(BotMessageHandler):
 
     async def __reply_invalid_args_count(self, message: Message) -> None: #fixme tak sobie myśle czy nie zrobić w klasie bazowej jakiejś metody od chujowych argumentow bo to tez czesc wspolna
         await message.answer(
-            "📋 Podaj poprawną komendę w formacie: /manual <sezon_odcinek> <czas_start> <czas_koniec>. Przykład: /manual S02E10 20:30.11",
+            "📋 Podaj poprawną komendę w formacie: /manual <sezon_odcinek> <czas_start> <czas_koniec>. Przykład: "
+            "/manual S02E10 20:30.11",
         )
         await self._log_system_message(logging.INFO, "Incorrect command format provided by user.")
 
