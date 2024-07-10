@@ -103,10 +103,6 @@ class CompileSelectedClipsHandler(BotMessageHandler):
         except Exception as e:
             await self.__reply_compilation_error(message, e)
 
-    async def __reply_user_not_authorized(self, message: Message) -> None:
-        await message.answer("❌ Nie masz uprawnień do korzystania z tego bota.❌")
-        await self._log_system_message(logging.WARNING, "Unauthorized access attempt by user.")
-
     async def __reply_no_clip_names_provided(self, message: Message) -> None:
         await message.answer("📄 Podaj nazwy klipów do skompilowania w odpowiedniej kolejności.")
         await self._log_system_message(logging.INFO, "No clip names provided by user.")
