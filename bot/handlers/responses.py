@@ -17,8 +17,10 @@ number_to_emoji: Dict[str, str] = {
     '9': '9️⃣',
 }
 
+
 def convert_number_to_emoji(number: int) -> str:
     return ''.join(number_to_emoji.get(digit, digit) for digit in str(number))
+
 
 def format_subscription_status_response(username: str, subscription_end: date, days_remaining: int) -> str:
     return f"""
@@ -30,6 +32,7 @@ def format_subscription_status_response(username: str, subscription_end: date, d
 
 Dzięki za wsparcie projektu! 🎉
 """
+
 
 def format_myclips_response(clips, username):
     response = "🎬 Twoje Zapisane Klipy 🎬\n\n"
@@ -58,6 +61,7 @@ def format_myclips_response(clips, username):
     response += "```\n" + "\n\n".join(clip_lines) + "\n```"
     return response
 
+
 def format_episode_list_response(season: int, episodes: List[dict]) -> str:
     response = f"📃 Lista odcinków dla sezonu {season}:\n\n```\n"
     for episode in episodes:
@@ -72,6 +76,7 @@ def format_episode_list_response(season: int, episodes: List[dict]) -> str:
     response += "```"
     return response
 
+
 def get_basic_message() -> str:
     return """```🐐Witaj_w_RanczoKlipy!🐐
 ════════════════════════
@@ -82,6 +87,7 @@ def get_basic_message() -> str:
 
 Aby uzyskać pełną listę komend, użyj /start lista.
 ```"""
+
 
 def get_lista_message() -> str:
     return """```🐐RanczoKlipy-Działy_Komend🐐
@@ -105,6 +111,7 @@ def get_lista_message() -> str:
 👉 /start all
 ═══════════════════════════════════════
 ```"""
+
 
 def get_full_message() -> str:
     return """```🐐Witaj_w_RanczoKlipy!🐐
@@ -147,6 +154,7 @@ def get_full_message() -> str:
 📊 /subskrypcja - Sprawdza stan Twojej subskrypcji.
 ```"""
 
+
 def get_wyszukiwanie_message() -> str:
     return """```🐐RanczoKlipy-Wyszukiwanie_klipów🐐
 ═════════════════════════════════════════
@@ -157,6 +165,7 @@ def get_wyszukiwanie_message() -> str:
 📺 /odcinki <sezon> - Wyświetla listę odcinków dla podanego sezonu. Przykład: /odcinki 2.
 ✂️ /wytnij <sezon_odcinek> <czas_start> <czas_koniec> - Wytnij fragment klipu. Przykład: /wytnij S02E10 20:30.11 21:32.50.
 ```"""
+
 
 def get_edycja_message() -> str:
     return """```🐐RanczoKlipy-Edycja_klipów🐐
@@ -170,6 +179,7 @@ def get_edycja_message() -> str:
 🎞️ /kompiluj <numer_klipu1> <numer_klipu2> ... - Tworzy kompilację z wybranych klipów. Przykład: /kompiluj 1 5 7.
 ```"""
 
+
 def get_zarzadzanie_message() -> str:
     return """```🐐RanczoKlipy-Zarządzanie_zapisanymi_klipami🐐
 ═════════════════════════════════════
@@ -182,6 +192,7 @@ def get_zarzadzanie_message() -> str:
 🗑️ /usunklip <nazwa_klipu> - Usuwa zapisany klip o podanej nazwie. Przykład: /usunklip moj_klip.
 ```"""
 
+
 def get_raportowanie_message() -> str:
     return """```🐐RanczoKlipy-Raportowanie_błędów🐐
 ════════════════════════
@@ -190,6 +201,7 @@ def get_raportowanie_message() -> str:
 🐛 /report - Raportuje błąd do administratora.
 ```"""
 
+
 def get_subskrypcje_message() -> str:
     return """```🐐RanczoKlipy-Subskrypcje🐐
 ══════════════════
@@ -197,3 +209,82 @@ def get_subskrypcje_message() -> str:
 ══════════════════
 📊 /subskrypcja - Sprawdza stan Twojej subskrypcji.
 ```"""
+
+
+def get_admin_help_message() -> str:
+    return """```🛠Instrukcje_dla_admina🛠
+
+═════════════════════════════════
+🔐 Zarządzanie użytkownikami: 🔐
+═════════════════════════════════
+➕ /addwhitelist <username> [is_admin=0] [is_moderator=0] [full_name] [email] [phone] - Dodaje użytkownika do whitelisty. Przykład: /addwhitelist johndoe 1 0 John Doe johndoe@example.com 123456789
+➖ /removewhitelist <username> - Usuwa użytkownika z whitelisty. Przykład: /removewhitelist johndoe
+✏️ /updatewhitelist <username> [is_admin] [is_moderator] [full_name] [email] [phone] - Aktualizuje dane użytkownika w whiteliście. Przykład: /updatewhitelist johndoe 0 1 John Doe johndoe@example.com 987654321
+📃 /listwhitelist - Wyświetla listę wszystkich użytkowników w whiteliście.
+📃 /listadmins - Wyświetla listę wszystkich adminów.
+📃 /listmoderators - Wyświetla listę wszystkich moderatorów.
+
+═════════════════════════════════
+💳 Zarządzanie subskrypcjami: 💳
+═════════════════════════════════
+➕ /addsubscription <username> <days> - Dodaje subskrypcję użytkownikowi na określoną liczbę dni. Przykład: /addsubscription johndoe 30
+🚫 /removesubscription <username> - Usuwa subskrypcję użytkownika. Przykład: /removesubscription johndoe
+
+══════════════════════════════════
+🔍 Zarządzanie transkrypcjami: 🔍
+══════════════════════════════════
+🔍 /transkrypcja <cytat> - Wyszukuje cytat w transkrypcjach i zwraca kontekst. Przykład: /transkrypcja Nie szkoda panu tego pięknego gabinetu?
+
+```"""
+
+
+def get_no_username_provided_message() -> str:
+    return "✏️ Podaj nazwę użytkownika.✏️"
+
+
+def get_user_added_message(username: str) -> str:
+    return f"✅ Dodano {username} do whitelisty.✅"
+
+
+def get_user_removed_message(username: str) -> str:
+    return f"✅ Usunięto {username} z whitelisty.✅"
+
+
+def get_user_updated_message(username: str) -> str:
+    return f"✅ Zaktualizowano dane użytkownika {username}.✅"
+
+
+def get_whitelist_empty_message() -> str:
+    return "📭 Whitelist jest pusta.📭"
+
+
+def get_no_admins_found_message() -> str:
+    return "📭 Nie znaleziono adminów.📭"
+
+
+def get_no_moderators_found_message() -> str:
+    return "📭 Nie znaleziono moderatorów.📭"
+
+
+def get_subscription_extended_message(username: str, new_end_date: date) -> str:
+    return f"✅ Subskrypcja dla użytkownika {username} przedłużona do {new_end_date}.✅"
+
+
+def get_subscription_removed_message(username: str) -> str:
+    return f"✅ Subskrypcja dla użytkownika {username} została usunięta.✅"
+
+
+def get_no_quote_provided_message() -> str:
+    return "✏️ Podaj cytat, który chcesz znaleźć.✏️"
+
+
+def get_no_segments_found_message(quote: str) -> str:
+    return f"❌ Nie znaleziono pasujących segmentów dla cytatu: \"{quote}\".❌"
+
+
+def get_transcription_response(quote: str, context_segments: List[Dict]) -> str:
+    response = f"🔍 Transkrypcja dla cytatu: \"{quote}\"\n\n```\n"
+    for segment in context_segments:
+        response += f"🆔 {segment['id']} - {segment['text']}\n"
+    response += "```"
+    return response
