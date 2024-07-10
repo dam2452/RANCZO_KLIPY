@@ -7,7 +7,7 @@ from typing import (
     Dict,
 )
 
-from bot.main import bot
+from bot.main import bot #fixme czy to importowac ?
 
 from aiogram.types import (
     Message,
