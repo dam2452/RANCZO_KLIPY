@@ -1,5 +1,8 @@
 from datetime import date
-from typing import Dict
+from typing import (
+    Dict,
+    List,
+)
 
 
 def convert_number_to_emoji(number: int) -> str:
@@ -57,4 +60,19 @@ def format_myclips_response(clips, username):
         clip_lines.append(f"{line1} \n{line2}")
 
     response += "```\n" + "\n\n".join(clip_lines) + "\n```"
+    return response
+
+
+def format_episode_list_response(season: int, episodes: List[dict]) -> str:
+    response = f"📃 Lista odcinków dla sezonu {season}:\n\n```\n"
+    for episode in episodes:
+        absolute_episode_number = episode['episode_number'] % 13
+        if absolute_episode_number == 0:
+            absolute_episode_number = 13
+        formatted_viewership = f"{episode['viewership']:,}".replace(',', '.')
+
+        response += f"🎬 {episode['title']}: S{season:02d}E{absolute_episode_number:02d} ({episode['episode_number']}) \n"
+        response += f"📅 Data premiery: {episode['premiere_date']}\n"
+        response += f"👀 Oglądalność: {formatted_viewership}\n\n"
+    response += "```"
     return response
