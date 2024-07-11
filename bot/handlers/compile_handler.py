@@ -87,14 +87,6 @@ class CompileClipsHandler(BotMessageHandler):
         await message.answer("🔍 Najpierw wykonaj wyszukiwanie za pomocą /szukaj.")
         await self._log_system_message(logging.INFO, "No previous search results found for user.")
 
-    async def __reply_invalid_range(self, message: Message, index: str) -> None:
-        await message.answer(f"⚠️ Podano nieprawidłowy zakres segmentów: {index} ⚠️")
-        await self._log_system_message(logging.WARNING, f"Invalid range provided by user: {index}")
-
-    async def __reply_invalid_index(self, message: Message, index: str) -> None:
-        await message.answer(f"⚠️ Podano nieprawidłowy indeks segmentu: {index} ⚠️")
-        await self._log_system_message(logging.WARNING, f"Invalid index provided by user: {index}")
-
     async def __reply_no_matching_segments_found(self, message: Message) -> None:
         await message.answer("❌ Nie znaleziono pasujących segmentów do kompilacji.❌")
         await self._log_system_message(logging.INFO, "No matching segments found for compilation.")

@@ -20,16 +20,9 @@ class ReportIssueHandler(BotMessageHandler):
 
         report_content = message.text.split(maxsplit=1)
         if len(report_content) < 2:
-            await self.__reply_no_report_content(message, username)
-            return
+            return await self.__reply_no_report_content(message, username)
 
-        report = report_content[1]
-
-        await self.__handle_user_report_submission(message, username, report)
-
-    async def __reply_user_not_authorized(self, message: Message) -> None:
-        await message.answer("❌ Nie można zidentyfikować użytkownika lub brak uprawnień.❌")
-        await self._log_system_message(logging.WARNING, "User identification failed or user not authorized.")
+        await self.__handle_user_report_submission(message, username, report_content[1])
 
     async def __reply_no_report_content(self, message: Message, username: str) -> None:
         await message.answer("❌ Podaj treść raportu.❌")

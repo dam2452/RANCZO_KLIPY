@@ -31,11 +31,10 @@ async def compile_clips(selected_clips_data: List[bytes], bot: Bot) -> str:  # f
     compiled_output = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
     compiled_output.close()
 
-    video_manager = VideoManager(bot)
-    await video_manager.concatenate_clips(temp_files, compiled_output.name)
+    await VideoManager(bot).concatenate_clips(temp_files, compiled_output.name)
 
     file_size_mb = os.path.getsize(compiled_output.name) / (1024 * 1024)
-    if file_size_mb > 50:
+    if file_size_mb > 50:  # Fixme: jakis util function typu assert_valid_file_size ktory robi dokladnie to, zeby nie hardkodowac tych 50 syfiasto
         raise ValueError(f"Compiled clip exceeds size limit: {file_size_mb:.2f} MB")
 
     return compiled_output.name

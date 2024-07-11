@@ -76,7 +76,6 @@ class ManualClipHandler(BotMessageHandler):
         await self._log_user_activity(message.from_user.username, f"/wytnij {message.text}")
 
         search_transcriptions = SearchTranscriptions()  # fixme powtórka z tego co pisałem o dispatcherze
-        video_manager = VideoManager(self._bot)
         content = message.text.split()
         if len(content) != 4:
             await self.__reply_invalid_args_count(message)
@@ -96,7 +95,7 @@ class ManualClipHandler(BotMessageHandler):
         if not video_path or not os.path.exists(video_path):
             return await self.__reply_video_file_not_exist(message, video_path)
 
-        await video_manager.extract_and_send_clip(message.chat.id, video_path, start_seconds, end_seconds)
+        await VideoManager(self._bot).extract_and_send_clip(message.chat.id, video_path, start_seconds, end_seconds)
         await self._log_system_message(logging.INFO, f"Clip extracted and sent for command: /manual {episode} {start_seconds} {end_seconds}")
 
         last_manual_clip[message.chat.id] = {

@@ -50,7 +50,7 @@ class HandleClipHandler(BotMessageHandler):
             return await self.__reply_extraction_failure(message, e)
 
         last_selected_segment[message.chat.id] = segment
-        await self.__log_segment_and_clip_success(message, message.chat.id, message.from_user.username)
+        await self.__log_segment_and_clip_success(message.chat.id, message.from_user.username)
 
     async def __reply_no_quote_provided(self, message: Message) -> None:
         await message.answer(
@@ -67,6 +67,6 @@ class HandleClipHandler(BotMessageHandler):
         await message.answer(f"⚠️ Nie udało się wyodrębnić klipu wideo: {exception}")
         await self._log_system_message(logging.ERROR, f"Failed to extract video clip: {exception}")
 
-    async def __log_segment_and_clip_success(self, message: Message, chat_id: int, username: str) -> None:
+    async def __log_segment_and_clip_success(self, chat_id: int, username: str) -> None:
         await self._log_system_message(logging.INFO, f"Segment saved as last selected for chat ID '{chat_id}'")
         await self._log_system_message(logging.INFO, f"Video clip extracted successfully for user '{username}'.")

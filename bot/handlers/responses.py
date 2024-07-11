@@ -34,6 +34,7 @@ Dzięki za wsparcie projektu! 🎉
 """
 
 
+# fixme type hint
 def format_myclips_response(clips, username):
     response = "🎬 Twoje Zapisane Klipy 🎬\n\n"
     response += f"🎥 Użytkownik: @{username}\n\n"
@@ -62,6 +63,7 @@ def format_myclips_response(clips, username):
     return response
 
 
+# fixme type hint: jaki dict?
 def format_episode_list_response(season: int, episodes: List[dict]) -> str:
     response = f"📃 Lista odcinków dla sezonu {season}:\n\n```\n"
     for episode in episodes:
@@ -282,6 +284,7 @@ def get_no_segments_found_message(quote: str) -> str:
     return f"❌ Nie znaleziono pasujących segmentów dla cytatu: \"{quote}\".❌"
 
 
+# fixme type hint: jaki dict?
 def get_transcription_response(quote: str, context_segments: List[Dict]) -> str:
     response = f"🔍 Transkrypcja dla cytatu: \"{quote}\"\n\n```\n"
     for segment in context_segments:

@@ -9,11 +9,11 @@ from bot_message_handler import BotMessageHandler
 from bot.handlers.clip_handler import last_selected_segment
 from bot.handlers.compile_saved_handler import last_compiled_clip
 from bot.handlers.manual_handler import last_manual_clip
-from bot.utils.database import DatabaseManager  # fixme to jest spoko że takie depondency robimy ?
+from bot.utils.database import DatabaseManager
 from bot.utils.video_handler import VideoProcessor
 
 
-async def _prepare_clip_file(segment_info): #fixme jakies zjebane to jest XD i z powtórkami ale na razie chuj
+async def _prepare_clip_file(segment_info):  # fixme jakies zjebane to jest XD i z powtórkami ale na razie chuj, type hint?
     start_time = 0
     end_time = 0
     is_compilation = False
@@ -69,19 +69,18 @@ class SaveClipHandler(BotMessageHandler):
         chat_id = message.chat.id
         content = message.text.split()
         if len(content) < 2:
-            await self.__reply_no_clip_name_provided(message)
-            return
+            return await self.__reply_no_clip_name_provided(message)
 
         clip_name = content[1]
 
         if not await DatabaseManager.is_clip_name_unique(chat_id, clip_name):
-            await self.__reply_clip_name_exists(message, clip_name)
-            return
+            return await self.__reply_clip_name_exists(message, clip_name)
 
+        # fixme: moze jakas funkcja ktora nazywa ten warunek bo troche slabo?
         if chat_id not in last_selected_segment and chat_id not in last_compiled_clip and chat_id not in last_manual_clip:
-            await self.__reply_no_segment_selected(message)
-            return
+            return await self.__reply_no_segment_selected(message)
 
+        # fixme: krzywe to jakies xD moze tez to jakos nazwac i w funkcje?
         segment_info = last_selected_segment.get(chat_id) or last_compiled_clip.get(chat_id) or last_manual_clip.get(
             chat_id,
         )
@@ -91,6 +90,7 @@ class SaveClipHandler(BotMessageHandler):
         else:
             await self._log_system_message(logging.INFO, "Segment Info: Compiled or manual clip without episode info")
 
+        # fixme tyle najebane to moze jakas klasa/dataclass?
         output_filename, start_time, end_time, is_compilation, season, episode_number = await _prepare_clip_file(
             segment_info,
         )
@@ -108,6 +108,7 @@ class SaveClipHandler(BotMessageHandler):
 
         os.remove(output_filename)
 
+        # fixme: (data)class Clip?
         await DatabaseManager.save_clip(
             chat_id=chat_id,
             username=username,

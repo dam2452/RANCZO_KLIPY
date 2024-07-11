@@ -81,10 +81,6 @@ class SearchListHandler(BotMessageHandler):
             f"List of search results for term '{search_term}' sent to user {username}.",
         )
 
-    async def __reply_unauthorized_access(self, message: Message, username: str) -> None:
-        await message.answer("❌ Nie masz uprawnień do korzystania z tego bota.❌")
-        await self._log_system_message(logging.WARNING, f"Unauthorized access attempt by user: {username}")
-
     async def __reply_no_previous_search_results(self, message: Message, chat_id: int) -> None:
         await message.answer("🔍 Nie znaleziono wcześniejszych wyników wyszukiwania.")
         await self._log_system_message(logging.INFO, f"No previous search results found for chat ID {chat_id}.")

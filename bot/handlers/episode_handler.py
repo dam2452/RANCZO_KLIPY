@@ -5,7 +5,6 @@ from typing import (
     Tuple,
 )
 
-from aiogram import Bot
 from aiogram.types import Message
 from bot_message_handler import BotMessageHandler
 from responses import format_episode_list_response

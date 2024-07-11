@@ -44,8 +44,7 @@ class SelectClipHandler(BotMessageHandler):
         start_time = max(0, segment['start'] - Settings.EXTEND_BEFORE)
         end_time = segment['end'] + Settings.EXTEND_AFTER
 
-        video_manager = VideoManager(self._bot)
-        await video_manager.extract_and_send_clip(chat_id, video_path, start_time, end_time)
+        await VideoManager(self._bot).extract_and_send_clip(chat_id, video_path, start_time, end_time)
 
         last_selected_segment[chat_id] = segment
         await self._log_system_message(

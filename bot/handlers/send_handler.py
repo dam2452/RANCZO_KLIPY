@@ -41,16 +41,14 @@ class SendClipHandler(BotMessageHandler):
             temp_file.write(video_data)
 
         if os.path.getsize(temp_file_path) == 0:
-            await self.__reply_empty_file_error(message, clip_name)
-            return
+            return await self.__reply_empty_file_error(message, clip_name)
 
-        video_manager = VideoManager(self._bot)
-        await video_manager.send_video(message.chat.id, temp_file_path)
+        await VideoManager(self._bot).send_video(message.chat.id, temp_file_path)
 
-        os.remove(temp_file_path) #fixme a tu trzeba sprawdzać czy ten plik istnieje czy chuj jak nie ma to nie ma co sie usunąć
+        os.remove(temp_file_path)
         await self._log_system_message(
             logging.INFO, f"Clip '{clip_name}' sent to user '{username}' and temporary "
-            f"file removed.",
+                          f"file removed.",
         )
 
     async def __reply_no_clip_name_provided(self, message: Message) -> None:
@@ -77,5 +75,3 @@ class SendClipHandler(BotMessageHandler):
             logging.ERROR,
             f"File is empty after writing clip '{clip_name}' for user '{message.from_user.username}'.",
         )
-
-

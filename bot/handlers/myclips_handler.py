@@ -21,14 +21,11 @@ class ListClipsHandler(BotMessageHandler):
 
         clips = await DatabaseManager.get_saved_clips(username)
         if not clips:
-            await self.__reply_no_saved_clips(message, username)
-            return
+            return await self.__reply_no_saved_clips(message, username)
 
-        response = format_myclips_response(clips, username)
-        await message.answer(response, parse_mode='Markdown')
+        await message.answer(format_myclips_response(clips, username), parse_mode='Markdown')
         await self._log_system_message(logging.INFO, f"List of saved clips sent to user '{username}'.")
 
     async def __reply_no_saved_clips(self, message: Message, username: str) -> None:
         await message.answer("📭 Nie masz zapisanych klipów.📭")
         await self._log_system_message(logging.INFO, f"No saved clips found for user: {username}")
-
