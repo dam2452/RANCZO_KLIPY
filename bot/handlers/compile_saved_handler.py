@@ -3,17 +3,15 @@ import logging
 import os
 import tempfile
 from typing import (
-    List,
     Dict,
+    List,
 )
 
-from bot.main import bot #fixme czy to importowac ?
-
+from aiogram import Bot
 from aiogram.types import (
-    Message,
     FSInputFile,
+    Message,
 )
-
 from bot_message_handler import BotMessageHandler
 
 from bot.utils.database import DatabaseManager
@@ -22,7 +20,7 @@ from bot.utils.video_handler import VideoManager
 last_compiled_clip: Dict[int, json] = {}
 
 
-async def compile_clips(selected_clips_data) -> str: #fixme to chyba też jakiś wylot do utils
+async def compile_clips(selected_clips_data: List[bytes], bot: Bot) -> str:  # fixme to chyba też jakiś wylot do utils
     temp_files = []
     for video_data in selected_clips_data:
         temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
@@ -43,7 +41,7 @@ async def compile_clips(selected_clips_data) -> str: #fixme to chyba też jakiś
     return compiled_output.name
 
 
-async def send_compiled_clip(message: Message, chat_id: int, compiled_output: str) -> None:
+async def send_compiled_clip(chat_id: int, compiled_output: str, bot: Bot) -> None:
     with open(compiled_output, 'rb') as f:
         compiled_clip_data = f.read()
 
@@ -94,12 +92,14 @@ class CompileSelectedClipsHandler(BotMessageHandler):
             return
 
         try:
-            compiled_output = await compile_clips(selected_clips_data)
-            await send_compiled_clip(message, chat_id, compiled_output)
+            compiled_output = await compile_clips(selected_clips_data, self._bot)
+            await send_compiled_clip(chat_id, compiled_output, self._bot)
             await clean_up_temp_files(compiled_output, selected_clips_data)
 
-            await self._log_system_message(logging.INFO,
-                                           f"Compiled clip sent to user '{username}' and temporary files removed.")
+            await self._log_system_message(
+                logging.INFO,
+                f"Compiled clip sent to user '{username}' and temporary files removed.",
+            )
         except Exception as e:
             await self.__reply_compilation_error(message, e)
 

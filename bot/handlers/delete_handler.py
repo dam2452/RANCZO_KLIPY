@@ -2,8 +2,8 @@ import logging
 from typing import List
 
 from aiogram.types import Message
-
 from bot_message_handler import BotMessageHandler
+
 from bot.utils.database import DatabaseManager
 
 
@@ -20,8 +20,7 @@ class DeleteClipHandler(BotMessageHandler):
 
         command_parts = message.text.split(maxsplit=1)
         if len(command_parts) < 2:
-            await self.__reply_no_clip_name_provided(message)
-            return
+            return await self.__reply_no_clip_name_provided(message)
 
         clip_name = command_parts[1]
 
@@ -42,5 +41,7 @@ class DeleteClipHandler(BotMessageHandler):
 
     async def __reply_clip_deleted(self, message: Message, clip_name: str, username: str) -> None:
         await message.answer(f"✅ Klip o nazwie '{clip_name}' został usunięty.✅")
-        await self._log_system_message(logging.INFO,
-                                       f"Clip '{clip_name}' has been successfully deleted for user '{username}'.")
+        await self._log_system_message(
+            logging.INFO,
+            f"Clip '{clip_name}' has been successfully deleted for user '{username}'.",
+        )

@@ -1,34 +1,34 @@
 #fixme to jest całe chujowe przerośniete ale nwm jak to najmądrzej zrobić to narazie tylko przejabałem przez gpt oryginał żeby pod schmemat było żeby ci się odrobine lepiej czytało
 #fixme jak tak patrze to prawie całe do bana ale nie dłubie tego narazie bo to trzeba wgl lepiej zrobić
-import logging
 from datetime import date
-from typing import List, Optional
+import logging
+from typing import (
+    List,
+    Optional,
+)
 
 from aiogram import types
-
 import asyncpg
-from tabulate import tabulate
-
 from bot_message_handler import BotMessageHandler
-
-from bot.utils.database import DatabaseManager
-from bot.utils.transcription_search import SearchTranscriptions
-
 from responses import (
     get_admin_help_message,
+    get_no_admins_found_message,
+    get_no_moderators_found_message,
+    get_no_quote_provided_message,
+    get_no_segments_found_message,
     get_no_username_provided_message,
+    get_subscription_extended_message,
+    get_subscription_removed_message,
+    get_transcription_response,
     get_user_added_message,
     get_user_removed_message,
     get_user_updated_message,
     get_whitelist_empty_message,
-    get_no_admins_found_message,
-    get_no_moderators_found_message,
-    get_subscription_extended_message,
-    get_subscription_removed_message,
-    get_no_quote_provided_message,
-    get_no_segments_found_message,
-    get_transcription_response
 )
+from tabulate import tabulate
+
+from bot.utils.database import DatabaseManager
+from bot.utils.transcription_search import SearchTranscriptions
 
 
 class UserManager:
@@ -86,7 +86,7 @@ class AdminCommandHandler(BotMessageHandler):
         return [
             'admin', 'addwhitelist', 'removewhitelist', 'updatewhitelist',
             'listwhitelist', 'listadmins', 'listmoderators', 'addsubscription',
-            'removesubscription', 'transkrypcja'
+            'removesubscription', 'transkrypcja',
         ]
 
     def get_action_name(self) -> str:
@@ -136,8 +136,10 @@ class AdminCommandHandler(BotMessageHandler):
         if await UserManager.is_user_moderator(message.from_user.username):
             if is_admin or is_moderator:
                 await message.answer("❌ Moderator nie może nadawać statusu admina ani moderatora. ❌")
-                await self._log_system_message(logging.WARNING,
-                                               f"Moderator {message.from_user.username} attempted to assign admin or moderator status.")
+                await self._log_system_message(
+                    logging.WARNING,
+                    f"Moderator {message.from_user.username} attempted to assign admin or moderator status.",
+                )
                 return
 
         full_name = content[3] if len(content) > 3 else None
@@ -145,8 +147,10 @@ class AdminCommandHandler(BotMessageHandler):
         phone = content[5] if len(content) > 5 else None
         await UserManager.add_user(username, is_admin, is_moderator, full_name, email, phone)
         await message.answer(get_user_added_message(username))
-        await self._log_system_message(logging.INFO,
-                                       f"User {username} added to whitelist by {message.from_user.username}.")
+        await self._log_system_message(
+            logging.INFO,
+            f"User {username} added to whitelist by {message.from_user.username}.",
+        )
 
     async def _remove_from_whitelist(self, message: types.Message, content: List[str]) -> None:
         if len(content) < 1:
@@ -157,8 +161,10 @@ class AdminCommandHandler(BotMessageHandler):
         username = content[0]
         await UserManager.remove_user(username)
         await message.answer(get_user_removed_message(username))
-        await self._log_system_message(logging.INFO,
-                                       f"User {username} removed from whitelist by {message.from_user.username}.")
+        await self._log_system_message(
+            logging.INFO,
+            f"User {username} removed from whitelist by {message.from_user.username}.",
+        )
 
     async def _update_whitelist(self, message: types.Message, content: List[str]) -> None:
         if len(content) < 1:
@@ -173,8 +179,10 @@ class AdminCommandHandler(BotMessageHandler):
         if await UserManager.is_user_moderator(message.from_user.username):
             if is_admin or is_moderator:
                 await message.answer("❌ Moderator nie może nadawać statusu admina ani moderatora.❌")
-                await self._log_system_message(logging.WARNING,
-                                               f"Moderator {message.from_user.username} attempted to assign admin or moderator status.")
+                await self._log_system_message(
+                    logging.WARNING,
+                    f"Moderator {message.from_user.username} attempted to assign admin or moderator status.",
+                )
                 return
 
         full_name = content[3] if len(content) > 3 else None
@@ -236,8 +244,10 @@ class AdminCommandHandler(BotMessageHandler):
 
         new_end_date = await UserManager.add_subscription(username, days)
         await message.answer(get_subscription_extended_message(username, new_end_date))
-        await self._log_system_message(logging.INFO,
-                                       f"Subscription for user {username} extended by {message.from_user.username}.")
+        await self._log_system_message(
+            logging.INFO,
+            f"Subscription for user {username} extended by {message.from_user.username}.",
+        )
 
     async def _remove_subscription_command(self, message: types.Message, content: List[str]) -> None:
         if len(content) < 1:
@@ -249,8 +259,10 @@ class AdminCommandHandler(BotMessageHandler):
 
         await UserManager.remove_subscription(username)
         await message.answer(get_subscription_removed_message(username))
-        await self._log_system_message(logging.INFO,
-                                       f"Subscription for user {username} removed by {message.from_user.username}.")
+        await self._log_system_message(
+            logging.INFO,
+            f"Subscription for user {username} removed by {message.from_user.username}.",
+        )
 
     async def _handle_transcription_request(self, message: types.Message, content: List[str]) -> None:
         if len(content) < 1:
@@ -273,8 +285,10 @@ class AdminCommandHandler(BotMessageHandler):
         context_segments = result['context']
         response = get_transcription_response(quote, context_segments)
         await message.answer(response, parse_mode='Markdown')
-        await self._log_system_message(logging.INFO,
-                                       f"Transcription for quote '{quote}' sent to user '{message.from_user.username}'.")
+        await self._log_system_message(
+            logging.INFO,
+            f"Transcription for quote '{quote}' sent to user '{message.from_user.username}'.",
+        )
 
     def _get_users_string(self, users: List[asyncpg.Record]) -> str:
         return "\n".join([self._format_user(user) for user in users]) + "\n"

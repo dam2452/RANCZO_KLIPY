@@ -46,10 +46,10 @@ class BotMessageHandler(ABC):
     }
 
     def __init__(self, bot: Bot, middlewares: Optional[List[BaseMiddleware]] = None):
-        self._bot = bot
-        self._logger = logging.getLogger(__name__)
+        self._bot: Bot = bot
+        self._logger: logging.Logger = logging.getLogger(__name__)
 
-        self._middlewares = middlewares if middlewares else [
+        self._middlewares: List[DummyMiddleware] = middlewares if middlewares else [
             DummyMiddleware(),
             DummyMiddleware(),
             # todo
@@ -65,17 +65,8 @@ class BotMessageHandler(ABC):
         try:
             await self._do_handle(message)
         except Exception as e:  # pylint: disable=broad-exception-caught
-            self._logger.error(f"Error in {self.get_action_name()} for user '{message.from_user.username}': {e}", exc_info=True)
             await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania. Prosimy spróbować ponownie później.⚠️")
-            await DatabaseManager.log_system_message("ERROR", f"Error in {self.get_action_name()} for user '{message.from_user.username}': {e}")
-
-    @abstractmethod
-    def get_commands(self) -> List[str]:
-        pass
-
-    @abstractmethod
-    def get_action_name(self) -> str:
-        pass
+            await self._log_system_message(logging.ERROR, f"Error in {self.get_action_name()} for user '{message.from_user.username}': {e}")
 
     async def _log_system_message(self, level: int, message: str) -> None:
         self._logger.log(level, message)
@@ -84,6 +75,14 @@ class BotMessageHandler(ABC):
     async def _log_user_activity(self, username: str, message: str) -> None:
         await DatabaseManager.log_user_activity(username, message)
         await self._log_system_message(logging.INFO, f"User '{username}' performed action: {message}")
+
+    @abstractmethod
+    def get_commands(self) -> List[str]:
+        pass
+
+    @abstractmethod
+    def get_action_name(self) -> str:
+        pass
 
     @abstractmethod
     async def _do_handle(self, message: Message) -> None:

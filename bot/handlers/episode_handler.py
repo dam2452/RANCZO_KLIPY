@@ -5,16 +5,15 @@ from typing import (
     Tuple,
 )
 
+from aiogram import Bot
 from aiogram.types import Message
-
 from bot_message_handler import BotMessageHandler
+from responses import format_episode_list_response
 
 from bot.utils.transcription_search import SearchTranscriptions
-from responses import format_episode_list_response
 
 
 def adjust_episode_number(absolute_episode: int) -> Optional[Tuple[int, int]]:  #fixme chyba powtorka
-    """ Adjust the absolute episode number to season and episode format """
     season = (absolute_episode - 1) // 13 + 1
     episode = (absolute_episode - 1) % 13 + 1
     return season, episode
@@ -41,25 +40,25 @@ class EpisodeListHandler(BotMessageHandler):
 
     async def _do_handle(self, message: Message) -> None:
         await self._log_user_activity(message.from_user.username, f"/odcinki {message.text}")
-        search_transcriptions = SearchTranscriptions(self._bot.get_dispatcher())  #fixme tak samo
+        search_transcriptions = SearchTranscriptions()  #fixme tak samo
         content = message.text.split()
         if len(content) != 2:
-            await self.__reply_invalid_args_count(message)
-            return
+            return await self.__reply_invalid_args_count(message)
 
         season = int(content[1])
         episodes = await search_transcriptions.find_episodes_by_season(season)
         if not episodes:
-            await self.__reply_no_episodes_found(message, season)
-            return
+            return await self.__reply_no_episodes_found(message, season)
 
         response_parts = split_message(format_episode_list_response(season, episodes))
 
         for part in response_parts:
             await message.answer(part + "```", parse_mode="Markdown")
 
-        await self._log_system_message(logging.INFO,
-                                       f"Sent episode list for season {season} to user '{message.from_user.username}'.")
+        await self._log_system_message(
+            logging.INFO,
+            f"Sent episode list for season {season} to user '{message.from_user.username}'.",
+        )
 
     async def __reply_invalid_args_count(self, message: Message) -> None:
         await message.answer(

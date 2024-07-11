@@ -1,18 +1,17 @@
 import json
 import logging
 from typing import (
-    List,
     Dict,
+    List,
 )
 
 from aiogram.types import Message
-
 from bot_message_handler import BotMessageHandler
 
 from bot.utils.transcription_search import SearchTranscriptions
 
-last_search_quotes: Dict[int, List[json]] = {}  #todo trzeba ta baze pod te sesje zrobić a nie się tak pierodlić
-last_search_terms: Dict[int, str] = {}  #todo trzeba ta baze pod te sesje zrobić a nie się tak pierodlić
+last_search_quotes: Dict[int, List[json]] = {}  # todo trzeba ta baze pod te sesje zrobić a nie się tak pierodlić
+last_search_terms: Dict[int, str] = {}  # todo trzeba ta baze pod te sesje zrobić a nie się tak pierodlić
 
 
 class HandleSearchRequest(BotMessageHandler):
@@ -33,7 +32,7 @@ class HandleSearchRequest(BotMessageHandler):
         quote = ' '.join(content[1:])
         last_search_terms[chat_id] = quote
 
-        search_transcriptions = SearchTranscriptions()  #fixme kurła jak to teraz wykonac jak ja nie mam tego dispatchera żeby przekazać temu do argmeuntu XD musze się wycztać mocniej jak dziłają te dispatchery
+        search_transcriptions = SearchTranscriptions()  # fixme kurła jak to teraz wykonac jak ja nie mam tego dispatchera żeby przekazać temu do argmeuntu XD musze się wycztać mocniej jak dziłają te dispatchery
 
         segments = await search_transcriptions.find_segment_by_quote(quote, return_all=True)
         if not segments:
@@ -94,7 +93,9 @@ class HandleSearchRequest(BotMessageHandler):
 
     async def __send_search_results(self, message: Message, response: str, quote: str) -> None:
         await message.answer(response, parse_mode='Markdown')
-        await self._log_system_message(logging.INFO,
-                                       f"Search results for quote '{quote}' sent to user '{message.from_user.username}'.")
+        await self._log_system_message(
+            logging.INFO,
+            f"Search results for quote '{quote}' sent to user '{message.from_user.username}'.",
+        )
 
-    #todo jakiś specjalny błąd jak sie coś zjebie tylko nwm gdzie go dać
+    # todo jakiś specjalny błąd jak sie coś zjebie tylko nwm gdzie go dać

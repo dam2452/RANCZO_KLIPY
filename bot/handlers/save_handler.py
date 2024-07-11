@@ -4,13 +4,12 @@ import tempfile
 from typing import List
 
 from aiogram.types import Message
-
 from bot_message_handler import BotMessageHandler
-from bot.handlers_old.compile_selected import last_compiled_clip
-from bot.handlers.clip_handler import last_selected_segment
-from bot.handlers_old.manual_clip import last_manual_clip
 
-from bot.utils.database import DatabaseManager #fixme to jest spoko że takie depondency robimy ?
+from bot.handlers.clip_handler import last_selected_segment
+from bot.handlers.compile_saved_handler import last_compiled_clip
+from bot.handlers.manual_handler import last_manual_clip
+from bot.utils.database import DatabaseManager  # fixme to jest spoko że takie depondency robimy ?
 from bot.utils.video_handler import VideoProcessor
 
 
@@ -84,7 +83,8 @@ class SaveClipHandler(BotMessageHandler):
             return
 
         segment_info = last_selected_segment.get(chat_id) or last_compiled_clip.get(chat_id) or last_manual_clip.get(
-            chat_id)
+            chat_id,
+        )
 
         if 'episode_info' in segment_info:
             await self._log_system_message(logging.INFO, f"Segment Info: {segment_info['episode_info']}")
@@ -92,7 +92,8 @@ class SaveClipHandler(BotMessageHandler):
             await self._log_system_message(logging.INFO, "Segment Info: Compiled or manual clip without episode info")
 
         output_filename, start_time, end_time, is_compilation, season, episode_number = await _prepare_clip_file(
-            segment_info)
+            segment_info,
+        )
 
         actual_duration = await VideoProcessor.get_video_duration(output_filename)
         if actual_duration is None:
@@ -127,18 +128,24 @@ class SaveClipHandler(BotMessageHandler):
 
     async def __reply_clip_name_exists(self, message: Message, clip_name: str) -> None:
         await message.answer("⚠️ Klip o takiej nazwie już istnieje. Wybierz inną nazwę.⚠️")
-        await self._log_system_message(logging.INFO,
-                                       f"Clip name '{clip_name}' already exists for user '{message.from_user.username}'.")
+        await self._log_system_message(
+            logging.INFO,
+            f"Clip name '{clip_name}' already exists for user '{message.from_user.username}'.",
+        )
 
     async def __reply_no_segment_selected(self, message: Message) -> None:
         await message.answer("⚠️ Najpierw wybierz segment za pomocą /klip, /wytnij lub skompiluj klipy.⚠️")
-        await self._log_system_message(logging.INFO,
-                                       "No segment selected, manual clip, or compiled clip available for user.")
+        await self._log_system_message(
+            logging.INFO,
+            "No segment selected, manual clip, or compiled clip available for user.",
+        )
 
     async def __reply_failed_to_verify_clip_length(self, message: Message, clip_name: str) -> None:
         await message.answer("❌ Nie udało się zweryfikować długości klipu.❌")
-        await self._log_system_message(logging.ERROR,
-                                       f"Failed to verify the length of the clip '{clip_name}' for user '{message.from_user.username}'.")
+        await self._log_system_message(
+            logging.ERROR,
+            f"Failed to verify the length of the clip '{clip_name}' for user '{message.from_user.username}'.",
+        )
 
     async def __reply_clip_saved_successfully(self, message: Message, clip_name: str) -> None:
         await message.answer(f"✅ Klip '{clip_name}' został zapisany pomyślnie. ✅")

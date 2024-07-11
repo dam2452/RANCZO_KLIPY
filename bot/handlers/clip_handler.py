@@ -1,12 +1,11 @@
 import json
 import logging
 from typing import (
-    List,
     Dict,
+    List,
 )
 
 from aiogram.types import Message
-
 from bot_message_handler import BotMessageHandler
 
 from bot.settings import Settings
@@ -48,14 +47,16 @@ class HandleClipHandler(BotMessageHandler):
         try:
             await VideoManager(self._bot).extract_and_send_clip(message.chat.id, video_path, start_time, end_time)
         except FFmpegException as e:
-            await self.__reply_extraction_failure(message, e)
+            return await self.__reply_extraction_failure(message, e)
 
         last_selected_segment[message.chat.id] = segment
         await self.__log_segment_and_clip_success(message, message.chat.id, message.from_user.username)
 
     async def __reply_no_quote_provided(self, message: Message) -> None:
-        await message.answer("🔎 Podaj cytat, który chcesz znaleźć. Przykład: /klip Nie szkoda panu tego pięknego "
-                             "gabinetu?")
+        await message.answer(
+            "🔎 Podaj cytat, który chcesz znaleźć. Przykład: /klip Nie szkoda panu tego pięknego "
+            "gabinetu?",
+        )
         await self._log_system_message(logging.INFO, "No quote provided by user.")
 
     async def __reply_no_segments_found(self, message: Message, quote: str) -> None:

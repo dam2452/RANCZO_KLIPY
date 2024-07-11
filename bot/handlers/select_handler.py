@@ -1,16 +1,15 @@
-import logging
 import json
+import logging
 from typing import (
-    List,
     Dict,
+    List,
 )
 
 from aiogram.types import Message
+from bot_message_handler import BotMessageHandler
 
 from bot.settings import Settings
-from bot_message_handler import BotMessageHandler
 from bot.utils.video_handler import VideoManager
-
 
 last_search_quotes: Dict[int, List[json]] = {} #fixme to jest powtórzone setny raz ale czeka na zrobienie bazy
 last_selected_segment: Dict[int, json] = {}
@@ -49,8 +48,10 @@ class SelectClipHandler(BotMessageHandler):
         await video_manager.extract_and_send_clip(chat_id, video_path, start_time, end_time)
 
         last_selected_segment[chat_id] = segment
-        await self._log_system_message(logging.INFO,
-                                       f"Segment {segment['id']} selected by user '{message.from_user.username}'.")
+        await self._log_system_message(
+            logging.INFO,
+            f"Segment {segment['id']} selected by user '{message.from_user.username}'.",
+        )
 
     async def __reply_no_segment_provided(self, message: Message) -> None:
         await message.answer("📋 Podaj numer segmentu, który chcesz wybrać. Przykład: /wybierz 1")

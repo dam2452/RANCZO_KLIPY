@@ -5,8 +5,8 @@ from typing import List
 from aiogram.types import Message
 from bot_message_handler import BotMessageHandler
 
-from bot.handlers.search_handler import last_search_quotes
 from bot.handlers.clip_handler import last_selected_segment
+from bot.handlers.search_handler import last_search_quotes
 from bot.settings import Settings
 from bot.utils.video_handler import (
     FFmpegException,
