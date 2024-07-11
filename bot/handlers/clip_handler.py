@@ -22,9 +22,6 @@ class HandleClipHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ['klip', 'clip', 'k']
 
-    def get_action_name(self) -> str:
-        return "clip_handler"  #todo nwm czy to jest super nazwa tak samo z reszta jak samego pliky .py
-
     async def _do_handle(self, message: Message) -> None:
         await self._log_user_activity(message.from_user.username, f"/klip {message.text}")
         content = message.text.split()

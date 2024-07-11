@@ -60,9 +60,6 @@ class SaveClipHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ['zapisz', 'save', 'z']
 
-    def get_action_name(self) -> str:
-        return "save_handler"
-
     async def _do_handle(self, message: Message) -> None:
         await self._log_user_activity(message.from_user.username, f"/zapisz {message.text}")
         username = message.from_user.username

@@ -69,9 +69,6 @@ class ManualClipHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ['wytnij', 'cut', 'wyt', 'pawlos']
 
-    def get_action_name(self) -> str:
-        return "manual_handler"
-
     async def _do_handle(self, message: Message) -> None:
         await self._log_user_activity(message.from_user.username, f"/wytnij {message.text}")
 

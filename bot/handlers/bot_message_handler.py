@@ -76,12 +76,11 @@ class BotMessageHandler(ABC):
         await DatabaseManager.log_user_activity(username, message)
         await self._log_system_message(logging.INFO, f"User '{username}' performed action: {message}")
 
-    @abstractmethod
-    def get_commands(self) -> List[str]:
-        pass
+    def get_action_name(self) -> str:
+        return self.__class__.__name__
 
     @abstractmethod
-    def get_action_name(self) -> str:
+    def get_commands(self) -> List[str]:
         pass
 
     @abstractmethod

@@ -34,9 +34,6 @@ class EpisodeListHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ['odcinki', 'episodes', 'o']
 
-    def get_action_name(self) -> str:
-        return "episode_handler"
-
     async def _do_handle(self, message: Message) -> None:
         await self._log_user_activity(message.from_user.username, f"/odcinki {message.text}")
         search_transcriptions = SearchTranscriptions()  #fixme tak samo

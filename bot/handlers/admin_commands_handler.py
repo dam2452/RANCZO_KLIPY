@@ -89,9 +89,6 @@ class AdminCommandHandler(BotMessageHandler):
             'removesubscription', 'transkrypcja',
         ]
 
-    def get_action_name(self) -> str:
-        return "admin_commands_handler"
-
     async def _do_handle(self, message: types.Message) -> None:
         username = message.from_user.username
         if not await UserManager.is_user_admin(username) and not await UserManager.is_user_moderator(username):

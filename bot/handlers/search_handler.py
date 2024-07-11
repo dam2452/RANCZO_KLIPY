@@ -18,9 +18,6 @@ class HandleSearchRequest(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ['szukaj', 'search', 'sz']
 
-    def get_action_name(self) -> str:
-        return "search_handler"
-
     async def _do_handle(self, message: Message) -> None:
         await self._log_user_activity(message.from_user.username, f"/szukaj {message.text}")
         chat_id = message.chat.id

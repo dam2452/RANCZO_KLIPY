@@ -20,9 +20,6 @@ class SearchListHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ['lista', 'list', 'l']
 
-    def get_action_name(self) -> str:
-        return "list_handler"
-
     async def _do_handle(self, message: Message) -> None:
         await self._log_user_activity(message.from_user.username, f"/lista {message.text}")
         username = message.from_user.username

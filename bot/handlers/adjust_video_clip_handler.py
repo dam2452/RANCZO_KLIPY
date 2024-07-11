@@ -19,9 +19,6 @@ class AdjustVideoClipHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ['dostosuj', 'adjust', 'd']
 
-    def get_action_name(self) -> str:
-        return "adjust_video_clip"
-
     async def _do_handle(self, message: Message) -> None:
         await self._log_user_activity(message.from_user.username, f"/dostosuj {message.text}")
         content = message.text.split()
