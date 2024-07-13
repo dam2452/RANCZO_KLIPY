@@ -14,7 +14,7 @@ from bot.utils.functions import (
     InvalidTimeStringException,
     minutes_str_to_seconds,
 )
-from bot.utils.global_dicts import last_manual_clip
+from bot.utils.global_dicts import last_clip
 from bot.utils.transcription_search import SearchTranscriptions
 from bot.utils.video_manager import VideoManager
 
@@ -32,7 +32,7 @@ class ManualClipHandler(BotMessageHandler):
             await self._reply_invalid_args_count(message, "📋 Podaj poprawną komendę w formacie: /manual <sezon_odcinek> <czas_start> <czas_koniec>. Przykład: /manual S02E10 20:30.11")
             return
 
-        try:
+        try:#fixme rozumiem że tutaj jest git ten try bo faktycznie piszemy do usera w sprawie tego wypierdalnia
             episode, start_seconds, end_seconds = self.__parse_content(content)
         except InvalidSeasonEpisodeStringException:
             return await self.__reply_incorrect_season_episode_format(message)
@@ -49,7 +49,7 @@ class ManualClipHandler(BotMessageHandler):
         await VideoManager.extract_and_send_clip(message.chat.id, video_path, start_seconds, end_seconds, self._bot)
         await self._log_system_message(logging.INFO, f"Clip extracted and sent for command: /manual {episode} {start_seconds} {end_seconds}")
 
-        last_manual_clip[message.chat.id] = {
+        last_clip[message.chat.id] = {
             'video_path': video_path,
             'start': start_seconds,
             'end': end_seconds,
@@ -57,6 +57,7 @@ class ManualClipHandler(BotMessageHandler):
                 'season': episode.season,
                 'episode_number': episode.number,
             },
+            'type': 'manual'
         }
 
     @staticmethod

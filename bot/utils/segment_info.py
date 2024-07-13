@@ -6,7 +6,6 @@ from dataclasses import (
 from typing import (
     Optional,
     Union,
-    Dict,
 )
 
 
@@ -15,7 +14,7 @@ class EpisodeInfo:
     season: Optional[int] = None
     episode_number: Optional[int] = None
 
-
+#fixme to też jakiś takie z dupy zrobiłem mam wrażenie
 @dataclass
 class SegmentInfo:
     video_path: Optional[str] = None

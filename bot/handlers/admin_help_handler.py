@@ -13,5 +13,8 @@ class AdminHelpHandler(BotMessageHandler):
 
     async def _do_handle(self, message: Message) -> None:
         await self._log_user_activity(message.from_user.username, "/admin")
+        await self.__reply_admin_help(message)
+
+    async def __reply_admin_help(self, message: Message) -> None:
         await message.answer(get_admin_help_message(), parse_mode='Markdown')
         await self._log_system_message(logging.INFO, f"Admin help message sent to user '{message.from_user.username}'.")

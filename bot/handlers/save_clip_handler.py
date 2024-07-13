@@ -6,15 +6,12 @@ from typing import (
     List,
     Tuple,
     Optional,
-    Union, )
+    Union,
+)
 from aiogram.types import Message
 from bot_message_handler import BotMessageHandler
 from bot.utils.database import DatabaseManager
-from bot.utils.global_dicts import (
-    last_compiled_clip,
-    last_manual_clip,
-    last_selected_segment,
-)
+from bot.utils.global_dicts import last_clip
 from bot.utils.video_manager import VideoProcessor
 from bot.utils.segment_info import SegmentInfo
 
@@ -48,21 +45,30 @@ class SaveClipHandler(BotMessageHandler):
                                      episode_number)
         await self.__reply_clip_saved_successfully(message, clip_name)
 
-    def __parse_clip_name(self, message: Message) -> Optional[str]:
+    @staticmethod
+    def __parse_clip_name(message: Message) -> Optional[str]:
         content = message.text.split()
         if len(content) < 2:
             return None
         return content[1]
 
-    async def __is_clip_name_unique(self, message: Message, clip_name: str) -> bool:
+    @staticmethod
+    async def __is_clip_name_unique(message: Message, clip_name: str) -> bool:
         return await DatabaseManager.is_clip_name_unique(message.chat.id, clip_name)
 
-    def __get_segment_info(self, message: Message) -> Optional[SegmentInfo]:
+    @staticmethod
+    def __get_segment_info(message: Message) -> Optional[SegmentInfo]:
         chat_id = message.chat.id
-        return last_selected_segment.get(chat_id) or last_compiled_clip.get(chat_id) or last_manual_clip.get(chat_id)
+        last_clip_info = last_clip.get(chat_id)
+        if last_clip_info and last_clip_info.get('type') == 'segment':
+            return SegmentInfo(**last_clip_info['segment'])
+        if last_clip_info and last_clip_info.get('type') == 'manual':
+            return SegmentInfo(**last_clip_info)
+        if last_clip_info and last_clip_info.get('type') == 'compiled':
+            return SegmentInfo(**last_clip_info['compiled_clip'])
+        return None
 
-    async def __prepare_clip_file(self, segment_info: SegmentInfo) -> Tuple[
-        str, int, int, bool, Optional[int], Optional[int]]:
+    async def __prepare_clip_file(self, segment_info: SegmentInfo) -> Tuple[str, int, int, bool, Optional[int], Optional[int]]:
         start_time = 0
         end_time = 0
         is_compilation = False
@@ -89,7 +95,8 @@ class SaveClipHandler(BotMessageHandler):
 
         return output_filename, start_time, end_time, is_compilation, season, episode_number
 
-    def __write_clip_to_file(self, clip_data: Union[bytes, BytesIO]) -> str:
+    @staticmethod
+    def __write_clip_to_file(clip_data: Union[bytes, BytesIO]) -> str:
         output_filename = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4").name
         with open(output_filename, 'wb') as f:
             if isinstance(clip_data, bytes):
@@ -104,7 +111,8 @@ class SaveClipHandler(BotMessageHandler):
             await self.__reply_failed_to_verify_clip_length(message, clip_name)
         return actual_duration
 
-    async def __save_clip_to_db(self, message: Message, clip_name: str, output_filename: str, start_time: int,
+    @staticmethod
+    async def __save_clip_to_db(message: Message, clip_name: str, output_filename: str, start_time: int,
                                 end_time: int, is_compilation: bool, season: Optional[int],
                                 episode_number: Optional[int]) -> None:
         with open(output_filename, 'rb') as file:

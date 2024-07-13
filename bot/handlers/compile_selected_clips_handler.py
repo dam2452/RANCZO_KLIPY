@@ -13,6 +13,11 @@ from bot.utils.functions import (
 
 
 class CompileSelectedClipsHandler(BotMessageHandler):
+    class ClipNotFoundException(Exception):
+        def __init__(self, message: str) -> None:
+            self.message = message
+            super().__init__(self.message)
+
     def get_commands(self) -> List[str]:
         return ['polaczklipy', 'concatclips', 'pk']
 
@@ -27,34 +32,37 @@ class CompileSelectedClipsHandler(BotMessageHandler):
             return await self._reply_invalid_args_count(message, "📄 Podaj nazwy klipów do skompilowania w odpowiedniej kolejności.")
 
         clip_names = content[1:]
-        selected_clips_data = []
-
-        for clip_name in clip_names:
-            clip = await DatabaseManager.get_clip_by_name(username, clip_name)
-            if not clip:
-                return await self.__reply_clip_not_found(message, clip_name, username)
-            selected_clips_data.append(clip[0])
+        selected_clips_data = await self.__get_selected_clips_data(clip_names, username, message)
 
         if not selected_clips_data:
             return await self.__reply_no_matching_clips_found(message)
 
-        try:
-            compiled_output = await compile_clips(selected_clips_data)
-            await send_compiled_clip(chat_id, compiled_output, self._bot)
-            await self.__clean_up_temp_files(compiled_output, selected_clips_data)
+        compiled_output = await compile_clips(selected_clips_data)
+        await send_compiled_clip(chat_id, compiled_output, self._bot)
+        if os.path.exists(compiled_output):
+            os.remove(compiled_output)
 
-            await self._log_system_message(
-                logging.INFO,
-                f"Compiled clip sent to user '{username}' and temporary files removed.",
-            )
-        except Exception as e:
-            await self.__reply_compilation_error(message, e)
+        await self.__clean_up_temp_files(selected_clips_data)
+
+        await self._log_system_message(
+            logging.INFO,
+            f"Compiled clip sent to user '{username}' and temporary files removed.",
+        )
+
+    async def __get_selected_clips_data(self, clip_names: List[str], username: str, message: Message) -> List[bytes]:
+        selected_clips_data = []
+        for clip_name in clip_names:
+            clip = await DatabaseManager.get_clip_by_name(username, clip_name)
+            if not clip:
+                await self.__reply_clip_not_found(message, clip_name, username)
+            else:
+                selected_clips_data.append(clip[0])
+        return selected_clips_data
 
     @staticmethod
-    async def __clean_up_temp_files(compiled_output: str, selected_clips_data) -> None:
+    async def __clean_up_temp_files(selected_clips_data: List[bytes]) -> None:
         for temp_file in selected_clips_data:
             os.remove(temp_file)
-        os.remove(compiled_output)
 
     async def __reply_clip_not_found(self, message: Message, clip_name: str, username: str) -> None:
         await message.answer(f"❌ Nie znaleziono klipu o nazwie '{clip_name}'.")
@@ -63,7 +71,3 @@ class CompileSelectedClipsHandler(BotMessageHandler):
     async def __reply_no_matching_clips_found(self, message: Message) -> None:
         await message.answer("❌ Nie znaleziono pasujących klipów do kompilacji.")
         await self._log_system_message(logging.INFO, "No matching clips found for compilation.")
-
-    async def __reply_compilation_error(self, message: Message, exception: Exception) -> None:
-        await message.answer("⚠️ Wystąpił błąd podczas kompilacji klipów.⚠️")
-        await self._log_system_message(logging.ERROR, f"An error occurred while compiling clips: {exception}")

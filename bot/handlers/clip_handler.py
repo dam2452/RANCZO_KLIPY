@@ -5,7 +5,7 @@ from aiogram.types import Message
 
 from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.settings import Settings
-from bot.utils.global_dicts import last_selected_segment
+from bot.utils.global_dicts import last_clip
 from bot.utils.transcription_search import SearchTranscriptions
 from bot.utils.video_manager import (
     FFmpegException,
@@ -41,7 +41,7 @@ class ClipHandler(BotMessageHandler):
         except FFmpegException as e:
             return await self.__reply_extraction_failure(message, e)
 
-        last_selected_segment[message.chat.id] = segment
+        last_clip[message.chat.id] = {'segment': segment, 'type': 'segment'}
         await self.__log_segment_and_clip_success(message.chat.id, message.from_user.username)
 
     async def __reply_no_segments_found(self, message: Message, quote: str) -> None:
@@ -49,7 +49,7 @@ class ClipHandler(BotMessageHandler):
         await self._log_system_message(logging.INFO, f"No segments found for quote: '{quote}'")
 
     async def __reply_extraction_failure(self, message: Message, exception: FFmpegException) -> None:
-        await message.answer(f"⚠️ Nie udało się wyodrębnić klipu wideo: {exception}")
+        await message.answer("⚠️ Nie udało się wyodrębnić klipu wideo.⚠️")
         await self._log_system_message(logging.ERROR, f"Failed to extract video clip: {exception}")
 
     async def __log_segment_and_clip_success(self, chat_id: int, username: str) -> None:

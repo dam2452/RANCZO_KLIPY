@@ -7,12 +7,9 @@ from typing import (
 from aiogram.types import Message
 from elastic_transport import ObjectApiResponse
 
-from bot.handlers.bot_message_handler import BotMessageHandler
+from bot_message_handler import BotMessageHandler
 from bot.utils.functions import format_segment
-from bot.utils.global_dicts import (
-    last_search_quotes,
-    last_search_terms,
-)
+from bot.utils.global_dicts import last_search
 from bot.utils.transcription_search import SearchTranscriptions
 
 
@@ -28,21 +25,19 @@ class SearchHandler(BotMessageHandler):
             return await self._reply_invalid_args_count(message, "🔍 Podaj cytat, który chcesz znaleźć. Przykład: /szukaj geniusz")
 
         quote = ' '.join(content[1:])
-        last_search_terms[chat_id] = quote
 
         search_transcriptions = SearchTranscriptions()
-
         segments = await search_transcriptions.find_segment_by_quote(quote, return_all=True)
         if not segments:
             return await self.__reply_no_segments_found(message, quote)
 
         unique_segments = self.__get_unique_segments(segments)
-        last_search_quotes[chat_id] = list(unique_segments.values())
+        last_search[chat_id] = {'quote': quote, 'segments': list(unique_segments.values())}
 
         response = f"🔍 Znaleziono {len(unique_segments)} pasujących segmentów:\n"
         segment_lines = []
 
-        for i, segment in enumerate(last_search_quotes[chat_id][:5], start=1):
+        for i, segment in enumerate(last_search[chat_id]['segments'][:5], start=1):
             segment_info = format_segment(segment)
             line = f"{i}️⃣ | 📺{segment_info.episode_formatted} | 🕒 {segment_info.time_formatted} \n👉  {segment_info.episode_title} "
             segment_lines.append(line)

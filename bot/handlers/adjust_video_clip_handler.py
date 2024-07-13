@@ -7,7 +7,7 @@ from aiogram.types import Message
 from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.settings import Settings
 from bot.utils.global_dicts import (
-    last_search_quotes,
+    last_search_quotes, #fixme nie wiem czy nie zamieszałem tym scaleniem dictów teraz już nie mam głowy do tego ajust
     last_selected_segment,
 )
 from bot.utils.video_manager import (

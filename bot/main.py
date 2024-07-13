@@ -48,7 +48,6 @@ dp.update.middleware(ErrorHandlerMiddleware())
 
 handlers: List[BotMessageHandler] = [
     AdjustVideoClipHandler(bot),
-    AdminCommandHandler(bot),
     ClipHandler(bot),
     CompileClipsHandler(bot),
     CompileSelectedClipsHandler(bot),
@@ -64,6 +63,7 @@ handlers: List[BotMessageHandler] = [
     SendClipHandler(bot),
     StartHandler(bot),
     SubscriptionStatusHandler(bot),
+    #fixme tego admina na raty trzeba dodac
 ]
 
 

@@ -4,9 +4,13 @@ from typing import List
 from aiogram.types import Message
 
 from bot_message_handler import BotMessageHandler
-from bot.utils.responses import get_no_quote_provided_message, get_no_segments_found_message, get_transcription_response
-from bot.utils.database import DatabaseManager
+from bot.utils.responses import (
+    get_no_quote_provided_message,
+    get_no_segments_found_message,
+    get_transcription_response
+)
 from bot.utils.transcription_search import SearchTranscriptions
+
 
 class TranscriptionHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
@@ -16,9 +20,7 @@ class TranscriptionHandler(BotMessageHandler):
         await self._log_user_activity(message.from_user.username, f"/transkrypcja {message.text}")
         content = message.text.split()
         if len(content) < 2:
-            await message.answer(get_no_quote_provided_message())
-            await self._log_system_message(logging.INFO, "No quote provided for transcription search.")
-            return
+            return await self.__reply_no_quote_provided(message)
 
         quote = ' '.join(content[1:])
         search_transcriptions = SearchTranscriptions()
@@ -26,11 +28,21 @@ class TranscriptionHandler(BotMessageHandler):
         result = await search_transcriptions.find_segment_with_context(quote, context_size)
 
         if not result:
-            await message.answer(get_no_segments_found_message(quote))
-            await self._log_system_message(logging.INFO, f"No segments found for quote: '{quote}'")
-            return
+            return await self.__reply_no_segments_found(message, quote)
 
         context_segments = result['context']
         response = get_transcription_response(quote, context_segments)
+        await self.__reply_transcription_response(message, response, quote)
+
+    async def __reply_no_quote_provided(self, message: Message) -> None:
+        await message.answer(get_no_quote_provided_message())
+        await self._log_system_message(logging.INFO, "No quote provided for transcription search.")
+
+    async def __reply_no_segments_found(self, message: Message, quote: str) -> None:
+        await message.answer(get_no_segments_found_message(quote))
+        await self._log_system_message(logging.INFO, f"No segments found for quote: '{quote}'")
+
+    async def __reply_transcription_response(self, message: Message, response: str, quote: str) -> None:
         await message.answer(response, parse_mode='Markdown')
-        await self._log_system_message(logging.INFO, f"Transcription for quote '{quote}' sent to user '{message.from_user.username}'.")
+        await self._log_system_message(logging.INFO,
+                                       f"Transcription for quote '{quote}' sent to user '{message.from_user.username}'.")

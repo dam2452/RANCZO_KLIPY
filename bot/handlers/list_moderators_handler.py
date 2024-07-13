@@ -1,10 +1,13 @@
 import logging
-import asyncpg
 from typing import List
+
 from aiogram.types import Message
 
 from bot_message_handler import BotMessageHandler
-from bot.utils.responses import get_no_moderators_found_message
+from bot.utils.responses import (
+    get_no_moderators_found_message,
+    create_moderators_list_response,
+)
 from bot.utils.database import DatabaseManager
 
 
@@ -16,20 +19,15 @@ class ListModeratorsHandler(BotMessageHandler):
         await self._log_user_activity(message.from_user.username, "/listmoderators")
         users = await DatabaseManager.get_moderator_users()
         if not users:
-            await message.answer(get_no_moderators_found_message())
-            await self._log_system_message(logging.INFO, "No moderators found.")
-            return
+            return await self.__reply_no_moderators_found(message)
 
-        response = "📃 Lista moderatorów 📃\n"
-        response += self.__get_users_string(users)
+        response = create_moderators_list_response(users)
+        await self.__reply_moderators_list(message, response)
 
+    async def __reply_no_moderators_found(self, message: Message) -> None:
+        await message.answer(get_no_moderators_found_message())
+        await self._log_system_message(logging.INFO, "No moderators found.")
+
+    async def __reply_moderators_list(self, message: Message, response: str) -> None:
         await message.answer(response)
         await self._log_system_message(logging.INFO, "Moderator list sent to user.")
-
-    def __get_users_string(self, users: List[asyncpg.Record]) -> str:
-        return "\n".join([self.__format_user(user) for user in users]) + "\n"
-
-    @staticmethod
-    def __format_user(user: asyncpg.Record) -> str:
-        return (f"👤 Username: {user['username']}, 📛 Full Name: {user['full_name']}, ✉️ Email: {user['email']}, 📞 "
-                f"Phone: {user['phone']}")

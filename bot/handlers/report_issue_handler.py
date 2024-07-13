@@ -9,7 +9,7 @@ from bot.utils.database import DatabaseManager
 
 class ReportIssueHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
-        return ['report', 'zgłoś','zglos', 'r']
+        return ['report', 'zgłoś', 'zglos', 'r']
 
     async def _do_handle(self, message: Message) -> None:
         await self._log_user_activity(message.from_user.username, f"/report {message.text}")

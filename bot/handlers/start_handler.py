@@ -32,7 +32,7 @@ class StartHandler(BotMessageHandler):
             "all": get_full_message,
             "wyszukiwanie": get_wyszukiwanie_message,
             "edycja": get_edycja_message,
-            "zarzadzenie": get_zarzadzanie_message,
+            "zarzadzanie": get_zarzadzanie_message,
             "raportowanie": get_raportowanie_message,
             "subskrypcje": get_subskrypcje_message,
         }
@@ -51,9 +51,9 @@ class StartHandler(BotMessageHandler):
         if len(content) == 1:
             await self.__send_message(message, get_basic_message())
         elif len(content) == 2:
-            try:
+            if content[1] in self.__RESPONSES:
                 await self.__send_message(message, self.__RESPONSES[content[1]]())
-            except (KeyError, IndexError):
+            else:
                 await self.__send_message(message, "Niepoprawna komenda")
 
     async def __send_message(self, message: Message, text: str) -> None:

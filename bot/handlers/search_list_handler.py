@@ -1,7 +1,11 @@
 import logging
 import os
 import tempfile
-from typing import List
+from typing import (
+    List,
+    Dict,
+    Union,
+)
 
 from aiogram.types import (
     FSInputFile,
@@ -9,12 +13,9 @@ from aiogram.types import (
 )
 from tabulate import tabulate
 
-from bot.handlers.bot_message_handler import BotMessageHandler
+from bot_message_handler import BotMessageHandler
 from bot.utils.functions import format_segment
-from bot.utils.global_dicts import (
-    last_search_quotes,
-    last_search_terms,
-)
+from bot.utils.global_dicts import last_search
 
 
 class SearchListHandler(BotMessageHandler):
@@ -26,11 +27,12 @@ class SearchListHandler(BotMessageHandler):
         username = message.from_user.username
         chat_id = message.chat.id
 
-        if chat_id not in last_search_quotes or chat_id not in last_search_terms:
+        if chat_id not in last_search:
             return await self.__reply_no_previous_search_results(message, chat_id)
 
-        segments = last_search_quotes[chat_id]
-        search_term = last_search_terms[chat_id]
+        search_data: Dict[str, Union[str, List[Dict[str, Union[str, int]]]]] = last_search[chat_id]
+        segments = search_data['segments']
+        search_term = search_data['quote']
 
         response = f"🔍 Znaleziono {len(segments)} pasujących segmentów dla zapytania '{search_term}':\n"
         segment_lines = []

@@ -2,10 +2,12 @@ import logging
 from typing import List
 
 from aiogram.types import Message
-from tabulate import tabulate
 
 from bot_message_handler import BotMessageHandler
-from bot.utils.responses import get_whitelist_empty_message
+from bot.utils.responses import (
+    get_whitelist_empty_message,
+    create_whitelist_response,
+)
 from bot.utils.database import DatabaseManager
 
 
@@ -17,14 +19,15 @@ class ListWhitelistHandler(BotMessageHandler):
         await self._log_user_activity(message.from_user.username, "/listwhitelist")
         users = await DatabaseManager.get_all_users()
         if not users:
-            await message.answer(get_whitelist_empty_message())
-            await self._log_system_message(logging.INFO, "Whitelist is empty.")
-            return
+            return await self.__reply_whitelist_empty(message)
 
-        table = [["Username", "Full Name", "Email", "Phone", "Subskrypcja do"]]
-        for user in users:
-            table.append([user['username'], user['full_name'], user['email'], user['phone'], user['subscription_end']])
+        response = create_whitelist_response(users)
+        await self.__reply_whitelist(message, response)
 
-        response = f"```whitelista\n{tabulate(table, headers='firstrow', tablefmt='grid')}```"
+    async def __reply_whitelist_empty(self, message: Message) -> None:
+        await message.answer(get_whitelist_empty_message())
+        await self._log_system_message(logging.INFO, "Whitelist is empty.")
+
+    async def __reply_whitelist(self, message: Message, response: str) -> None:
         await message.answer(response, parse_mode='Markdown')
         await self._log_system_message(logging.INFO, "Whitelist sent to user.")

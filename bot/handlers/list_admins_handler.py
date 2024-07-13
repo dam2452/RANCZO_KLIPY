@@ -17,12 +17,17 @@ class ListAdminsHandler(BotMessageHandler):
         await self._log_user_activity(message.from_user.username, "/listadmins")
         users = await DatabaseManager.get_admin_users()
         if not users:
-            await message.answer(get_no_admins_found_message())
-            await self._log_system_message(logging.INFO, "No admins found.")
-            return
+            return await self.__reply_no_admins_found(message)
 
         response = "📃 Lista adminów:\n"
         response += get_users_string(users)
 
+        await self.__reply_admins_list(message, response)
+
+    async def __reply_no_admins_found(self, message: Message) -> None:
+        await message.answer(get_no_admins_found_message())
+        await self._log_system_message(logging.INFO, "No admins found.")
+
+    async def __reply_admins_list(self, message: Message, response: str) -> None:
         await message.answer(response)
         await self._log_system_message(logging.INFO, "Admin list sent to user.")

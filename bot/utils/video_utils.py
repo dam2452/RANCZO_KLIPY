@@ -1,8 +1,7 @@
-import asyncio
 import logging
 from typing import Optional
 
-import ffmpeg
+import ffmpeg #fixme to jest jakieś gejowe bo jak dobrze pamiętam to musiałem instalować ffmpeg-python a używać ffmpeg żeby mi działało nwm XD
 
 from bot.utils.database import DatabaseManager
 
@@ -39,7 +38,7 @@ class VideoProcessor:
             logger.info(success_message)
             await DatabaseManager.log_system_message("INFO", success_message)
         except ffmpeg.Error as e:
-            err = FFmpegException(e.stderr.decode(), e.returncode)
+            err = FFmpegException(e.stderr.decode(), e.returncode) #fixme jakiś magic na potem
             logger.error(err.message)
             await DatabaseManager.log_system_message("ERROR", err.message)
             raise err

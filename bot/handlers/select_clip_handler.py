@@ -6,8 +6,8 @@ from aiogram.types import Message
 from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.settings import Settings
 from bot.utils.global_dicts import (
-    last_search_quotes,
-    last_selected_segment,
+    last_search,
+    last_clip,
 )
 from bot.utils.video_manager import VideoManager
 
@@ -21,27 +21,26 @@ class SelectClipHandler(BotMessageHandler):
         content = message.text.split()
 
         if len(content) < 2:
-            return await self._reply_invalid_args_count(message, "📋 Podaj numer segmentu, który chcesz wybrać. "
-                                                                 "Przykład: /wybierz 1")
+            return await self._reply_invalid_args_count(message, "📋 Podaj numer segmentu, który chcesz wybrać. Przykład: /wybierz 1")
 
         chat_id = message.chat.id
-        if chat_id not in last_search_quotes:
+        if chat_id not in last_search:
             return await self.__reply_no_previous_search(message)
 
         index = int(content[1])
-        segments = last_search_quotes[chat_id]
+        segments = last_search[chat_id]['segments']
 
-        if index not in range(1, len(segments)+1):
-            return await self.__reply_invalid_segment_number(message, index + 1)
+        if index not in range(1, len(segments) + 1):
+            return await self.__reply_invalid_segment_number(message, index)
 
-        segment = segments[index]
+        segment = segments[index - 1]
         video_path = segment['video_path']
         start_time = max(0, segment['start'] - Settings.EXTEND_BEFORE)
         end_time = segment['end'] + Settings.EXTEND_AFTER
 
         await VideoManager.extract_and_send_clip(chat_id, video_path, start_time, end_time, self._bot)
 
-        last_selected_segment[chat_id] = segment
+        last_clip[chat_id] = {'segment': segment, 'type': 'segment'}
         await self._log_system_message(
             logging.INFO,
             f"Segment {segment['id']} selected by user '{message.from_user.username}'.",

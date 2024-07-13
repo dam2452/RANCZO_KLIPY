@@ -1,5 +1,6 @@
 from datetime import date
 import asyncpg
+from tabulate import tabulate
 from typing import (
     Dict,
     List,
@@ -262,6 +263,7 @@ def get_whitelist_empty_message() -> str:
     return "📭 Whitelist jest pusta.📭"
 
 
+#fixme nie wiem czy nie przesdziłem z tymi get XD ale z drugiej strony to ma tam jakiś potencł być użytym wiecej niż te 2 razy
 def get_no_admins_found_message() -> str:
     return "📭 Nie znaleziono adminów.📭"
 
@@ -301,3 +303,18 @@ def get_users_string(users: List[asyncpg.Record]) -> str:
 def format_user(user: asyncpg.Record) -> str:
     return (f"👤 Username: {user['username']}, 📛 Full Name: {user['full_name']}, ✉️ Email: {user['email']}, 📞 "
             f"Phone: {user['phone']}")
+
+
+def create_moderators_list_response(users: List[dict]) -> str:
+    response = "📃 Lista moderatorów 📃\n"
+    response += get_users_string(users)
+    return response
+
+
+def create_whitelist_response(users: List[dict]) -> str:
+    table = [["Username", "Full Name", "Email", "Phone", "Subskrypcja do"]]
+    for user in users:
+        table.append([user['username'], user['full_name'], user['email'], user['phone'], user['subscription_end']])
+
+    response = f"```whitelista\n{tabulate(table, headers='firstrow', tablefmt='grid')}```"
+    return response
