@@ -14,10 +14,7 @@ from aiogram import (
 )
 from aiogram.fsm.storage.memory import MemoryStorage
 
-from bot.handlers import (
-    adjust_video_clip_handler,
-    bot_message_handler,
-)
+from bot.handlers import *
 from bot.middlewares.auth_middleware import AuthorizationMiddleware
 from bot.middlewares.error_middleware import ErrorHandlerMiddleware
 from bot.settings import Settings
@@ -44,12 +41,29 @@ class DBLogHandler(logging.Handler):
 bot = Bot(token=Settings.TELEGRAM_BOT_TOKEN)
 dp = Dispatcher(storage=MemoryStorage())
 
+# fixme zmienic na liste middlewarow i przekazywac tamtym klasom w ctor
 dp.update.middleware(AuthorizationMiddleware())
 dp.update.middleware(ErrorHandlerMiddleware())
 
 
-handlers: List[bot_message_handler.BotMessageHandler] = [
-    adjust_video_clip_handler.AdjustVideoClipHandler(bot),
+handlers: List[BotMessageHandler] = [
+    AdjustVideoClipHandler(bot),
+    AdminCommandHandler(bot),
+    ClipHandler(bot),
+    CompileClipsHandler(bot),
+    CompileSelectedClipsHandler(bot),
+    DeleteClipHandler(bot),
+    EpisodeListHandler(bot),
+    SearchListHandler(bot),
+    ManualClipHandler(bot),
+    MyClipsHandler(bot),
+    ReportIssueHandler(bot),
+    SaveClipHandler(bot),
+    SearchHandler(bot),
+    SelectClipHandler(bot),
+    SendClipHandler(bot),
+    StartHandler(bot),
+    SubscriptionStatusHandler(bot),
 ]
 
 

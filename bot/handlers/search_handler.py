@@ -16,7 +16,7 @@ from bot.utils.global_dicts import (
 from bot.utils.transcription_search import SearchTranscriptions
 
 
-class HandleSearchRequest(BotMessageHandler):
+class SearchHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ['szukaj', 'search', 'sz']
 

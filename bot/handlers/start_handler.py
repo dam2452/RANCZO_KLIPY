@@ -25,7 +25,7 @@ from bot.utils.responses import (
 )
 
 
-class StartCommandHandler(BotMessageHandler):
+class StartHandler(BotMessageHandler):
     def __init__(self, bot: Bot, middlewares: Optional[List[BaseMiddleware]] = None):
         self.__RESPONSES: Dict[str, Callable[[], str]] = {
             "lista": get_lista_message,

@@ -13,7 +13,7 @@ from bot.utils.video_manager import (
 )
 
 
-class HandleClipHandler(BotMessageHandler):
+class ClipHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ['klip', 'clip', 'k']
 

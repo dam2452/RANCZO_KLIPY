@@ -8,7 +8,7 @@ from bot.utils.database import DatabaseManager
 from bot.utils.responses import format_myclips_response
 
 
-class ListClipsHandler(BotMessageHandler):
+class MyClipsHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ['mojeklipy', 'myclips', 'mk']
 
