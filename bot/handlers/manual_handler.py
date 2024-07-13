@@ -16,7 +16,7 @@ from bot.utils.functions import (
 )
 from bot.utils.global_dicts import last_manual_clip
 from bot.utils.transcription_search import SearchTranscriptions
-from bot.utils.video_handler import VideoManager
+from bot.utils.video_manager import VideoManager
 
 
 class ManualClipHandler(BotMessageHandler):

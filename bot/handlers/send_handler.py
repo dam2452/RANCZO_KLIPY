@@ -7,7 +7,7 @@ from aiogram.types import Message
 
 from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.utils.database import DatabaseManager
-from bot.utils.video_handler import VideoManager
+from bot.utils.video_manager import VideoManager
 
 
 class SendClipHandler(BotMessageHandler):

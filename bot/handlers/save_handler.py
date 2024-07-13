@@ -12,7 +12,7 @@ from bot.utils.global_dicts import (
     last_manual_clip,
     last_selected_segment,
 )
-from bot.utils.video_handler import VideoProcessor
+from bot.utils.video_manager import VideoProcessor
 
 
 class SaveClipHandler(BotMessageHandler):

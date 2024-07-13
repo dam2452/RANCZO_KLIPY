@@ -10,7 +10,7 @@ from bot.utils.global_dicts import (
     last_search_quotes,
     last_selected_segment,
 )
-from bot.utils.video_handler import (
+from bot.utils.video_manager import (
     FFmpegException,
     VideoManager,
     VideoProcessor,

@@ -9,7 +9,7 @@ from bot.utils.global_dicts import (
     last_search_quotes,
     last_selected_segment,
 )
-from bot.utils.video_handler import VideoManager
+from bot.utils.video_manager import VideoManager
 
 
 class SelectClipHandler(BotMessageHandler):

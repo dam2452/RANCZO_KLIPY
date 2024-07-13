@@ -9,7 +9,7 @@ from aiogram import Bot
 from aiogram.types import FSInputFile
 
 from bot.utils.global_dicts import last_compiled_clip
-from bot.utils.video_handler import VideoManager
+from bot.utils.video_manager import VideoManager
 
 
 async def compile_clips(selected_clips_data: List[bytes], bot: Bot) -> str:

@@ -7,7 +7,7 @@ from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.settings import Settings
 from bot.utils.global_dicts import last_selected_segment
 from bot.utils.transcription_search import SearchTranscriptions
-from bot.utils.video_handler import (
+from bot.utils.video_manager import (
     FFmpegException,
     VideoManager,
 )
