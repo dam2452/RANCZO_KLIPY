@@ -21,16 +21,17 @@ class SelectClipHandler(BotMessageHandler):
         content = message.text.split()
 
         if len(content) < 2:
-            return await self._reply_invalid_args_count(message, "📋 Podaj numer segmentu, który chcesz wybrać. Przykład: /wybierz 1")
+            return await self._reply_invalid_args_count(message, "📋 Podaj numer segmentu, który chcesz wybrać. "
+                                                                 "Przykład: /wybierz 1")
 
         chat_id = message.chat.id
         if chat_id not in last_search_quotes:
             return await self.__reply_no_previous_search(message)
 
-        index = int(content[1]) - 1
+        index = int(content[1])
         segments = last_search_quotes[chat_id]
 
-        if index not in range(0, len(segments)+1):  # fixme: jestes pewien ze nie powinno tu byc od 1?
+        if index not in range(1, len(segments)+1):
             return await self.__reply_invalid_segment_number(message, index + 1)
 
         segment = segments[index]
