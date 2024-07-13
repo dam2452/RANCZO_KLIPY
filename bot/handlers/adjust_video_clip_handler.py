@@ -36,7 +36,9 @@ class AdjustVideoClipHandler(BotMessageHandler):
                 return await self.__reply_no_quotes_selected(message)
             segment_info = last_selected_segment[message.chat.id]
         else:
-            return await self._reply_invalid_args_count(message, "📝 Podaj czas w formacie `<float> <float>` lub `<index> <float> <float>`. Przykład: /dostosuj 10.5 -15.2 lub /dostosuj 1 10.5 -15.2")
+            return await self._reply_invalid_args_count(message, "📝 Podaj czas w formacie `<float> <float>` lub "
+                                                                 "`<index> <float> <float>`. Przykład: /dostosuj 10.5"
+                                                                 " -15.2 lub /dostosuj 1 10.5 -15.2")
 
         await self._log_system_message(logging.INFO, f"Segment Info: {segment_info}")
 

@@ -10,6 +10,7 @@ from bot.utils.responses import (
 )
 from bot.utils.database import DatabaseManager
 
+
 class RemoveWhitelistHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ['removewhitelist', 'removew']
@@ -25,4 +26,5 @@ class RemoveWhitelistHandler(BotMessageHandler):
         username = content[1]
         await DatabaseManager.remove_user(username)
         await message.answer(get_user_removed_message(username))
-        await self._log_system_message(logging.INFO, f"User {username} removed from whitelist by {message.from_user.username}.")
+        await self._log_system_message(logging.INFO,
+                                       f"User {username} removed from whitelist by {message.from_user.username}.")

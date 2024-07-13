@@ -8,6 +8,7 @@ from bot_message_handler import BotMessageHandler
 from bot.utils.responses import get_whitelist_empty_message
 from bot.utils.database import DatabaseManager
 
+
 class ListWhitelistHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ['listwhitelist', 'listw']
@@ -27,4 +28,3 @@ class ListWhitelistHandler(BotMessageHandler):
         response = f"```whitelista\n{tabulate(table, headers='firstrow', tablefmt='grid')}```"
         await message.answer(response, parse_mode='Markdown')
         await self._log_system_message(logging.INFO, "Whitelist sent to user.")
-

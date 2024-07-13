@@ -10,6 +10,7 @@ from bot.utils.responses import (
 )
 from bot.utils.database import DatabaseManager
 
+
 class RemoveSubscriptionHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ['removesubscription', 'removesub']
@@ -26,4 +27,5 @@ class RemoveSubscriptionHandler(BotMessageHandler):
 
         await DatabaseManager.remove_subscription(username)
         await message.answer(get_subscription_removed_message(username))
-        await self._log_system_message(logging.INFO, f"Subscription for user {username} removed by {message.from_user.username}.")
+        await self._log_system_message(logging.INFO,
+                                       f"Subscription for user {username} removed by {message.from_user.username}.")

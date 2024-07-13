@@ -1,6 +1,5 @@
 import asyncio
 import logging
-import subprocess
 from typing import Optional
 
 import ffmpeg
@@ -26,34 +25,24 @@ class VideoProcessor:
             f"Extracting clip from {video_path}, start: {start_time}, end: {end_time}, duration: {duration}",
         )
 
-        command = [
-            'ffmpeg',
-            '-y',  # Force overwrite
-            '-ss', str(start_time),
-            '-i', video_path,
-            '-t', str(duration),
-            '-c', 'copy',
-            '-movflags', '+faststart',
-            '-fflags', '+genpts',
-            '-avoid_negative_ts', '1',
-            output_filename,
-        ]
+        try:
+            ffmpeg.input(video_path, ss=start_time).output(
+                output_filename,
+                t=duration,
+                c='copy',
+                movflags='+faststart',
+                fflags='+genpts',
+                avoid_negative_ts='1'
+            ).overwrite_output().run_async(pipe_stdout=True, pipe_stderr=True)
 
-        process = await asyncio.create_subprocess_exec(
-            *command,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
-        _, stderr = await process.communicate()
-        if process.returncode != 0:
-            err = FFmpegException(stderr.decode(), process.returncode)
+            success_message = f"Clip extracted successfully: {output_filename}"
+            logger.info(success_message)
+            await DatabaseManager.log_system_message("INFO", success_message)
+        except ffmpeg.Error as e:
+            err = FFmpegException(e.stderr.decode(), e.returncode)
             logger.error(err.message)
             await DatabaseManager.log_system_message("ERROR", err.message)
             raise err
-
-        success_message = f"Clip extracted successfully: {output_filename}"
-        logger.info(success_message)
-        await DatabaseManager.log_system_message("INFO", success_message)
 
     @staticmethod
     def convert_seconds_to_time_str(seconds: int) -> Optional[str]:

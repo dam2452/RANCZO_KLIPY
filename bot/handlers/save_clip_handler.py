@@ -1,11 +1,14 @@
 import logging
 import os
 import tempfile
-from typing import List
-
+from io import BytesIO
+from typing import (
+    List,
+    Tuple,
+    Optional,
+    Union, )
 from aiogram.types import Message
-
-from bot.handlers.bot_message_handler import BotMessageHandler
+from bot_message_handler import BotMessageHandler
 from bot.utils.database import DatabaseManager
 from bot.utils.global_dicts import (
     last_compiled_clip,
@@ -13,6 +16,7 @@ from bot.utils.global_dicts import (
     last_selected_segment,
 )
 from bot.utils.video_manager import VideoProcessor
+from bot.utils.segment_info import SegmentInfo
 
 
 class SaveClipHandler(BotMessageHandler):
@@ -21,52 +25,94 @@ class SaveClipHandler(BotMessageHandler):
 
     async def _do_handle(self, message: Message) -> None:
         await self._log_user_activity(message.from_user.username, f"/zapisz {message.text}")
-        username = message.from_user.username
-        chat_id = message.chat.id
-        content = message.text.split()
-        if len(content) < 2:
+        clip_name = self.__parse_clip_name(message)
+
+        if not clip_name:
             return await self._reply_invalid_args_count(message, "📝 Podaj nazwę klipu. Przykład: /zapisz nazwa_klipu")
 
-        clip_name = content[1]
-
-        if not await DatabaseManager.is_clip_name_unique(chat_id, clip_name):
+        if not await self.__is_clip_name_unique(message, clip_name):
             return await self.__reply_clip_name_exists(message, clip_name)
 
-        # fixme: moze jakas funkcja ktora nazywa ten warunek bo troche slabo?
-        if chat_id not in last_selected_segment and chat_id not in last_compiled_clip and chat_id not in last_manual_clip:
+        segment_info = self.__get_segment_info(message)
+        if not segment_info:
             return await self.__reply_no_segment_selected(message)
 
-        # fixme: krzywe to jakies xD moze tez to jakos nazwac i w funkcje?
-        segment_info = last_selected_segment.get(chat_id) or last_compiled_clip.get(chat_id) or last_manual_clip.get(
-            chat_id,
-        )
-
-        if 'episode_info' in segment_info:
-            await self._log_system_message(logging.INFO, f"Segment Info: {segment_info['episode_info']}")
-        else:
-            await self._log_system_message(logging.WARN, "Segment Info: Compiled or manual clip without episode info")
-
-        # fixme tyle najebane to moze jakas klasa/dataclass?
         output_filename, start_time, end_time, is_compilation, season, episode_number = await self.__prepare_clip_file(
-            segment_info,
-        )
-
-        actual_duration = await VideoProcessor.get_video_duration(output_filename)
+            segment_info)
+        actual_duration = await self.__verify_clip_length(message, output_filename, clip_name)
         if actual_duration is None:
-            await self.__reply_failed_to_verify_clip_length(message, clip_name)
             os.remove(output_filename)
             return
 
-        end_time = start_time + int(actual_duration)
+        await self.__save_clip_to_db(message, clip_name, output_filename, start_time, end_time, is_compilation, season,
+                                     episode_number)
+        await self.__reply_clip_saved_successfully(message, clip_name)
 
+    def __parse_clip_name(self, message: Message) -> Optional[str]:
+        content = message.text.split()
+        if len(content) < 2:
+            return None
+        return content[1]
+
+    async def __is_clip_name_unique(self, message: Message, clip_name: str) -> bool:
+        return await DatabaseManager.is_clip_name_unique(message.chat.id, clip_name)
+
+    def __get_segment_info(self, message: Message) -> Optional[SegmentInfo]:
+        chat_id = message.chat.id
+        return last_selected_segment.get(chat_id) or last_compiled_clip.get(chat_id) or last_manual_clip.get(chat_id)
+
+    async def __prepare_clip_file(self, segment_info: SegmentInfo) -> Tuple[
+        str, int, int, bool, Optional[int], Optional[int]]:
+        start_time = 0
+        end_time = 0
+        is_compilation = False
+        season = None
+        episode_number = None
+
+        if segment_info.compiled_clip:
+            output_filename = self.__write_clip_to_file(segment_info.compiled_clip)
+            is_compilation = True
+        elif segment_info.expanded_clip:
+            output_filename = self.__write_clip_to_file(segment_info.expanded_clip)
+            start_time = segment_info.expanded_start or 0
+            end_time = segment_info.expanded_end or 0
+            season = segment_info.episode_info.season
+            episode_number = segment_info.episode_info.episode_number
+        else:
+            clip_path = segment_info.video_path
+            start_time = segment_info.start
+            end_time = segment_info.end
+            season = segment_info.episode_info.season
+            episode_number = segment_info.episode_info.episode_number
+            output_filename = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4").name
+            await VideoProcessor.extract_clip(clip_path, start_time, end_time, output_filename)
+
+        return output_filename, start_time, end_time, is_compilation, season, episode_number
+
+    def __write_clip_to_file(self, clip_data: Union[bytes, BytesIO]) -> str:
+        output_filename = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4").name
+        with open(output_filename, 'wb') as f:
+            if isinstance(clip_data, bytes):
+                f.write(clip_data)
+            else:
+                f.write(clip_data.getvalue())
+        return output_filename
+
+    async def __verify_clip_length(self, message: Message, output_filename: str, clip_name: str) -> Optional[int]:
+        actual_duration = await VideoProcessor.get_video_duration(output_filename)
+        if actual_duration is None:
+            await self.__reply_failed_to_verify_clip_length(message, clip_name)
+        return actual_duration
+
+    async def __save_clip_to_db(self, message: Message, clip_name: str, output_filename: str, start_time: int,
+                                end_time: int, is_compilation: bool, season: Optional[int],
+                                episode_number: Optional[int]) -> None:
         with open(output_filename, 'rb') as file:
             video_data = file.read()
-
         os.remove(output_filename)
-
         await DatabaseManager.save_clip(
-            chat_id=chat_id,
-            username=username,
+            chat_id=message.chat.id,
+            username=message.from_user.username,
             clip_name=clip_name,
             video_data=video_data,
             start_time=start_time,
@@ -76,72 +122,22 @@ class SaveClipHandler(BotMessageHandler):
             episode_number=episode_number,
         )
 
-        await self.__reply_clip_saved_successfully(message, clip_name)
-
-    @staticmethod
-    async def __prepare_clip_file(segment_info):  # fixme type hint? jak ogarniesz to zostaw mi fixme zebym mogl to przerabiac wiedzac co tu w ogole mam, ogarnij tez tego dataclassa jak dasz rade
-        start_time = 0
-        end_time = 0
-        is_compilation = False
-        season = None
-        episode_number = None
-
-        if 'compiled_clip' in segment_info:
-            output_filename = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4").name
-            with open(output_filename, 'wb') as f:
-                compiled_clip = segment_info['compiled_clip']
-                if isinstance(compiled_clip, bytes):
-                    f.write(compiled_clip)
-                else:
-                    f.write(compiled_clip.getvalue())
-            is_compilation = True
-        elif 'expanded_clip' in segment_info:
-            output_filename = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4").name
-            with open(output_filename, 'wb') as f:
-                expanded_clip = segment_info['expanded_clip']
-                if isinstance(expanded_clip, bytes):
-                    f.write(expanded_clip)
-                else:
-                    f.write(expanded_clip.getvalue())
-            start_time = segment_info.get('expanded_start', 0)
-            end_time = segment_info.get('expanded_end', 0)
-            season = segment_info.get('episode_info', {}).get('season')
-            episode_number = segment_info.get('episode_info', {}).get('episode_number')
-        else:
-            segment = segment_info
-            clip_path = segment['video_path']
-            start_time = segment['start']
-            end_time = segment['end']
-            is_compilation = False
-            season = segment['episode_info']['season']
-            episode_number = segment['episode_info']['episode_number']
-
-            output_filename = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4").name
-            await VideoProcessor.extract_clip(clip_path, start_time, end_time, output_filename)
-
-        return output_filename, start_time, end_time, is_compilation, season, episode_number
-
     async def __reply_clip_name_exists(self, message: Message, clip_name: str) -> None:
         await message.answer("⚠️ Klip o takiej nazwie już istnieje. Wybierz inną nazwę.⚠️")
-        await self._log_system_message(
-            logging.INFO,
-            f"Clip name '{clip_name}' already exists for user '{message.from_user.username}'.",
-        )
+        await self._log_system_message(logging.INFO,
+                                       f"Clip name '{clip_name}' already exists for user '{message.from_user.username}'.")
 
     async def __reply_no_segment_selected(self, message: Message) -> None:
         await message.answer("⚠️ Najpierw wybierz segment za pomocą /klip, /wytnij lub skompiluj klipy.⚠️")
-        await self._log_system_message(
-            logging.INFO,
-            "No segment selected, manual clip, or compiled clip available for user.",
-        )
+        await self._log_system_message(logging.INFO,
+                                       "No segment selected, manual clip, or compiled clip available for user.")
 
     async def __reply_failed_to_verify_clip_length(self, message: Message, clip_name: str) -> None:
         await message.answer("❌ Nie udało się zweryfikować długości klipu.❌")
-        await self._log_system_message(
-            logging.ERROR,
-            f"Failed to verify the length of the clip '{clip_name}' for user '{message.from_user.username}'.",
-        )
+        await self._log_system_message(logging.ERROR,
+                                       f"Failed to verify the length of the clip '{clip_name}' for user '{message.from_user.username}'.")
 
     async def __reply_clip_saved_successfully(self, message: Message, clip_name: str) -> None:
         await message.answer(f"✅ Klip '{clip_name}' został zapisany pomyślnie. ✅")
-        await self._log_system_message(logging.INFO, f"Clip '{clip_name}' saved successfully for user '{message.from_user.username}'.")
+        await self._log_system_message(logging.INFO,
+                                       f"Clip '{clip_name}' saved successfully for user '{message.from_user.username}'.")

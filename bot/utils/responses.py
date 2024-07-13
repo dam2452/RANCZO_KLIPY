@@ -1,7 +1,9 @@
 from datetime import date
+import asyncpg
 from typing import (
     Dict,
     List,
+    Union,
 )
 
 number_to_emoji: Dict[str, str] = {
@@ -284,10 +286,18 @@ def get_no_segments_found_message(quote: str) -> str:
     return f"❌ Nie znaleziono pasujących segmentów dla cytatu: \"{quote}\".❌"
 
 
-# fixme type hint: jaki dict?
-def get_transcription_response(quote: str, context_segments: List[Dict]) -> str:
+def get_transcription_response(quote: str, context_segments: List[Dict[str, Union[int, str]]]) -> str:
     response = f"🔍 Transkrypcja dla cytatu: \"{quote}\"\n\n```\n"
     for segment in context_segments:
         response += f"🆔 {segment['id']} - {segment['text']}\n"
     response += "```"
     return response
+
+
+def get_users_string(users: List[asyncpg.Record]) -> str:
+    return "\n".join([format_user(user) for user in users]) + "\n"
+
+
+def format_user(user: asyncpg.Record) -> str:
+    return (f"👤 Username: {user['username']}, 📛 Full Name: {user['full_name']}, ✉️ Email: {user['email']}, 📞 "
+            f"Phone: {user['phone']}")

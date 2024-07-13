@@ -3,6 +3,7 @@ import os
 from typing import (
     Dict,
     List,
+    Union,
 )
 
 from aiogram.types import Message
@@ -31,14 +32,15 @@ class CompileClipsHandler(BotMessageHandler):
         content = message.text.split()
 
         if len(content) < 2:
-            return await self._reply_invalid_args_count(message, "🔄 Proszę podać indeksy segmentów do skompilowania, zakres lub 'wszystko' do kompilacji wszystkich segmentów.")
+            return await self._reply_invalid_args_count(message,
+                                                        "🔄 Proszę podać indeksy segmentów do skompilowania, zakres lub 'wszystko' do kompilacji wszystkich segmentów.")
 
         if chat_id not in last_search_quotes or not last_search_quotes[chat_id]:
             return await self.__reply_no_previous_search_results(message)
 
         segments = last_search_quotes[chat_id]
         try:
-            selected_segments = self.__parse_segments(content[1:], segments)
+            selected_segments: List[bytes] = self.__parse_segments(content[1:], segments)
         except self.ParseSegmentsException as e:
             await message.answer(e.message)
             return
@@ -47,35 +49,37 @@ class CompileClipsHandler(BotMessageHandler):
             return await self.__reply_no_matching_segments_found(message)
 
         try:
-            # fixme cos pokrzaczyles w typach xD
-            compiled_output = await compile_clips(selected_segments)
+            compiled_output: str = await compile_clips(selected_segments)
             await send_compiled_clip(chat_id, compiled_output, self._bot)
             os.remove(compiled_output)
         except Exception as e:
             return await self.__reply_compilation_error(message, e)
 
-        await self._log_system_message(logging.INFO, f"Compiled clip sent to user '{username}' and temporary files removed.")
+        await self._log_system_message(logging.INFO, f"Compiled clip sent to user '{username}' and temporary files "
+                                                     f"removed.")
 
-    # fixme dict czego?
     @staticmethod
-    def __parse_segments(content: List[str], segments: List[Dict]) -> List[Dict]:
+    def __parse_segments(content: List[str], segments: List[Dict[str, Union[str, bytes]]]) -> List[bytes]:
         selected_segments = []
 
         for index in content:
             if index.lower() == "wszystko":
-                return segments
+                selected_segments.extend(segment['data'] for segment in segments)
+                return selected_segments
 
             if '-' in index:
                 try:
                     start, end = map(int, index.split('-'))
-                    selected_segments.extend(segments[start - 1:end])
+                    selected_segments.extend(segments[i - 1]['data'] for i in range(start, end + 1))
                 except ValueError as e:
-                    raise CompileClipsHandler.ParseSegmentsException(f"⚠️ Podano nieprawidłowy zakres segmentów: {index} ⚠️") from e
+                    raise CompileClipsHandler.ParseSegmentsException(
+                        f"⚠️ Podano nieprawidłowy zakres segmentów: {index} ⚠️") from e
             else:
                 try:
-                    selected_segments.append(segments[int(index) - 1])
+                    selected_segments.append(segments[int(index) - 1]['data'])
                 except (ValueError, IndexError) as e:
-                    raise CompileClipsHandler.ParseSegmentsException(f"⚠️ Podano nieprawidłowy indeks segmentu: {index} ⚠️") from e
+                    raise CompileClipsHandler.ParseSegmentsException(
+                        f"⚠️ Podano nieprawidłowy indeks segmentu: {index} ⚠️") from e
 
         return selected_segments
 

@@ -6,6 +6,8 @@ from aiogram.types import Message
 from bot_message_handler import BotMessageHandler
 from bot.utils.responses import get_no_admins_found_message
 from bot.utils.database import DatabaseManager
+from bot.utils.responses import get_users_string
+
 
 class ListAdminsHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
@@ -20,15 +22,7 @@ class ListAdminsHandler(BotMessageHandler):
             return
 
         response = "📃 Lista adminów:\n"
-        response += self._get_users_string(users)
+        response += get_users_string(users)
 
         await message.answer(response)
         await self._log_system_message(logging.INFO, "Admin list sent to user.")
-
-    def _get_users_string(self, users: List[asyncpg.Record]) -> str:
-        return "\n".join([self._format_user(user) for user in users]) + "\n"
-
-    @staticmethod
-    def _format_user(user: asyncpg.Record) -> str:
-        return f"👤 Username: {user['username']}, 📛 Full Name: {user['full_name']}, ✉️ Email: {user['email']}, 📞 Phone: {user['phone']}"
-

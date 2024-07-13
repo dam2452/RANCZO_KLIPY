@@ -6,6 +6,7 @@ from aiogram.types import Message
 from bot_message_handler import BotMessageHandler
 from bot.utils.responses import get_admin_help_message
 
+
 class AdminHelpHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ['admin']

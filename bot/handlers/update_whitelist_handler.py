@@ -10,6 +10,7 @@ from bot.utils.responses import (
 )
 from bot.utils.database import DatabaseManager
 
+
 class UpdateWhitelistHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ['updatewhitelist', 'updatew']
@@ -32,4 +33,3 @@ class UpdateWhitelistHandler(BotMessageHandler):
         await DatabaseManager.update_user(username, is_admin, is_moderator, full_name, email, phone)
         await message.answer(get_user_updated_message(username))
         await self._log_system_message(logging.INFO, f"User {username} updated by {message.from_user.username}.")
-
