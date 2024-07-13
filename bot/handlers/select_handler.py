@@ -21,7 +21,7 @@ class SelectClipHandler(BotMessageHandler):
         content = message.text.split()
 
         if len(content) < 2:
-            return await self.__reply_no_segment_provided(message)
+            return await self._reply_invalid_args_count(message, "📋 Podaj numer segmentu, który chcesz wybrać. Przykład: /wybierz 1")
 
         chat_id = message.chat.id
         if chat_id not in last_search_quotes:
@@ -30,7 +30,7 @@ class SelectClipHandler(BotMessageHandler):
         index = int(content[1]) - 1
         segments = last_search_quotes[chat_id]
 
-        if index < 0 or index >= len(segments):
+        if index not in range(0, len(segments)+1):  # fixme: jestes pewien ze nie powinno tu byc od 1?
             return await self.__reply_invalid_segment_number(message, index + 1)
 
         segment = segments[index]
@@ -38,17 +38,13 @@ class SelectClipHandler(BotMessageHandler):
         start_time = max(0, segment['start'] - Settings.EXTEND_BEFORE)
         end_time = segment['end'] + Settings.EXTEND_AFTER
 
-        await VideoManager(self._bot).extract_and_send_clip(chat_id, video_path, start_time, end_time)
+        await VideoManager.extract_and_send_clip(chat_id, video_path, start_time, end_time, self._bot)
 
         last_selected_segment[chat_id] = segment
         await self._log_system_message(
             logging.INFO,
             f"Segment {segment['id']} selected by user '{message.from_user.username}'.",
         )
-
-    async def __reply_no_segment_provided(self, message: Message) -> None:
-        await message.answer("📋 Podaj numer segmentu, który chcesz wybrać. Przykład: /wybierz 1")
-        await self._log_system_message(logging.INFO, "No segment number provided by user.")
 
     async def __reply_no_previous_search(self, message: Message) -> None:
         await message.answer("🔍 Najpierw wykonaj wyszukiwanie za pomocą /szukaj.")

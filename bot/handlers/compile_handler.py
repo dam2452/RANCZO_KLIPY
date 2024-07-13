@@ -50,7 +50,7 @@ class CompileClipsHandler(BotMessageHandler):
         content = message.text.split()
 
         if len(content) < 2:
-            return await self.__reply_no_segments_provided(message)
+            return await self._reply_invalid_args_count(message, "🔄 Proszę podać indeksy segmentów do skompilowania, zakres lub 'wszystko' do kompilacji wszystkich segmentów.")
 
         if chat_id not in last_search_quotes or not last_search_quotes[chat_id]:
             return await self.__reply_no_previous_search_results(message)
@@ -72,10 +72,6 @@ class CompileClipsHandler(BotMessageHandler):
             return await self.__reply_compilation_error(message, e)
 
         await self._log_system_message(logging.INFO, f"Compiled clip sent to user '{username}' and temporary files removed.")
-
-    async def __reply_no_segments_provided(self, message: Message) -> None:
-        await message.answer("🔄 Proszę podać indeksy segmentów do skompilowania, zakres lub 'wszystko' do kompilacji wszystkich segmentów.")
-        await self._log_system_message(logging.INFO, "No segments provided by user.")
 
     async def __reply_no_previous_search_results(self, message: Message) -> None:
         await message.answer("🔍 Najpierw wykonaj wyszukiwanie za pomocą /szukaj.")

@@ -24,8 +24,7 @@ class CompileSelectedClipsHandler(BotMessageHandler):
         content = message.text.split()
 
         if len(content) < 2:
-            await self.__reply_no_clip_names_provided(message)
-            return
+            return await self._reply_invalid_args_count(message, "📄 Podaj nazwy klipów do skompilowania w odpowiedniej kolejności.")
 
         clip_names = content[1:]
         selected_clips_data = []
@@ -33,13 +32,11 @@ class CompileSelectedClipsHandler(BotMessageHandler):
         for clip_name in clip_names:
             clip = await DatabaseManager.get_clip_by_name(username, clip_name)
             if not clip:
-                await self.__reply_clip_not_found(message, clip_name, username)
-                return
+                return await self.__reply_clip_not_found(message, clip_name, username)
             selected_clips_data.append(clip[0])
 
         if not selected_clips_data:
-            await self.__reply_no_matching_clips_found(message)
-            return
+            return await self.__reply_no_matching_clips_found(message)
 
         try:
             compiled_output = await compile_clips(selected_clips_data, self._bot)
@@ -58,10 +55,6 @@ class CompileSelectedClipsHandler(BotMessageHandler):
         for temp_file in selected_clips_data:
             os.remove(temp_file)
         os.remove(compiled_output)
-
-    async def __reply_no_clip_names_provided(self, message: Message) -> None:
-        await message.answer("📄 Podaj nazwy klipów do skompilowania w odpowiedniej kolejności.")
-        await self._log_system_message(logging.INFO, "No clip names provided by user.")
 
     async def __reply_clip_not_found(self, message: Message, clip_name: str, username: str) -> None:
         await message.answer(f"❌ Nie znaleziono klipu o nazwie '{clip_name}'.")

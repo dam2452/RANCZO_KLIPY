@@ -17,7 +17,7 @@ class DeleteClipHandler(BotMessageHandler):
 
         command_parts = message.text.split(maxsplit=1)
         if len(command_parts) < 2:
-            return await self.__reply_no_clip_name_provided(message)
+            return await self._reply_invalid_args_count(message, "❌ Podaj nazwę klipu do usunięcia. Przykład: /usunklip nazwa_klipu ❌")
 
         clip_name = command_parts[1]
 
@@ -27,10 +27,6 @@ class DeleteClipHandler(BotMessageHandler):
             await self.__reply_clip_not_exist(message, clip_name, username)
         else:
             await self.__reply_clip_deleted(message, clip_name, username)
-
-    async def __reply_no_clip_name_provided(self, message: Message) -> None:
-        await message.answer("❌ Podaj nazwę klipu do usunięcia. Przykład: /usunklip nazwa_klipu ❌")
-        await self._log_system_message(logging.INFO, "No clip name provided by user.")
 
     async def __reply_clip_not_exist(self, message: Message, clip_name: str, username: str) -> None:
         await message.answer(f"🚫 Klip o nazwie '{clip_name}' nie istnieje.🚫")

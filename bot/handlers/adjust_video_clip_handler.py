@@ -36,7 +36,7 @@ class AdjustVideoClipHandler(BotMessageHandler):
                 return await self.__reply_no_quotes_selected(message)
             segment_info = last_selected_segment[message.chat.id]
         else:
-            return await self.__reply_invalid_args_count(message)
+            return await self._reply_invalid_args_count(message, "📝 Podaj czas w formacie `<float> <float>` lub `<index> <float> <float>`. Przykład: /dostosuj 10.5 -15.2 lub /dostosuj 1 10.5 -15.2")
 
         await self._log_system_message(logging.INFO, f"Segment Info: {segment_info}")
 
@@ -58,7 +58,7 @@ class AdjustVideoClipHandler(BotMessageHandler):
             except FFmpegException as e:
                 return await self.__reply_extraction_failure(message, e)
 
-            await VideoManager(self._bot).send_video(message.chat.id, output_file.name)
+            await VideoManager.send_video(message.chat.id, output_file.name, self._bot)
 
         segment_info['start'] = start_time
         segment_info['end'] = end_time
@@ -73,12 +73,6 @@ class AdjustVideoClipHandler(BotMessageHandler):
     async def __reply_no_quotes_selected(self, message: Message) -> None:
         await message.answer("⚠️ Najpierw wybierz cytat za pomocą /klip.⚠️")
         await self._log_system_message(logging.INFO, "No segment selected by user.")
-
-    async def __reply_invalid_args_count(self, message: Message) -> None:
-        await message.answer(
-            "📝 Podaj czas w formacie `<float> <float>` lub `<index> <float> <float>`. Przykład: /dostosuj 10.5 -15.2 lub /dostosuj 1 10.5 -15.2",
-        )
-        await self._log_system_message(logging.INFO, "Invalid number of arguments provided by user.")
 
     async def __reply_invalid_interval(self, message: Message) -> None:
         await message.answer("⚠️ Czas zakończenia musi być późniejszy niż czas rozpoczęcia.⚠️")

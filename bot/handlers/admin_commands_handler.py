@@ -1,17 +1,20 @@
-#fixme to jest całe chujowe przerośniete ale nwm jak to najmądrzej zrobić to narazie tylko przejabałem przez gpt oryginał żeby pod schmemat było żeby ci się odrobine lepiej czytało
-#fixme jak tak patrze to prawie całe do bana ale nie dłubie tego narazie bo to trzeba wgl lepiej zrobić
-from datetime import date
 import logging
 from typing import (
+    Callable,
+    Dict,
     List,
     Optional,
 )
 
-from aiogram import types
+from aiogram import Bot
+from aiogram.types import Message
 import asyncpg
 from tabulate import tabulate
 
-from bot.handlers.bot_message_handler import BotMessageHandler
+from bot.handlers.bot_message_handler import (
+    BaseMiddleware,
+    BotMessageHandler,
+)
 from bot.utils.database import DatabaseManager
 from bot.utils.responses import (
     get_admin_help_message,
@@ -31,96 +34,52 @@ from bot.utils.responses import (
 from bot.utils.transcription_search import SearchTranscriptions
 
 
-class UserManager:
-    @staticmethod
-    async def add_user(
-            username: str, is_admin: Optional[bool] = False, is_moderator: Optional[bool] = False,
-            full_name: Optional[str] = None, email: Optional[str] = None, phone: Optional[str] = None,
-            subscription_days: Optional[int] = None,
-    ) -> None:
-        await DatabaseManager.add_user(username, is_admin, is_moderator, full_name, email, phone, subscription_days)
-
-    @staticmethod
-    async def remove_user(username: str) -> None:
-        await DatabaseManager.remove_user(username)
-
-    @staticmethod
-    async def update_user(
-            username: str, is_admin: Optional[bool] = False, is_moderator: Optional[bool] = False,
-            full_name: Optional[str] = None, email: Optional[str] = None, phone: Optional[str] = None,
-            subscription_end: Optional[int] = None,
-    ) -> None:
-        await DatabaseManager.update_user(username, is_admin, is_moderator, full_name, email, phone, subscription_end)
-
-    @staticmethod
-    async def get_all_users() -> Optional[List[asyncpg.Record]]:
-        return await DatabaseManager.get_all_users()
-
-    @staticmethod
-    async def get_admin_users() -> Optional[List[asyncpg.Record]]:
-        return await DatabaseManager.get_admin_users()
-
-    @staticmethod
-    async def get_moderator_users() -> Optional[List[asyncpg.Record]]:
-        return await DatabaseManager.get_moderator_users()
-
-    @staticmethod
-    async def add_subscription(username: str, days: int) -> Optional[date]:
-        return await DatabaseManager.add_subscription(username, days)
-
-    @staticmethod
-    async def remove_subscription(username: str) -> None:
-        await DatabaseManager.remove_subscription(username)
-
-    @staticmethod
-    async def is_user_admin(username: str) -> Optional[bool]:
-        return await DatabaseManager.is_user_admin(username)
-
-    @staticmethod
-    async def is_user_moderator(username: str) -> Optional[bool]:
-        return await DatabaseManager.is_user_moderator(username)
-
-
+# fixme: ta klasa po prostu powinna zostac rozbita na add whitelist handler, remove whitelist handler etc.... a z niej zostawić jedynie admin help
+# fixme: wtedy tez zniknie potrzeba _ argow z dupy
+# fixme: po prostu kazda z funkcji wymieniona w inicie powinna byc osobna -- jak rozbijesz zrobie review
 class AdminCommandHandler(BotMessageHandler):
-    def get_commands(self) -> List[str]:
-        return [
-            'admin', 'addwhitelist', 'removewhitelist', 'updatewhitelist',
-            'listwhitelist', 'listadmins', 'listmoderators', 'addsubscription',
-            'removesubscription', 'transkrypcja',
-        ]
+    def __init__(self, bot: Bot, middlewares: Optional[List[BaseMiddleware]] = None):
+        self.__HANDLES: Dict[str, Callable[[Message, List[str]], None]] = {
+            "addwhitelist": self.__add_to_whitelist,
+            "addw": self.__add_to_whitelist,
+            "removewhitelist": self.__remove_from_whitelist,
+            "removew": self.__remove_from_whitelist,
+            "updatewhitelist": self.__update_whitelist,
+            "updatew": self.__update_whitelist,
+            "listwhitelist": self.__list_whitelist,
+            "listw": self.__list_whitelist,
+            "listadmins": self.__list_admins,
+            "listad": self.__list_admins,
+            "listmoderators": self.__list_moderators,
+            "listmod": self.__list_moderators,
+            "addsubscription": self.__add_subscription_command,
+            "addsub": self.__add_subscription_command,
+            "removesubscription": self.__remove_subscription_command,
+            "removesub": self.__remove_subscription_command,
+            "transkrypcja": self.__handle_transcription_request,
+            "trans": self.__handle_transcription_request,
+        }
 
-    async def _do_handle(self, message: types.Message) -> None:
+        super().__init__(bot, middlewares)
+
+    def get_commands(self) -> List[str]:
+        return list(self.__HANDLES.keys())
+
+    async def _do_handle(self, message: Message) -> None:
         username = message.from_user.username
-        if not await UserManager.is_user_admin(username) and not await UserManager.is_user_moderator(username):
+        if not await DatabaseManager.is_user_admin(username) and not await DatabaseManager.is_user_moderator(username):
             await message.answer("❌ Nie masz uprawnień do zarządzania whitelistą.❌")
-            await self._log_system_message(logging.WARNING, f"Unauthorized access attempt by user: {username}")
-            return
+            return await self._log_system_message(logging.WARNING, f"Unauthorized access attempt by user: {username}")
 
         command = message.get_command(pure=True)
         content = message.text.split()[1:]
 
         if command == 'admin':
-            await message.answer(get_admin_help_message(), parse_mode='Markdown')
-        elif command in {'addwhitelist', 'addw'}:
-            await self._add_to_whitelist(message, content)
-        elif command in {'removewhitelist', 'removew'}:
-            await self._remove_from_whitelist(message, content)
-        elif command in {'updatewhitelist', 'updatew'}:
-            await self._update_whitelist(message, content)
-        elif command in {'listwhitelist', 'listw'}:
-            await self._list_whitelist(message)
-        elif command in {'listadmins', 'listad'}:
-            await self._list_admins(message)
-        elif command in {'listmoderators', 'listmod'}:
-            await self._list_moderators(message)
-        elif command in {'addsubscription', 'addsub'}:
-            await self._add_subscription_command(message, content)
-        elif command in {'removesubscription', 'removesub'}:
-            await self._remove_subscription_command(message, content)
-        elif command in {'transkrypcja', 'trans'}:
-            await self._handle_transcription_request(message, content)
+            await message.answer(get_admin_help_message(), parse_mode='Markdown')  # fixme tutaj docelowo zostaje tylko to xD
+        else:
+            self.__HANDLES[command](message, content)
 
-    async def _add_to_whitelist(self, message: types.Message, content: List[str]) -> None:
+    async def __add_to_whitelist(self, message: Message, content: List[str]) -> None:
         if len(content) < 1:
             await message.answer(get_no_username_provided_message())
             await self._log_system_message(logging.INFO, "No username provided for adding to whitelist.")
@@ -130,7 +89,7 @@ class AdminCommandHandler(BotMessageHandler):
         is_admin = bool(int(content[1])) if len(content) > 1 else False
         is_moderator = bool(int(content[2])) if len(content) > 2 else False
 
-        if await UserManager.is_user_moderator(message.from_user.username):
+        if await DatabaseManager.is_user_moderator(message.from_user.username):
             if is_admin or is_moderator:
                 await message.answer("❌ Moderator nie może nadawać statusu admina ani moderatora. ❌")
                 await self._log_system_message(
@@ -142,28 +101,28 @@ class AdminCommandHandler(BotMessageHandler):
         full_name = content[3] if len(content) > 3 else None
         email = content[4] if len(content) > 4 else None
         phone = content[5] if len(content) > 5 else None
-        await UserManager.add_user(username, is_admin, is_moderator, full_name, email, phone)
+        await DatabaseManager.add_user(username, is_admin, is_moderator, full_name, email, phone)
         await message.answer(get_user_added_message(username))
         await self._log_system_message(
             logging.INFO,
             f"User {username} added to whitelist by {message.from_user.username}.",
         )
 
-    async def _remove_from_whitelist(self, message: types.Message, content: List[str]) -> None:
+    async def __remove_from_whitelist(self, message: Message, content: List[str]) -> None:
         if len(content) < 1:
             await message.answer(get_no_username_provided_message())
             await self._log_system_message(logging.INFO, "No username provided for removing from whitelist.")
             return
 
         username = content[0]
-        await UserManager.remove_user(username)
+        await DatabaseManager.remove_user(username)
         await message.answer(get_user_removed_message(username))
         await self._log_system_message(
             logging.INFO,
             f"User {username} removed from whitelist by {message.from_user.username}.",
         )
 
-    async def _update_whitelist(self, message: types.Message, content: List[str]) -> None:
+    async def __update_whitelist(self, message: Message, content: List[str]) -> None:
         if len(content) < 1:
             await message.answer(get_no_username_provided_message())
             await self._log_system_message(logging.INFO, "No username provided for updating whitelist.")
@@ -173,7 +132,7 @@ class AdminCommandHandler(BotMessageHandler):
         is_admin = bool(int(content[1])) if len(content) > 1 else None
         is_moderator = bool(int(content[2])) if len(content) > 2 else None
 
-        if await UserManager.is_user_moderator(message.from_user.username):
+        if await DatabaseManager.is_user_moderator(message.from_user.username):
             if is_admin or is_moderator:
                 await message.answer("❌ Moderator nie może nadawać statusu admina ani moderatora.❌")
                 await self._log_system_message(
@@ -185,12 +144,12 @@ class AdminCommandHandler(BotMessageHandler):
         full_name = content[3] if len(content) > 3 else None
         email = content[4] if len(content) > 4 else None
         phone = content[5] if len(content) > 5 else None
-        await UserManager.update_user(username, is_admin, is_moderator, full_name, email, phone)
+        await DatabaseManager.update_user(username, is_admin, is_moderator, full_name, email, phone)
         await message.answer(get_user_updated_message(username))
         await self._log_system_message(logging.INFO, f"User {username} updated by {message.from_user.username}.")
 
-    async def _list_whitelist(self, message: types.Message) -> None:
-        users = await UserManager.get_all_users()
+    async def __list_whitelist(self, message: Message, _: List[str]) -> None:
+        users = await DatabaseManager.get_all_users()
         if not users:
             await message.answer(get_whitelist_empty_message())
             await self._log_system_message(logging.INFO, "Whitelist is empty.")
@@ -204,33 +163,33 @@ class AdminCommandHandler(BotMessageHandler):
         await message.answer(response, parse_mode='Markdown')
         await self._log_system_message(logging.INFO, "Whitelist sent to user.")
 
-    async def _list_admins(self, message: types.Message) -> None:
-        users = await UserManager.get_admin_users()
+    async def __list_admins(self, message: Message, _: List[str]) -> None:
+        users = await DatabaseManager.get_admin_users()
         if not users:
             await message.answer(get_no_admins_found_message())
             await self._log_system_message(logging.INFO, "No admins found.")
             return
 
         response = "📃 Lista adminów:\n"
-        response += self._get_users_string(users)
+        response += self.__get_users_string(users)
 
         await message.answer(response)
         await self._log_system_message(logging.INFO, "Admin list sent to user.")
 
-    async def _list_moderators(self, message: types.Message) -> None:
-        users = await UserManager.get_moderator_users()
+    async def __list_moderators(self, message: Message, _: List[str]) -> None:
+        users = await DatabaseManager.get_moderator_users()
         if not users:
             await message.answer(get_no_moderators_found_message())
             await self._log_system_message(logging.INFO, "No moderators found.")
             return
 
         response = "📃 Lista moderatorów 📃\n"
-        response += self._get_users_string(users)
+        response += self.__get_users_string(users)
 
         await message.answer(response)
         await self._log_system_message(logging.INFO, "Moderator list sent to user.")
 
-    async def _add_subscription_command(self, message: types.Message, content: List[str]) -> None:
+    async def __add_subscription_command(self, message: Message, content: List[str]) -> None:
         if len(content) < 2:
             await message.answer(get_no_username_provided_message())
             await self._log_system_message(logging.INFO, "No username or days provided for adding subscription.")
@@ -239,14 +198,14 @@ class AdminCommandHandler(BotMessageHandler):
         username = content[0]
         days = int(content[1])
 
-        new_end_date = await UserManager.add_subscription(username, days)
+        new_end_date = await DatabaseManager.add_subscription(username, days)
         await message.answer(get_subscription_extended_message(username, new_end_date))
         await self._log_system_message(
             logging.INFO,
             f"Subscription for user {username} extended by {message.from_user.username}.",
         )
 
-    async def _remove_subscription_command(self, message: types.Message, content: List[str]) -> None:
+    async def __remove_subscription_command(self, message: Message, content: List[str]) -> None:
         if len(content) < 1:
             await message.answer(get_no_username_provided_message())
             await self._log_system_message(logging.INFO, "No username provided for removing subscription.")
@@ -254,14 +213,14 @@ class AdminCommandHandler(BotMessageHandler):
 
         username = content[0]
 
-        await UserManager.remove_subscription(username)
+        await DatabaseManager.remove_subscription(username)
         await message.answer(get_subscription_removed_message(username))
         await self._log_system_message(
             logging.INFO,
             f"Subscription for user {username} removed by {message.from_user.username}.",
         )
 
-    async def _handle_transcription_request(self, message: types.Message, content: List[str]) -> None:
+    async def __handle_transcription_request(self, message: Message, content: List[str]) -> None:
         if len(content) < 1:
             await message.answer(get_no_quote_provided_message())
             await self._log_system_message(logging.INFO, "No quote provided for transcription search.")
@@ -287,9 +246,9 @@ class AdminCommandHandler(BotMessageHandler):
             f"Transcription for quote '{quote}' sent to user '{message.from_user.username}'.",
         )
 
-    def _get_users_string(self, users: List[asyncpg.Record]) -> str:
-        return "\n".join([self._format_user(user) for user in users]) + "\n"
+    def __get_users_string(self, users: List[asyncpg.Record]) -> str:
+        return "\n".join([self.__format_user(user) for user in users]) + "\n"
 
     @staticmethod
-    def _format_user(user: asyncpg.Record) -> str:
+    def __format_user(user: asyncpg.Record) -> str:
         return f"👤 Username: {user['username']}, 📛 Full Name: {user['full_name']}, ✉️ Email: {user['email']}, 📞 Phone: {user['phone']}"

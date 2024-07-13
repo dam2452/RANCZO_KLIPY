@@ -20,7 +20,7 @@ class SendClipHandler(BotMessageHandler):
 
         content = message.text.split()
         if len(content) < 2:
-            return await self.__reply_no_clip_name_provided(message)
+            return await self._reply_invalid_args_count(message, "📄 Podaj nazwę klipu. Przykład: /wyślij nazwa_klipu")
 
         clip_name = content[1]
 
@@ -40,17 +40,10 @@ class SendClipHandler(BotMessageHandler):
         if os.path.getsize(temp_file_path) == 0:
             return await self.__reply_empty_file_error(message, clip_name)
 
-        await VideoManager(self._bot).send_video(message.chat.id, temp_file_path)
+        await VideoManager.send_video(message.chat.id, temp_file_path, self._bot)
 
         os.remove(temp_file_path)
-        await self._log_system_message(
-            logging.INFO, f"Clip '{clip_name}' sent to user '{username}' and temporary "
-                          f"file removed.",
-        )
-
-    async def __reply_no_clip_name_provided(self, message: Message) -> None:
-        await message.answer("📄 Podaj nazwę klipu. Przykład: /wyślij nazwa_klipu")
-        await self._log_system_message(logging.INFO, "No clip name provided by user.")
+        await self._log_system_message(logging.INFO, f"Clip '{clip_name}' sent to user '{username}' and temporary file removed.")
 
     async def __reply_clip_not_found(self, message: Message, clip_name: str) -> None:
         await message.answer(f"❌ Nie znaleziono klipu o nazwie '{clip_name}'.❌")

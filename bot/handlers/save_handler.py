@@ -25,7 +25,7 @@ class SaveClipHandler(BotMessageHandler):
         chat_id = message.chat.id
         content = message.text.split()
         if len(content) < 2:
-            return await self.__reply_no_clip_name_provided(message)
+            return await self._reply_invalid_args_count(message, "📝 Podaj nazwę klipu. Przykład: /zapisz nazwa_klipu")
 
         clip_name = content[1]
 
@@ -44,7 +44,7 @@ class SaveClipHandler(BotMessageHandler):
         if 'episode_info' in segment_info:
             await self._log_system_message(logging.INFO, f"Segment Info: {segment_info['episode_info']}")
         else:
-            await self._log_system_message(logging.INFO, "Segment Info: Compiled or manual clip without episode info")
+            await self._log_system_message(logging.WARN, "Segment Info: Compiled or manual clip without episode info")
 
         # fixme tyle najebane to moze jakas klasa/dataclass?
         output_filename, start_time, end_time, is_compilation, season, episode_number = await self.__prepare_clip_file(
@@ -64,7 +64,6 @@ class SaveClipHandler(BotMessageHandler):
 
         os.remove(output_filename)
 
-        # fixme: (data)class Clip?
         await DatabaseManager.save_clip(
             chat_id=chat_id,
             username=username,
@@ -121,10 +120,6 @@ class SaveClipHandler(BotMessageHandler):
             await VideoProcessor.extract_clip(clip_path, start_time, end_time, output_filename)
 
         return output_filename, start_time, end_time, is_compilation, season, episode_number
-
-    async def __reply_no_clip_name_provided(self, message: Message) -> None:
-        await message.answer("📝 Podaj nazwę klipu. Przykład: /zapisz nazwa_klipu")
-        await self._log_system_message(logging.INFO, "No clip name provided by user.")
 
     async def __reply_clip_name_exists(self, message: Message, clip_name: str) -> None:
         await message.answer("⚠️ Klip o takiej nazwie już istnieje. Wybierz inną nazwę.⚠️")

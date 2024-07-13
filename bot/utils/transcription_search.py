@@ -109,8 +109,9 @@ class SearchTranscriptions:
             await DatabaseManager.log_system_message("ERROR", f"An error occurred while searching for segments: {e}")
             return None
 
+    @staticmethod
     async def find_segment_with_context(
-            self, quote: str, context_size: int = 30, season_filter: Optional[str] = None, episode_filter: Optional[str] = None,
+            quote: str, context_size: int = 30, season_filter: Optional[str] = None, episode_filter: Optional[str] = None,
             index: str = 'ranczo-transcriptions',
     ) -> Optional[json]:
         log = f"🔍 Searching for quote: '{quote}' with context size: {context_size}. Season: {season_filter}, Episode: {episode_filter}"
@@ -123,7 +124,7 @@ class SearchTranscriptions:
             await DatabaseManager.log_system_message("ERROR", "Failed to connect to Elasticsearch.")
             return None
 
-        segment = await self.find_segment_by_quote(quote, season_filter, episode_filter, index, return_all=False)
+        segment = await SearchTranscriptions.find_segment_by_quote(quote, season_filter, episode_filter, index, return_all=False)
         if not segment:
             logger.info("❌ No segments found matching the query.❌")
             await DatabaseManager.log_system_message("INFO", "No segments found matching the query.")

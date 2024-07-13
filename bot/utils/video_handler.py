@@ -22,10 +22,8 @@ logger = logging.getLogger(__name__)
 class VideoManager:
     TELEGRAM_FILE_SIZE_LIMIT_MB: int = 50
 
-    def __init__(self, bot: Bot) -> None:
-        self.bot = bot
-
-    async def extract_and_send_clip(self, chat_id: int, video_path: str, start_time: float, end_time: float) -> None:
+    @staticmethod
+    async def extract_and_send_clip(chat_id: int, video_path: str, start_time: float, end_time: float, bot: Bot) -> None:
         try:
             output_filename = tempfile.mktemp(suffix='.mp4')
             await VideoProcessor.extract_clip(video_path, start_time, end_time, output_filename)
@@ -35,7 +33,7 @@ class VideoManager:
             await DatabaseManager.log_system_message("INFO", f"Clip size: {file_size:.2f} MB")
 
             if file_size > VideoManager.TELEGRAM_FILE_SIZE_LIMIT_MB:
-                await self.bot.send_message(
+                await bot.send_message(
                     chat_id,
                     "❌ Wyodrębniony klip jest za duży, aby go wysłać przez Telegram. Maksymalny rozmiar pliku to 50 MB.❌",
                 )
@@ -43,7 +41,7 @@ class VideoManager:
                 await DatabaseManager.log_system_message("WARNING", f"Clip size {file_size:.2f} MB exceeds the 50 MB limit.")
             else:
                 input_file = FSInputFile(output_filename)
-                await self.bot.send_video(chat_id, input_file, supports_streaming=True, width=1920, height=1080)
+                await bot.send_video(chat_id, input_file, supports_streaming=True, width=1920, height=1080)
                 await DatabaseManager.log_system_message("INFO", f"Sent video clip: {output_filename}")
             os.remove(output_filename)
             logger.info(f"Temporary file '{output_filename}' removed after sending clip.")
@@ -52,19 +50,21 @@ class VideoManager:
         except Exception as e:
             logger.error(f"Failed to send video clip: {e}", exc_info=True)
             await DatabaseManager.log_system_message("ERROR", f"Failed to send video clip: {e}")
-            await self.bot.send_message(chat_id, f"⚠️ Nie udało się wysłać klipu wideo: {str(e)}")
+            await bot.send_message(chat_id, f"⚠️ Nie udało się wysłać klipu wideo: {str(e)}")
 
-    async def send_video(self, chat_id: int, file_path: str) -> None:
+    @staticmethod
+    async def send_video(chat_id: int, file_path: str, bot: Bot) -> None:
         try:
             input_file = FSInputFile(file_path)
-            await self.bot.send_video(chat_id, input_file, supports_streaming=True, width=1920, height=1080)
+            await bot.send_video(chat_id, input_file, supports_streaming=True, width=1920, height=1080)
             await DatabaseManager.log_system_message("INFO", f"Sent video file: {file_path}")
         except Exception as e:
             logger.error(f"Failed to send video clip: {e}", exc_info=True)
             await DatabaseManager.log_system_message("ERROR", f"Failed to send video clip: {e}")
-            await self.bot.send_message(chat_id, f"⚠️ Nie udało się wysłać klipu wideo: {str(e)}")
+            await bot.send_message(chat_id, f"⚠️ Nie udało się wysłać klipu wideo: {str(e)}")
 
-    async def extract_and_concatenate_clips(self, segments: List[json], output_filename: str) -> None:
+    @staticmethod
+    async def extract_and_concatenate_clips(segments: List[json], output_filename: str) -> None:
         temp_files = []
         try:
             for segment in segments:
@@ -78,7 +78,7 @@ class VideoManager:
                 await VideoProcessor.extract_clip(video_path, start, end, temp_file.name)
                 temp_file.close()
                 await DatabaseManager.log_system_message("INFO", f"Extracted clip from {video_path} ({start}-{end})")
-            await self.concatenate_clips(temp_files, output_filename)
+            await VideoManager.concatenate_clips(temp_files, output_filename)
             await DatabaseManager.log_system_message("INFO", f"Concatenated clips into {output_filename}")
         finally:
             for temp_file in temp_files:

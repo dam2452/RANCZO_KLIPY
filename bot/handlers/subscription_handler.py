@@ -13,16 +13,6 @@ from bot.utils.database import DatabaseManager
 from bot.utils.responses import format_subscription_status_response
 
 
-class UserManager:  # fixme to też chyba do wywalenia wgl do osobnego pliku bo admin.py też z czegoś podbnego korzsyta a tak prosto z bazy ciągnąć bez żadnego checka to nwm
-    @staticmethod
-    async def get_subscription_status(username: str) -> Optional[Tuple[date, int]]:
-        subscription_end = await DatabaseManager.get_user_subscription(username)
-        if subscription_end is None:
-            return None
-        days_remaining = (subscription_end - date.today()).days
-        return subscription_end, days_remaining
-
-
 class SubscriptionStatusHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ['subskrypcja', 'subscription', 'sub']
@@ -30,7 +20,7 @@ class SubscriptionStatusHandler(BotMessageHandler):
     async def _do_handle(self, message: Message) -> None:
         await self._log_user_activity(message.from_user.username, f"/subskrypcja {message.text}")
         username = message.from_user.username
-        subscription_status = await UserManager.get_subscription_status(username)
+        subscription_status = await self.__get_subscription_status(username)
 
         if subscription_status is None:
             return await self.__reply_no_subscription(message)
@@ -40,6 +30,14 @@ class SubscriptionStatusHandler(BotMessageHandler):
 
         await message.answer(response, parse_mode='Markdown')
         await self._log_system_message(logging.INFO, f"Subscription status sent to user '{username}'.")
+
+    @staticmethod
+    async def __get_subscription_status(username: str) -> Optional[Tuple[date, int]]:
+        subscription_end = await DatabaseManager.get_user_subscription(username)
+        if subscription_end is None:
+            return None
+        days_remaining = (subscription_end - date.today()).days
+        return subscription_end, days_remaining
 
     async def __reply_no_subscription(self, message: Message) -> None:
         await message.answer("🚫 Nie masz aktywnej subskrypcji.🚫")

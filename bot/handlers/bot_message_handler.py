@@ -76,6 +76,14 @@ class BotMessageHandler(ABC):
         await DatabaseManager.log_user_activity(username, message)
         await self._log_system_message(logging.INFO, f"User '{username}' performed action: {message}")
 
+    async def _reply_invalid_args_count(
+        self,
+        message: Message,
+        response: str,
+    ) -> None:
+        await message.answer(response)
+        await self._log_system_message(logging.INFO, "Incorrect command format provided by user.")
+
     def get_action_name(self) -> str:
         return self.__class__.__name__
 

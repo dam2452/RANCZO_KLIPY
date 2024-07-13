@@ -21,7 +21,7 @@ class HandleClipHandler(BotMessageHandler):
         await self._log_user_activity(message.from_user.username, f"/klip {message.text}")
         content = message.text.split()
         if len(content) < 2:
-            return await self.__reply_no_quote_provided(message)
+            return await self._reply_invalid_args_count(message, "🔎 Podaj cytat, który chcesz znaleźć. Przykład: /klip Nie szkoda panu tego pięknego gabinetu?")
 
         quote = ' '.join(content[1:])
 
@@ -37,19 +37,12 @@ class HandleClipHandler(BotMessageHandler):
         end_time = segment['end'] + Settings.EXTEND_AFTER
 
         try:
-            await VideoManager(self._bot).extract_and_send_clip(message.chat.id, video_path, start_time, end_time)
+            await VideoManager.extract_and_send_clip(message.chat.id, video_path, start_time, end_time, self._bot)
         except FFmpegException as e:
             return await self.__reply_extraction_failure(message, e)
 
         last_selected_segment[message.chat.id] = segment
         await self.__log_segment_and_clip_success(message.chat.id, message.from_user.username)
-
-    async def __reply_no_quote_provided(self, message: Message) -> None:
-        await message.answer(
-            "🔎 Podaj cytat, który chcesz znaleźć. Przykład: /klip Nie szkoda panu tego pięknego "
-            "gabinetu?",
-        )
-        await self._log_system_message(logging.INFO, "No quote provided by user.")
 
     async def __reply_no_segments_found(self, message: Message, quote: str) -> None:
         await message.answer("❌ Nie znaleziono pasujących cytatów.❌")

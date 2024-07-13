@@ -23,7 +23,7 @@ async def compile_clips(selected_clips_data: List[bytes], bot: Bot) -> str:
     compiled_output = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
     compiled_output.close()
 
-    await VideoManager(bot).concatenate_clips(temp_files, compiled_output.name)
+    await VideoManager.concatenate_clips(temp_files, compiled_output.name, bot)
 
     return compiled_output.name
 

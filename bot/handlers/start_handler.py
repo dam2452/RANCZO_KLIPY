@@ -46,7 +46,7 @@ class StartCommandHandler(BotMessageHandler):
         await self._log_user_activity(message.from_user.username, f"/start {message.text}")
         username = message.from_user.username
         content = message.text.split()
-        await self._log_system_message(logging.INFO,f"Received start command from user '{username}' with content: {message.text}")
+        await self._log_system_message(logging.INFO, f"Received start command from user '{username}' with content: {message.text}")
 
         if len(content) == 1:
             await self.__send_message(message, get_basic_message())

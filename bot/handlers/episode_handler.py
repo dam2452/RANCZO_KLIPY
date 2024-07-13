@@ -17,13 +17,12 @@ class EpisodeListHandler(BotMessageHandler):
 
     async def _do_handle(self, message: Message) -> None:
         await self._log_user_activity(message.from_user.username, f"/odcinki {message.text}")
-        search_transcriptions = SearchTranscriptions()
         content = message.text.split()
         if len(content) != 2:
-            return await self.__reply_invalid_args_count(message)
+            return await self._reply_invalid_args_count(message, "📋 Podaj poprawną komendę w formacie: /listaodcinków <sezon>. Przykład: /listaodcinków 2")
 
         season = int(content[1])
-        episodes = await search_transcriptions.find_episodes_by_season(season)
+        episodes = await SearchTranscriptions.find_episodes_by_season(season)
         if not episodes:
             return await self.__reply_no_episodes_found(message, season)
 
@@ -48,12 +47,6 @@ class EpisodeListHandler(BotMessageHandler):
             message = message[split_at:].lstrip()
         parts.append(message)
         return parts
-
-    async def __reply_invalid_args_count(self, message: Message) -> None:
-        await message.answer(
-            "📋 Podaj poprawną komendę w formacie: /listaodcinków <sezon>. Przykład: /listaodcinków 2",
-        )
-        await self._log_system_message(logging.INFO, "Incorrect command format provided by user.")
 
     async def __reply_no_episodes_found(self, message: Message, season: int) -> None:
         await message.answer(f"❌ Nie znaleziono odcinków dla sezonu {season}.")
