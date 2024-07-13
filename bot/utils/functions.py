@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+import json
 import tempfile
 from typing import (
     List,
@@ -10,6 +12,35 @@ from aiogram.types import FSInputFile
 
 from bot.utils.global_dicts import last_compiled_clip
 from bot.utils.video_manager import VideoManager
+
+
+@dataclass(frozen=True)
+class FormattedSegmentInfo:
+    episode_formatted: str
+    time_formatted: str
+    episode_title: str
+
+
+def format_segment(segment: json) -> FormattedSegmentInfo:
+    episode_info = segment.get('episode_info', {})
+    total_episode_number = episode_info.get('episode_number', 'Unknown')
+    season_number = (total_episode_number - 1) // 13 + 1 if isinstance(total_episode_number, int) else 'Unknown'
+    episode_number_in_season = (total_episode_number - 1) % 13 + 1 if isinstance(
+        total_episode_number,
+        int,
+    ) else 'Unknown'
+
+    season = str(season_number).zfill(2)
+    episode_number = str(episode_number_in_season).zfill(2)
+
+    start_time = int(segment['start'])
+    minutes, seconds = divmod(start_time, 60)
+
+    return FormattedSegmentInfo(
+        episode_formatted=f"S{season}E{episode_number}",
+        time_formatted=f"{minutes:02}:{seconds:02}",
+        episode_title=episode_info.get('title', 'Unknown'),
+    )
 
 
 async def compile_clips(selected_clips_data: List[bytes]) -> str:

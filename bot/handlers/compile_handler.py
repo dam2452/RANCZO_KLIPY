@@ -15,31 +15,12 @@ from bot.utils.functions import (
 from bot.utils.global_dicts import last_search_quotes
 
 
-# fixme całe te funkcje jakieś krzywe ale lece narazie z tym ractorem samym
-def parse_segments(content: List[str], segments: List[Dict]) -> (List[Dict], str):
-    selected_segments = []
-
-    for index in content:
-        if index.lower() == "wszystko":
-            return segments, ""
-
-        if '-' in index:
-            try:
-                start, end = map(int, index.split('-'))
-                selected_segments.extend(segments[start - 1:end])
-            except ValueError:
-                error_message = f"⚠️ Podano nieprawidłowy zakres segmentów: {index} ⚠️"
-                return None, error_message
-        else:
-            try:
-                selected_segments.append(segments[int(index) - 1])
-            except (ValueError, IndexError):
-                error_message = f"⚠️ Podano nieprawidłowy indeks segmentu: {index} ⚠️"
-                return None, error_message
-    return selected_segments, ""
-
-
 class CompileClipsHandler(BotMessageHandler):
+    class ParseSegmentsException(Exception):
+        def __init__(self, message: str) -> None:
+            self.message = message
+            super().__init__(self.message)
+
     def get_commands(self) -> List[str]:
         return ['kompiluj', 'compile', 'kom']
 
@@ -56,15 +37,17 @@ class CompileClipsHandler(BotMessageHandler):
             return await self.__reply_no_previous_search_results(message)
 
         segments = last_search_quotes[chat_id]
-        selected_segments, error_message = parse_segments(content[1:], segments)
-        if error_message:
-            await message.answer(error_message)
+        try:
+            selected_segments = self.__parse_segments(content[1:], segments)
+        except self.ParseSegmentsException as e:
+            await message.answer(e.message)
             return
 
         if not selected_segments:
             return await self.__reply_no_matching_segments_found(message)
 
         try:
+            # fixme cos pokrzaczyles w typach xD
             compiled_output = await compile_clips(selected_segments)
             await send_compiled_clip(chat_id, compiled_output, self._bot)
             os.remove(compiled_output)
@@ -72,6 +55,29 @@ class CompileClipsHandler(BotMessageHandler):
             return await self.__reply_compilation_error(message, e)
 
         await self._log_system_message(logging.INFO, f"Compiled clip sent to user '{username}' and temporary files removed.")
+
+    # fixme dict czego?
+    @staticmethod
+    def __parse_segments(content: List[str], segments: List[Dict]) -> List[Dict]:
+        selected_segments = []
+
+        for index in content:
+            if index.lower() == "wszystko":
+                return segments
+
+            if '-' in index:
+                try:
+                    start, end = map(int, index.split('-'))
+                    selected_segments.extend(segments[start - 1:end])
+                except ValueError as e:
+                    raise CompileClipsHandler.ParseSegmentsException(f"⚠️ Podano nieprawidłowy zakres segmentów: {index} ⚠️") from e
+            else:
+                try:
+                    selected_segments.append(segments[int(index) - 1])
+                except (ValueError, IndexError) as e:
+                    raise CompileClipsHandler.ParseSegmentsException(f"⚠️ Podano nieprawidłowy indeks segmentu: {index} ⚠️") from e
+
+        return selected_segments
 
     async def __reply_no_previous_search_results(self, message: Message) -> None:
         await message.answer("🔍 Najpierw wykonaj wyszukiwanie za pomocą /szukaj.")

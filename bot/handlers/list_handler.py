@@ -10,6 +10,7 @@ from aiogram.types import (
 from tabulate import tabulate
 
 from bot.handlers.bot_message_handler import BotMessageHandler
+from bot.utils.functions import format_segment
 from bot.utils.global_dicts import (
     last_search_quotes,
     last_search_terms,
@@ -26,8 +27,7 @@ class SearchListHandler(BotMessageHandler):
         chat_id = message.chat.id
 
         if chat_id not in last_search_quotes or chat_id not in last_search_terms:
-            await self.__reply_no_previous_search_results(message, chat_id)
-            return
+            return await self.__reply_no_previous_search_results(message, chat_id)
 
         segments = last_search_quotes[chat_id]
         search_term = last_search_terms[chat_id]
@@ -36,35 +36,16 @@ class SearchListHandler(BotMessageHandler):
         segment_lines = []
 
         for i, segment in enumerate(segments, start=1):
-            episode_info = segment.get('episode_info', {})
-            total_episode_number = episode_info.get('episode_number', 'Unknown')
-            season_number = (total_episode_number - 1) // 13 + 1 if isinstance(total_episode_number, int) else 'Unknown'
-            episode_number_in_season = (total_episode_number - 1) % 13 + 1 if isinstance(
-                total_episode_number,
-                int,
-            ) else 'Unknown'
-
-            season = str(season_number).zfill(2)
-            episode_number = str(episode_number_in_season).zfill(2)
-            episode_title = episode_info.get('title', 'Unknown')
-            start_time = int(segment['start'])
-            minutes, seconds = divmod(start_time, 60)
-            time_formatted = f"{minutes:02}:{seconds:02}"
-
-            episode_formatted = f"S{season}E{episode_number}"
-            line = [i, episode_formatted, episode_title, time_formatted]
-            segment_lines.append(line)
+            segment_info = format_segment(segment)
+            segment_lines.append([i, segment_info.episode_formatted, segment_info.episode_title, segment_info.time_formatted])
 
         table = tabulate(
-            segment_lines, headers=["#", "Odcinek", "Tytuł", "Czas"], tablefmt="pipe",
-            colalign=("left", "center", "left", "right"),
+            segment_lines, headers=["#", "Odcinek", "Tytuł", "Czas"], tablefmt="pipe", colalign=("left", "center", "left", "right"),
         )
         response += f"{table}\n"
 
         temp_dir = tempfile.gettempdir()
-        sanitized_search_term = "".join(
-            [c for c in search_term if c.isalpha() or c.isdigit() or c == ' '],
-        ).rstrip().replace(" ", "_")
+        sanitized_search_term = "".join([c for c in search_term if c.isalpha() or c.isdigit() or c == ' ']).rstrip().replace(" ", "_")
         file_name = os.path.join(temp_dir, f"Ranczo_Klipy_Wyniki_{sanitized_search_term}.txt")
         with open(file_name, 'w', encoding='utf-8') as file:
             file.write(response)

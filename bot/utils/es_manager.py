@@ -17,8 +17,13 @@ logger = logging.getLogger(__name__)
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
+# fixme: zgrupowac to w klase?
+# fixme: sensowne exceptiony rzucac
+# fixme: nie lapac wszystkiego jak zwierze
+# fixme: przeczyscic te funkcje
 
-async def connect_to_elasticsearch() -> Optional[AsyncElasticsearch]:
+
+async def try_connect_to_elasticsearch() -> Optional[AsyncElasticsearch]:
     try:
         es = AsyncElasticsearch(
             hosts=[Settings.ES_HOST],
@@ -55,6 +60,7 @@ async def delete_all_indices(es: AsyncElasticsearch) -> None:
         await DatabaseManager.log_system_message("ERROR", f"Error deleting indices: {e}")
 
 
+# fixme: kto to panu tak spierdolil xDD
 async def index_transcriptions(base_path: str, es: AsyncElasticsearch) -> None:
     actions = []
     for season_dir in os.listdir(base_path):
@@ -116,7 +122,7 @@ async def print_one_transcription(es: AsyncElasticsearch, index: str = "ranczo-t
 
 
 async def main() -> None:
-    es_client = await connect_to_elasticsearch()
+    es_client = await try_connect_to_elasticsearch()
     if es_client:
         try:
             await delete_all_indices(es_client)

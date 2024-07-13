@@ -79,7 +79,7 @@ class SaveClipHandler(BotMessageHandler):
         await self.__reply_clip_saved_successfully(message, clip_name)
 
     @staticmethod
-    async def __prepare_clip_file(segment_info):  # fixme jakies zjebane to jest XD i z powtórkami ale na razie chuj, type hint?
+    async def __prepare_clip_file(segment_info):  # fixme type hint? jak ogarniesz to zostaw mi fixme zebym mogl to przerabiac wiedzac co tu w ogole mam, ogarnij tez tego dataclassa jak dasz rade
         start_time = 0
         end_time = 0
         is_compilation = False

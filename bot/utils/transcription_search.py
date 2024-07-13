@@ -9,7 +9,7 @@ from typing import (
 from elastic_transport import ObjectApiResponse
 
 from bot.utils.database import DatabaseManager
-from bot.utils.es_manager import connect_to_elasticsearch
+from bot.utils.es_manager import try_connect_to_elasticsearch
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -41,7 +41,7 @@ class SearchTranscriptions:
             "INFO",
             f"Searching for quote: '{quote}' with filters - Season: {season_filter}, Episode: {episode_filter}",
         )
-        es = await connect_to_elasticsearch()
+        es = await try_connect_to_elasticsearch()
 
         if not es:
             logger.error("❌ Failed to connect to Elasticsearch.❌")
@@ -117,7 +117,7 @@ class SearchTranscriptions:
         log = f"🔍 Searching for quote: '{quote}' with context size: {context_size}. Season: {season_filter}, Episode: {episode_filter}"
         logger.info(log)
         await DatabaseManager.log_system_message("INFO", log)
-        es = await connect_to_elasticsearch()
+        es = await try_connect_to_elasticsearch()
 
         if not es:
             logger.error("❌ Failed to connect to Elasticsearch.❌")
@@ -224,7 +224,7 @@ class SearchTranscriptions:
             "INFO",
             f"Searching for video path with filters - Season: {season}, Episode: {episode_number}",
         )
-        es = await connect_to_elasticsearch()
+        es = await try_connect_to_elasticsearch()
 
         if not es:
             logger.error("❌ Failed to connect to Elasticsearch.")
@@ -283,7 +283,7 @@ class SearchTranscriptions:
         """
         logger.info(f"🔍 Searching for episodes in season {season}")
         await DatabaseManager.log_system_message("INFO", f"Searching for episodes in season {season}")
-        es = await connect_to_elasticsearch()
+        es = await try_connect_to_elasticsearch()
 
         if not es:
             logger.error("❌ Failed to connect to Elasticsearch.")
