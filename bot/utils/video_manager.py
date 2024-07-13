@@ -9,7 +9,6 @@ from typing import List
 from aiogram import Bot
 from aiogram.types import FSInputFile
 
-from bot.settings import Settings
 from bot.utils.database import DatabaseManager
 from bot.utils.video_utils import (
     FFmpegException,
@@ -62,29 +61,6 @@ class VideoManager:
             logger.error(f"Failed to send video clip: {e}", exc_info=True)
             await DatabaseManager.log_system_message("ERROR", f"Failed to send video clip: {e}")
             await bot.send_message(chat_id, f"⚠️ Nie udało się wysłać klipu wideo: {str(e)}")
-
-    @staticmethod
-    async def extract_and_concatenate_clips(segments: List[json], output_filename: str) -> None:
-        temp_files = []
-        try:
-            for segment in segments:
-                video_path = segment['video_path']
-                start = max(0, segment['start'] - Settings.EXTEND_BEFORE)
-                end = segment['end'] + Settings.EXTEND_AFTER
-
-                temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
-                temp_files.append(temp_file.name)
-
-                await VideoProcessor.extract_clip(video_path, start, end, temp_file.name)
-                temp_file.close()
-                await DatabaseManager.log_system_message("INFO", f"Extracted clip from {video_path} ({start}-{end})")
-            await VideoManager.concatenate_clips(temp_files, output_filename)
-            await DatabaseManager.log_system_message("INFO", f"Concatenated clips into {output_filename}")
-        finally:
-            for temp_file in temp_files:
-                if os.path.exists(temp_file):
-                    os.remove(temp_file)
-                    await DatabaseManager.log_system_message("INFO", f"Temporary file '{temp_file}' removed after concatenation.")
 
     @staticmethod
     async def concatenate_clips(segment_files: List[str], output_file: str) -> None:

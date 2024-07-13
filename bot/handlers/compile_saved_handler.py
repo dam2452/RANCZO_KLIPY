@@ -39,7 +39,7 @@ class CompileSelectedClipsHandler(BotMessageHandler):
             return await self.__reply_no_matching_clips_found(message)
 
         try:
-            compiled_output = await compile_clips(selected_clips_data, self._bot)
+            compiled_output = await compile_clips(selected_clips_data)
             await send_compiled_clip(chat_id, compiled_output, self._bot)
             await self.__clean_up_temp_files(compiled_output, selected_clips_data)
 

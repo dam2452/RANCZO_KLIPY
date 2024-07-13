@@ -12,7 +12,7 @@ from bot.utils.global_dicts import last_compiled_clip
 from bot.utils.video_manager import VideoManager
 
 
-async def compile_clips(selected_clips_data: List[bytes], bot: Bot) -> str:
+async def compile_clips(selected_clips_data: List[bytes]) -> str:
     temp_files = []
     for video_data in selected_clips_data:
         temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
@@ -23,7 +23,7 @@ async def compile_clips(selected_clips_data: List[bytes], bot: Bot) -> str:
     compiled_output = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
     compiled_output.close()
 
-    await VideoManager.concatenate_clips(temp_files, compiled_output.name, bot)
+    await VideoManager.concatenate_clips(temp_files, compiled_output.name)
 
     return compiled_output.name
 
@@ -52,9 +52,7 @@ class InvalidTimeStringException(Exception):
         super().__init__(self.message)
 
 
-def minutes_str_to_seconds(
-        time_str: str,
-) -> float:
+def minutes_str_to_seconds(time_str: str) -> float:
     try:
         minutes, seconds = time_str.split(':')
         seconds, milliseconds = seconds.split('.')

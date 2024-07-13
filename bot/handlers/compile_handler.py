@@ -65,7 +65,7 @@ class CompileClipsHandler(BotMessageHandler):
             return await self.__reply_no_matching_segments_found(message)
 
         try:
-            compiled_output = await compile_clips(selected_segments, self._bot)
+            compiled_output = await compile_clips(selected_segments)
             await send_compiled_clip(chat_id, compiled_output, self._bot)
             os.remove(compiled_output)
         except Exception as e:
