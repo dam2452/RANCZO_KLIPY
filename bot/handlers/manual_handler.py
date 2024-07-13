@@ -1,68 +1,22 @@
-from dataclasses import dataclass
-import json
 import logging
 import os
 from typing import (
-    Dict,
     List,
-    Optional,
     Tuple,
 )
 
 from aiogram.types import Message
-from bot_message_handler import BotMessageHandler
 
+from bot.handlers.bot_message_handler import BotMessageHandler
+from bot.utils.functions import (
+    Episode,
+    InvalidSeasonEpisodeStringException,
+    InvalidTimeStringException,
+    minutes_str_to_seconds,
+)
+from bot.utils.global_dicts import last_manual_clip
 from bot.utils.transcription_search import SearchTranscriptions
 from bot.utils.video_handler import VideoManager
-
-last_manual_clip: Dict[int, json] = {}  # fixme z tymi zmeinnymi globalnymi jak tak najebane wszedzię XD
-
-
-class InvalidTimeStringException(Exception):
-    def __init__(self, time: str) -> None:
-        self.message = f"Invalid time string: '{time}'"
-        super().__init__(self.message)
-
-
-def minutes_str_to_seconds(
-        time_str: str,
-) -> float:  # fixme te dwie funkcje zdaje się że też się gdzieś powtarzają to gdzie je dać do utlis.py?
-    """ Convert time string in the format MM:SS.ms to seconds """
-    try:
-        minutes, seconds = time_str.split(':')
-        seconds, milliseconds = seconds.split('.')
-        total_seconds = int(minutes) * 60 + int(seconds) + int(milliseconds) / 1000
-        return total_seconds
-    except (TypeError, ValueError) as e:
-        raise InvalidTimeStringException from e
-
-
-def adjust_episode_number(absolute_episode: int) -> Optional[Tuple[int, int]]:
-    """ Adjust the absolute episode number to season and episode format """
-    season = (absolute_episode - 1) // 13 + 1
-    episode = (absolute_episode - 1) % 13 + 1
-    return season, episode
-
-
-class InvalidSeasonEpisodeStringException(Exception):
-    def __init__(self, episode_string: str):
-        self.message = f"Invalid season episode string '{episode_string}'"
-        super().__init__(self.message)
-
-
-@dataclass
-class Episode:
-    EPISODES_PER_SEASON: int = 13
-
-    def __init__(self, season_episode: str) -> None:
-        if season_episode[0] != "S" or season_episode[3] != "E":
-            raise InvalidSeasonEpisodeStringException(season_episode)
-
-        self.season: int = int(season_episode[1:3])
-        self.number: int = int(season_episode[4:6])
-
-    def get_absolute_episode_number(self) -> int:
-        return (self.season - 1) * Episode.EPISODES_PER_SEASON + self.number
 
 
 class ManualClipHandler(BotMessageHandler):
@@ -105,7 +59,8 @@ class ManualClipHandler(BotMessageHandler):
             },
         }
 
-    def __parse_content(self, content: List[str]) -> Tuple[Episode, float, float]:
+    @staticmethod
+    def __parse_content(content: List[str]) -> Tuple[Episode, float, float]:
         episode = content[1]  # Format: S02E10
         start_time = content[2]  # Format: 20:30.11
         end_time = content[3]  # Format: 21:32.50

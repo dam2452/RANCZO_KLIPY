@@ -2,10 +2,10 @@ import logging
 from typing import List
 
 from aiogram.types import Message
-from bot_message_handler import BotMessageHandler
-from responses import format_myclips_response
 
+from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.utils.database import DatabaseManager
+from bot.utils.responses import format_myclips_response
 
 
 class ListClipsHandler(BotMessageHandler):

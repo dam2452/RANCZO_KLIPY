@@ -1,17 +1,14 @@
-import json
 import logging
-from typing import (
-    Dict,
-    List,
-)
+from typing import List
 
 from aiogram.types import Message
-from bot_message_handler import BotMessageHandler
 
+from bot.handlers.bot_message_handler import BotMessageHandler
+from bot.utils.global_dicts import (
+    last_search_quotes,
+    last_search_terms,
+)
 from bot.utils.transcription_search import SearchTranscriptions
-
-last_search_quotes: Dict[int, List[json]] = {}  # todo trzeba ta baze pod te sesje zrobić a nie się tak pierodlić
-last_search_terms: Dict[int, str] = {}  # todo trzeba ta baze pod te sesje zrobić a nie się tak pierodlić
 
 
 class HandleSearchRequest(BotMessageHandler):

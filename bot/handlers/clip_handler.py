@@ -1,21 +1,16 @@
-import json
 import logging
-from typing import (
-    Dict,
-    List,
-)
+from typing import List
 
 from aiogram.types import Message
-from bot_message_handler import BotMessageHandler
 
+from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.settings import Settings
+from bot.utils.global_dicts import last_selected_segment
 from bot.utils.transcription_search import SearchTranscriptions
 from bot.utils.video_handler import (
     FFmpegException,
     VideoManager,
 )
-
-last_selected_segment: Dict[int, json] = {}  #todo trzeba ta baze pod te sesje zrobić a nie się tak pierodlić
 
 
 class HandleClipHandler(BotMessageHandler):

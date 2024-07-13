@@ -11,8 +11,9 @@ from aiogram import (
     Bot,
 )
 from aiogram.types import Message
-from bot_message_handler import BotMessageHandler
-from responses import (
+
+from bot.handlers.bot_message_handler import BotMessageHandler
+from bot.utils.responses import (
     get_basic_message,
     get_edycja_message,
     get_full_message,

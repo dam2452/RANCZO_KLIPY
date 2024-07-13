@@ -9,8 +9,11 @@ from typing import (
 
 from aiogram import types
 import asyncpg
-from bot_message_handler import BotMessageHandler
-from responses import (
+from tabulate import tabulate
+
+from bot.handlers.bot_message_handler import BotMessageHandler
+from bot.utils.database import DatabaseManager
+from bot.utils.responses import (
     get_admin_help_message,
     get_no_admins_found_message,
     get_no_moderators_found_message,
@@ -25,9 +28,6 @@ from responses import (
     get_user_updated_message,
     get_whitelist_empty_message,
 )
-from tabulate import tabulate
-
-from bot.utils.database import DatabaseManager
 from bot.utils.transcription_search import SearchTranscriptions
 
 
@@ -101,23 +101,23 @@ class AdminCommandHandler(BotMessageHandler):
 
         if command == 'admin':
             await message.answer(get_admin_help_message(), parse_mode='Markdown')
-        elif command in ['addwhitelist', 'addw']:
+        elif command in {'addwhitelist', 'addw'}:
             await self._add_to_whitelist(message, content)
-        elif command in ['removewhitelist', 'removew']:
+        elif command in {'removewhitelist', 'removew'}:
             await self._remove_from_whitelist(message, content)
-        elif command in ['updatewhitelist', 'updatew']:
+        elif command in {'updatewhitelist', 'updatew'}:
             await self._update_whitelist(message, content)
-        elif command in ['listwhitelist', 'listw']:
+        elif command in {'listwhitelist', 'listw'}:
             await self._list_whitelist(message)
-        elif command in ['listadmins', 'listad']:
+        elif command in {'listadmins', 'listad'}:
             await self._list_admins(message)
-        elif command in ['listmoderators', 'listmod']:
+        elif command in {'listmoderators', 'listmod'}:
             await self._list_moderators(message)
-        elif command in ['addsubscription', 'addsub']:
+        elif command in {'addsubscription', 'addsub'}:
             await self._add_subscription_command(message, content)
-        elif command in ['removesubscription', 'removesub']:
+        elif command in {'removesubscription', 'removesub'}:
             await self._remove_subscription_command(message, content)
-        elif command in ['transkrypcja', 'trans']:
+        elif command in {'transkrypcja', 'trans'}:
             await self._handle_transcription_request(message, content)
 
     async def _add_to_whitelist(self, message: types.Message, content: List[str]) -> None:

@@ -7,10 +7,10 @@ from aiogram.types import (
     FSInputFile,
     Message,
 )
-from bot_message_handler import BotMessageHandler
 from tabulate import tabulate
 
-from bot.handlers.search_handler import (
+from bot.handlers.bot_message_handler import BotMessageHandler
+from bot.utils.global_dicts import (
     last_search_quotes,
     last_search_terms,
 )

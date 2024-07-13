@@ -2,8 +2,8 @@ import logging
 from typing import List
 
 from aiogram.types import Message
-from bot_message_handler import BotMessageHandler
 
+from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.utils.database import DatabaseManager
 
 

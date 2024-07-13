@@ -1,18 +1,15 @@
-import json
 import logging
-from typing import (
-    Dict,
-    List,
-)
+from typing import List
 
 from aiogram.types import Message
-from bot_message_handler import BotMessageHandler
 
+from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.settings import Settings
+from bot.utils.global_dicts import (
+    last_search_quotes,
+    last_selected_segment,
+)
 from bot.utils.video_handler import VideoManager
-
-last_search_quotes: Dict[int, List[json]] = {} #fixme to jest powtórzone setny raz ale czeka na zrobienie bazy
-last_selected_segment: Dict[int, json] = {}
 
 
 class SelectClipHandler(BotMessageHandler):

@@ -1,4 +1,3 @@
-import json
 import logging
 import os
 from typing import (
@@ -7,15 +6,13 @@ from typing import (
 )
 
 from aiogram.types import Message
-from bot_message_handler import BotMessageHandler
 
-from bot.handlers.compile_saved_handler import (
+from bot.handlers.bot_message_handler import BotMessageHandler
+from bot.utils.functions import (
     compile_clips,
     send_compiled_clip,
 )
-from bot.handlers.search_handler import last_search_quotes
-
-last_selected_segment: Dict[int, json] = {}
+from bot.utils.global_dicts import last_search_quotes
 
 
 # fixme całe te funkcje jakieś krzywe ale lece narazie z tym ractorem samym
