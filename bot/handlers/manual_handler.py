@@ -72,7 +72,7 @@ class ManualClipHandler(BotMessageHandler):
     async def _do_handle(self, message: Message) -> None:
         await self._log_user_activity(message.from_user.username, f"/wytnij {message.text}")
 
-        search_transcriptions = SearchTranscriptions()  # fixme powtórka z tego co pisałem o dispatcherze
+        search_transcriptions = SearchTranscriptions()
         content = message.text.split()
         if len(content) != 4:
             await self.__reply_invalid_args_count(message)

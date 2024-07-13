@@ -30,7 +30,7 @@ class HandleClipHandler(BotMessageHandler):
 
         quote = ' '.join(content[1:])
 
-        search_transcriptions = SearchTranscriptions()  #fixme kurła jak to teraz wykonac jak ja nie mam tego dispatchera żeby przekazać temu do argmeuntu XD musze się wycztać mocniej jak dziłają te dispatchery
+        search_transcriptions = SearchTranscriptions()
         segments = await search_transcriptions.find_segment_by_quote(quote, return_all=False)
 
         if not segments:

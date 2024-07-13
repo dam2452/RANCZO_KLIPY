@@ -36,7 +36,7 @@ class EpisodeListHandler(BotMessageHandler):
 
     async def _do_handle(self, message: Message) -> None:
         await self._log_user_activity(message.from_user.username, f"/odcinki {message.text}")
-        search_transcriptions = SearchTranscriptions()  #fixme tak samo
+        search_transcriptions = SearchTranscriptions()
         content = message.text.split()
         if len(content) != 2:
             return await self.__reply_invalid_args_count(message)

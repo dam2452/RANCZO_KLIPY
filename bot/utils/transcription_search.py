@@ -6,11 +6,8 @@ from typing import (
     Union,
 )
 
-from aiogram import Dispatcher
 from elastic_transport import ObjectApiResponse
 
-from bot.middlewares.auth_middleware import AuthorizationMiddleware
-from bot.middlewares.error_middleware import ErrorHandlerMiddleware
 from bot.utils.database import DatabaseManager
 from bot.utils.es_manager import connect_to_elasticsearch
 
@@ -19,10 +16,6 @@ logger = logging.getLogger(__name__)
 
 
 class SearchTranscriptions:
-    def __init__(self, dispatcher: Dispatcher) -> None:
-        dispatcher.message.middleware(AuthorizationMiddleware())
-        dispatcher.message.middleware(ErrorHandlerMiddleware())
-
     @staticmethod
     async def find_segment_by_quote(
             quote: str, season_filter: Optional[int] = None, episode_filter: Optional[int] = None,
