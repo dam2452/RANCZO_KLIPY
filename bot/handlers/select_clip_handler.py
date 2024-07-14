@@ -6,8 +6,8 @@ from aiogram.types import Message
 from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.settings import Settings
 from bot.utils.global_dicts import (
-    last_search,
     last_clip,
+    last_search,
 )
 from bot.utils.video_manager import VideoManager
 

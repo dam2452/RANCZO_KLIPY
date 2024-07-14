@@ -1,7 +1,7 @@
 import logging
 from typing import Optional
 
-import ffmpeg #fixme to jest jakieś gejowe bo jak dobrze pamiętam to musiałem instalować ffmpeg-python a używać ffmpeg żeby mi działało nwm XD
+import ffmpeg
 
 from bot.utils.database import DatabaseManager
 
@@ -9,8 +9,8 @@ logger = logging.getLogger(__name__)
 
 
 class FFmpegException(Exception):
-    def __init__(self, stderr: str, return_code: int) -> None:
-        self.message = f"FFMpeg error ({return_code}): {stderr}"
+    def __init__(self, stderr: str) -> None:
+        self.message = f"FFMpeg error: {stderr}"
         super().__init__(self.message)
 
 
@@ -31,17 +31,17 @@ class VideoProcessor:
                 c='copy',
                 movflags='+faststart',
                 fflags='+genpts',
-                avoid_negative_ts='1'
+                avoid_negative_ts='1',
             ).overwrite_output().run_async(pipe_stdout=True, pipe_stderr=True)
 
             success_message = f"Clip extracted successfully: {output_filename}"
             logger.info(success_message)
             await DatabaseManager.log_system_message("INFO", success_message)
         except ffmpeg.Error as e:
-            err = FFmpegException(e.stderr.decode(), e.returncode) #fixme jakiś magic na potem
+            err = FFmpegException(e.stderr.decode())
             logger.error(err.message)
             await DatabaseManager.log_system_message("ERROR", err.message)
-            raise err
+            raise err from e
 
     @staticmethod
     def convert_seconds_to_time_str(seconds: int) -> Optional[str]:

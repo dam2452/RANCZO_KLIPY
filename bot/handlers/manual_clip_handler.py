@@ -56,7 +56,7 @@ class ManualClipHandler(BotMessageHandler):
                 'season': episode.season,
                 'episode_number': episode.number,
             },
-            'type': 'manual'
+            'type': 'manual',
         }
 
     @staticmethod

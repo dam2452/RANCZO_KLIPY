@@ -83,7 +83,7 @@ class VideoManager:
         os.remove(concat_file.name)
 
         if process.returncode != 0:
-            err = FFmpegException(stderr.decode(), process.returncode)
+            err = FFmpegException(stderr.decode())
             await DatabaseManager.log_system_message("ERROR", err.message)
             raise err
 

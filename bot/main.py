@@ -47,23 +47,32 @@ dp.update.middleware(ErrorHandlerMiddleware())
 
 
 handlers: List[BotMessageHandler] = [
+    AddSubscriptionHandler(bot),
+    AddWhitelistHandler(bot),
     AdjustVideoClipHandler(bot),
+    AdminHelpHandler(bot),
     ClipHandler(bot),
     CompileClipsHandler(bot),
     CompileSelectedClipsHandler(bot),
     DeleteClipHandler(bot),
     EpisodeListHandler(bot),
-    SearchListHandler(bot),
+    ListAdminsHandler(bot),
+    ListModeratorsHandler(bot),
+    ListWhitelistHandler(bot),
     ManualClipHandler(bot),
     MyClipsHandler(bot),
+    RemoveSubscriptionHandler(bot),
+    RemoveWhitelistHandler(bot),
     ReportIssueHandler(bot),
     SaveClipHandler(bot),
     SearchHandler(bot),
+    SearchListHandler(bot),
     SelectClipHandler(bot),
     SendClipHandler(bot),
     StartHandler(bot),
     SubscriptionStatusHandler(bot),
-    #fixme tego admina na raty trzeba dodac
+    TranscriptionHandler(bot),
+    UpdateWhitelistHandler(bot),
 ]
 
 

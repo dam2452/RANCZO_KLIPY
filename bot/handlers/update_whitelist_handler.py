@@ -2,13 +2,13 @@ import logging
 from typing import List
 
 from aiogram.types import Message
-
 from bot_message_handler import BotMessageHandler
+
+from bot.utils.database import DatabaseManager
 from bot.utils.responses import (
     get_no_username_provided_message,
-    get_user_updated_message
+    get_user_updated_message,
 )
-from bot.utils.database import DatabaseManager
 
 
 class UpdateWhitelistHandler(BotMessageHandler):

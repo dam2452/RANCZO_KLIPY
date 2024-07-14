@@ -2,12 +2,12 @@ import logging
 from typing import List
 
 from aiogram.types import Message
-
 from bot_message_handler import BotMessageHandler
+
 from bot.utils.responses import (
     get_no_quote_provided_message,
     get_no_segments_found_message,
-    get_transcription_response
+    get_transcription_response,
 )
 from bot.utils.transcription_search import SearchTranscriptions
 
@@ -39,5 +39,7 @@ class TranscriptionHandler(BotMessageHandler):
 
     async def __reply_transcription_response(self, message: Message, response: str, quote: str) -> None:
         await message.answer(response, parse_mode='Markdown')
-        await self._log_system_message(logging.INFO,
-                                       f"Transcription for quote '{quote}' sent to user '{message.from_user.username}'.")
+        await self._log_system_message(
+            logging.INFO,
+            f"Transcription for quote '{quote}' sent to user '{message.from_user.username}'.",
+        )

@@ -5,9 +5,9 @@ from typing import (
 )
 
 from aiogram.types import Message
+from bot_message_handler import BotMessageHandler
 from elastic_transport import ObjectApiResponse
 
-from bot_message_handler import BotMessageHandler
 from bot.utils.functions import format_segment
 from bot.utils.global_dicts import last_search
 from bot.utils.transcription_search import SearchTranscriptions

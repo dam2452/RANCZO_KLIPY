@@ -2,11 +2,13 @@ import logging
 from typing import List
 
 from aiogram.types import Message
-
 from bot_message_handler import BotMessageHandler
-from bot.utils.responses import get_no_admins_found_message
+
 from bot.utils.database import DatabaseManager
-from bot.utils.responses import get_users_string
+from bot.utils.responses import (
+    get_no_admins_found_message,
+    get_users_string,
+)
 
 
 class ListAdminsHandler(BotMessageHandler):

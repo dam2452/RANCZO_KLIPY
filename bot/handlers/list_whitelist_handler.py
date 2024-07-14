@@ -2,13 +2,13 @@ import logging
 from typing import List
 
 from aiogram.types import Message
-
 from bot_message_handler import BotMessageHandler
-from bot.utils.responses import (
-    get_whitelist_empty_message,
-    create_whitelist_response,
-)
+
 from bot.utils.database import DatabaseManager
+from bot.utils.responses import (
+    create_whitelist_response,
+    get_whitelist_empty_message,
+)
 
 
 class ListWhitelistHandler(BotMessageHandler):

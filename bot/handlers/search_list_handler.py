@@ -2,8 +2,8 @@ import logging
 import os
 import tempfile
 from typing import (
-    List,
     Dict,
+    List,
     Union,
 )
 
@@ -11,9 +11,9 @@ from aiogram.types import (
     FSInputFile,
     Message,
 )
+from bot_message_handler import BotMessageHandler
 from tabulate import tabulate
 
-from bot_message_handler import BotMessageHandler
 from bot.utils.functions import format_segment
 from bot.utils.global_dicts import last_search
 

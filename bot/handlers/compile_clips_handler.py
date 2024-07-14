@@ -7,15 +7,15 @@ from typing import (
 )
 
 from aiogram.types import Message
-
 from bot_message_handler import BotMessageHandler
+
 from bot.utils.functions import (
     compile_clips,
     send_compiled_clip,
 )
 from bot.utils.global_dicts import (
-    last_search,
     last_clip,
+    last_search,
 )
 
 
@@ -37,7 +37,7 @@ class CompileClipsHandler(BotMessageHandler):
         if len(content) < 2:
             return await self._reply_invalid_args_count(
                 message,
-                "🔄 Proszę podać indeksy segmentów do skompilowania, zakres lub 'wszystko' do kompilacji wszystkich segmentów."
+                "🔄 Proszę podać indeksy segmentów do skompilowania, zakres lub 'wszystko' do kompilacji wszystkich segmentów.",
             )
 
         if chat_id not in last_search or not last_search[chat_id]['segments']:
