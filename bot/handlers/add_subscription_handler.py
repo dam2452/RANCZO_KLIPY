@@ -21,20 +21,16 @@ class AddSubscriptionHandler(BotMessageHandler):
         content = message.text.split()
 
         if len(content) < 3:
-            return await self.__reply_no_username_or_days_provided(message)
+            return await self._reply_invalid_args_count(message, get_no_username_provided_message())
 
         username = content[1]
         days = int(content[2])
 
-        new_end_date: date | None = await DatabaseManager.add_subscription(username, days)
+        new_end_date = await DatabaseManager.add_subscription(username, days)
         if new_end_date is None:
             return await self.__reply_subscription_error(message)
 
         await self.__reply_subscription_extended(message, username, new_end_date)
-
-    async def __reply_no_username_or_days_provided(self, message: Message) -> None:
-        await message.answer(get_no_username_provided_message())
-        await self._log_system_message(logging.INFO, "No username or days provided for adding subscription.")
 
     async def __reply_subscription_extended(self, message: Message, username: str, new_end_date: date) -> None:
         await message.answer(get_subscription_extended_message(username, new_end_date))

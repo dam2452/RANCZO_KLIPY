@@ -25,8 +25,7 @@ class ClipHandler(BotMessageHandler):
 
         quote = ' '.join(content[1:])
 
-        search_transcriptions = SearchTranscriptions()
-        segments = await search_transcriptions.find_segment_by_quote(quote, return_all=False)
+        segments = await SearchTranscriptions.find_segment_by_quote(quote, return_all=False)
 
         if not segments:
             return await self.__reply_no_segments_found(message, quote)

@@ -44,12 +44,12 @@ class CompileClipsHandler(BotMessageHandler):
             return await self.__reply_no_previous_search_results(message)
 
         segments = last_search[chat_id]['segments']
-        selected_segments: List[bytes] = self.__parse_segments(content[1:], segments)
+        selected_segments = self.__parse_segments(content[1:], segments)
 
         if not selected_segments:
             return await self.__reply_no_matching_segments_found(message)
 
-        compiled_output: str = await compile_clips(selected_segments)
+        compiled_output = await compile_clips(selected_segments)
         await send_compiled_clip(chat_id, compiled_output, self._bot)
         if os.path.exists(compiled_output):
             os.remove(compiled_output)

@@ -82,7 +82,7 @@ class BotMessageHandler(ABC):
         response: str,
     ) -> None:
         await message.answer(response)
-        await self._log_system_message(logging.INFO, "Incorrect command format provided by user.")
+        await self._log_system_message(logging.INFO, f"Incorrect command ({self.get_action_name()}) format provided by user.")
 
     def get_action_name(self) -> str:
         return self.__class__.__name__

@@ -20,12 +20,11 @@ class TranscriptionHandler(BotMessageHandler):
         await self._log_user_activity(message.from_user.username, f"/transkrypcja {message.text}")
         content = message.text.split()
         if len(content) < 2:
-            return await self.__reply_no_quote_provided(message)
+            return await self._reply_invalid_args_count(message, get_no_quote_provided_message())
 
         quote = ' '.join(content[1:])
-        search_transcriptions = SearchTranscriptions()
         context_size = 15
-        result = await search_transcriptions.find_segment_with_context(quote, context_size)
+        result = await SearchTranscriptions.find_segment_with_context(quote, context_size)
 
         if not result:
             return await self.__reply_no_segments_found(message, quote)
@@ -33,10 +32,6 @@ class TranscriptionHandler(BotMessageHandler):
         context_segments = result['context']
         response = get_transcription_response(quote, context_segments)
         await self.__reply_transcription_response(message, response, quote)
-
-    async def __reply_no_quote_provided(self, message: Message) -> None:
-        await message.answer(get_no_quote_provided_message())
-        await self._log_system_message(logging.INFO, "No quote provided for transcription search.")
 
     async def __reply_no_segments_found(self, message: Message, quote: str) -> None:
         await message.answer(get_no_segments_found_message(quote))

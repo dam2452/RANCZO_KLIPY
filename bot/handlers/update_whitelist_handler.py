@@ -19,8 +19,9 @@ class UpdateWhitelistHandler(BotMessageHandler):
         await self._log_user_activity(message.from_user.username, f"/updatewhitelist {message.text}")
         content = message.text.split()
         if len(content) < 2:
-            return await self.__reply_no_username_provided(message)
+            return await self._reply_invalid_args_count(message, get_no_username_provided_message())
 
+        # fixme ogarnac jakos duplikat
         username = content[1]
         is_admin = bool(int(content[2])) if len(content) > 2 else None
         is_moderator = bool(int(content[3])) if len(content) > 3 else None
@@ -30,10 +31,6 @@ class UpdateWhitelistHandler(BotMessageHandler):
 
         await DatabaseManager.update_user(username, is_admin, is_moderator, full_name, email, phone)
         await self.__reply_user_updated(message, username)
-
-    async def __reply_no_username_provided(self, message: Message) -> None:
-        await message.answer(get_no_username_provided_message())
-        await self._log_system_message(logging.INFO, "No username provided for updating whitelist.")
 
     async def __reply_user_updated(self, message: Message, username: str) -> None:
         await message.answer(get_user_updated_message(username))

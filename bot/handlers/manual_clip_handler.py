@@ -26,13 +26,12 @@ class ManualClipHandler(BotMessageHandler):
     async def _do_handle(self, message: Message) -> None:
         await self._log_user_activity(message.from_user.username, f"/wytnij {message.text}")
 
-        search_transcriptions = SearchTranscriptions()
         content = message.text.split()
         if len(content) != 4:
             await self._reply_invalid_args_count(message, "📋 Podaj poprawną komendę w formacie: /manual <sezon_odcinek> <czas_start> <czas_koniec>. Przykład: /manual S02E10 20:30.11")
             return
 
-        try:#fixme rozumiem że tutaj jest git ten try bo faktycznie piszemy do usera w sprawie tego wypierdalnia
+        try:  #fixme rozumiem że tutaj jest git ten try bo faktycznie piszemy do usera w sprawie tego wypierdalnia
             episode, start_seconds, end_seconds = self.__parse_content(content)
         except InvalidSeasonEpisodeStringException:
             return await self.__reply_incorrect_season_episode_format(message)
@@ -42,7 +41,7 @@ class ManualClipHandler(BotMessageHandler):
         if end_seconds <= start_seconds:
             return await self.__reply_end_time_earlier_than_start(message)
 
-        video_path = await search_transcriptions.find_video_path_by_episode(episode.season, episode.get_absolute_episode_number())
+        video_path = await SearchTranscriptions.find_video_path_by_episode(episode.season, episode.get_absolute_episode_number())
         if not video_path or not os.path.exists(video_path):
             return await self.__reply_video_file_not_exist(message, video_path)
 

@@ -4,10 +4,7 @@ from typing import List
 from aiogram.types import Message
 
 from bot_message_handler import BotMessageHandler
-from bot.utils.responses import (
-    get_no_moderators_found_message,
-    create_moderators_list_response,
-)
+from bot.utils.responses import get_no_moderators_found_message, get_users_string
 from bot.utils.database import DatabaseManager
 
 
@@ -21,7 +18,8 @@ class ListModeratorsHandler(BotMessageHandler):
         if not users:
             return await self.__reply_no_moderators_found(message)
 
-        response = create_moderators_list_response(users)
+        response = "📃 Lista moderatorów:\n"
+        response += get_users_string(users)
         await self.__reply_moderators_list(message, response)
 
     async def __reply_no_moderators_found(self, message: Message) -> None:
