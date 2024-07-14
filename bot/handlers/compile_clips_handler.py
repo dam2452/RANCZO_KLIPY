@@ -76,17 +76,17 @@ class CompileClipsHandler(BotMessageHandler):
     @staticmethod
     def __parse_range(index: str, segments: List[Dict[str, Union[str, bytes]]]) -> List[bytes]:
         try:
-            start, end = map(int, index.split('-'))
+            start, end = [int(i) for i in index.split('-')]
             return [segments[i - 1]['data'] for i in range(start, end + 1)]
-        except ValueError:
-            raise CompileClipsHandler.ParseSegmentsException(f"⚠️ Podano nieprawidłowy zakres segmentów: {index} ⚠️")
+        except ValueError as e:
+            raise CompileClipsHandler.ParseSegmentsException(f"⚠️ Podano nieprawidłowy zakres segmentów: {index} ⚠️") from e
 
     @staticmethod
     def __parse_single(index: str, segments: List[Dict[str, Union[str, bytes]]]) -> bytes:
         try:
             return segments[int(index) - 1]['data']
-        except (ValueError, IndexError):
-            raise CompileClipsHandler.ParseSegmentsException(f"⚠️ Podano nieprawidłowy indeks segmentu: {index} ⚠️")
+        except (ValueError, IndexError) as e:
+            raise CompileClipsHandler.ParseSegmentsException(f"⚠️ Podano nieprawidłowy indeks segmentu: {index} ⚠️") from e
 
     async def __reply_no_previous_search_results(self, message: Message) -> None:
         await message.answer("🔍 Najpierw wykonaj wyszukiwanie za pomocą /szukaj.")

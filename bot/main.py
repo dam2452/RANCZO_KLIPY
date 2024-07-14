@@ -14,7 +14,7 @@ from aiogram import (
 )
 from aiogram.fsm.storage.memory import MemoryStorage
 
-from bot.handlers import *
+from bot.handlers import *  # pylint: disable=wildcard-import
 from bot.middlewares.auth_middleware import AuthorizationMiddleware
 from bot.middlewares.error_middleware import ErrorHandlerMiddleware
 from bot.settings import Settings
