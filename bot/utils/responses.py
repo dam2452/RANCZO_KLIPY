@@ -28,14 +28,14 @@ def convert_number_to_emoji(number: int) -> str:
 
 def format_subscription_status_response(username: str, subscription_end: date, days_remaining: int) -> str:
     return f"""
-✨ **Status Twojej subskrypcji** ✨
+    ✨ **Status Twojej subskrypcji** ✨
 
-👤 **Użytkownik:** {use{username}
-📅 **Data zakończenia:** {sub{subscription_end}
-⏳ **Pozostało dni:** {da{days_remaining}
+    👤 **Użytkownik:** {username}
+    📅 **Data zakończenia:** {subscription_end}
+    ⏳ **Pozostało dni:** {days_remaining}
 
-Dzięki za wsparcie projektu! 🎉
-"""
+    Dzięki za wsparcie projektu! 🎉
+    """
 
 
 def format_myclips_response(clips, username) -> str:
