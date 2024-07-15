@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 import json
 from typing import (
     List,
@@ -9,32 +8,6 @@ from aiogram.types import Message
 
 from bot.database.global_dicts import last_clip
 from bot.database.user import User
-
-
-@dataclass(frozen=True)
-class FormattedSegmentInfo:
-    episode_formatted: str
-    time_formatted: str
-    episode_title: str
-
-
-def format_segment(segment: json, episodes_per_season: int = 13) -> FormattedSegmentInfo:
-    episode_info = segment.get('episode_info', {})
-    total_episode_number = episode_info.get('episode_number', 'Unknown')
-    season_number = (total_episode_number - 1) // episodes_per_season + 1 if isinstance(total_episode_number, int) else 'Unknown'
-    episode_number_in_season = (total_episode_number - 1) % episodes_per_season + 1 if isinstance(total_episode_number, int) else 'Unknown'
-
-    season = str(season_number).zfill(2)
-    episode_number = str(episode_number_in_season).zfill(2)
-
-    start_time = int(segment['start'])
-    minutes, seconds = divmod(start_time, 60)
-
-    return FormattedSegmentInfo(
-        episode_formatted=f"S{season}E{episode_number}",
-        time_formatted=f"{minutes:02}:{seconds:02}",
-        episode_title=episode_info.get('title', 'Unknown'),
-    )
 
 
 class InvalidTimeStringException(Exception):
@@ -53,17 +26,6 @@ def minutes_str_to_seconds(time_str: str) -> float:
         raise InvalidTimeStringException from e
 
 
-def parse_whitelist_message(content: List[str], default_admin_status: Optional[bool], default_moderator_status: Optional[bool]) -> User:
-    return User(
-        name=content[1],
-        is_admin=bool(int(content[2])) if len(content) > 2 else default_admin_status,
-        is_moderator=bool(int(content[3])) if len(content) > 3 else default_moderator_status,
-        full_name=content[4] if len(content) > 4 else None,
-        email=content[5] if len(content) > 5 else None,
-        phone=content[6] if len(content) > 6 else None,
-    )
-
-
 def convert_seconds_to_time_str(seconds: int) -> str:
     hours = int(seconds // 3600)
     minutes = int((seconds % 3600) // 60)
@@ -74,6 +36,17 @@ def convert_seconds_to_time_str(seconds: int) -> str:
 def time_str_to_seconds(time_str: str) -> int:
     h, m, s = [int(part) for part in time_str.split(':')]
     return h * 3600 + m * 60 + s
+
+
+def parse_whitelist_message(content: List[str], default_admin_status: Optional[bool], default_moderator_status: Optional[bool]) -> User:
+    return User(
+        name=content[1],
+        is_admin=bool(int(content[2])) if len(content) > 2 else default_admin_status,
+        is_moderator=bool(int(content[3])) if len(content) > 3 else default_moderator_status,
+        full_name=content[4] if len(content) > 4 else None,
+        email=content[5] if len(content) > 5 else None,
+        phone=content[6] if len(content) > 6 else None,
+    )
 
 
 def update_last_clip(segment: json, start_time: int, end_time: int, message: Message) -> None:

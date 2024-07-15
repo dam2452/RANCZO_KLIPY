@@ -6,7 +6,7 @@ from typing import (
 
 from tabulate import tabulate
 
-from bot.utils.functions import format_segment
+from bot.video.segment_info import format_segment
 
 
 def get_no_previous_search_results_message() -> str:
