@@ -5,7 +5,12 @@ from aiogram.types import Message
 
 from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.utils.database import DatabaseManager
-from bot.utils.responses import format_myclips_response
+from bot.handlers.responses.my_clips_handler_responses import (
+    format_myclips_response,
+    get_no_saved_clips_message,
+    get_log_no_saved_clips_message,
+    get_log_saved_clips_sent_message
+)
 
 
 class MyClipsHandler(BotMessageHandler):
@@ -13,7 +18,8 @@ class MyClipsHandler(BotMessageHandler):
         return ['mojeklipy', 'myclips', 'mk']
 
     async def _do_handle(self, message: Message) -> None:
-        await self._log_user_activity(message.from_user.username, f"/mojeklipy {message.text}")
+        command = self.get_commands()[0]
+        await self._log_user_activity(message.from_user.username, f"/{command} {message.text}")
         username = message.from_user.username
 
         clips = await DatabaseManager.get_saved_clips(username)
@@ -21,8 +27,8 @@ class MyClipsHandler(BotMessageHandler):
             return await self.__reply_no_saved_clips(message, username)
 
         await message.answer(format_myclips_response(clips, username), parse_mode='Markdown')
-        await self._log_system_message(logging.INFO, f"List of saved clips sent to user '{username}'.")
+        await self._log_system_message(logging.INFO, get_log_saved_clips_sent_message(username))
 
     async def __reply_no_saved_clips(self, message: Message, username: str) -> None:
-        await message.answer("📭 Nie masz zapisanych klipów.📭")
-        await self._log_system_message(logging.INFO, f"No saved clips found for user: {username}")
+        await message.answer(get_no_saved_clips_message())
+        await self._log_system_message(logging.INFO, get_log_no_saved_clips_message(username))
