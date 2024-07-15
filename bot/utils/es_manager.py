@@ -5,7 +5,6 @@ import os
 from elasticsearch import (
     AsyncElasticsearch,
     helpers,
-
 )
 from elasticsearch.exceptions import ConnectionError
 import urllib3

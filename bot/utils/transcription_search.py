@@ -40,7 +40,7 @@ class SearchTranscriptions:
         await log_system_message(
             logging.INFO,
             f"Searching for quote: '{quote}' with filters - Season: {season_filter}, Episode: {episode_filter}",
-            logger
+            logger,
         )
         es = await connect_to_elasticsearch()
 
@@ -102,9 +102,11 @@ class SearchTranscriptions:
             quote: str, context_size: int = 30, season_filter: Optional[str] = None, episode_filter: Optional[str] = None,
             index: str = 'ranczo-transcriptions',
     ) -> Optional[json]:
-        await log_system_message(logging.INFO,
-                                 f"🔍 Searching for quote: '{quote}' with context size: {context_size}. Season: {season_filter}, Episode: {episode_filter}",
-                                 logger)
+        await log_system_message(
+            logging.INFO,
+            f"🔍 Searching for quote: '{quote}' with context size: {context_size}. Season: {season_filter}, Episode: {episode_filter}",
+            logger,
+        )
         es = await connect_to_elasticsearch()
 
         segment = await SearchTranscriptions.find_segment_by_quote(quote, season_filter, episode_filter, index, return_all=False)
@@ -186,7 +188,7 @@ class SearchTranscriptions:
         await log_system_message(
             logging.INFO,
             f"Searching for video path with filters - Season: {season}, Episode: {episode_number}",
-            logger
+            logger,
         )
         es = await connect_to_elasticsearch()
 

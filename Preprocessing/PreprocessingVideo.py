@@ -1,7 +1,7 @@
 import argparse
+import logging
 import os
 import subprocess
-import logging
 
 
 def convert_videos(input_dir: str, output_dir: str) -> None:
