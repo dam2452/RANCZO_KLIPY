@@ -66,8 +66,7 @@ def format_myclips_response(clips, username) -> str:
     return response
 
 
-# fixme type hint: jaki dict?
-def format_episode_list_response(season: int, episodes: List[dict]) -> str:
+def format_episode_list_response(season: int, episodes: List[Dict[str, Union[str, int]]]) -> str:
     response = f"📃 Lista odcinków dla sezonu {season}:\n\n```\n"
     for episode in episodes:
         absolute_episode_number = episode['episode_number'] % 13
