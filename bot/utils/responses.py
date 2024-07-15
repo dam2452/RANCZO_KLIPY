@@ -39,7 +39,7 @@ Dzięki za wsparcie projektu! 🎉
 
 
 # fixme type hint
-def format_myclips_response(clips, username):
+def format_myclips_response(clips, username) -> str:
     response = "🎬 Twoje Zapisane Klipy 🎬\n\n"
     response += f"🎥 Użytkownik: @{username}\n\n"
     clip_lines = []

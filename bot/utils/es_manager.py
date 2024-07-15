@@ -61,6 +61,7 @@ async def delete_all_indices(es: AsyncElasticsearch) -> None:
 
 
 # fixme: kto to panu tak spierdolil xDD
+#fixme: XDDDD Panie o był jednorazowy kod i zadziałał XDD przynajmniej wtedy był jednorazowy bo teraz jak chcemy kiepskich itp to się zmieniło XDDDD
 async def index_transcriptions(base_path: str, es: AsyncElasticsearch) -> None:
     actions = []
     for season_dir in os.listdir(base_path):

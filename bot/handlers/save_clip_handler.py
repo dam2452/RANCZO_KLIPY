@@ -1,4 +1,3 @@
-from io import BytesIO
 import json
 import logging
 import os
@@ -76,7 +75,6 @@ class SaveClipHandler(BotMessageHandler):
 
         return SaveClipHandler.__SEGMENT_INFO_GETTERS[last_clip_info['type']](last_clip_info)
 
-    # fixme: to bedzie trzeba jakos ucywilizowac potem
     async def __prepare_clip_file(self, segment_info: SegmentInfo) -> Tuple[str, int, int, bool, Optional[int], Optional[int]]:
         start_time = 0
         end_time = 0
@@ -89,8 +87,8 @@ class SaveClipHandler(BotMessageHandler):
             is_compilation = True
         elif segment_info.expanded_clip:
             output_filename = self.__write_clip_to_file(segment_info.expanded_clip)
-            start_time = segment_info.expanded_start or 0
-            end_time = segment_info.expanded_end or 0
+            start_time = segment_info.expanded_start
+            end_time = segment_info.expanded_end
             season = segment_info.episode_info.season
             episode_number = segment_info.episode_info.episode_number
         else:
@@ -105,13 +103,10 @@ class SaveClipHandler(BotMessageHandler):
         return output_filename, start_time, end_time, is_compilation, season, episode_number
 
     @staticmethod
-    def __write_clip_to_file(clip_data: Union[bytes, BytesIO]) -> str:
+    def __write_clip_to_file(clip_data: bytes) -> str:
         output_filename = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4").name
         with open(output_filename, 'wb') as f:
-            if isinstance(clip_data, bytes):
-                f.write(clip_data)
-            else:
-                f.write(clip_data.getvalue())
+            f.write(clip_data)
         return output_filename
 
     async def __verify_clip_length(self, message: Message, output_filename: str, clip_name: str) -> Optional[int]:
