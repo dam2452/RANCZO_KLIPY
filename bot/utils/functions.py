@@ -7,8 +7,8 @@ from typing import (
 
 from aiogram.types import Message
 
-from bot.database.user import User
 from bot.database.global_dicts import last_clip
+from bot.database.user import User
 
 
 @dataclass(frozen=True)

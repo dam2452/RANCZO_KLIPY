@@ -23,7 +23,7 @@ from aiogram.types import (
     TelegramObject,
 )
 
-from bot.handlers.responses.bot_message_handler_responses import (
+from bot.responses.bot_message_handler_responses import (
     get_general_error_message,
     get_invalid_args_count_message,
 )
