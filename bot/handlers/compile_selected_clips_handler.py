@@ -15,7 +15,8 @@ from bot.handlers.responses.compile_selected_clips_handler_responses import (
     get_no_matching_clips_found_message,
     get_clip_not_found_message,
     get_log_no_matching_clips_found_message,
-    get_log_clip_not_found_message
+    get_log_clip_not_found_message,
+    get_compiled_clip_sent_message
 )
 
 
@@ -29,7 +30,8 @@ class CompileSelectedClipsHandler(BotMessageHandler):
         return ['polaczklipy', 'concatclips', 'pk']
 
     async def _do_handle(self, message: Message) -> None:
-        await self._log_user_activity(message.from_user.username, f"/polaczklipy {message.text}")
+        command = self.get_commands()[0]
+        await self._log_user_activity(message.from_user.username, f"/{command} {message.text}")
         username = message.from_user.username
 
         chat_id = message.chat.id
@@ -53,7 +55,7 @@ class CompileSelectedClipsHandler(BotMessageHandler):
 
         await self._log_system_message(
             logging.INFO,
-            f"Compiled clip sent to user '{username}' and temporary files removed.",
+            get_compiled_clip_sent_message(username),
         )
 
     async def __get_selected_clips_data(self, clip_names: List[str], username: str, message: Message) -> List[bytes]:
@@ -73,8 +75,8 @@ class CompileSelectedClipsHandler(BotMessageHandler):
 
     async def __reply_clip_not_found(self, message: Message, clip_name: str, username: str) -> None:
         await message.answer(get_clip_not_found_message(clip_name))
-        await self._log_system_message(logging.INFO, f"Clip '{clip_name}' not found for user '{username}'.")
+        await self._log_system_message(logging.INFO, get_log_clip_not_found_message(clip_name, username))
 
     async def __reply_no_matching_clips_found(self, message: Message) -> None:
         await message.answer(get_no_matching_clips_found_message())
-        await self._log_system_message(logging.INFO, "No matching clips found for compilation.")
+        await self._log_system_message(logging.INFO, get_log_no_matching_clips_found_message())
