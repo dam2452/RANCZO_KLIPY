@@ -31,6 +31,8 @@ class ErrorHandlerMiddleware(BaseMiddleware):
                 await message.answer("⚠️ Wystąpił błąd podczas przetwarzania Twojego żądania. Prosimy spróbować ponownie później.⚠️")
                 await DatabaseManager.log_system_message("ERROR", f"Error processing request from user '{message.from_user.username}': {e}")
 
+
             error_message = f"An error occurred: {e}"
             logger.error(error_message, exc_info=True)
             await DatabaseManager.log_system_message("ERROR", error_message)
+            raise

@@ -107,7 +107,7 @@ class SearchTranscriptions:
         except Exception as e:
             logger.error(f"❌ An error occurred while searching for segments: {e}❌")
             await DatabaseManager.log_system_message("ERROR", f"An error occurred while searching for segments: {e}")
-            return None
+            raise
 
     @staticmethod
     async def find_segment_with_context(
@@ -203,7 +203,7 @@ class SearchTranscriptions:
         except Exception as e:
             logger.error(f"❌ An error occurred while searching for segment with context: {e} ❌")
             await DatabaseManager.log_system_message("ERROR", f"An error occurred while searching for segment with context: {e}")
-            return None
+            raise
 
     @staticmethod
     async def find_video_path_by_episode(season: int, episode_number: int, index: str = 'ranczo-transcriptions') -> Optional[str]:
@@ -266,7 +266,7 @@ class SearchTranscriptions:
         except Exception as e:
             logger.error(f"❌ An error occurred while searching for video path: {e}")
             await DatabaseManager.log_system_message("ERROR", f"An error occurred while searching for video path: {e}")
-            return None
+            raise
 
     @staticmethod
     async def find_episodes_by_season(season: int, index: str = 'ranczo-transcriptions') -> Optional[List[json]]:
@@ -350,4 +350,4 @@ class SearchTranscriptions:
         except Exception as e:
             logger.error(f"❌ An error occurred while searching for episodes: {e}")
             await DatabaseManager.log_system_message("ERROR", f"An error occurred while searching for episodes: {e}")
-            return None
+            raise

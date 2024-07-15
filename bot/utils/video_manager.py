@@ -49,6 +49,7 @@ class VideoManager:
             logger.error(f"Failed to send video clip: {e}", exc_info=True)
             await DatabaseManager.log_system_message("ERROR", f"Failed to send video clip: {e}")
             await bot.send_message(chat_id, f"⚠️ Nie udało się wysłać klipu wideo: {str(e)}")
+            raise
 
     @staticmethod
     async def send_video(chat_id: int, file_path: str, bot: Bot) -> None:
@@ -60,6 +61,7 @@ class VideoManager:
             logger.error(f"Failed to send video clip: {e}", exc_info=True)
             await DatabaseManager.log_system_message("ERROR", f"Failed to send video clip: {e}")
             await bot.send_message(chat_id, f"⚠️ Nie udało się wysłać klipu wideo: {str(e)}")
+            raise
 
     @staticmethod
     async def concatenate_clips(segment_files: List[str], output_file: str) -> None:

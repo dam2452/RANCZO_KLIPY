@@ -38,7 +38,7 @@ async def try_connect_to_elasticsearch() -> Optional[AsyncElasticsearch]:
     except Exception as e:
         logger.error(f"Connection to Elasticsearch failed: {e}")
         await DatabaseManager.log_system_message("ERROR", f"Connection to Elasticsearch failed: {e}")
-        return None
+        raise
 
 
 async def delete_all_indices(es: AsyncElasticsearch) -> None:
@@ -58,9 +58,10 @@ async def delete_all_indices(es: AsyncElasticsearch) -> None:
     except Exception as e:
         logger.error(f"Error deleting indices: {e}")
         await DatabaseManager.log_system_message("ERROR", f"Error deleting indices: {e}")
+        raise
 
 
-# fixme: kto to panu tak spierdolil xDD
+    # fixme: kto to panu tak spierdolil xDD
 #fixme: XDDDD Panie o był jednorazowy kod i zadziałał XDD przynajmniej wtedy był jednorazowy bo teraz jak chcemy kiepskich itp to się zmieniło XDDDD
 async def index_transcriptions(base_path: str, es: AsyncElasticsearch) -> None:
     actions = []
@@ -120,6 +121,7 @@ async def print_one_transcription(es: AsyncElasticsearch, index: str = "ranczo-t
     except Exception as e:
         logger.error(f"Error retrieving document: {e}")
         await DatabaseManager.log_system_message("ERROR", f"Error retrieving document: {e}")
+        raise
 
 
 async def main() -> None:
