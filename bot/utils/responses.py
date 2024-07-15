@@ -242,12 +242,6 @@ def get_admin_help_message() -> str:
 ```"""
 
 
-def get_no_username_provided_message() -> str:
-    return "✏️ Podaj nazwę użytkownika.✏️"
-
-
-def get_user_added_message(username: str) -> str:
-    return f"✅ Dodano {username} do whitelisty.✅"
 
 
 def get_user_removed_message(username: str) -> str:
@@ -269,10 +263,6 @@ def get_no_admins_found_message() -> str:
 
 def get_no_moderators_found_message() -> str:
     return "📭 Nie znaleziono moderatorów.📭"
-
-
-def get_subscription_extended_message(username: str, new_end_date: date) -> str:
-    return f"✅ Subskrypcja dla użytkownika {username} przedłużona do {new_end_date}.✅"
 
 
 def get_subscription_removed_message(username: str) -> str:
