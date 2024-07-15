@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from datetime import (
     date,
     timedelta,
@@ -14,6 +15,15 @@ from bot.settings import Settings
 
 
 class DatabaseManager:  # pylint: disable=too-many-public-methods
+    @dataclass
+    class User:
+        name: str
+        is_admin: Optional[bool]
+        is_moderator: Optional[bool]
+        full_name: Optional[str]
+        email: Optional[str]
+        phone: Optional[str]
+
     @staticmethod
     async def get_db_connection() -> Optional[asyncpg.Connection]:
         return await asyncpg.connect(
@@ -107,10 +117,7 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         await conn.close()
 
     @staticmethod
-    async def add_user(
-            username: str, is_admin: bool = False, is_moderator: bool = False, full_name: Optional[str] = None, email: Optional[str] = None,
-            phone: Optional[str] = None, subscription_days: Optional[int] = None,
-    ) -> None:
+    async def add_user(user: User, subscription_days: Optional[int] = None) -> None:
         conn = await DatabaseManager.get_db_connection()
         subscription_end = date.today() + timedelta(days=subscription_days) if subscription_days else None
         async with conn.transaction():
@@ -119,41 +126,38 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
                 INSERT INTO users (username, is_admin, is_moderator, full_name, email, phone, subscription_end)
                 VALUES ($1, $2, $3, $4, $5, $6, $7)
                 ON CONFLICT (username) DO NOTHING
-            ''', username, bool(is_admin), bool(is_moderator), full_name, email, phone, subscription_end,
+            ''', user.name, bool(user.is_admin), bool(user.is_moderator), user.full_name, user.email, user.phone, subscription_end,
             )
         await conn.close()
 
     @staticmethod
-    async def update_user(
-            username: str, is_admin: bool = False, is_moderator: bool = False, full_name: Optional[str] = None, email: Optional[str] = None,
-            phone: Optional[str] = None, subscription_end: Optional[int] = None,
-    ) -> None:
+    async def update_user(user: User, subscription_end: Optional[int] = None) -> None:
         conn = await DatabaseManager.get_db_connection()
         updates = []
         params = []
 
-        if is_admin is not None:
+        if user.is_admin is not None:
             updates.append('is_admin = $' + str(len(params) + 1))
-            params.append(bool(is_admin))
-        if is_moderator is not None:
+            params.append(bool(user.is_admin))
+        if user.is_moderator is not None:
             updates.append('is_moderator = $' + str(len(params) + 1))
-            params.append(bool(is_moderator))
-        if full_name is not None:
+            params.append(bool(user.is_moderator))
+        if user.full_name is not None:
             updates.append('full_name = $' + str(len(params) + 1))
-            params.append(full_name)
-        if email is not None:
+            params.append(user.full_name)
+        if user.email is not None:
             updates.append('email = $' + str(len(params) + 1))
-            params.append(email)
-        if phone is not None:
+            params.append(user.email)
+        if user.phone is not None:
             updates.append('phone = $' + str(len(params) + 1))
-            params.append(phone)
+            params.append(user.phone)
         if subscription_end is not None:
             updates.append('subscription_end = $' + str(len(params) + 1))
             params.append(subscription_end)
 
         if updates:
             query = f'UPDATE users SET {", ".join(updates)} WHERE username = ${len(params) + 1}'
-            params.append(username)
+            params.append(user.name)
             async with conn.transaction():
                 await conn.execute(query, *params)
 

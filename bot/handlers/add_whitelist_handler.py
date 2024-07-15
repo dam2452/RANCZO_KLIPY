@@ -10,6 +10,7 @@ from bot.handlers.responses.add_whitelist_handler_responses import (
     get_user_added_message,
 )
 from bot.utils.database import DatabaseManager
+from bot.utils.functions import parse_whitelist_message
 
 
 class AddWhitelistHandler(BotMessageHandler):
@@ -22,15 +23,9 @@ class AddWhitelistHandler(BotMessageHandler):
         if len(content) < 2:
             return await self._reply_invalid_args_count(message, get_no_username_provided_message())
 
-        username = content[1]
-        is_admin = bool(int(content[2])) if len(content) > 2 else False
-        is_moderator = bool(int(content[3])) if len(content) > 3 else False
-        full_name = content[4] if len(content) > 4 else None
-        email = content[5] if len(content) > 5 else None
-        phone = content[6] if len(content) > 6 else None
-
-        await DatabaseManager.add_user(username, is_admin, is_moderator, full_name, email, phone)
-        await self.__reply_user_added(message, username)
+        user = parse_whitelist_message(content, default_admin_status=False, default_moderator_status=False)
+        await DatabaseManager.add_user(user)
+        await self.__reply_user_added(message, user.name)
 
     async def __reply_user_added(self, message: Message, username: str) -> None:
         await message.answer(get_user_added_message(username))
