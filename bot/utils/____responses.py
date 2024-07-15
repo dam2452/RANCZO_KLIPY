@@ -216,8 +216,7 @@ def get_user_updated_message(username: str) -> str:
     return f"✅ Zaktualizowano dane użytkownika {username}.✅"
 
 
-def get_whitelist_empty_message() -> str:
-    return "📭 Whitelist jest pusta.📭"
+
 
 
 # fixme  tworzymy nowy folder "responses" i tam robimy np. delete_clip_responses.py dla kazdego handlera + generic wspoldzielone i WSZYSTKIE response'y mamy wyjebane do osobnych plikow i od razu wiadomo co zwraca ktory handler albo co jest wspoldzielone
@@ -251,10 +250,3 @@ def get_transcription_response(quote: str, context_segments: List[Dict[str, Unio
 
 
 
-def create_whitelist_response(users: List[asyncpg.Record]) -> str:
-    table = [["Username", "Full Name", "Email", "Phone", "Subskrypcja do"]]
-    for user in users:
-        table.append([user['username'], user['full_name'], user['email'], user['phone'], user['subscription_end']])
-
-    response = f"```whitelista\n{tabulate(table, headers='firstrow', tablefmt='grid')}```"
-    return response
