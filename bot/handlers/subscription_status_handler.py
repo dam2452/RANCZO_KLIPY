@@ -10,7 +10,12 @@ from aiogram.types import Message
 
 from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.utils.database import DatabaseManager
-from bot.utils.responses import format_subscription_status_response
+from bot.handlers.responses.subscription_status_handler_responses import (
+    format_subscription_status_response,
+    get_no_subscription_message,
+    get_log_subscription_status_sent_message,
+    get_log_no_active_subscription_message
+)
 
 
 class SubscriptionStatusHandler(BotMessageHandler):
@@ -18,7 +23,8 @@ class SubscriptionStatusHandler(BotMessageHandler):
         return ['subskrypcja', 'subscription', 'sub']
 
     async def _do_handle(self, message: Message) -> None:
-        await self._log_user_activity(message.from_user.username, f"/subskrypcja {message.text}")
+        command = self.get_commands()[0]
+        await self._log_user_activity(message.from_user.username, f"/{command} {message.text}")
         username = message.from_user.username
         subscription_status = await self.__get_subscription_status(username)
 
@@ -29,7 +35,7 @@ class SubscriptionStatusHandler(BotMessageHandler):
         response = format_subscription_status_response(username, subscription_end, days_remaining)
 
         await message.answer(response, parse_mode='Markdown')
-        await self._log_system_message(logging.INFO, f"Subscription status sent to user '{username}'.")
+        await self._log_system_message(logging.INFO, get_log_subscription_status_sent_message(username))
 
     @staticmethod
     async def __get_subscription_status(username: str) -> Optional[Tuple[date, int]]:
@@ -40,5 +46,5 @@ class SubscriptionStatusHandler(BotMessageHandler):
         return subscription_end, days_remaining
 
     async def __reply_no_subscription(self, message: Message) -> None:
-        await message.answer("🚫 Nie masz aktywnej subskrypcji.🚫")
-        await self._log_system_message(logging.INFO, f"No active subscription found for user '{message.from_user.username}'.")
+        await message.answer(get_no_subscription_message())
+        await self._log_system_message(logging.INFO, get_log_no_active_subscription_message(message.from_user.username))
