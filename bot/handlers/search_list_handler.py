@@ -12,10 +12,14 @@ from aiogram.types import (
     Message,
 )
 from bot_message_handler import BotMessageHandler
-from tabulate import tabulate
 
-from bot.utils.functions import format_segment
 from bot.utils.global_dicts import last_search
+from bot.handlers.responses.search_list_handler_responses import (
+    get_no_previous_search_results_message,
+    get_log_no_previous_search_results_message,
+    format_search_list_response,
+    get_log_search_results_sent_message
+)
 
 
 class SearchListHandler(BotMessageHandler):
@@ -23,7 +27,8 @@ class SearchListHandler(BotMessageHandler):
         return ['lista', 'list', 'l']
 
     async def _do_handle(self, message: Message) -> None:
-        await self._log_user_activity(message.from_user.username, f"/lista {message.text}")
+        command = self.get_commands()[0]
+        await self._log_user_activity(message.from_user.username, f"/{command} {message.text}")
         username = message.from_user.username
         chat_id = message.chat.id
 
@@ -34,17 +39,7 @@ class SearchListHandler(BotMessageHandler):
         segments = search_data['segments']
         search_term = search_data['quote']
 
-        response = f"🔍 Znaleziono {len(segments)} pasujących segmentów dla zapytania '{search_term}':\n"
-        segment_lines = []
-
-        for i, segment in enumerate(segments, start=1):
-            segment_info = format_segment(segment)
-            segment_lines.append([i, segment_info.episode_formatted, segment_info.episode_title, segment_info.time_formatted])
-
-        table = tabulate(
-            segment_lines, headers=["#", "Odcinek", "Tytuł", "Czas"], tablefmt="pipe", colalign=("left", "center", "left", "right"),
-        )
-        response += f"{table}\n"
+        response = format_search_list_response(search_term, segments)
 
         temp_dir = tempfile.gettempdir()
         sanitized_search_term = "".join([c for c in search_term if c.isalpha() or c.isdigit() or c == ' ']).rstrip().replace(" ", "_")
@@ -58,9 +53,9 @@ class SearchListHandler(BotMessageHandler):
 
         await self._log_system_message(
             logging.INFO,
-            f"List of search results for term '{search_term}' sent to user {username}.",
+            get_log_search_results_sent_message(search_term, username),
         )
 
     async def __reply_no_previous_search_results(self, message: Message, chat_id: int) -> None:
-        await message.answer("🔍 Nie znaleziono wcześniejszych wyników wyszukiwania.")
-        await self._log_system_message(logging.INFO, f"No previous search results found for chat ID {chat_id}.")
+        await message.answer(get_no_previous_search_results_message())
+        await self._log_system_message(logging.INFO, get_log_no_previous_search_results_message(chat_id))
