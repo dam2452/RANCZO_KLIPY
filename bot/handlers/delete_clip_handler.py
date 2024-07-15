@@ -19,20 +19,18 @@ class DeleteClipHandler(BotMessageHandler):
         return ['usunklip', 'deleteclip', 'uk']
 
     async def _do_handle(self, message: Message) -> None:
-        username = message.from_user.username
-
         command_parts = message.text.split(maxsplit=1)
         if len(command_parts) < 2:
             return await self._reply_invalid_args_count(message, get_invalid_args_count_message())
 
         clip_name = command_parts[1]
 
-        result = await DatabaseManager.delete_clip(username, clip_name)
+        result = await DatabaseManager.delete_clip(message.from_user.username, clip_name)
 
         if result == "DELETE 0":
-            await self.__reply_clip_not_exist(message, clip_name, username)
+            await self.__reply_clip_not_exist(message, clip_name, message.from_user.username)
         else:
-            await self.__reply_clip_deleted(message, clip_name, username)
+            await self.__reply_clip_deleted(message, clip_name, message.from_user.username)
 
     async def __reply_clip_not_exist(self, message: Message, clip_name: str, username: str) -> None:
         await message.answer(get_clip_not_exist_message(clip_name))

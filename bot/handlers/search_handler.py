@@ -1,12 +1,8 @@
 import logging
-from typing import (
-    Dict,
-    List,
-)
+from typing import List
 
 from aiogram.types import Message
 from bot_message_handler import BotMessageHandler
-from elastic_transport import ObjectApiResponse
 
 from bot.handlers.responses.search_handler_responses import (
     format_search_response,
@@ -24,7 +20,6 @@ class SearchHandler(BotMessageHandler):
         return ['szukaj', 'search', 'sz']
 
     async def _do_handle(self, message: Message) -> None:
-        chat_id = message.chat.id
         content = message.text.split()
         if len(content) < 2:
             return await self._reply_invalid_args_count(message, get_invalid_args_count_message())
@@ -35,30 +30,11 @@ class SearchHandler(BotMessageHandler):
         if not segments:
             return await self.__reply_no_segments_found(message, quote)
 
-        unique_segments = self.__get_unique_segments(segments)
-        last_search[chat_id] = {'quote': quote, 'segments': list(unique_segments.values())}
+        last_search[message.chat.id] = {'quote': quote, 'segments': segments}
 
-        response = format_search_response(len(unique_segments), last_search[chat_id]['segments'])
+        response = format_search_response(len(segments), segments)
 
         await self.__send_search_results(message, response, quote)
-
-    @staticmethod
-    def __get_unique_segments(segments: List[ObjectApiResponse]) -> Dict[str, ObjectApiResponse]:
-        unique_segments = {}
-        for segment in segments:
-            episode_info = segment.get('episode_info', {})
-            title = episode_info.get('title', 'Unknown')
-            season = episode_info.get('season', 'Unknown')
-            episode_number = episode_info.get('episode_number', 'Unknown')
-            start_time = segment.get('start', 'Unknown')
-
-            if season == 'Unknown' or episode_number == 'Unknown':
-                continue
-
-            unique_key = f"{title}-{season}-{episode_number}-{start_time}"
-            if unique_key not in unique_segments:
-                unique_segments[unique_key] = segment
-        return unique_segments
 
     async def __reply_no_segments_found(self, message: Message, quote: str) -> None:
         await message.answer(get_no_segments_found_message())

@@ -24,15 +24,13 @@ class SendClipHandler(BotMessageHandler):
         return ['wyślij', 'wyslij', 'send', 'wys']
 
     async def _do_handle(self, message: Message) -> None:
-        username = message.from_user.username
-
         content = message.text.split()
         if len(content) < 2:
             return await self._reply_invalid_args_count(message, "📄 Podaj nazwę klipu. Przykład: /wyślij nazwa_klipu")
 
         clip_name = content[1]
 
-        clip = await DatabaseManager.get_clip_by_name(username, clip_name)
+        clip = await DatabaseManager.get_clip_by_name(message.from_user.username, clip_name)
         if not clip:
             return await self.__reply_clip_not_found(message, clip_name)
 
@@ -51,7 +49,7 @@ class SendClipHandler(BotMessageHandler):
         await VideoManager.send_video(message.chat.id, temp_file_path, self._bot)
 
         os.remove(temp_file_path)
-        await self._log_system_message(logging.INFO, get_log_clip_sent_message(clip_name, username))
+        await self._log_system_message(logging.INFO, get_log_clip_sent_message(clip_name, message.from_user.username))
 
     async def __reply_clip_not_found(self, message: Message, clip_name: str) -> None:
         await message.answer(get_clip_not_found_message(clip_name))

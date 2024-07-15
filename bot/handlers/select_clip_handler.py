@@ -30,12 +30,11 @@ class SelectClipHandler(BotMessageHandler):
         if len(content) < 2:
             return await self._reply_invalid_args_count(message, get_invalid_args_count_message())
 
-        chat_id = message.chat.id
-        if chat_id not in last_search:
+        if message.chat.id not in last_search:
             return await self.__reply_no_previous_search(message)
 
         index = int(content[1])
-        segments = last_search[chat_id]['segments']
+        segments = last_search[message.chat.id]['segments']
 
         if index not in range(1, len(segments) + 1):
             return await self.__reply_invalid_segment_number(message, index)
@@ -45,9 +44,9 @@ class SelectClipHandler(BotMessageHandler):
         start_time = max(0, segment['start'] - Settings.EXTEND_BEFORE)
         end_time = segment['end'] + Settings.EXTEND_AFTER
 
-        await VideoManager.extract_and_send_clip(chat_id, video_path, start_time, end_time, self._bot)
+        await VideoManager.extract_and_send_clip(message.chat.id, video_path, start_time, end_time, self._bot)
 
-        last_clip[chat_id] = {'segment': segment, 'type': 'segment'}
+        last_clip[message.chat.id] = {'segment': segment, 'type': 'segment'}
         await self._log_system_message(
             logging.INFO,
             get_log_segment_selected_message(segment['id'], message.from_user.username),

@@ -75,8 +75,7 @@ class SaveClipHandler(BotMessageHandler):
 
     @staticmethod
     def __get_segment_info(message: Message) -> Optional[SegmentInfo]:
-        chat_id = message.chat.id
-        last_clip_info = last_clip.get(chat_id)
+        last_clip_info = last_clip.get(message.chat.id)
         if last_clip_info is None:
             return None
 

@@ -46,9 +46,8 @@ class StartHandler(BotMessageHandler):
         return ['start', 's', 'help', 'h']
 
     async def _do_handle(self, message: Message) -> None:
-        username = message.from_user.username
         content = message.text.split()
-        await self._log_system_message(logging.INFO, get_log_received_start_command(username, message.text))
+        await self._log_system_message(logging.INFO, get_log_received_start_command(message.from_user.username, message.text))
 
         if len(content) == 1:
             await self.__send_message(message, get_basic_message())

@@ -39,29 +39,27 @@ class CompileClipsHandler(BotMessageHandler):
         return ['kompiluj', 'compile', 'kom']
 
     async def _do_handle(self, message: Message) -> None:
-        username = message.from_user.username
-        chat_id = message.chat.id
         content = message.text.split()
 
         if len(content) < 2:
             return await self._reply_invalid_args_count(message, get_invalid_args_count_message())
 
-        if chat_id not in last_search or not last_search[chat_id]['segments']:
+        if message.chat.id not in last_search or not last_search[message.chat.id]['segments']:
             return await self.__reply_no_previous_search_results(message)
 
-        segments = last_search[chat_id]['segments']
+        segments = last_search[message.chat.id]['segments']
         selected_segments = self.__parse_segments(content[1:], segments)
 
         if not selected_segments:
             return await self.__reply_no_matching_segments_found(message)
 
         compiled_output = await compile_clips(selected_segments)
-        await send_compiled_clip(chat_id, compiled_output, self._bot)
+        await send_compiled_clip(message.chat.id, compiled_output, self._bot)
         if os.path.exists(compiled_output):
             os.remove(compiled_output)
 
-        last_clip[chat_id] = {'compiled_clip': compiled_output, 'type': 'compiled'}
-        await self._log_system_message(logging.INFO, get_compilation_success_message(username))
+        last_clip[message.chat.id] = {'compiled_clip': compiled_output, 'type': 'compiled'}
+        await self._log_system_message(logging.INFO, get_compilation_success_message(message.from_user.username))
 
     @staticmethod
     def __parse_segments(content: List[str], segments: List[Dict[str, Union[str, bytes]]]) -> List[bytes]:

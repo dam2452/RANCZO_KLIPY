@@ -18,19 +18,17 @@ class ReportIssueHandler(BotMessageHandler):
         return ['report', 'zgłoś', 'zglos', 'r']
 
     async def _do_handle(self, message: Message) -> None:
-        username = message.from_user.username
-
         report_content = message.text.split(maxsplit=1)
         if len(report_content) < 2:
-            return await self.__reply_no_report_content(message, username)
+            return await self.__reply_no_report_content(message)
 
-        await self.__handle_user_report_submission(message, username, report_content[1])
+        await self.__handle_user_report_submission(message, report_content[1])
 
-    async def __reply_no_report_content(self, message: Message, username: str) -> None:
+    async def __reply_no_report_content(self, message: Message) -> None:
         await message.answer(get_no_report_content_message())
-        await self._log_system_message(logging.INFO, get_log_no_report_content_message(username))
+        await self._log_system_message(logging.INFO, get_log_no_report_content_message(message.from_user.username))
 
-    async def __handle_user_report_submission(self, message: Message, username: str, report: str) -> None:
-        await DatabaseManager.add_report(username, report)
+    async def __handle_user_report_submission(self, message: Message, report: str) -> None:
+        await DatabaseManager.add_report(message.from_user.username, report)
         await message.answer(get_report_received_message())
-        await self._log_system_message(logging.INFO, get_log_report_received_message(username, report))
+        await self._log_system_message(logging.INFO, get_log_report_received_message(message.from_user.username, report))

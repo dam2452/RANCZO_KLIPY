@@ -27,13 +27,10 @@ class SearchListHandler(BotMessageHandler):
         return ['lista', 'list', 'l']
 
     async def _do_handle(self, message: Message) -> None:
-        username = message.from_user.username
-        chat_id = message.chat.id
+        if message.chat.id not in last_search:
+            return await self.__reply_no_previous_search_results(message)
 
-        if chat_id not in last_search:
-            return await self.__reply_no_previous_search_results(message, chat_id)
-
-        search_data: Dict[str, Union[str, List[Dict[str, Union[str, int]]]]] = last_search[chat_id]
+        search_data: Dict[str, Union[str, List[Dict[str, Union[str, int]]]]] = last_search[message.chat.id]
         segments = search_data['segments']
         search_term = search_data['quote']
 
@@ -46,14 +43,14 @@ class SearchListHandler(BotMessageHandler):
             file.write(response)
 
         input_file = FSInputFile(file_name)
-        await self._bot.send_document(chat_id, input_file, caption="📄 Znalezione cytaty")
+        await self._bot.send_document(message.chat.id, input_file, caption="📄 Znalezione cytaty")
         os.remove(file_name)
 
         await self._log_system_message(
             logging.INFO,
-            get_log_search_results_sent_message(search_term, username),
+            get_log_search_results_sent_message(search_term, message.from_user.username),
         )
 
-    async def __reply_no_previous_search_results(self, message: Message, chat_id: int) -> None:
+    async def __reply_no_previous_search_results(self, message: Message) -> None:
         await message.answer(get_no_previous_search_results_message())
-        await self._log_system_message(logging.INFO, get_log_no_previous_search_results_message(chat_id))
+        await self._log_system_message(logging.INFO, get_log_no_previous_search_results_message(message.chat.id))

@@ -30,22 +30,19 @@ class CompileSelectedClipsHandler(BotMessageHandler):
         return ['polaczklipy', 'concatclips', 'pk']
 
     async def _do_handle(self, message: Message) -> None:
-        username = message.from_user.username
-
-        chat_id = message.chat.id
         content = message.text.split()
 
         if len(content) < 2:
             return await self._reply_invalid_args_count(message, get_invalid_args_count_message())
 
         clip_names = content[1:]
-        selected_clips_data = await self.__get_selected_clips_data(clip_names, username, message)
+        selected_clips_data = await self.__get_selected_clips_data(clip_names, message.from_user.username, message)
 
         if not selected_clips_data:
             return await self.__reply_no_matching_clips_found(message)
 
         compiled_output = await compile_clips(selected_clips_data)
-        await send_compiled_clip(chat_id, compiled_output, self._bot)
+        await send_compiled_clip(message.chat.id, compiled_output, self._bot)
         if os.path.exists(compiled_output):
             os.remove(compiled_output)
 
@@ -53,7 +50,7 @@ class CompileSelectedClipsHandler(BotMessageHandler):
 
         await self._log_system_message(
             logging.INFO,
-            get_compiled_clip_sent_message(username),
+            get_compiled_clip_sent_message(message.from_user.username),
         )
 
     async def __get_selected_clips_data(self, clip_names: List[str], username: str, message: Message) -> List[bytes]:
