@@ -7,10 +7,12 @@ from bot.utils.database import DatabaseManager
 
 logger = logging.getLogger(__name__)
 
+
 class FFmpegException(Exception):
     def __init__(self, stderr: str) -> None:
         self.message = f"FFMpeg error: {stderr}"
         super().__init__(self.message)
+
 
 class VideoProcessor:
     @staticmethod
@@ -22,16 +24,19 @@ class VideoProcessor:
             f"Extracting clip from {video_path}, start: {start_time}, end: {end_time}, duration: {duration}",
         )
 
-        ffmpeg = FFmpeg().input(
-            video_path, ss=start_time,
-        ).output(
-            output_filename,
-            t=duration,
-            c='copy',
-            movflags='+faststart',
-            fflags='+genpts',
-            avoid_negative_ts='1',
-        ).overwrite_output()
+        ffmpeg = (
+            FFmpeg()
+            .option("y")
+            .input(video_path, ss=start_time)
+            .output(
+                output_filename,
+                t=duration,
+                c='copy',
+                movflags='+faststart',
+                fflags='+genpts',
+                avoid_negative_ts='1',
+            )
+        )
 
         try:
             await ffmpeg.execute()
@@ -39,7 +44,7 @@ class VideoProcessor:
             logger.info(success_message)
             await DatabaseManager.log_system_message("INFO", success_message)
         except FFmpegException as e:
-            err_message = f"Error extracting clip: {e.stderr.decode()}"
+            err_message = f"Error extracting clip: {e}"
             logger.error(err_message)
             await DatabaseManager.log_system_message("ERROR", err_message)
             raise e
@@ -63,16 +68,15 @@ class VideoProcessor:
 
     @staticmethod
     async def get_video_duration(file_path: str) -> Optional[float]:
-        ffmpeg = FFmpeg().input(file_path)
 
         try:
-            probe = await ffmpeg.probe()
+            probe = await FFmpeg.probe(file_path)
             duration = float(probe['format']['duration'])
             logger.info(f"Video duration for '{file_path}': {duration} seconds")
             await DatabaseManager.log_system_message("INFO", f"Video duration for '{file_path}': {duration} seconds")
             return duration
         except FFmpegException as e:
-            error_message = f"Error getting video duration for '{file_path}': {e.stderr.decode()}"
+            error_message = f"Error getting video duration for '{file_path}': {e}"
             logger.error(error_message)
             await DatabaseManager.log_system_message("ERROR", error_message)
             return None

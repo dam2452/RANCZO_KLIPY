@@ -20,8 +20,8 @@ logger = logging.getLogger(__name__)
 
 class ErrorHandlerMiddleware(BaseMiddleware):
     async def __call__(
-        self, handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]], event: TelegramObject,
-        data: Dict[str, Any],
+            self, handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]], event: TelegramObject,
+            data: Dict[str, Any],
     ) -> Optional[Awaitable]:
         try:
             return await handler(event, data)
@@ -30,7 +30,6 @@ class ErrorHandlerMiddleware(BaseMiddleware):
             if message:
                 await message.answer("⚠️ Wystąpił błąd podczas przetwarzania Twojego żądania. Prosimy spróbować ponownie później.⚠️")
                 await DatabaseManager.log_system_message("ERROR", f"Error processing request from user '{message.from_user.username}': {e}")
-
 
             error_message = f"An error occurred: {e}"
             logger.error(error_message, exc_info=True)
