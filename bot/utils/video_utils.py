@@ -3,7 +3,6 @@ from typing import Optional
 
 from ffmpeg.asyncio import FFmpeg
 
-from bot.utils.database import DatabaseManager
 from bot.utils.log import log_system_message
 
 logger = logging.getLogger(__name__)

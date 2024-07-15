@@ -8,7 +8,6 @@ from typing import (
 
 from elastic_transport import ObjectApiResponse
 
-from bot.utils.database import DatabaseManager
 from bot.utils.es_manager import connect_to_elasticsearch
 from bot.utils.log import log_system_message
 

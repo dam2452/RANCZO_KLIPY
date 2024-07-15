@@ -6,11 +6,9 @@ from elasticsearch import (
     AsyncElasticsearch,
     helpers,
 )
-from elasticsearch.exceptions import ConnectionError
 import urllib3
 
 from bot.settings import Settings
-from bot.utils.database import DatabaseManager
 from bot.utils.log import log_system_message
 
 logging.basicConfig(level=logging.INFO)
