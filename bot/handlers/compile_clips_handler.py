@@ -17,6 +17,16 @@ from bot.utils.global_dicts import (
     last_clip,
     last_search,
 )
+from bot.handlers.responses.compile_clips_handler_responses import (
+    get_invalid_args_count_message,
+    get_no_previous_search_results_message,
+    get_no_matching_segments_found_message,
+    get_invalid_range_message,
+    get_invalid_index_message,
+    get_compilation_success_message,
+    get_log_no_previous_search_results_message,
+    get_log_no_matching_segments_found_message
+)
 
 
 class CompileClipsHandler(BotMessageHandler):
@@ -35,10 +45,7 @@ class CompileClipsHandler(BotMessageHandler):
         content = message.text.split()
 
         if len(content) < 2:
-            return await self._reply_invalid_args_count(
-                message,
-                "🔄 Proszę podać indeksy segmentów do skompilowania, zakres lub 'wszystko' do kompilacji wszystkich segmentów.",
-            )
+            return await self._reply_invalid_args_count(message, get_invalid_args_count_message())
 
         if chat_id not in last_search or not last_search[chat_id]['segments']:
             return await self.__reply_no_previous_search_results(message)
@@ -55,7 +62,7 @@ class CompileClipsHandler(BotMessageHandler):
             os.remove(compiled_output)
 
         last_clip[chat_id] = {'compiled_clip': compiled_output, 'type': 'compiled'}
-        await self._log_system_message(logging.INFO, f"Compiled clip sent to user '{username}' and temporary files removed.")
+        await self._log_system_message(logging.INFO, get_compilation_success_message(username))
 
     @staticmethod
     def __parse_segments(content: List[str], segments: List[Dict[str, Union[str, bytes]]]) -> List[bytes]:
@@ -79,19 +86,19 @@ class CompileClipsHandler(BotMessageHandler):
             start, end = [int(i) for i in index.split('-')]
             return [segments[i - 1]['data'] for i in range(start, end + 1)]
         except ValueError as e:
-            raise CompileClipsHandler.ParseSegmentsException(f"⚠️ Podano nieprawidłowy zakres segmentów: {index} ⚠️") from e
+            raise CompileClipsHandler.ParseSegmentsException(get_invalid_range_message(index)) from e
 
     @staticmethod
     def __parse_single(index: str, segments: List[Dict[str, Union[str, bytes]]]) -> bytes:
         try:
             return segments[int(index) - 1]['data']
         except (ValueError, IndexError) as e:
-            raise CompileClipsHandler.ParseSegmentsException(f"⚠️ Podano nieprawidłowy indeks segmentu: {index} ⚠️") from e
+            raise CompileClipsHandler.ParseSegmentsException(get_invalid_index_message(index)) from e
 
     async def __reply_no_previous_search_results(self, message: Message) -> None:
-        await message.answer("🔍 Najpierw wykonaj wyszukiwanie za pomocą /szukaj.")
-        await self._log_system_message(logging.INFO, "No previous search results found for user.")
+        await message.answer(get_no_previous_search_results_message())
+        await self._log_system_message(logging.INFO, get_log_no_previous_search_results_message())
 
     async def __reply_no_matching_segments_found(self, message: Message) -> None:
-        await message.answer("❌ Nie znaleziono pasujących segmentów do kompilacji.❌")
-        await self._log_system_message(logging.INFO, "No matching segments found for compilation.")
+        await message.answer(get_no_matching_segments_found_message())
+        await self._log_system_message(logging.INFO, get_log_no_matching_segments_found_message())
