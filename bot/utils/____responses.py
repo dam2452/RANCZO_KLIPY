@@ -168,8 +168,7 @@ def get_subskrypcje_message() -> str:
 
 
 
-def get_user_removed_message(username: str) -> str:
-    return f"✅ Usunięto {username} z whitelisty.✅"
+
 
 
 def get_user_updated_message(username: str) -> str:
