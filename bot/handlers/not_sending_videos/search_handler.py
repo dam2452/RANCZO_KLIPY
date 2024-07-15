@@ -28,7 +28,7 @@ class SearchHandler(BotMessageHandler):
 
         quote = ' '.join(content[1:])
 
-        segments = await TranscriptionFinder.find_segment_by_quote(quote, return_all=True)
+        segments = await TranscriptionFinder.find_segment_by_quote(quote, self._logger, return_all=True)
         if not segments:
             return await self.__reply_no_segments_found(message, quote)
 

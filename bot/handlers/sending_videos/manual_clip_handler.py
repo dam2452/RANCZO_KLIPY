@@ -56,7 +56,7 @@ class ManualClipHandler(BotMessageHandler):
         if end_seconds <= start_seconds:
             return await self.__reply_end_time_earlier_than_start(message)
 
-        video_path = await TranscriptionFinder.find_video_path_by_episode(episode.season, episode.get_absolute_episode_number())
+        video_path = await TranscriptionFinder.find_video_path_by_episode(episode.season, episode.get_absolute_episode_number(), self._logger)
         if not video_path or not os.path.exists(video_path):
             return await self.__reply_video_file_not_exist(message, video_path)
 

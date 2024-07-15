@@ -27,7 +27,7 @@ class EpisodeListHandler(BotMessageHandler):
             return await self._reply_invalid_args_count(message, get_invalid_args_count_message())
 
         season = int(content[1])
-        episodes = await TranscriptionFinder.find_episodes_by_season(season)
+        episodes = await TranscriptionFinder.find_episodes_by_season(season, self._logger)
         if not episodes:
             return await self.__reply_no_episodes_found(message, season)
 

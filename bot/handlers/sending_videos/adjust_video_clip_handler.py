@@ -9,19 +9,26 @@ from bot.database.global_dicts import (
 )
 from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.responses.sending_videos.adjust_video_clip_handler_responses import (
+    get_extraction_failure_log,
     get_extraction_failure_message,
+    get_invalid_args_count_log,
     get_invalid_args_count_message,
+    get_invalid_interval_log,
     get_invalid_interval_message,
     get_invalid_segment_index_message,
+    get_invalid_segment_log,
+    get_no_previous_searches_log,
     get_no_previous_searches_message,
+    get_no_quotes_selected_log,
     get_no_quotes_selected_message,
+    get_successful_adjustment_message,
+    get_updated_segment_info_log,
 )
 from bot.settings import Settings
 from bot.video.clips_extractor import ClipsExtractor
 from bot.video.utils import FFMpegException
 
 
-# fixme wszystkie logi klasy do wyniesienia ig
 class AdjustVideoClipHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ['dostosuj', 'adjust', 'd']
@@ -63,33 +70,36 @@ class AdjustVideoClipHandler(BotMessageHandler):
             return await self.__reply_invalid_interval(message)
 
         try:
-            await ClipsExtractor.extract_and_send_clip(segment_info.get("video_path"), message, self._bot, self._logger, start_time, end_time)
+            await ClipsExtractor.extract_and_send_clip(
+                segment_info.get("video_path"), message, self._bot, self._logger, start_time,
+                end_time,
+            )
         except FFMpegException as e:
             return await self.__reply_extraction_failure(message, e)
 
-        await self._log_system_message(logging.INFO, f"Updated segment info for chat ID '{message.chat.id}'")
-        await self._log_system_message(logging.INFO, f"Video clip adjusted successfully for user '{message.from_user.username}'.")
+        await self._log_system_message(logging.INFO, get_updated_segment_info_log(message.chat.id))
+        await self._log_system_message(logging.INFO, get_successful_adjustment_message(message.from_user.username))
 
     async def __reply_no_previous_searches(self, message: Message) -> None:
         await message.answer(get_no_previous_searches_message())
-        await self._log_system_message(logging.INFO, "No previous search results found for user.")
+        await self._log_system_message(logging.INFO, get_no_previous_searches_log())
 
     async def __reply_no_quotes_selected(self, message: Message) -> None:
         await message.answer(get_no_quotes_selected_message())
-        await self._log_system_message(logging.INFO, "No segment selected by user.")
+        await self._log_system_message(logging.INFO, get_no_quotes_selected_log())
 
     async def __reply_invalid_args_count(self, message: Message) -> None:
         await message.answer(get_invalid_args_count_message())
-        await self._log_system_message(logging.INFO, "Invalid number of arguments provided by user.")
+        await self._log_system_message(logging.INFO, get_invalid_args_count_log())
 
     async def __reply_invalid_interval(self, message: Message) -> None:
         await message.answer(get_invalid_interval_message())
-        await self._log_system_message(logging.INFO, "End time must be later than start time.")
+        await self._log_system_message(logging.INFO, get_invalid_interval_log())
 
     async def __reply_invalid_segment_index(self, message: Message) -> None:
         await message.answer(get_invalid_segment_index_message())
-        await self._log_system_message(logging.INFO, "Invalid segment index provided by user.")
+        await self._log_system_message(logging.INFO, get_invalid_segment_log())
 
     async def __reply_extraction_failure(self, message: Message, exception: FFMpegException) -> None:
         await message.answer(get_extraction_failure_message(exception))
-        await self._log_system_message(logging.ERROR, f"Failed to adjust video clip: {exception}")
+        await self._log_system_message(logging.ERROR, get_extraction_failure_log(exception))

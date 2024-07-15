@@ -23,3 +23,7 @@ def get_admin_help_message() -> str:
 🔍 /transkrypcja <cytat> - Wyszukuje cytat w transkrypcjach i zwraca kontekst. Przykład: /transkrypcja Nie szkoda panu tego pięknego gabinetu?
 
 ```"""
+
+
+def get_message_sent_log_message(username: str) -> str:
+    return f"Admin help message sent to user '{username}'."

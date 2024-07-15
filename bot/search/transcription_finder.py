@@ -8,17 +8,14 @@ from typing import (
 
 from elastic_transport import ObjectApiResponse
 
-from bot.search.elastic_search import connect_to_elasticsearch
+from bot.search.elastic_search_manager import ElasticSearchManager
 from bot.utils.log import log_system_message
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 
 class TranscriptionFinder:
     @staticmethod
     async def find_segment_by_quote(
-            quote: str, season_filter: Optional[int] = None, episode_filter: Optional[int] = None,
+            quote: str, logger: logging.Logger, season_filter: Optional[int] = None, episode_filter: Optional[int] = None,
             index: str = 'ranczo-transcriptions', return_all: bool = False,
     ) -> Optional[Union[List[ObjectApiResponse], ObjectApiResponse]]:
         await log_system_message(
@@ -26,7 +23,7 @@ class TranscriptionFinder:
             f"Searching for quote: '{quote}' with filters - Season: {season_filter}, Episode: {episode_filter}",
             logger,
         )
-        es = await connect_to_elasticsearch()
+        es = await ElasticSearchManager.connect_to_elasticsearch(logger)
 
         query = {
             "query": {
@@ -50,10 +47,7 @@ class TranscriptionFinder:
         if episode_filter:
             query["query"]["bool"]["filter"].append({"term": {"episode_info.episode_number": episode_filter}})
 
-        size = 10000 if return_all else 1
-
-        response = await es.search(index=index, body=query, size=size)
-        hits = response['hits']['hits']
+        hits = (await es.search(index=index, body=query, size=(10000 if return_all else 1)))['hits']['hits']
 
         if not hits:
             await log_system_message(logging.INFO, "No segments found matching the query.", logger)
@@ -64,12 +58,11 @@ class TranscriptionFinder:
         for hit in hits:
             segment = hit['_source']
             episode_info = segment.get('episode_info', {})
-            title = episode_info.get('title', 'Unknown')
-            season = episode_info.get('season', 'Unknown')
-            episode_number = episode_info.get('episode_number', 'Unknown')
-            start_time = segment.get('start', 'Unknown')
 
-            unique_key = f"{title}-{season}-{episode_number}-{start_time}"
+            unique_key = (
+                f"{episode_info.get('title', 'Unknown')}-{episode_info.get('season', 'Unknown')}-"
+                f"{episode_info.get('episode_number', 'Unknown')}-{segment.get('start', 'Unknown')}"
+            )
 
             if unique_key not in unique_segments:
                 unique_segments[unique_key] = segment
@@ -83,7 +76,8 @@ class TranscriptionFinder:
 
     @staticmethod
     async def find_segment_with_context(
-            quote: str, context_size: int = 30, season_filter: Optional[str] = None, episode_filter: Optional[str] = None,
+            quote: str, logger: logging.Logger, context_size: int = 30, season_filter: Optional[str] = None,
+            episode_filter: Optional[str] = None,
             index: str = 'ranczo-transcriptions',
     ) -> Optional[json]:
         await log_system_message(
@@ -91,9 +85,9 @@ class TranscriptionFinder:
             f"🔍 Searching for quote: '{quote}' with context size: {context_size}. Season: {season_filter}, Episode: {episode_filter}",
             logger,
         )
-        es = await connect_to_elasticsearch()
+        es = await ElasticSearchManager.connect_to_elasticsearch(logger)
 
-        segment = await TranscriptionFinder.find_segment_by_quote(quote, season_filter, episode_filter, index, return_all=False)
+        segment = await TranscriptionFinder.find_segment_by_quote(quote, logger, season_filter, episode_filter, index, return_all=False)
         if not segment:
             await log_system_message(logging.INFO, "No segments found matching the query.", logger)
             return None
@@ -156,13 +150,16 @@ class TranscriptionFinder:
         return {"target": segment, "context": unique_context_segments[start_index:end_index]}
 
     @staticmethod
-    async def find_video_path_by_episode(season: int, episode_number: int, index: str = 'ranczo-transcriptions') -> Optional[str]:
+    async def find_video_path_by_episode(
+            season: int, episode_number: int, logger: logging.Logger,
+            index: str = 'ranczo-transcriptions',
+    ) -> Optional[str]:
         await log_system_message(
             logging.INFO,
             f"Searching for video path with filters - Season: {season}, Episode: {episode_number}",
             logger,
         )
-        es = await connect_to_elasticsearch()
+        es = await ElasticSearchManager.connect_to_elasticsearch(logger)
 
         query = {
             "query": {
@@ -193,9 +190,9 @@ class TranscriptionFinder:
         return None
 
     @staticmethod
-    async def find_episodes_by_season(season: int, index: str = 'ranczo-transcriptions') -> Optional[List[json]]:
+    async def find_episodes_by_season(season: int, logger: logging.Logger, index: str = 'ranczo-transcriptions') -> Optional[List[json]]:
         await log_system_message(logging.INFO, f"Searching for episodes in season {season}", logger)
-        es = await connect_to_elasticsearch()
+        es = await ElasticSearchManager.connect_to_elasticsearch(logger)
 
         query = {
             "size": 0,

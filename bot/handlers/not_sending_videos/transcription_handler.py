@@ -26,7 +26,7 @@ class TranscriptionHandler(BotMessageHandler):
             return await self._reply_invalid_args_count(message, get_no_quote_provided_message())
 
         quote = ' '.join(content[1:])
-        result = await TranscriptionFinder.find_segment_with_context(quote, context_size=15)
+        result = await TranscriptionFinder.find_segment_with_context(quote, self._logger, context_size=15)
 
         if not result:
             return await self.__reply_no_segments_found(message, quote)
