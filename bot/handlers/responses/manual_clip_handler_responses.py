@@ -9,7 +9,7 @@ def get_incorrect_season_episode_format_message() -> str:
     return "❌ Błędny format sezonu i odcinka. Użyj formatu SxxExx. Przykład: S02E10"
 
 
-def get_video_file_not_exist_message(video_path: str) -> str:
+def get_video_file_not_exist_message() -> str:
     return "❌ Plik wideo nie istnieje dla podanego sezonu i odcinka."
 
 

@@ -13,7 +13,7 @@ class AdminHelpHandler(BotMessageHandler):
 
     async def _do_handle(self, message: Message) -> None:
         command = self.get_commands()[0]
-        await self._log_user_activity(message.from_user.username, "/{command}")
+        await self._log_user_activity(message.from_user.username, f"/{command}")
         await self.__reply_admin_help(message)
 
     async def __reply_admin_help(self, message: Message) -> None:

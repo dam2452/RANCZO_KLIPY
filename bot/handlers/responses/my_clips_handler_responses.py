@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import Dict
 
 
 number_to_emoji: Dict[str, str] = {
