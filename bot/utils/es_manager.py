@@ -5,11 +5,14 @@ import os
 from elasticsearch import (
     AsyncElasticsearch,
     helpers,
+
 )
+from elasticsearch.exceptions import ConnectionError
 import urllib3
 
 from bot.settings import Settings
 from bot.utils.database import DatabaseManager
+from bot.utils.log import log_system_message
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -28,25 +31,21 @@ async def connect_to_elasticsearch() -> AsyncElasticsearch:
         verify_certs=False,
     )
     if not await es.ping():
-        raise ValueError("Failed to connect to Elasticsearch.")
-    logger.info("Connected to Elasticsearch.")
-    await DatabaseManager.log_system_message("INFO", "Connected to Elasticsearch.")
+        raise ConnectionError("Failed to connect to Elasticsearch.")
+    await log_system_message(logging.INFO, "Connected to Elasticsearch.", logger)
     return es
 
 
 async def delete_all_indices(es: AsyncElasticsearch) -> None:
     all_indices = await es.indices.get(index="_all")
     if not all_indices:
-        logger.info("No indices to delete.")
-        await DatabaseManager.log_system_message("INFO", "No indices to delete.")
+        await log_system_message(logging.INFO, "No indices to delete.", logger)
         return
 
     for index in all_indices:
         await es.indices.delete(index=index)
-        logger.info(f"Deleted index: {index}")
-        await DatabaseManager.log_system_message("INFO", f"Deleted index: {index}")
-    logger.info("All indices have been deleted.")
-    await DatabaseManager.log_system_message("INFO", "All indices have been deleted.")
+        await log_system_message(logging.INFO, f"Deleted index: {index}", logger)
+    await log_system_message(logging.INFO, "All indices have been deleted.", logger)
 
 
     # fixme: kto to panu tak spierdolil xDD
@@ -59,8 +58,7 @@ async def index_transcriptions(base_path: str, es: AsyncElasticsearch) -> None:
             for episode_file in os.listdir(season_path):
                 if episode_file.endswith('.json'):
                     file_path = os.path.join(season_path, episode_file)
-                    logger.info(f"Processing file: {file_path}")
-                    await DatabaseManager.log_system_message("INFO", f"Processing file: {file_path}")
+                    await log_system_message(logging.INFO, f"Processing file: {file_path}", logger)
 
                     with open(file_path, 'r', encoding='utf-8') as f:
                         data = json.load(f)
@@ -79,14 +77,11 @@ async def index_transcriptions(base_path: str, es: AsyncElasticsearch) -> None:
                             })
 
     if actions:
-        logger.info(f"Indexing {len(actions)} segments.")
-        await DatabaseManager.log_system_message("INFO", f"Indexing {len(actions)} segments.")
+        await log_system_message(logging.INFO, f"Indexing {len(actions)} segments.", logger)
         await helpers.async_bulk(es, actions)
-        logger.info("Data indexed successfully.")
-        await DatabaseManager.log_system_message("INFO", "Data indexed successfully.")
+        await log_system_message(logging.INFO, "Data indexed successfully.", logger)
     else:
-        logger.info("No data to index.")
-        await DatabaseManager.log_system_message("INFO", "No data to index.")
+        await log_system_message(logging.INFO, "No data to index.", logger)
 
 
 async def print_one_transcription(es: AsyncElasticsearch, index: str = "ranczo-transcriptions") -> None:
@@ -99,12 +94,9 @@ async def print_one_transcription(es: AsyncElasticsearch, index: str = "ranczo-t
                           f"Video Path: {document['video_path']}\n" \
                           f"Segment Text: {document.get('text', 'No text available')}\n" \
                           f"Timestamp: {document.get('timestamp', 'No timestamp available')}"
-        logger.info("Retrieved document:")
-        print(readable_output)
-        await DatabaseManager.log_system_message("INFO", "Retrieved document:\n" + readable_output)
+        await log_system_message(logging.INFO, "Retrieved document:\n" + readable_output, logger)
     else:
-        logger.info("No documents found.")
-        await DatabaseManager.log_system_message("INFO", "No documents found.")
+        await log_system_message(logging.INFO, "No documents found.", logger)
 
 
 async def main() -> None:

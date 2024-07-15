@@ -40,18 +40,12 @@ class VideoProcessor:
 
         try:
             await ffmpeg.execute()
-            success_message = f"Clip extracted successfully: {output_filename}"
-            logger.info(success_message)
-            await DatabaseManager.log_system_message("INFO", success_message)
+            await log_system_message(logging.INFO, f"Clip extracted successfully: {output_filename}", logger)
         except FFmpegException as e:
-            err_message = f"Error extracting clip: {e}"
-            logger.error(err_message)
-            await DatabaseManager.log_system_message("ERROR", err_message)
+            await log_system_message(logging.ERROR, f"Error extracting clip: {e}", logger)
             raise e
         except Exception as e:
-            err_message = f"Unexpected error: {e}"
-            logger.error(err_message, exc_info=True)
-            await DatabaseManager.log_system_message("ERROR", err_message)
+            await log_system_message(logging.ERROR, f"Unexpected error: {e}", logger)
             raise e
 
     @staticmethod
@@ -72,16 +66,11 @@ class VideoProcessor:
         try:
             probe = await FFmpeg.probe(file_path)
             duration = float(probe['format']['duration'])
-            logger.info(f"Video duration for '{file_path}': {duration} seconds")
-            await DatabaseManager.log_system_message("INFO", f"Video duration for '{file_path}': {duration} seconds")
+            await log_system_message(logging.INFO, f"Video duration for '{file_path}': {duration} seconds", logger)
             return duration
         except FFmpegException as e:
-            error_message = f"Error getting video duration for '{file_path}': {e}"
-            logger.error(error_message)
-            await DatabaseManager.log_system_message("ERROR", error_message)
+            await log_system_message(logging.ERROR, f"Error getting video duration for '{file_path}': {e}", logger)
             return None
         except Exception as e:
-            error_message = f"Unexpected error: {e}"
-            logger.error(error_message, exc_info=True)
-            await DatabaseManager.log_system_message("ERROR", error_message)
+            await log_system_message(logging.ERROR,f"Unexpected error: {e}", logger)
             raise

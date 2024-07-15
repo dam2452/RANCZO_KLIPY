@@ -1,6 +1,7 @@
 import argparse
 import os
 import subprocess
+import logging
 
 
 def convert_videos(input_dir: str, output_dir: str) -> None:
@@ -23,7 +24,7 @@ def convert_videos(input_dir: str, output_dir: str) -> None:
                     "-movflags", "+faststart", output_path,
                 ]
 
-                print(f"Processing {input_path} to {output_path}")
+                logging.info(f"Processing {input_path} to {output_path}")
                 subprocess.run(command, check=True)
 
 

@@ -1,5 +1,6 @@
 import json
 import os
+import logging
 
 
 def load_episode_info() -> json:
@@ -37,11 +38,11 @@ def add_episode_info_to_transcriptions(base_path: str = "RANCZO-TRANSKRYPCJE") -
 
                     with open(transcriptions_path, 'w', encoding='utf-8') as file:
                         json.dump(updated_transcriptions, file, ensure_ascii=False, indent=4)
-                    print(f"Updated: {transcriptions_path}")
+                    logging.info(f"Updated: {transcriptions_path}")
                 else:
-                    print(f"File not found: {transcriptions_path}")
+                    logging.error(f"File not found: {transcriptions_path}")
             else:
-                print(f"No episode info available for Season {season}, Episode {episode}. Skipping...")
+                logging.error(f"No episode info available for Season {season}, Episode {episode}. Skipping...")
 
 
 if __name__ == "__main__":

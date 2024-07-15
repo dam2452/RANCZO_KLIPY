@@ -10,6 +10,7 @@ from elastic_transport import ObjectApiResponse
 
 from bot.utils.database import DatabaseManager
 from bot.utils.es_manager import connect_to_elasticsearch
+from bot.utils.log import log_system_message
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -36,10 +37,10 @@ class SearchTranscriptions:
         - The first matching segment if return_all is False.
         - None if no matches are found.
         """
-        logger.info(f"🔍 Searching for quote: '{quote}' with filters - Season: {season_filter}, Episode: {episode_filter}")
-        await DatabaseManager.log_system_message(
-            "INFO",
+        await log_system_message(
+            logging.INFO,
             f"Searching for quote: '{quote}' with filters - Season: {season_filter}, Episode: {episode_filter}",
+            logger
         )
         es = await connect_to_elasticsearch()
 
@@ -71,8 +72,7 @@ class SearchTranscriptions:
         hits = response['hits']['hits']
 
         if not hits:
-            logger.info("❌ No segments found matching the query.❌")
-            await DatabaseManager.log_system_message("INFO", "No segments found matching the query.")
+            await log_system_message(logging.INFO, "No segments found matching the query.", logger)
             return None
 
         unique_segments = {}
@@ -90,8 +90,7 @@ class SearchTranscriptions:
             if unique_key not in unique_segments:
                 unique_segments[unique_key] = segment
 
-        logger.info(f"✅ Found {len(unique_segments)} unique segments matching the query.✅")
-        await DatabaseManager.log_system_message("INFO", f"Found {len(unique_segments)} unique segments matching the query.")
+        await log_system_message(logging.INFO, f"Found {len(unique_segments)} unique segments matching the query.", logger)
 
         if return_all:
             return list(unique_segments.values())
@@ -103,31 +102,27 @@ class SearchTranscriptions:
             quote: str, context_size: int = 30, season_filter: Optional[str] = None, episode_filter: Optional[str] = None,
             index: str = 'ranczo-transcriptions',
     ) -> Optional[json]:
-        log = f"🔍 Searching for quote: '{quote}' with context size: {context_size}. Season: {season_filter}, Episode: {episode_filter}"
-        logger.info(log)
-        await DatabaseManager.log_system_message("INFO", log)
+        await log_system_message(logging.INFO,
+                                 f"🔍 Searching for quote: '{quote}' with context size: {context_size}. Season: {season_filter}, Episode: {episode_filter}",
+                                 logger)
         es = await connect_to_elasticsearch()
 
         segment = await SearchTranscriptions.find_segment_by_quote(quote, season_filter, episode_filter, index, return_all=False)
         if not segment:
-            logger.info("❌ No segments found matching the query.❌")
-            await DatabaseManager.log_system_message("INFO", "No segments found matching the query.")
+            await log_system_message(logging.INFO, "No segments found matching the query.", logger)
             return None
 
         segment = segment[0] if isinstance(segment, list) else segment
-        segment_id = segment['id']
-        episode_number = segment['episode_info']['episode_number']
-        season_number = segment['episode_info']['season']
 
         context_query_before = {
             "query": {
                 "bool": {
                     "must": [
-                        {"term": {"episode_info.season": season_number}},
-                        {"term": {"episode_info.episode_number": episode_number}},
+                        {"term": {"episode_info.season": segment['episode_info']['season']}},
+                        {"term": {"episode_info.episode_number": segment['episode_info']['episode_number']}},
                     ],
                     "filter": [
-                        {"range": {"id": {"lt": segment_id}}},
+                        {"range": {"id": {"lt": segment['id']}}},
                     ],
                 },
             },
@@ -139,11 +134,11 @@ class SearchTranscriptions:
             "query": {
                 "bool": {
                     "must": [
-                        {"term": {"episode_info.season": season_number}},
-                        {"term": {"episode_info.episode_number": episode_number}},
+                        {"term": {"episode_info.season": segment['episode_info']['season']}},
+                        {"term": {"episode_info.episode_number": segment['episode_info']['episode_number']}},
                     ],
                     "filter": [
-                        {"range": {"id": {"gt": segment_id}}},
+                        {"range": {"id": {"gt": segment['id']}}},
                     ],
                 },
             },
@@ -161,27 +156,18 @@ class SearchTranscriptions:
 
         context_segments_before.reverse()
 
-        context_segments = context_segments_before + [{'id': segment['id'], 'text': segment['text']}] + context_segments_after
-
-        seen_ids = set()
         unique_context_segments = []
-        for seg in context_segments:
-            if seg['id'] not in seen_ids:
+        for seg in context_segments_before + [{'id': segment['id'], 'text': segment['text']}] + context_segments_after:
+            if seg not in unique_context_segments:
                 unique_context_segments.append(seg)
-                seen_ids.add(seg['id'])
 
-        logger.info(f"✅ Found {len(unique_context_segments)} unique segments for context.✅")
-        await DatabaseManager.log_system_message("INFO", f"Found {len(unique_context_segments)} unique segments for context.")
+        await log_system_message(logging.INFO, f"Found {len(unique_context_segments)} unique segments for context.", logger)
 
         target_index = unique_context_segments.index({'id': segment['id'], 'text': segment['text']})
         start_index = max(target_index - context_size, 0)
         end_index = min(target_index + context_size + 1, len(unique_context_segments))
-        final_context_segments = unique_context_segments[start_index:end_index]
 
-        return {
-            "target": segment,
-            "context": final_context_segments,
-        }
+        return {"target": segment, "context": unique_context_segments[start_index:end_index]}
 
     @staticmethod
     async def find_video_path_by_episode(season: int, episode_number: int, index: str = 'ranczo-transcriptions') -> Optional[str]:
@@ -197,10 +183,10 @@ class SearchTranscriptions:
         - The video path if a matching segment is found.
         - None if no matches are found.
         """
-        logger.info(f"🔍 Searching for video path with filters - Season: {season}, Episode: {episode_number}")
-        await DatabaseManager.log_system_message(
-            "INFO",
+        await log_system_message(
+            logging.INFO,
             f"Searching for video path with filters - Season: {season}, Episode: {episode_number}",
+            logger
         )
         es = await connect_to_elasticsearch()
 
@@ -219,20 +205,17 @@ class SearchTranscriptions:
         hits = response['hits']['hits']
 
         if not hits:
-            logger.info("❌ No segments found matching the query.")
-            await DatabaseManager.log_system_message("INFO", "No segments found matching the query.")
+            await log_system_message(logging.INFO, "No segments found matching the query.", logger)
             return None
 
         segment = hits[0]['_source']
         video_path = segment.get('video_path', None)
 
         if video_path:
-            logger.info(f"✅ Found video path: {video_path}")
-            await DatabaseManager.log_system_message("INFO", f"Found video path: {video_path}")
+            await log_system_message(logging.INFO, f"Found video path: {video_path}", logger)
             return video_path
 
-        logger.info("❌ Video path not found in the segment.")
-        await DatabaseManager.log_system_message("INFO", "Video path not found in the segment.")
+        await log_system_message(logging.INFO, "Video path not found in the segment.", logger)
         return None
 
     @staticmethod
@@ -248,8 +231,7 @@ class SearchTranscriptions:
         - A list of episodes if matching segments are found.
         - None if no matches are found.
         """
-        logger.info(f"🔍 Searching for episodes in season {season}")
-        await DatabaseManager.log_system_message("INFO", f"Searching for episodes in season {season}")
+        await log_system_message(logging.INFO, f"Searching for episodes in season {season}", logger)
         es = await connect_to_elasticsearch()
 
         query = {
@@ -289,8 +271,7 @@ class SearchTranscriptions:
         buckets = response['aggregations']['unique_episodes']['buckets']
 
         if not buckets:
-            logger.info(f"❌ No episodes found for season {season}.")
-            await DatabaseManager.log_system_message("INFO", f"No episodes found for season {season}.")
+            await log_system_message(logging.INFO, f"No episodes found for season {season}.", logger)
             return None
 
         episodes = []
@@ -304,6 +285,5 @@ class SearchTranscriptions:
             }
             episodes.append(episode)
 
-        logger.info(f"✅ Found {len(episodes)} episodes for season {season}.")
-        await DatabaseManager.log_system_message("INFO", f"Found {len(episodes)} episodes for season {season}.")
+        await log_system_message(logging.INFO, f"Found {len(episodes)} episodes for season {season}.", logger)
         return episodes
