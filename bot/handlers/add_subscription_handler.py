@@ -6,9 +6,12 @@ from aiogram.types import Message
 from bot_message_handler import BotMessageHandler
 
 from bot.utils.database import DatabaseManager
-from bot.utils.responses import (
+from bot.handlers.responses.add_subscription_handler_responses import (
     get_no_username_provided_message,
     get_subscription_extended_message,
+    get_subscription_error_message,
+    get_subscription_log_message,
+    get_subscription_error_log_message
 )
 
 
@@ -34,8 +37,8 @@ class AddSubscriptionHandler(BotMessageHandler):
 
     async def __reply_subscription_extended(self, message: Message, username: str, new_end_date: date) -> None:
         await message.answer(get_subscription_extended_message(username, new_end_date))
-        await self._log_system_message(logging.INFO, f"Subscription for user {username} extended by {message.from_user.username}.")
+        await self._log_system_message(logging.INFO, get_subscription_log_message(username, message.from_user.username))
 
     async def __reply_subscription_error(self, message: Message) -> None:
-        await message.answer("⚠️ Wystąpił błąd podczas przedłużania subskrypcji.⚠️")
-        await self._log_system_message(logging.ERROR, "An error occurred while extending the subscription.")
+        await message.answer(get_subscription_error_message())
+        await self._log_system_message(logging.ERROR, get_subscription_error_log_message())
