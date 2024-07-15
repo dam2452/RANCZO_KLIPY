@@ -46,7 +46,7 @@ class SendClipHandler(BotMessageHandler):
         if os.path.getsize(temp_file_path) == 0:
             return await self.__reply_empty_file_error(message, clip_name)
 
-        await send_video(message.chat.id, temp_file_path, self._bot, self._logger)
+        await send_video(message, temp_file_path, self._bot, self._logger)
 
         os.remove(temp_file_path)
         await self._log_system_message(logging.INFO, get_log_clip_sent_message(clip_name, message.from_user.username))

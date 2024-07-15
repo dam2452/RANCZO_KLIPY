@@ -10,6 +10,8 @@ if os.path.exists(env_path):
 
 
 class Settings(BaseSettings):
+    TELEGRAM_FILE_SIZE_LIMIT_MB: int = Field(50, env="TELEGRAM_FILE_SIZE_LIMIT_MB")
+
     TELEGRAM_BOT_TOKEN: str = Field(..., env='TELEGRAM_BOT_TOKEN')
     DEFAULT_ADMIN: str = Field(..., env='DEFAULT_ADMIN')
 

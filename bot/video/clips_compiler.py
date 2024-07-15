@@ -52,16 +52,16 @@ class ClipsCompiler:
         return compiled_output.name
 
     @staticmethod
-    async def __send_compiled_clip(chat_id: int, compiled_output: str, bot: Bot, logger: logging.Logger) -> None:
+    async def __send_compiled_clip(message: Message, compiled_output: str, bot: Bot, logger: logging.Logger) -> None:
         with open(compiled_output, 'rb') as f:
             compiled_clip_data = f.read()
 
-        last_clip[chat_id] = {
+        last_clip[message.chat.id] = {
             'compiled_clip': compiled_clip_data,
             'type': 'compiled',
         }
 
-        await send_video(chat_id, compiled_output, bot, logger)
+        await send_video(message, compiled_output, bot, logger)
 
     @staticmethod
     async def __clean_up_temp_files(selected_clips_data: List[bytes]) -> None:
@@ -71,8 +71,10 @@ class ClipsCompiler:
     @staticmethod
     async def compile_and_send_clips(message: Message, selected_segments: List[bytes], bot: Bot, logger: logging.Logger) -> str:
         compiled_output = await ClipsCompiler.__compile_clips(selected_segments, logger)
-        await ClipsCompiler.__send_compiled_clip(message.chat.id, compiled_output, bot, logger)
+        await ClipsCompiler.__send_compiled_clip(message, compiled_output, bot, logger)
+
         if os.path.exists(compiled_output):
             os.remove(compiled_output)
+
         await ClipsCompiler.__clean_up_temp_files(selected_segments)
         return compiled_output
