@@ -13,7 +13,7 @@ from aiogram import (
 from aiogram.types import Message
 
 from bot.handlers.bot_message_handler import BotMessageHandler
-from bot.utils.responses import (
+from bot.handlers.responses.start_handler_responses import (
     get_basic_message,
     get_edycja_message,
     get_full_message,
@@ -22,6 +22,9 @@ from bot.utils.responses import (
     get_subskrypcje_message,
     get_wyszukiwanie_message,
     get_zarzadzanie_message,
+    get_invalid_command_message,
+    get_log_message_sent,
+    get_log_received_start_command,
 )
 
 
@@ -43,10 +46,11 @@ class StartHandler(BotMessageHandler):
         return ['start', 's', 'help', 'h']
 
     async def _do_handle(self, message: Message) -> None:
-        await self._log_user_activity(message.from_user.username, f"/start {message.text}")
+        command = self.get_commands()[0]
+        await self._log_user_activity(message.from_user.username, f"/{command} {message.text}")
         username = message.from_user.username
         content = message.text.split()
-        await self._log_system_message(logging.INFO, f"Received start command from user '{username}' with content: {message.text}")
+        await self._log_system_message(logging.INFO, get_log_received_start_command(username, message.text))
 
         if len(content) == 1:
             await self.__send_message(message, get_basic_message())
@@ -54,8 +58,8 @@ class StartHandler(BotMessageHandler):
             if content[1] in self.__RESPONSES:
                 await self.__send_message(message, self.__RESPONSES[content[1]]())
             else:
-                await self.__send_message(message, "Niepoprawna komenda")
+                await self.__send_message(message, get_invalid_command_message())
 
     async def __send_message(self, message: Message, text: str) -> None:
         await message.answer(text, parse_mode='Markdown')
-        await self._log_system_message(logging.INFO, f"Message sent to user '{message.from_user.username}': {text}")
+        await self._log_system_message(logging.INFO, get_log_message_sent(message.from_user.username, text))
