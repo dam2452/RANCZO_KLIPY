@@ -17,6 +17,18 @@ from bot.utils.functions import (
 from bot.utils.global_dicts import last_clip
 from bot.utils.transcription_search import SearchTranscriptions
 from bot.utils.video_manager import VideoManager
+from bot.handlers.responses.manual_clip_handler_responses import (
+    get_invalid_args_count_message,
+    get_incorrect_season_episode_format_message,
+    get_video_file_not_exist_message,
+    get_incorrect_time_format_message,
+    get_end_time_earlier_than_start_message,
+    get_log_incorrect_season_episode_format_message,
+    get_log_video_file_not_exist_message,
+    get_log_incorrect_time_format_message,
+    get_log_end_time_earlier_than_start_message,
+    get_log_clip_extracted_message
+)
 
 
 class ManualClipHandler(BotMessageHandler):
@@ -24,13 +36,14 @@ class ManualClipHandler(BotMessageHandler):
         return ['wytnij', 'cut', 'wyt', 'pawlos']
 
     async def _do_handle(self, message: Message) -> None:
-        await self._log_user_activity(message.from_user.username, f"/wytnij {message.text}")
+        command = self.get_commands()[0]
+        await self._log_user_activity(message.from_user.username, f"/{command} {message.text}")
 
         content = message.text.split()
         if len(content) != 4:
             await self._reply_invalid_args_count(
                 message,
-                "📋 Podaj poprawną komendę w formacie: /manual <sezon_odcinek> <czas_start> <czas_koniec>. Przykład: /manual S02E10 20:30.11",
+                get_invalid_args_count_message(),
             )
             return
 
@@ -51,7 +64,7 @@ class ManualClipHandler(BotMessageHandler):
         await VideoManager.extract_and_send_clip(message.chat.id, video_path, start_seconds, end_seconds, self._bot)
         await self._log_system_message(
             logging.INFO,
-            f"Clip extracted and sent for command: /manual {episode} {start_seconds} {end_seconds}",
+            get_log_clip_extracted_message(episode, start_seconds, end_seconds),
         )
 
         last_clip[message.chat.id] = {
@@ -74,17 +87,17 @@ class ManualClipHandler(BotMessageHandler):
         return Episode(episode), minutes_str_to_seconds(start_time), minutes_str_to_seconds(end_time)
 
     async def __reply_incorrect_season_episode_format(self, message: Message) -> None:
-        await message.answer("❌ Błędny format sezonu i odcinka. Użyj formatu SxxExx. Przykład: S02E10")
-        await self._log_system_message(logging.INFO, "Incorrect season/episode format provided by user.")
+        await message.answer(get_incorrect_season_episode_format_message())
+        await self._log_system_message(logging.INFO, get_log_incorrect_season_episode_format_message())
 
     async def __reply_video_file_not_exist(self, message: Message, video_path: str) -> None:
-        await message.answer("❌ Plik wideo nie istnieje dla podanego sezonu i odcinka.")
-        await self._log_system_message(logging.INFO, f"Video file does not exist: {video_path}")
+        await message.answer(get_video_file_not_exist_message(video_path))
+        await self._log_system_message(logging.INFO, get_log_video_file_not_exist_message(video_path))
 
     async def __reply_incorrect_time_format(self, message: Message) -> None:
-        await message.answer("❌ Błędny format czasu. Użyj formatu MM:SS.ms. Przykład: 20:30.11")
-        await self._log_system_message(logging.INFO, "Incorrect time format provided by user.")
+        await message.answer(get_incorrect_time_format_message())
+        await self._log_system_message(logging.INFO, get_log_incorrect_time_format_message())
 
     async def __reply_end_time_earlier_than_start(self, message: Message) -> None:
-        await message.answer("❌ Czas zakończenia musi być późniejszy niż czas rozpoczęcia.")
-        await self._log_system_message(logging.INFO, "End time must be later than start time.")
+        await message.answer(get_end_time_earlier_than_start_message())
+        await self._log_system_message(logging.INFO, get_log_end_time_earlier_than_start_message())
