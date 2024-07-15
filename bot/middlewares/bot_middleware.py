@@ -17,6 +17,8 @@ from aiogram.types import (
     TelegramObject,
 )
 
+from bot.database.database_manager import DatabaseManager
+
 
 class BotMiddleware(BaseMiddleware, ABC):
     def __init__(self, logger: logging.Logger):
@@ -41,3 +43,11 @@ class BotMiddleware(BaseMiddleware, ABC):
             data: Dict[str, Any],
     ) -> Optional[Awaitable]:
         pass
+
+    @staticmethod
+    async def _does_user_have_moderator_privileges(username: str) -> bool:
+        return await DatabaseManager.is_user_moderator(username) or await DatabaseManager.is_user_admin(username)
+
+    @staticmethod
+    async def _does_user_have_admin_privileges(username: str) -> bool:
+        return await DatabaseManager.is_user_admin(username)

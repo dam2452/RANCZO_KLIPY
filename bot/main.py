@@ -16,11 +16,8 @@ from aiogram.fsm.storage.memory import MemoryStorage
 
 from bot.database.database_manager import DatabaseManager
 from bot.handlers import *  # pylint: disable=wildcard-import
-from bot.middlewares import *  # pylint: disable=wildcard-import
+from bot.middlewares import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from bot.settings import Settings
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 
 class DBLogHandler(logging.Handler):
@@ -37,41 +34,74 @@ class DBLogHandler(logging.Handler):
         await DatabaseManager.log_system_message(record.levelname, log_message)
 
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+
 bot = Bot(token=Settings.TELEGRAM_BOT_TOKEN)
 dp = Dispatcher(storage=MemoryStorage())
 
-middlewares: List[BotMiddleware] = [
-    AuthorizationMiddleware(logger),
-]
+admin_middleware = AdminMiddleware(logger)
+auth_middleware = AuthorizationMiddleware(logger)
+mod_middleware = ModeratorMiddleware(logger)
 
-handlers: List[BotMessageHandler] = [
-    AddSubscriptionHandler(bot, logger, middlewares),
-    AddWhitelistHandler(bot, logger, middlewares),
-    AdjustVideoClipHandler(bot, logger, middlewares),
-    AdminHelpHandler(bot, logger, middlewares),
-    ClipHandler(bot, logger, middlewares),
-    CompileClipsHandler(bot, logger, middlewares),
-    CompileSelectedClipsHandler(bot, logger, middlewares),
-    DeleteClipHandler(bot, logger, middlewares),
-    EpisodeListHandler(bot, logger, middlewares),
-    ListAdminsHandler(bot, logger, middlewares),
-    ListModeratorsHandler(bot, logger, middlewares),
-    ListWhitelistHandler(bot, logger, middlewares),
-    ManualClipHandler(bot, logger, middlewares),
-    MyClipsHandler(bot, logger, middlewares),
-    RemoveSubscriptionHandler(bot, logger, middlewares),
-    RemoveWhitelistHandler(bot, logger, middlewares),
-    ReportIssueHandler(bot, logger, middlewares),
-    SaveClipHandler(bot, logger, middlewares),
-    SearchHandler(bot, logger, middlewares),
-    SearchListHandler(bot, logger, middlewares),
-    SelectClipHandler(bot, logger, middlewares),
-    SendClipHandler(bot, logger, middlewares),
-    StartHandler(bot, logger, middlewares),
-    SubscriptionStatusHandler(bot, logger, middlewares),
-    TranscriptionHandler(bot, logger, middlewares),
-    UpdateWhitelistHandler(bot, logger, middlewares),
-]
+
+def create_standard_handlers(_logger: logging.Logger) -> List[BotMessageHandler]:
+    middlewares = [
+        auth_middleware,
+    ]
+
+    return [
+        AdjustVideoClipHandler(bot, _logger, middlewares),
+        ClipHandler(bot, _logger, middlewares),
+        CompileClipsHandler(bot, _logger, middlewares),
+        CompileSelectedClipsHandler(bot, _logger, middlewares),
+        DeleteClipHandler(bot, _logger, middlewares),
+        EpisodeListHandler(bot, _logger, middlewares),
+        ManualClipHandler(bot, _logger, middlewares),
+        MyClipsHandler(bot, _logger, middlewares),
+        ReportIssueHandler(bot, _logger, middlewares),
+        SaveClipHandler(bot, _logger, middlewares),
+        SearchHandler(bot, _logger, middlewares),
+        SearchListHandler(bot, _logger, middlewares),
+        SelectClipHandler(bot, _logger, middlewares),
+        SendClipHandler(bot, _logger, middlewares),
+        StartHandler(bot, _logger, middlewares),
+        SubscriptionStatusHandler(bot, _logger, middlewares),
+        TranscriptionHandler(bot, logger, middlewares),
+    ]
+
+
+def create_moderator_handlers(_logger: logging.Logger) -> List[BotMessageHandler]:
+    middlewares = [
+        auth_middleware,
+        mod_middleware,
+    ]
+
+    return [
+        AdminHelpHandler(bot, _logger, middlewares),
+        ListAdminsHandler(bot, _logger, middlewares),
+        ListModeratorsHandler(bot, _logger, middlewares),
+        ListWhitelistHandler(bot, _logger, middlewares),
+    ]
+
+
+def create_admin_handlers(_logger: logging.Logger) -> List[BotMessageHandler]:
+    middlewares = [
+        admin_middleware,
+        auth_middleware,
+    ]
+
+    return [
+        AddSubscriptionHandler(bot, _logger, middlewares),
+        AddWhitelistHandler(bot, _logger, middlewares),
+        RemoveSubscriptionHandler(bot, _logger, middlewares),
+        RemoveWhitelistHandler(bot, _logger, middlewares),
+        UpdateWhitelistHandler(bot, _logger, middlewares),
+    ]
+
+
+handlers: List[BotMessageHandler] = create_standard_handlers(logger) + create_moderator_handlers(logger) + create_admin_handlers(logger)
 
 
 async def on_startup() -> None:

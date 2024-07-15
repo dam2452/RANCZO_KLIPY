@@ -1,2 +1,4 @@
+from bot.middlewares.admin_middleware import AdminMiddleware
 from bot.middlewares.auth_middleware import AuthorizationMiddleware
 from bot.middlewares.bot_middleware import BotMiddleware
+from bot.middlewares.moderator_middleware import ModeratorMiddleware
