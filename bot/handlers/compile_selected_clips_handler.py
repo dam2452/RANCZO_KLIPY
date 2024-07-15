@@ -10,6 +10,13 @@ from bot.utils.functions import (
     compile_clips,
     send_compiled_clip,
 )
+from bot.handlers.responses.compile_selected_clips_handler_responses import (
+    get_invalid_args_count_message,
+    get_no_matching_clips_found_message,
+    get_clip_not_found_message,
+    get_log_no_matching_clips_found_message,
+    get_log_clip_not_found_message
+)
 
 
 class CompileSelectedClipsHandler(BotMessageHandler):
@@ -29,7 +36,7 @@ class CompileSelectedClipsHandler(BotMessageHandler):
         content = message.text.split()
 
         if len(content) < 2:
-            return await self._reply_invalid_args_count(message, "📄 Podaj nazwy klipów do skompilowania w odpowiedniej kolejności.")
+            return await self._reply_invalid_args_count(message, get_invalid_args_count_message())
 
         clip_names = content[1:]
         selected_clips_data = await self.__get_selected_clips_data(clip_names, username, message)
@@ -65,9 +72,9 @@ class CompileSelectedClipsHandler(BotMessageHandler):
             os.remove(temp_file)
 
     async def __reply_clip_not_found(self, message: Message, clip_name: str, username: str) -> None:
-        await message.answer(f"❌ Nie znaleziono klipu o nazwie '{clip_name}'.")
+        await message.answer(get_clip_not_found_message(clip_name))
         await self._log_system_message(logging.INFO, f"Clip '{clip_name}' not found for user '{username}'.")
 
     async def __reply_no_matching_clips_found(self, message: Message) -> None:
-        await message.answer("❌ Nie znaleziono pasujących klipów do kompilacji.")
+        await message.answer(get_no_matching_clips_found_message())
         await self._log_system_message(logging.INFO, "No matching clips found for compilation.")
