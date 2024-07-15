@@ -8,6 +8,15 @@ from aiogram.types import Message
 from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.utils.database import DatabaseManager
 from bot.utils.video_manager import VideoManager
+from bot.handlers.responses.send_clip_handler_responses import (
+    get_clip_not_found_message,
+    get_empty_clip_file_message,
+    get_empty_file_error_message,
+    get_log_clip_not_found_message,
+    get_log_empty_clip_file_message,
+    get_log_empty_file_error_message,
+    get_log_clip_sent_message
+)
 
 
 class SendClipHandler(BotMessageHandler):
@@ -15,7 +24,8 @@ class SendClipHandler(BotMessageHandler):
         return ['wyślij', 'wyslij', 'send', 'wys']
 
     async def _do_handle(self, message: Message) -> None:
-        await self._log_user_activity(message.from_user.username, f"/wyślij {message.text}")
+        command = self.get_commands()[0]
+        await self._log_user_activity(message.from_user.username, f"/{command} {message.text}")
         username = message.from_user.username
 
         content = message.text.split()
@@ -43,25 +53,25 @@ class SendClipHandler(BotMessageHandler):
         await VideoManager.send_video(message.chat.id, temp_file_path, self._bot)
 
         os.remove(temp_file_path)
-        await self._log_system_message(logging.INFO, f"Clip '{clip_name}' sent to user '{username}' and temporary file removed.")
+        await self._log_system_message(logging.INFO, get_log_clip_sent_message(clip_name, username))
 
     async def __reply_clip_not_found(self, message: Message, clip_name: str) -> None:
-        await message.answer(f"❌ Nie znaleziono klipu o nazwie '{clip_name}'.❌")
+        await message.answer(get_clip_not_found_message(clip_name))
         await self._log_system_message(
             logging.INFO,
-            f"Clip '{clip_name}' not found for user '{message.from_user.username}'.",
+            get_log_clip_not_found_message(clip_name, message.from_user.username),
         )
 
     async def __reply_empty_clip_file(self, message: Message, clip_name: str) -> None:
-        await message.answer("⚠️ Plik klipu jest pusty.⚠️")
+        await message.answer(get_empty_clip_file_message())
         await self._log_system_message(
             logging.WARNING,
-            f"Clip file is empty for clip '{clip_name}' by user '{message.from_user.username}'.",
+            get_log_empty_clip_file_message(clip_name, message.from_user.username),
         )
 
     async def __reply_empty_file_error(self, message: Message, clip_name: str) -> None:
-        await message.answer("⚠️ Wystąpił błąd podczas wysyłania klipu. Plik jest pusty.⚠️")
+        await message.answer(get_empty_file_error_message())
         await self._log_system_message(
             logging.ERROR,
-            f"File is empty after writing clip '{clip_name}' for user '{message.from_user.username}'.",
+            get_log_empty_file_error_message(clip_name, message.from_user.username),
         )
