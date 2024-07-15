@@ -1,4 +1,4 @@
-from bot.utils.functions import Episode
+from bot.utils.episode import Episode
 
 
 def get_invalid_args_count_message() -> str:

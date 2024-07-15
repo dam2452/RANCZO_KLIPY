@@ -20,9 +20,11 @@ from bot.handlers.responses.manual_clip_handler_responses import (
     get_log_video_file_not_exist_message,
     get_video_file_not_exist_message,
 )
-from bot.utils.functions import (
+from bot.utils.episode import (
     Episode,
     InvalidSeasonEpisodeStringException,
+)
+from bot.utils.functions import (
     InvalidTimeStringException,
     minutes_str_to_seconds,
 )

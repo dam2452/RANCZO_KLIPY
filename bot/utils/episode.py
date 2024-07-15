@@ -1,4 +1,7 @@
-from typing import Optional, Tuple
+from typing import (
+    Optional,
+    Tuple,
+)
 
 
 class InvalidSeasonEpisodeStringException(Exception):

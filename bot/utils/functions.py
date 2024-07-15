@@ -87,8 +87,10 @@ def minutes_str_to_seconds(time_str: str) -> float:
         raise InvalidTimeStringException from e
 
 
-def parse_whitelist_message(content: List[str], default_admin_status: Optional[bool],
-                            default_moderator_status: Optional[bool]) -> DatabaseManager.User:
+def parse_whitelist_message(
+    content: List[str], default_admin_status: Optional[bool],
+    default_moderator_status: Optional[bool],
+) -> DatabaseManager.User:
     return DatabaseManager.User(
         name=content[1],
         is_admin=bool(int(content[2])) if len(content) > 2 else default_admin_status,
