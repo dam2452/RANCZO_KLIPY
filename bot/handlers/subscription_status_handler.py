@@ -9,13 +9,13 @@ from typing import (
 from aiogram.types import Message
 
 from bot.handlers.bot_message_handler import BotMessageHandler
-from bot.utils.database import DatabaseManager
 from bot.handlers.responses.subscription_status_handler_responses import (
     format_subscription_status_response,
-    get_no_subscription_message,
+    get_log_no_active_subscription_message,
     get_log_subscription_status_sent_message,
-    get_log_no_active_subscription_message
+    get_no_subscription_message,
 )
+from bot.utils.database import DatabaseManager
 
 
 class SubscriptionStatusHandler(BotMessageHandler):

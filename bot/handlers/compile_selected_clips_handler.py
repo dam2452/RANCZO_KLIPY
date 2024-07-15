@@ -5,18 +5,18 @@ from typing import List
 from aiogram.types import Message
 
 from bot.handlers.bot_message_handler import BotMessageHandler
+from bot.handlers.responses.compile_selected_clips_handler_responses import (
+    get_clip_not_found_message,
+    get_compiled_clip_sent_message,
+    get_invalid_args_count_message,
+    get_log_clip_not_found_message,
+    get_log_no_matching_clips_found_message,
+    get_no_matching_clips_found_message,
+)
 from bot.utils.database import DatabaseManager
 from bot.utils.functions import (
     compile_clips,
     send_compiled_clip,
-)
-from bot.handlers.responses.compile_selected_clips_handler_responses import (
-    get_invalid_args_count_message,
-    get_no_matching_clips_found_message,
-    get_clip_not_found_message,
-    get_log_no_matching_clips_found_message,
-    get_log_clip_not_found_message,
-    get_compiled_clip_sent_message
 )
 
 

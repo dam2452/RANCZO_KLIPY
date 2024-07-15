@@ -4,14 +4,14 @@ from typing import List
 from aiogram.types import Message
 
 from bot.handlers.bot_message_handler import BotMessageHandler
-from bot.utils.database import DatabaseManager
 from bot.handlers.responses.delete_clip_handler_responses import (
-    get_invalid_args_count_message,
-    get_clip_not_exist_message,
     get_clip_deleted_message,
+    get_clip_not_exist_message,
+    get_invalid_args_count_message,
+    get_log_clip_deleted_message,
     get_log_clip_not_exist_message,
-    get_log_clip_deleted_message
 )
+from bot.utils.database import DatabaseManager
 
 
 class DeleteClipHandler(BotMessageHandler):

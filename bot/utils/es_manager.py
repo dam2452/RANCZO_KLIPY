@@ -23,42 +23,32 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 # fixme: przeczyscic te funkcje
 
 
-async def try_connect_to_elasticsearch() -> Optional[AsyncElasticsearch]:
-    try:
-        es = AsyncElasticsearch(
-            hosts=[Settings.ES_HOST],
-            basic_auth=(Settings.ES_USER, Settings.ES_PASS),
-            verify_certs=False,
-        )
-        if not await es.ping():
-            raise ValueError("Failed to connect to Elasticsearch.")
-        logger.info("Connected to Elasticsearch.")
-        await DatabaseManager.log_system_message("INFO", "Connected to Elasticsearch.")
-        return es
-    except Exception as e:
-        logger.error(f"Connection to Elasticsearch failed: {e}")
-        await DatabaseManager.log_system_message("ERROR", f"Connection to Elasticsearch failed: {e}")
-        raise
+async def connect_to_elasticsearch() -> AsyncElasticsearch:
+    es = AsyncElasticsearch(
+        hosts=[Settings.ES_HOST],
+        basic_auth=(Settings.ES_USER, Settings.ES_PASS),
+        verify_certs=False,
+    )
+    if not await es.ping():
+        raise ValueError("Failed to connect to Elasticsearch.")
+    logger.info("Connected to Elasticsearch.")
+    await DatabaseManager.log_system_message("INFO", "Connected to Elasticsearch.")
+    return es
 
 
 async def delete_all_indices(es: AsyncElasticsearch) -> None:
-    try:
-        all_indices = await es.indices.get(index="_all")
-        if not all_indices:
-            logger.info("No indices to delete.")
-            await DatabaseManager.log_system_message("INFO", "No indices to delete.")
-            return
+    all_indices = await es.indices.get(index="_all")
+    if not all_indices:
+        logger.info("No indices to delete.")
+        await DatabaseManager.log_system_message("INFO", "No indices to delete.")
+        return
 
-        for index in all_indices:
-            await es.indices.delete(index=index)
-            logger.info(f"Deleted index: {index}")
-            await DatabaseManager.log_system_message("INFO", f"Deleted index: {index}")
-        logger.info("All indices have been deleted.")
-        await DatabaseManager.log_system_message("INFO", "All indices have been deleted.")
-    except Exception as e:
-        logger.error(f"Error deleting indices: {e}")
-        await DatabaseManager.log_system_message("ERROR", f"Error deleting indices: {e}")
-        raise
+    for index in all_indices:
+        await es.indices.delete(index=index)
+        logger.info(f"Deleted index: {index}")
+        await DatabaseManager.log_system_message("INFO", f"Deleted index: {index}")
+    logger.info("All indices have been deleted.")
+    await DatabaseManager.log_system_message("INFO", "All indices have been deleted.")
 
 
     # fixme: kto to panu tak spierdolil xDD
@@ -102,37 +92,31 @@ async def index_transcriptions(base_path: str, es: AsyncElasticsearch) -> None:
 
 
 async def print_one_transcription(es: AsyncElasticsearch, index: str = "ranczo-transcriptions") -> None:
-    try:
-        response = await es.search(index=index, size=1)
-        if response['hits']['hits']:
-            document = response['hits']['hits'][0]['_source']
-            document['video_path'] = document['video_path'].replace("\\", "/")
-            readable_output = f"Document ID: {response['hits']['hits'][0]['_id']}\n" \
-                              f"Episode Info: {document['episode_info']}\n" \
-                              f"Video Path: {document['video_path']}\n" \
-                              f"Segment Text: {document.get('text', 'No text available')}\n" \
-                              f"Timestamp: {document.get('timestamp', 'No timestamp available')}"
-            logger.info("Retrieved document:")
-            print(readable_output)
-            await DatabaseManager.log_system_message("INFO", "Retrieved document:\n" + readable_output)
-        else:
-            logger.info("No documents found.")
-            await DatabaseManager.log_system_message("INFO", "No documents found.")
-    except Exception as e:
-        logger.error(f"Error retrieving document: {e}")
-        await DatabaseManager.log_system_message("ERROR", f"Error retrieving document: {e}")
-        raise
+    response = await es.search(index=index, size=1)
+    if response['hits']['hits']:
+        document = response['hits']['hits'][0]['_source']
+        document['video_path'] = document['video_path'].replace("\\", "/")
+        readable_output = f"Document ID: {response['hits']['hits'][0]['_id']}\n" \
+                          f"Episode Info: {document['episode_info']}\n" \
+                          f"Video Path: {document['video_path']}\n" \
+                          f"Segment Text: {document.get('text', 'No text available')}\n" \
+                          f"Timestamp: {document.get('timestamp', 'No timestamp available')}"
+        logger.info("Retrieved document:")
+        print(readable_output)
+        await DatabaseManager.log_system_message("INFO", "Retrieved document:\n" + readable_output)
+    else:
+        logger.info("No documents found.")
+        await DatabaseManager.log_system_message("INFO", "No documents found.")
 
 
 async def main() -> None:
-    es_client = await try_connect_to_elasticsearch()
-    if es_client:
-        try:
-            await delete_all_indices(es_client)
-            await index_transcriptions(base_path="../RANCZO-TRANSKRYPCJE", es=es_client)
-            await print_one_transcription(es_client)
-        finally:
-            await es_client.close()
+    es_client = await connect_to_elasticsearch()
+    try:
+        await delete_all_indices(es_client)
+        await index_transcriptions(base_path="../RANCZO-TRANSKRYPCJE", es=es_client)
+        await print_one_transcription(es_client)
+    finally:
+        await es_client.close()
 
 
 if __name__ == "__main__":

@@ -8,15 +8,15 @@ from aiogram.types import Message
 from bot_message_handler import BotMessageHandler
 from elastic_transport import ObjectApiResponse
 
+from bot.handlers.responses.search_handler_responses import (
+    format_search_response,
+    get_invalid_args_count_message,
+    get_log_no_segments_found_message,
+    get_log_search_results_sent_message,
+    get_no_segments_found_message,
+)
 from bot.utils.global_dicts import last_search
 from bot.utils.transcription_search import SearchTranscriptions
-from bot.handlers.responses.search_handler_responses import (
-    get_invalid_args_count_message,
-    get_no_segments_found_message,
-    format_search_response,
-    get_log_no_segments_found_message,
-    get_log_search_results_sent_message
-)
 
 
 class SearchHandler(BotMessageHandler):

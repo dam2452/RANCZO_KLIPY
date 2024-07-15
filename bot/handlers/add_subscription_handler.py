@@ -5,14 +5,14 @@ from typing import List
 from aiogram.types import Message
 from bot_message_handler import BotMessageHandler
 
-from bot.utils.database import DatabaseManager
 from bot.handlers.responses.add_subscription_handler_responses import (
     get_no_username_provided_message,
-    get_subscription_extended_message,
+    get_subscription_error_log_message,
     get_subscription_error_message,
+    get_subscription_extended_message,
     get_subscription_log_message,
-    get_subscription_error_log_message
 )
+from bot.utils.database import DatabaseManager
 
 
 class AddSubscriptionHandler(BotMessageHandler):

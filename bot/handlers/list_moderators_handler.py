@@ -4,13 +4,13 @@ from typing import List
 from aiogram.types import Message
 from bot_message_handler import BotMessageHandler
 
-from bot.utils.database import DatabaseManager
 from bot.handlers.responses.list_moderators_handler_responses import (
+    get_log_moderators_list_sent_message,
+    get_log_no_moderators_found_message,
     get_no_moderators_found_message,
     get_users_string,
-    get_log_no_moderators_found_message,
-    get_log_moderators_list_sent_message
 )
+from bot.utils.database import DatabaseManager
 
 
 class ListModeratorsHandler(BotMessageHandler):

@@ -6,7 +6,6 @@ from typing import Optional
 
 import ffmpeg
 
-# Konfiguracja logowania
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 

@@ -1,6 +1,6 @@
 from typing import (
-    List,
     Dict,
+    List,
     Union,
 )
 
@@ -9,7 +9,7 @@ def format_episode_list_response(season: int, episodes: List[Dict[str, Union[str
     response = f"📃 Lista odcinków dla sezonu {season}:\n\n```\n"
     for episode in episodes:
         absolute_episode_number = episode['episode_number'] % 13
-        if (absolute_episode_number == 0):
+        if absolute_episode_number == 0:
             absolute_episode_number = 13
         formatted_viewership = f"{episode['viewership']:,}".replace(',', '.')
 

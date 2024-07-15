@@ -4,12 +4,12 @@ from typing import List
 from aiogram.types import Message
 from bot_message_handler import BotMessageHandler
 
-from bot.utils.database import DatabaseManager
 from bot.handlers.responses.remove_subscription_handler_responses import (
+    get_log_subscription_removed_message,
     get_no_username_provided_message,
     get_subscription_removed_message,
-    get_log_subscription_removed_message
 )
+from bot.utils.database import DatabaseManager
 
 
 class RemoveSubscriptionHandler(BotMessageHandler):

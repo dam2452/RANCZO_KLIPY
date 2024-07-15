@@ -1,6 +1,5 @@
 from typing import Dict
 
-
 number_to_emoji: Dict[str, str] = {
     '0': '0️⃣',
     '1': '1️⃣',

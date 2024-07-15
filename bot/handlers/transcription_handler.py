@@ -5,11 +5,11 @@ from aiogram.types import Message
 from bot_message_handler import BotMessageHandler
 
 from bot.handlers.responses.transcription_handler_responses import (
+    get_log_no_segments_found_message,
+    get_log_transcription_response_sent_message,
     get_no_quote_provided_message,
     get_no_segments_found_message,
     get_transcription_response,
-    get_log_no_segments_found_message,
-    get_log_transcription_response_sent_message
 )
 from bot.utils.transcription_search import SearchTranscriptions
 

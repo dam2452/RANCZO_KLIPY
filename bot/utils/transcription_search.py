@@ -9,7 +9,7 @@ from typing import (
 from elastic_transport import ObjectApiResponse
 
 from bot.utils.database import DatabaseManager
-from bot.utils.es_manager import try_connect_to_elasticsearch
+from bot.utils.es_manager import connect_to_elasticsearch
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -41,12 +41,7 @@ class SearchTranscriptions:
             "INFO",
             f"Searching for quote: '{quote}' with filters - Season: {season_filter}, Episode: {episode_filter}",
         )
-        es = await try_connect_to_elasticsearch()
-
-        if not es:
-            logger.error("❌ Failed to connect to Elasticsearch.❌")
-            await DatabaseManager.log_system_message("ERROR", "Failed to connect to Elasticsearch.")
-            return None
+        es = await connect_to_elasticsearch()
 
         query = {
             "query": {
@@ -72,42 +67,36 @@ class SearchTranscriptions:
 
         size = 10000 if return_all else 1
 
-        try:
-            response = await es.search(index=index, body=query, size=size)
-            hits = response['hits']['hits']
+        response = await es.search(index=index, body=query, size=size)
+        hits = response['hits']['hits']
 
-            if not hits:
-                logger.info("❌ No segments found matching the query.❌")
-                await DatabaseManager.log_system_message("INFO", "No segments found matching the query.")
-                return None
+        if not hits:
+            logger.info("❌ No segments found matching the query.❌")
+            await DatabaseManager.log_system_message("INFO", "No segments found matching the query.")
+            return None
 
-            unique_segments = {}
+        unique_segments = {}
 
-            for hit in hits:
-                segment = hit['_source']
-                episode_info = segment.get('episode_info', {})
-                title = episode_info.get('title', 'Unknown')
-                season = episode_info.get('season', 'Unknown')
-                episode_number = episode_info.get('episode_number', 'Unknown')
-                start_time = segment.get('start', 'Unknown')
+        for hit in hits:
+            segment = hit['_source']
+            episode_info = segment.get('episode_info', {})
+            title = episode_info.get('title', 'Unknown')
+            season = episode_info.get('season', 'Unknown')
+            episode_number = episode_info.get('episode_number', 'Unknown')
+            start_time = segment.get('start', 'Unknown')
 
-                unique_key = f"{title}-{season}-{episode_number}-{start_time}"
+            unique_key = f"{title}-{season}-{episode_number}-{start_time}"
 
-                if unique_key not in unique_segments:
-                    unique_segments[unique_key] = segment
+            if unique_key not in unique_segments:
+                unique_segments[unique_key] = segment
 
-            logger.info(f"✅ Found {len(unique_segments)} unique segments matching the query.✅")
-            await DatabaseManager.log_system_message("INFO", f"Found {len(unique_segments)} unique segments matching the query.")
+        logger.info(f"✅ Found {len(unique_segments)} unique segments matching the query.✅")
+        await DatabaseManager.log_system_message("INFO", f"Found {len(unique_segments)} unique segments matching the query.")
 
-            if return_all:
-                return list(unique_segments.values())
+        if return_all:
+            return list(unique_segments.values())
 
-            return next(iter(unique_segments.values()), None)
-
-        except Exception as e:
-            logger.error(f"❌ An error occurred while searching for segments: {e}❌")
-            await DatabaseManager.log_system_message("ERROR", f"An error occurred while searching for segments: {e}")
-            raise
+        return next(iter(unique_segments.values()), None)
 
     @staticmethod
     async def find_segment_with_context(
@@ -117,12 +106,7 @@ class SearchTranscriptions:
         log = f"🔍 Searching for quote: '{quote}' with context size: {context_size}. Season: {season_filter}, Episode: {episode_filter}"
         logger.info(log)
         await DatabaseManager.log_system_message("INFO", log)
-        es = await try_connect_to_elasticsearch()
-
-        if not es:
-            logger.error("❌ Failed to connect to Elasticsearch.❌")
-            await DatabaseManager.log_system_message("ERROR", "Failed to connect to Elasticsearch.")
-            return None
+        es = await connect_to_elasticsearch()
 
         segment = await SearchTranscriptions.find_segment_by_quote(quote, season_filter, episode_filter, index, return_all=False)
         if not segment:
@@ -167,43 +151,37 @@ class SearchTranscriptions:
             "size": context_size,
         }
 
-        try:
-            context_response_before = await es.search(index=index, body=context_query_before)
-            context_response_after = await es.search(index=index, body=context_query_after)
+        context_response_before = await es.search(index=index, body=context_query_before)
+        context_response_after = await es.search(index=index, body=context_query_after)
 
-            context_segments_before = [{'id': hit['_source']['id'], 'text': hit['_source']['text']} for hit in
-                                       context_response_before['hits']['hits']]
-            context_segments_after = [{'id': hit['_source']['id'], 'text': hit['_source']['text']} for hit in
-                                      context_response_after['hits']['hits']]
+        context_segments_before = [{'id': hit['_source']['id'], 'text': hit['_source']['text']} for hit in
+                                   context_response_before['hits']['hits']]
+        context_segments_after = [{'id': hit['_source']['id'], 'text': hit['_source']['text']} for hit in
+                                  context_response_after['hits']['hits']]
 
-            context_segments_before.reverse()
+        context_segments_before.reverse()
 
-            context_segments = context_segments_before + [{'id': segment['id'], 'text': segment['text']}] + context_segments_after
+        context_segments = context_segments_before + [{'id': segment['id'], 'text': segment['text']}] + context_segments_after
 
-            seen_ids = set()
-            unique_context_segments = []
-            for seg in context_segments:
-                if seg['id'] not in seen_ids:
-                    unique_context_segments.append(seg)
-                    seen_ids.add(seg['id'])
+        seen_ids = set()
+        unique_context_segments = []
+        for seg in context_segments:
+            if seg['id'] not in seen_ids:
+                unique_context_segments.append(seg)
+                seen_ids.add(seg['id'])
 
-            logger.info(f"✅ Found {len(unique_context_segments)} unique segments for context.✅")
-            await DatabaseManager.log_system_message("INFO", f"Found {len(unique_context_segments)} unique segments for context.")
+        logger.info(f"✅ Found {len(unique_context_segments)} unique segments for context.✅")
+        await DatabaseManager.log_system_message("INFO", f"Found {len(unique_context_segments)} unique segments for context.")
 
-            target_index = unique_context_segments.index({'id': segment['id'], 'text': segment['text']})
-            start_index = max(target_index - context_size, 0)
-            end_index = min(target_index + context_size + 1, len(unique_context_segments))
-            final_context_segments = unique_context_segments[start_index:end_index]
+        target_index = unique_context_segments.index({'id': segment['id'], 'text': segment['text']})
+        start_index = max(target_index - context_size, 0)
+        end_index = min(target_index + context_size + 1, len(unique_context_segments))
+        final_context_segments = unique_context_segments[start_index:end_index]
 
-            return {
-                "target": segment,
-                "context": final_context_segments,
-            }
-
-        except Exception as e:
-            logger.error(f"❌ An error occurred while searching for segment with context: {e} ❌")
-            await DatabaseManager.log_system_message("ERROR", f"An error occurred while searching for segment with context: {e}")
-            raise
+        return {
+            "target": segment,
+            "context": final_context_segments,
+        }
 
     @staticmethod
     async def find_video_path_by_episode(season: int, episode_number: int, index: str = 'ranczo-transcriptions') -> Optional[str]:
@@ -224,12 +202,7 @@ class SearchTranscriptions:
             "INFO",
             f"Searching for video path with filters - Season: {season}, Episode: {episode_number}",
         )
-        es = await try_connect_to_elasticsearch()
-
-        if not es:
-            logger.error("❌ Failed to connect to Elasticsearch.")
-            await DatabaseManager.log_system_message("ERROR", "Failed to connect to Elasticsearch.")
-            return None
+        es = await connect_to_elasticsearch()
 
         query = {
             "query": {
@@ -242,31 +215,25 @@ class SearchTranscriptions:
             },
         }
 
-        try:
-            response = await es.search(index=index, body=query, size=1)
-            hits = response['hits']['hits']
+        response = await es.search(index=index, body=query, size=1)
+        hits = response['hits']['hits']
 
-            if not hits:
-                logger.info("❌ No segments found matching the query.")
-                await DatabaseManager.log_system_message("INFO", "No segments found matching the query.")
-                return None
-
-            segment = hits[0]['_source']
-            video_path = segment.get('video_path', None)
-
-            if video_path:
-                logger.info(f"✅ Found video path: {video_path}")
-                await DatabaseManager.log_system_message("INFO", f"Found video path: {video_path}")
-                return video_path
-
-            logger.info("❌ Video path not found in the segment.")
-            await DatabaseManager.log_system_message("INFO", "Video path not found in the segment.")
+        if not hits:
+            logger.info("❌ No segments found matching the query.")
+            await DatabaseManager.log_system_message("INFO", "No segments found matching the query.")
             return None
 
-        except Exception as e:
-            logger.error(f"❌ An error occurred while searching for video path: {e}")
-            await DatabaseManager.log_system_message("ERROR", f"An error occurred while searching for video path: {e}")
-            raise
+        segment = hits[0]['_source']
+        video_path = segment.get('video_path', None)
+
+        if video_path:
+            logger.info(f"✅ Found video path: {video_path}")
+            await DatabaseManager.log_system_message("INFO", f"Found video path: {video_path}")
+            return video_path
+
+        logger.info("❌ Video path not found in the segment.")
+        await DatabaseManager.log_system_message("INFO", "Video path not found in the segment.")
+        return None
 
     @staticmethod
     async def find_episodes_by_season(season: int, index: str = 'ranczo-transcriptions') -> Optional[List[json]]:
@@ -283,12 +250,7 @@ class SearchTranscriptions:
         """
         logger.info(f"🔍 Searching for episodes in season {season}")
         await DatabaseManager.log_system_message("INFO", f"Searching for episodes in season {season}")
-        es = await try_connect_to_elasticsearch()
-
-        if not es:
-            logger.error("❌ Failed to connect to Elasticsearch.")
-            await DatabaseManager.log_system_message("ERROR", "Failed to connect to Elasticsearch.")
-            return None
+        es = await connect_to_elasticsearch()
 
         query = {
             "size": 0,
@@ -323,31 +285,25 @@ class SearchTranscriptions:
             },
         }
 
-        try:
-            response = await es.search(index=index, body=query)
-            buckets = response['aggregations']['unique_episodes']['buckets']
+        response = await es.search(index=index, body=query)
+        buckets = response['aggregations']['unique_episodes']['buckets']
 
-            if not buckets:
-                logger.info(f"❌ No episodes found for season {season}.")
-                await DatabaseManager.log_system_message("INFO", f"No episodes found for season {season}.")
-                return None
+        if not buckets:
+            logger.info(f"❌ No episodes found for season {season}.")
+            await DatabaseManager.log_system_message("INFO", f"No episodes found for season {season}.")
+            return None
 
-            episodes = []
-            for bucket in buckets:
-                episode_info = bucket['episode_info']['hits']['hits'][0]['_source']['episode_info']
-                episode = {
-                    "episode_number": episode_info.get('episode_number'),
-                    "title": episode_info.get('title', 'Unknown'),
-                    "premiere_date": episode_info.get('premiere_date', 'Unknown'),
-                    "viewership": episode_info.get('viewership', 'Unknown'),
-                }
-                episodes.append(episode)
+        episodes = []
+        for bucket in buckets:
+            episode_info = bucket['episode_info']['hits']['hits'][0]['_source']['episode_info']
+            episode = {
+                "episode_number": episode_info.get('episode_number'),
+                "title": episode_info.get('title', 'Unknown'),
+                "premiere_date": episode_info.get('premiere_date', 'Unknown'),
+                "viewership": episode_info.get('viewership', 'Unknown'),
+            }
+            episodes.append(episode)
 
-            logger.info(f"✅ Found {len(episodes)} episodes for season {season}.")
-            await DatabaseManager.log_system_message("INFO", f"Found {len(episodes)} episodes for season {season}.")
-            return episodes
-
-        except Exception as e:
-            logger.error(f"❌ An error occurred while searching for episodes: {e}")
-            await DatabaseManager.log_system_message("ERROR", f"An error occurred while searching for episodes: {e}")
-            raise
+        logger.info(f"✅ Found {len(episodes)} episodes for season {season}.")
+        await DatabaseManager.log_system_message("INFO", f"Found {len(episodes)} episodes for season {season}.")
+        return episodes

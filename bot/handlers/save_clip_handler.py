@@ -14,20 +14,20 @@ from typing import (
 from aiogram.types import Message
 from bot_message_handler import BotMessageHandler
 
+from bot.handlers.responses.save_clip_handler_responses import (
+    get_clip_name_exists_message,
+    get_clip_saved_successfully_message,
+    get_failed_to_verify_clip_length_message,
+    get_log_clip_name_exists_message,
+    get_log_clip_saved_successfully_message,
+    get_log_failed_to_verify_clip_length_message,
+    get_log_no_segment_selected_message,
+    get_no_segment_selected_message,
+)
 from bot.utils.database import DatabaseManager
 from bot.utils.global_dicts import last_clip
 from bot.utils.segment_info import SegmentInfo
 from bot.utils.video_manager import VideoProcessor
-from bot.handlers.responses.save_clip_handler_responses import (
-    get_clip_name_exists_message,
-    get_no_segment_selected_message,
-    get_failed_to_verify_clip_length_message,
-    get_clip_saved_successfully_message,
-    get_log_clip_name_exists_message,
-    get_log_no_segment_selected_message,
-    get_log_failed_to_verify_clip_length_message,
-    get_log_clip_saved_successfully_message
-)
 
 
 class SaveClipHandler(BotMessageHandler):

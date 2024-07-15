@@ -9,6 +9,16 @@ from typing import (
 from aiogram.types import Message
 from bot_message_handler import BotMessageHandler
 
+from bot.handlers.responses.compile_clips_handler_responses import (
+    get_compilation_success_message,
+    get_invalid_args_count_message,
+    get_invalid_index_message,
+    get_invalid_range_message,
+    get_log_no_matching_segments_found_message,
+    get_log_no_previous_search_results_message,
+    get_no_matching_segments_found_message,
+    get_no_previous_search_results_message,
+)
 from bot.utils.functions import (
     compile_clips,
     send_compiled_clip,
@@ -16,16 +26,6 @@ from bot.utils.functions import (
 from bot.utils.global_dicts import (
     last_clip,
     last_search,
-)
-from bot.handlers.responses.compile_clips_handler_responses import (
-    get_invalid_args_count_message,
-    get_no_previous_search_results_message,
-    get_no_matching_segments_found_message,
-    get_invalid_range_message,
-    get_invalid_index_message,
-    get_compilation_success_message,
-    get_log_no_previous_search_results_message,
-    get_log_no_matching_segments_found_message
 )
 
 

@@ -9,10 +9,10 @@ from aiogram.types import Message
 from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.handlers.responses.episode_list_handler_responses import (
     format_episode_list_response,
-    get_no_episodes_found_message,
-    get_log_no_episodes_found_message,
+    get_invalid_args_count_message,
     get_log_episode_list_sent_message,
-    get_invalid_args_count_message
+    get_log_no_episodes_found_message,
+    get_no_episodes_found_message,
 )
 from bot.utils.transcription_search import SearchTranscriptions
 
@@ -40,7 +40,7 @@ class EpisodeListHandler(BotMessageHandler):
 
         await self._log_system_message(
             logging.INFO,
-            get_log_episode_list_sent_message(season, message.from_user.username)
+            get_log_episode_list_sent_message(season, message.from_user.username),
         )
 
     @staticmethod

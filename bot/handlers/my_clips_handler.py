@@ -4,13 +4,13 @@ from typing import List
 from aiogram.types import Message
 
 from bot.handlers.bot_message_handler import BotMessageHandler
-from bot.utils.database import DatabaseManager
 from bot.handlers.responses.my_clips_handler_responses import (
     format_myclips_response,
-    get_no_saved_clips_message,
     get_log_no_saved_clips_message,
-    get_log_saved_clips_sent_message
+    get_log_saved_clips_sent_message,
+    get_no_saved_clips_message,
 )
+from bot.utils.database import DatabaseManager
 
 
 class MyClipsHandler(BotMessageHandler):

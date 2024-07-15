@@ -23,11 +23,11 @@ from aiogram.types import (
     TelegramObject,
 )
 
-from bot.utils.database import DatabaseManager
 from bot.handlers.responses.bot_message_handler_responses import (
     get_general_error_message,
-    get_invalid_args_count_message
+    get_invalid_args_count_message,
 )
+from bot.utils.database import DatabaseManager
 
 
 class DummyMiddleware(BaseMiddleware):

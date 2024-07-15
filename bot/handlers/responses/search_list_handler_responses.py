@@ -1,8 +1,9 @@
 from typing import (
-    List,
     Dict,
+    List,
     Union,
 )
+
 from tabulate import tabulate
 
 from bot.utils.functions import format_segment

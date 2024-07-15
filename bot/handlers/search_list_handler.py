@@ -13,13 +13,13 @@ from aiogram.types import (
 )
 from bot_message_handler import BotMessageHandler
 
-from bot.utils.global_dicts import last_search
 from bot.handlers.responses.search_list_handler_responses import (
-    get_no_previous_search_results_message,
-    get_log_no_previous_search_results_message,
     format_search_list_response,
-    get_log_search_results_sent_message
+    get_log_no_previous_search_results_message,
+    get_log_search_results_sent_message,
+    get_no_previous_search_results_message,
 )
+from bot.utils.global_dicts import last_search
 
 
 class SearchListHandler(BotMessageHandler):

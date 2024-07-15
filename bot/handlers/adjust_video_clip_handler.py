@@ -5,6 +5,15 @@ from typing import List
 from aiogram.types import Message
 from bot_message_handler import BotMessageHandler
 
+from bot.handlers.responses.adjust_video_clip_handler_responses import (
+    get_extraction_failure_message,
+    get_invalid_args_count_message,
+    get_invalid_interval_message,
+    get_invalid_segment_index_message,
+    get_invalid_video_path_message,
+    get_no_previous_searches_message,
+    get_no_quotes_selected_message,
+)
 from bot.settings import Settings
 from bot.utils.global_dicts import (
     last_clip,
@@ -14,15 +23,6 @@ from bot.utils.video_manager import (
     FFmpegException,
     VideoManager,
     VideoProcessor,
-)
-from bot.handlers.responses.adjust_video_clip_handler_responses import (
-    get_no_previous_searches_message,
-    get_no_quotes_selected_message,
-    get_invalid_args_count_message,
-    get_invalid_interval_message,
-    get_invalid_segment_index_message,
-    get_invalid_video_path_message,
-    get_extraction_failure_message
 )
 
 

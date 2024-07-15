@@ -4,20 +4,20 @@ from typing import List
 from aiogram.types import Message
 
 from bot.handlers.bot_message_handler import BotMessageHandler
+from bot.handlers.responses.select_clip_handler_responses import (
+    get_invalid_args_count_message,
+    get_invalid_segment_number_message,
+    get_log_invalid_segment_number_message,
+    get_log_no_previous_search_message,
+    get_log_segment_selected_message,
+    get_no_previous_search_message,
+)
 from bot.settings import Settings
 from bot.utils.global_dicts import (
     last_clip,
     last_search,
 )
 from bot.utils.video_manager import VideoManager
-from bot.handlers.responses.select_clip_handler_responses import (
-    get_invalid_args_count_message,
-    get_no_previous_search_message,
-    get_invalid_segment_number_message,
-    get_log_no_previous_search_message,
-    get_log_invalid_segment_number_message,
-    get_log_segment_selected_message
-)
 
 
 class SelectClipHandler(BotMessageHandler):

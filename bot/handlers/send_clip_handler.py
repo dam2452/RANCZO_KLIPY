@@ -6,17 +6,17 @@ from typing import List
 from aiogram.types import Message
 
 from bot.handlers.bot_message_handler import BotMessageHandler
-from bot.utils.database import DatabaseManager
-from bot.utils.video_manager import VideoManager
 from bot.handlers.responses.send_clip_handler_responses import (
     get_clip_not_found_message,
     get_empty_clip_file_message,
     get_empty_file_error_message,
     get_log_clip_not_found_message,
+    get_log_clip_sent_message,
     get_log_empty_clip_file_message,
     get_log_empty_file_error_message,
-    get_log_clip_sent_message
 )
+from bot.utils.database import DatabaseManager
+from bot.utils.video_manager import VideoManager
 
 
 class SendClipHandler(BotMessageHandler):

@@ -8,6 +8,18 @@ from typing import (
 from aiogram.types import Message
 
 from bot.handlers.bot_message_handler import BotMessageHandler
+from bot.handlers.responses.manual_clip_handler_responses import (
+    get_end_time_earlier_than_start_message,
+    get_incorrect_season_episode_format_message,
+    get_incorrect_time_format_message,
+    get_invalid_args_count_message,
+    get_log_clip_extracted_message,
+    get_log_end_time_earlier_than_start_message,
+    get_log_incorrect_season_episode_format_message,
+    get_log_incorrect_time_format_message,
+    get_log_video_file_not_exist_message,
+    get_video_file_not_exist_message,
+)
 from bot.utils.functions import (
     Episode,
     InvalidSeasonEpisodeStringException,
@@ -17,18 +29,6 @@ from bot.utils.functions import (
 from bot.utils.global_dicts import last_clip
 from bot.utils.transcription_search import SearchTranscriptions
 from bot.utils.video_manager import VideoManager
-from bot.handlers.responses.manual_clip_handler_responses import (
-    get_invalid_args_count_message,
-    get_incorrect_season_episode_format_message,
-    get_video_file_not_exist_message,
-    get_incorrect_time_format_message,
-    get_end_time_earlier_than_start_message,
-    get_log_incorrect_season_episode_format_message,
-    get_log_video_file_not_exist_message,
-    get_log_incorrect_time_format_message,
-    get_log_end_time_earlier_than_start_message,
-    get_log_clip_extracted_message
-)
 
 
 class ManualClipHandler(BotMessageHandler):
@@ -91,7 +91,7 @@ class ManualClipHandler(BotMessageHandler):
         await self._log_system_message(logging.INFO, get_log_incorrect_season_episode_format_message())
 
     async def __reply_video_file_not_exist(self, message: Message, video_path: str) -> None:
-        await message.answer(get_video_file_not_exist_message(video_path))
+        await message.answer(get_video_file_not_exist_message())
         await self._log_system_message(logging.INFO, get_log_video_file_not_exist_message(video_path))
 
     async def __reply_incorrect_time_format(self, message: Message) -> None:

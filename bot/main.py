@@ -77,32 +77,20 @@ handlers: List[BotMessageHandler] = [
 
 
 async def on_startup() -> None:
-    try:
-        await DatabaseManager.init_db()
-        await DatabaseManager.set_default_admin(os.getenv("DEFAULT_ADMIN"))
-        logger.info("📦 Database initialized and default admin set. 📦")
-    except Exception as e: #fixme da radę?
-        logger.error(f"❌ Failed to initialize database or set default admin: {e} ❌")
-        raise
+    await DatabaseManager.init_db()
+    await DatabaseManager.set_default_admin(os.getenv("DEFAULT_ADMIN"))
+    logger.info("📦 Database initialized and default admin set. 📦")
 
-    try:
-        for handler in handlers:
-            handler.register(dp)
+    for handler in handlers:
+        handler.register(dp)
 
-        logger.info("🔧 Handlers registered successfully. 🔧")
-    except Exception as e:#fixme da radę?
-        logger.error(f"❌ Failed to register handlers_old: {e} ❌")
-        raise
+    logger.info("🔧 Handlers registered successfully. 🔧")
 
 
 async def main() -> None:
-    try:
-        await on_startup()
-        logger.info("🚀 Bot started successfully.🚀")
-        await dp.start_polling(bot)
-    except Exception as e:#fixme da radę?
-        logger.error(f"❌ Bot encountered an error: {e} ❌")
-        raise
+    await on_startup()
+    logger.info("🚀 Bot started successfully.🚀")
+    await dp.start_polling(bot)
 
 
 if __name__ == "__main__":

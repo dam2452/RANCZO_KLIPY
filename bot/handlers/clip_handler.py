@@ -4,21 +4,21 @@ from typing import List
 from aiogram.types import Message
 from bot_message_handler import BotMessageHandler
 
+from bot.handlers.responses.clip_handler_responses import (
+    get_extraction_failure_message,
+    get_log_clip_success_message,
+    get_log_extraction_failure_message,
+    get_log_no_segments_found_message,
+    get_log_segment_saved_message,
+    get_no_quote_provided_message,
+    get_no_segments_found_message,
+)
 from bot.settings import Settings
 from bot.utils.global_dicts import last_clip
 from bot.utils.transcription_search import SearchTranscriptions
 from bot.utils.video_manager import (
     FFmpegException,
     VideoManager,
-)
-from bot.handlers.responses.clip_handler_responses import (
-    get_no_segments_found_message,
-    get_extraction_failure_message,
-    get_no_quote_provided_message,
-    get_log_no_segments_found_message,
-    get_log_extraction_failure_message,
-    get_log_segment_saved_message,
-    get_log_clip_success_message
 )
 
 
