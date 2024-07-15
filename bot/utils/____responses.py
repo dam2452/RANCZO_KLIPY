@@ -185,8 +185,7 @@ def get_user_updated_message(username: str) -> str:
 
 
 
-def get_subscription_removed_message(username: str) -> str:
-    return f"✅ Subskrypcja dla użytkownika {username} została usunięta.✅"
+
 
 
 def get_no_quote_provided_message() -> str:
