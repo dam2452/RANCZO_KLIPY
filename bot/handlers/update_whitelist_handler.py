@@ -5,9 +5,10 @@ from aiogram.types import Message
 from bot_message_handler import BotMessageHandler
 
 from bot.utils.database import DatabaseManager
-from bot.utils.responses import (
+from bot.handlers.responses.update_whitelist_handler_responses import (
     get_no_username_provided_message,
     get_user_updated_message,
+    get_log_user_updated_message,
 )
 
 
@@ -16,12 +17,12 @@ class UpdateWhitelistHandler(BotMessageHandler):
         return ['updatewhitelist', 'updatew']
 
     async def _do_handle(self, message: Message) -> None:
-        await self._log_user_activity(message.from_user.username, f"/updatewhitelist {message.text}")
+        command = self.get_commands()[0]
+        await self._log_user_activity(message.from_user.username, f"/{command} {message.text}")
         content = message.text.split()
         if len(content) < 2:
             return await self._reply_invalid_args_count(message, get_no_username_provided_message())
 
-        # fixme ogarnac jakos duplikat
         username = content[1]
         is_admin = bool(int(content[2])) if len(content) > 2 else None
         is_moderator = bool(int(content[3])) if len(content) > 3 else None
@@ -34,4 +35,4 @@ class UpdateWhitelistHandler(BotMessageHandler):
 
     async def __reply_user_updated(self, message: Message, username: str) -> None:
         await message.answer(get_user_updated_message(username))
-        await self._log_system_message(logging.INFO, f"User {username} updated by {message.from_user.username}.")
+        await self._log_system_message(logging.INFO, get_log_user_updated_message(username, message.from_user.username))
