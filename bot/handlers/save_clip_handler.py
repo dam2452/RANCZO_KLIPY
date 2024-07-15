@@ -24,10 +24,11 @@ from bot.handlers.responses.save_clip_handler_responses import (
     get_log_no_segment_selected_message,
     get_no_segment_selected_message,
 )
-from bot.utils.database import DatabaseManager
+from bot.utils.clips_extractor import ClipsExtractor
+from bot.utils.database_manager import DatabaseManager
 from bot.utils.global_dicts import last_clip
 from bot.utils.segment_info import SegmentInfo
-from bot.utils.video_manager import VideoProcessor
+from bot.utils.video_utils import get_video_duration
 
 
 class SaveClipHandler(BotMessageHandler):
@@ -104,7 +105,7 @@ class SaveClipHandler(BotMessageHandler):
             season = segment_info.episode_info.season
             episode_number = segment_info.episode_info.episode_number
             output_filename = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4").name  # pylint: disable=consider-using-with
-            await VideoProcessor.extract_clip(clip_path, start_time, end_time, output_filename)
+            await ClipsExtractor.extract_clip(clip_path, start_time, end_time, output_filename, self._logger)
 
         return output_filename, start_time, end_time, is_compilation, season, episode_number
 
@@ -115,9 +116,8 @@ class SaveClipHandler(BotMessageHandler):
             f.write(clip_data)
         return output_filename
 
-    @staticmethod
-    async def __get_actual_duration(output_filename: str) -> Optional[int]:
-        actual_duration = await VideoProcessor.get_video_duration(output_filename)
+    async def __get_actual_duration(self, output_filename: str) -> Optional[int]:
+        actual_duration = await get_video_duration(output_filename, self._logger)
         return actual_duration
 
     @staticmethod

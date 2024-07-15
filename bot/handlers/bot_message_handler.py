@@ -44,9 +44,9 @@ class DummyMiddleware(BaseMiddleware):
 
 
 class BotMessageHandler(ABC):
-    def __init__(self, bot: Bot, middlewares: Optional[List[BaseMiddleware]] = None):
+    def __init__(self, bot: Bot, logger: logging.Logger, middlewares: Optional[List[BaseMiddleware]] = None):
         self._bot: Bot = bot
-        self._logger: logging.Logger = logging.getLogger(__name__)
+        self._logger: logging.Logger = logger
 
         self._middlewares: List[DummyMiddleware] = middlewares if middlewares else [
             DummyMiddleware(),

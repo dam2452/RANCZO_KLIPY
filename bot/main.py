@@ -18,7 +18,7 @@ from bot.handlers import *  # pylint: disable=wildcard-import
 from bot.middlewares.auth_middleware import AuthorizationMiddleware
 from bot.middlewares.error_middleware import ErrorHandlerMiddleware
 from bot.settings import Settings
-from bot.utils.database import DatabaseManager
+from bot.utils.database_manager import DatabaseManager
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -47,32 +47,32 @@ dp.update.middleware(ErrorHandlerMiddleware())
 
 
 handlers: List[BotMessageHandler] = [
-    AddSubscriptionHandler(bot),
-    AddWhitelistHandler(bot),
-    AdjustVideoClipHandler(bot),
-    AdminHelpHandler(bot),
-    ClipHandler(bot),
-    CompileClipsHandler(bot),
-    CompileSelectedClipsHandler(bot),
-    DeleteClipHandler(bot),
-    EpisodeListHandler(bot),
-    ListAdminsHandler(bot),
-    ListModeratorsHandler(bot),
-    ListWhitelistHandler(bot),
-    ManualClipHandler(bot),
-    MyClipsHandler(bot),
-    RemoveSubscriptionHandler(bot),
-    RemoveWhitelistHandler(bot),
-    ReportIssueHandler(bot),
-    SaveClipHandler(bot),
-    SearchHandler(bot),
-    SearchListHandler(bot),
-    SelectClipHandler(bot),
-    SendClipHandler(bot),
-    StartHandler(bot),
-    SubscriptionStatusHandler(bot),
-    TranscriptionHandler(bot),
-    UpdateWhitelistHandler(bot),
+    AddSubscriptionHandler(bot, logger),
+    AddWhitelistHandler(bot, logger),
+    AdjustVideoClipHandler(bot, logger),
+    AdminHelpHandler(bot, logger),
+    ClipHandler(bot, logger),
+    CompileClipsHandler(bot, logger),
+    CompileSelectedClipsHandler(bot, logger),
+    DeleteClipHandler(bot, logger),
+    EpisodeListHandler(bot, logger),
+    ListAdminsHandler(bot, logger),
+    ListModeratorsHandler(bot, logger),
+    ListWhitelistHandler(bot, logger),
+    ManualClipHandler(bot, logger),
+    MyClipsHandler(bot, logger),
+    RemoveSubscriptionHandler(bot, logger),
+    RemoveWhitelistHandler(bot, logger),
+    ReportIssueHandler(bot, logger),
+    SaveClipHandler(bot, logger),
+    SearchHandler(bot, logger),
+    SearchListHandler(bot, logger),
+    SelectClipHandler(bot, logger),
+    SendClipHandler(bot, logger),
+    StartHandler(bot, logger),
+    SubscriptionStatusHandler(bot, logger),
+    TranscriptionHandler(bot, logger),
+    UpdateWhitelistHandler(bot, logger),
 ]
 
 
@@ -90,7 +90,7 @@ async def on_startup() -> None:
 async def main() -> None:
     await on_startup()
     logger.info("🚀 Bot started successfully.🚀")
-    await dp.start_polling(bot)
+    await dp.start_polling(bot, logger)
 
 
 if __name__ == "__main__":

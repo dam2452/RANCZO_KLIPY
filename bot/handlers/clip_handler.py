@@ -15,10 +15,11 @@ from bot.handlers.responses.clip_handler_responses import (
     get_no_quote_provided_message,
     get_no_segments_found_message,
 )
-from bot.utils.functions import extract_and_send_clip
-from bot.utils.global_dicts import last_clip
-from bot.utils.transcription_search import SearchTranscriptions
-from bot.utils.video_utils import FFmpegException
+from bot.settings import Settings
+from bot.utils.clips_extractor import ClipsExtractor
+from bot.utils.functions import update_last_clip
+from bot.utils.transcription_finder import TranscriptionFinder
+from bot.utils.video_utils import FFMpegException
 
 
 class ClipHandler(BotMessageHandler):
@@ -32,26 +33,28 @@ class ClipHandler(BotMessageHandler):
 
         quote = ' '.join(content[1:])
 
-        segments = await SearchTranscriptions.find_segment_by_quote(quote, return_all=False)
+        segments = await TranscriptionFinder.find_segment_by_quote(quote, return_all=False)
 
         if not segments:
             return await self.__reply_no_segments_found(message, quote)
 
         segment = segments[0] if isinstance(segments, list) else segments
-
+        start_time = max(0, segment['start'] - Settings.EXTEND_BEFORE)
+        end_time = segment['end'] + Settings.EXTEND_AFTER
         try:
-            await extract_and_send_clip(segments[0], message, self._bot)
-        except FFmpegException as e:
-            return await self.__reply_extraction_failure(message, e)
+            await ClipsExtractor.extract_and_send_clip(segment['video_path'], message, self._bot, self._logger, start_time, end_time)
+        except FFMpegException as e:
+            return await self.__reply_extraction_failed(message, e)
 
-        last_clip[message.chat.id] = {'segment': segment, 'type': 'segment'}
+        update_last_clip(segment, start_time, end_time, message)
+
         await self.__log_segment_and_clip_success(message.chat.id, message.from_user.username)
 
     async def __reply_no_segments_found(self, message: Message, quote: str) -> None:
         await message.answer(get_no_segments_found_message())
         await self._log_system_message(logging.INFO, get_log_no_segments_found_message(quote))
 
-    async def __reply_extraction_failure(self, message: Message, exception: FFmpegException) -> None:
+    async def __reply_extraction_failed(self, message: Message, exception: FFMpegException) -> None:
         await message.answer(get_extraction_failure_message())
         await self._log_system_message(logging.ERROR, get_log_extraction_failure_message(exception))
 

@@ -10,7 +10,7 @@ from bot.handlers.responses.my_clips_handler_responses import (
     get_log_saved_clips_sent_message,
     get_no_saved_clips_message,
 )
-from bot.utils.database import DatabaseManager
+from bot.utils.database_manager import DatabaseManager
 
 
 class MyClipsHandler(BotMessageHandler):

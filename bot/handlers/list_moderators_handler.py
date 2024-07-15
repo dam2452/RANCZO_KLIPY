@@ -10,7 +10,7 @@ from bot.handlers.responses.list_moderators_handler_responses import (
     get_log_no_moderators_found_message,
     get_no_moderators_found_message,
 )
-from bot.utils.database import DatabaseManager
+from bot.utils.database_manager import DatabaseManager
 
 
 class ListModeratorsHandler(BotMessageHandler):

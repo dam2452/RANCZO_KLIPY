@@ -5,22 +5,10 @@ from typing import (
     Optional,
 )
 
-from aiogram import Bot
 from aiogram.types import Message
 
-from bot.settings import Settings
-from bot.utils.database import DatabaseManager
-from bot.utils.video_manager import VideoManager
-
-
-async def extract_and_send_clip(
-    segment: json, message: Message, bot: Bot, extend_before: int = Settings.EXTEND_BEFORE,
-    extend_after: int = Settings.EXTEND_AFTER,
-) -> None:
-    video_path = segment['video_path']
-    start_time = max(0, segment['start'] - extend_before)
-    end_time = segment['end'] + extend_after
-    await VideoManager.extract_and_send_clip(message.chat.id, video_path, start_time, end_time, bot)
+from bot.utils.database_manager import DatabaseManager
+from bot.utils.global_dicts import last_clip
 
 
 @dataclass(frozen=True)
@@ -77,3 +65,21 @@ def parse_whitelist_message(
         email=content[5] if len(content) > 5 else None,
         phone=content[6] if len(content) > 6 else None,
     )
+
+
+def convert_seconds_to_time_str(seconds: int) -> str:
+    hours = int(seconds // 3600)
+    minutes = int((seconds % 3600) // 60)
+    seconds = int(seconds % 60)
+    return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
+
+
+def time_str_to_seconds(time_str: str) -> int:
+    h, m, s = [int(part) for part in time_str.split(':')]
+    return h * 3600 + m * 60 + s
+
+
+def update_last_clip(segment: json, start_time: int, end_time: int, message: Message) -> None:
+    segment['start'] = start_time
+    segment['end'] = end_time
+    last_clip[message.chat.id] = {'segment': segment, 'type': 'segment'}

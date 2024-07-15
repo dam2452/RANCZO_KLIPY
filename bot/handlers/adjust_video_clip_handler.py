@@ -1,5 +1,4 @@
 import logging
-import tempfile
 from typing import List
 
 from aiogram.types import Message
@@ -10,20 +9,16 @@ from bot.handlers.responses.adjust_video_clip_handler_responses import (
     get_invalid_args_count_message,
     get_invalid_interval_message,
     get_invalid_segment_index_message,
-    get_invalid_video_path_message,
     get_no_previous_searches_message,
     get_no_quotes_selected_message,
 )
 from bot.settings import Settings
+from bot.utils.clips_extractor import ClipsExtractor
 from bot.utils.global_dicts import (
     last_clip,
     last_search,
 )
-from bot.utils.video_manager import (
-    VideoManager,
-    VideoProcessor,
-)
-from bot.utils.video_utils import FFmpegException
+from bot.utils.video_utils import FFMpegException
 
 
 class AdjustVideoClipHandler(BotMessageHandler):
@@ -66,21 +61,11 @@ class AdjustVideoClipHandler(BotMessageHandler):
         if end_time <= start_time:
             return await self.__reply_invalid_interval(message)
 
-        video_path = segment_info.get('video_path')
-        if not isinstance(video_path, str):
-            return await self.__reply_invalid_video_path(message)
+        try:
+            await ClipsExtractor.extract_and_send_clip(segment_info.get("video_path"), message, self._bot, self._logger, start_time, end_time)
+        except FFMpegException as e:
+            return await self.__reply_extraction_failure(message, e)
 
-        with tempfile.NamedTemporaryFile(suffix=".mp4") as output_file:
-            try:
-                await VideoProcessor.extract_clip(video_path, start_time, end_time, output_file.name)
-            except FFmpegException as e:
-                return await self.__reply_extraction_failure(message, e)
-
-            await VideoManager.send_video(message.chat.id, output_file.name, self._bot)
-
-        segment_info['start'] = start_time
-        segment_info['end'] = end_time
-        last_clip[message.chat.id] = {'segment': segment_info, 'type': 'segment'}
         await self._log_system_message(logging.INFO, f"Updated segment info for chat ID '{message.chat.id}'")
         await self._log_system_message(logging.INFO, f"Video clip adjusted successfully for user '{message.from_user.username}'.")
 
@@ -104,10 +89,6 @@ class AdjustVideoClipHandler(BotMessageHandler):
         await message.answer(get_invalid_segment_index_message())
         await self._log_system_message(logging.INFO, "Invalid segment index provided by user.")
 
-    async def __reply_invalid_video_path(self, message: Message) -> None:
-        await message.answer(get_invalid_video_path_message())
-        await self._log_system_message(logging.INFO, "Invalid video path provided by user.")
-
-    async def __reply_extraction_failure(self, message: Message, exception: FFmpegException) -> None:
+    async def __reply_extraction_failure(self, message: Message, exception: FFMpegException) -> None:
         await message.answer(get_extraction_failure_message(exception))
         await self._log_system_message(logging.ERROR, f"Failed to adjust video clip: {exception}")

@@ -15,7 +15,7 @@ from bot.handlers.responses.subscription_status_handler_responses import (
     get_log_subscription_status_sent_message,
     get_no_subscription_message,
 )
-from bot.utils.database import DatabaseManager
+from bot.utils.database_manager import DatabaseManager
 
 
 class SubscriptionStatusHandler(BotMessageHandler):

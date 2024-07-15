@@ -15,8 +15,8 @@ from bot.handlers.responses.send_clip_handler_responses import (
     get_log_empty_clip_file_message,
     get_log_empty_file_error_message,
 )
-from bot.utils.database import DatabaseManager
-from bot.utils.video_manager import VideoManager
+from bot.utils.database_manager import DatabaseManager
+from bot.utils.video_utils import send_video
 
 
 class SendClipHandler(BotMessageHandler):
@@ -46,7 +46,7 @@ class SendClipHandler(BotMessageHandler):
         if os.path.getsize(temp_file_path) == 0:
             return await self.__reply_empty_file_error(message, clip_name)
 
-        await VideoManager.send_video(message.chat.id, temp_file_path, self._bot)
+        await send_video(message.chat.id, temp_file_path, self._bot, self._logger)
 
         os.remove(temp_file_path)
         await self._log_system_message(logging.INFO, get_log_clip_sent_message(clip_name, message.from_user.username))

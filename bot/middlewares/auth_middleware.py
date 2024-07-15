@@ -13,7 +13,7 @@ from aiogram.types import (
     TelegramObject,
 )
 
-from bot.utils.database import DatabaseManager
+from bot.utils.database_manager import DatabaseManager
 
 logger = logging.getLogger(__name__)
 

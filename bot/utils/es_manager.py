@@ -11,9 +11,6 @@ import urllib3
 from bot.settings import Settings
 from bot.utils.log import log_system_message
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # fixme: zgrupowac to w klase?

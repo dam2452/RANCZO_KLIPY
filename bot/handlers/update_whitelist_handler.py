@@ -9,7 +9,7 @@ from bot.handlers.responses.update_whitelist_handler_responses import (
     get_no_username_provided_message,
     get_user_updated_message,
 )
-from bot.utils.database import DatabaseManager
+from bot.utils.database_manager import DatabaseManager
 from bot.utils.functions import parse_whitelist_message
 
 

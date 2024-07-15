@@ -13,7 +13,7 @@ from bot.handlers.responses.transcription_handler_responses import (
     get_no_quote_provided_message,
     get_transcription_response,
 )
-from bot.utils.transcription_search import SearchTranscriptions
+from bot.utils.transcription_finder import TranscriptionFinder
 
 
 class TranscriptionHandler(BotMessageHandler):
@@ -26,7 +26,7 @@ class TranscriptionHandler(BotMessageHandler):
             return await self._reply_invalid_args_count(message, get_no_quote_provided_message())
 
         quote = ' '.join(content[1:])
-        result = await SearchTranscriptions.find_segment_with_context(quote, context_size=15)
+        result = await TranscriptionFinder.find_segment_with_context(quote, context_size=15)
 
         if not result:
             return await self.__reply_no_segments_found(message, quote)

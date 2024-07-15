@@ -9,7 +9,7 @@ from bot.handlers.responses.remove_subscription_handler_responses import (
     get_no_username_provided_message,
     get_subscription_removed_message,
 )
-from bot.utils.database import DatabaseManager
+from bot.utils.database_manager import DatabaseManager
 
 
 class RemoveSubscriptionHandler(BotMessageHandler):

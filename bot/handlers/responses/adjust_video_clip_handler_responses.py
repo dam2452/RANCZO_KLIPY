@@ -18,9 +18,5 @@ def get_invalid_segment_index_message() -> str:
     return "⚠️ Podano nieprawidłowy indeks segmentu.⚠️"
 
 
-def get_invalid_video_path_message() -> str:
-    return "⚠️ Nieprawidłowa ścieżka do wideo.⚠️"
-
-
 def get_extraction_failure_message(exception: Exception) -> str:
     return f"⚠️ Nie udało się zmienić klipu wideo: {exception}"

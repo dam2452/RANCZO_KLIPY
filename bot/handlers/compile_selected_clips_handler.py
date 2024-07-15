@@ -12,8 +12,8 @@ from bot.handlers.responses.compile_selected_clips_handler_responses import (
     get_log_no_matching_clips_found_message,
     get_no_matching_clips_found_message,
 )
-from bot.utils.compilation import compile_and_send_clips
-from bot.utils.database import DatabaseManager
+from bot.utils.clips_compiler import ClipsCompiler
+from bot.utils.database_manager import DatabaseManager
 
 
 class CompileSelectedClipsHandler(BotMessageHandler):
@@ -37,7 +37,7 @@ class CompileSelectedClipsHandler(BotMessageHandler):
         if not selected_clips_data:
             return await self.__reply_no_matching_clips_found(message)
 
-        await compile_and_send_clips(message, selected_clips_data, self._bot)
+        await ClipsCompiler.compile_and_send_clips(message, selected_clips_data, self._bot, self._logger)
 
         await self._log_system_message(logging.INFO, get_compiled_clip_sent_message(message.from_user.username))
 

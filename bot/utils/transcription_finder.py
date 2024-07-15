@@ -15,27 +15,12 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-class SearchTranscriptions:
+class TranscriptionFinder:
     @staticmethod
     async def find_segment_by_quote(
             quote: str, season_filter: Optional[int] = None, episode_filter: Optional[int] = None,
             index: str = 'ranczo-transcriptions', return_all: bool = False,
     ) -> Optional[Union[List[ObjectApiResponse], ObjectApiResponse]]:
-        """
-        Searches for a segment by a given quote with optional season and episode filters.
-
-        Parameters:
-        - quote: The text to search for within segments.
-        - season_filter: Optional filter to narrow down results to a specific season.
-        - episode_filter: Optional filter to narrow down results to a specific episode.
-        - index: The Elasticsearch index to search within.
-        - return_all: If True, returns all matching segments; otherwise, returns the first match.
-
-        Returns:
-        - A list of matching segments if return_all is True.
-        - The first matching segment if return_all is False.
-        - None if no matches are found.
-        """
         await log_system_message(
             logging.INFO,
             f"Searching for quote: '{quote}' with filters - Season: {season_filter}, Episode: {episode_filter}",
@@ -108,7 +93,7 @@ class SearchTranscriptions:
         )
         es = await connect_to_elasticsearch()
 
-        segment = await SearchTranscriptions.find_segment_by_quote(quote, season_filter, episode_filter, index, return_all=False)
+        segment = await TranscriptionFinder.find_segment_by_quote(quote, season_filter, episode_filter, index, return_all=False)
         if not segment:
             await log_system_message(logging.INFO, "No segments found matching the query.", logger)
             return None
@@ -172,18 +157,6 @@ class SearchTranscriptions:
 
     @staticmethod
     async def find_video_path_by_episode(season: int, episode_number: int, index: str = 'ranczo-transcriptions') -> Optional[str]:
-        """
-        Finds the video path for a given season and episode number.
-
-        Parameters:
-        - season: The season number to search for.
-        - episode_number: The episode number to search for.
-        - index: The Elasticsearch index to search within.
-
-        Returns:
-        - The video path if a matching segment is found.
-        - None if no matches are found.
-        """
         await log_system_message(
             logging.INFO,
             f"Searching for video path with filters - Season: {season}, Episode: {episode_number}",
@@ -221,17 +194,6 @@ class SearchTranscriptions:
 
     @staticmethod
     async def find_episodes_by_season(season: int, index: str = 'ranczo-transcriptions') -> Optional[List[json]]:
-        """
-        Finds all episodes for a given season.
-
-        Parameters:
-        - season: The season number to search for.
-        - index: The Elasticsearch index to search within.
-
-        Returns:
-        - A list of episodes if matching segments are found.
-        - None if no matches are found.
-        """
         await log_system_message(logging.INFO, f"Searching for episodes in season {season}", logger)
         es = await connect_to_elasticsearch()
 

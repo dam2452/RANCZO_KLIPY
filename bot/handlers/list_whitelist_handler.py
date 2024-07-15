@@ -10,7 +10,7 @@ from bot.handlers.responses.list_whitelist_handler_responses import (
     get_log_whitelist_sent_message,
     get_whitelist_empty_message,
 )
-from bot.utils.database import DatabaseManager
+from bot.utils.database_manager import DatabaseManager
 
 
 class ListWhitelistHandler(BotMessageHandler):

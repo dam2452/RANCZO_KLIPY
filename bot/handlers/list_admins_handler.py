@@ -10,7 +10,7 @@ from bot.handlers.responses.list_admins_handler_responses import (
     get_log_no_admins_found_message,
     get_no_admins_found_message,
 )
-from bot.utils.database import DatabaseManager
+from bot.utils.database_manager import DatabaseManager
 
 
 class ListAdminsHandler(BotMessageHandler):

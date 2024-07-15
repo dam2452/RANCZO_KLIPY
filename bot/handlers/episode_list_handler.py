@@ -14,7 +14,7 @@ from bot.handlers.responses.episode_list_handler_responses import (
     get_log_no_episodes_found_message,
     get_no_episodes_found_message,
 )
-from bot.utils.transcription_search import SearchTranscriptions
+from bot.utils.transcription_finder import TranscriptionFinder
 
 
 class EpisodeListHandler(BotMessageHandler):
@@ -27,7 +27,7 @@ class EpisodeListHandler(BotMessageHandler):
             return await self._reply_invalid_args_count(message, get_invalid_args_count_message())
 
         season = int(content[1])
-        episodes = await SearchTranscriptions.find_episodes_by_season(season)
+        episodes = await TranscriptionFinder.find_episodes_by_season(season)
         if not episodes:
             return await self.__reply_no_episodes_found(message, season)
 

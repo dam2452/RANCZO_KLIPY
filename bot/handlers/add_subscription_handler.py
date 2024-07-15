@@ -12,7 +12,7 @@ from bot.handlers.responses.add_subscription_handler_responses import (
     get_subscription_extended_message,
     get_subscription_log_message,
 )
-from bot.utils.database import DatabaseManager
+from bot.utils.database_manager import DatabaseManager
 
 
 class AddSubscriptionHandler(BotMessageHandler):

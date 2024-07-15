@@ -10,7 +10,7 @@ from bot.handlers.responses.report_issue_handler_responses import (
     get_no_report_content_message,
     get_report_received_message,
 )
-from bot.utils.database import DatabaseManager
+from bot.utils.database_manager import DatabaseManager
 
 
 class ReportIssueHandler(BotMessageHandler):

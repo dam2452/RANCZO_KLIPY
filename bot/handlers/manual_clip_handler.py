@@ -20,6 +20,7 @@ from bot.handlers.responses.manual_clip_handler_responses import (
     get_log_video_file_not_exist_message,
     get_video_file_not_exist_message,
 )
+from bot.utils.clips_extractor import ClipsExtractor
 from bot.utils.episode import (
     Episode,
     InvalidSeasonEpisodeStringException,
@@ -29,8 +30,7 @@ from bot.utils.functions import (
     minutes_str_to_seconds,
 )
 from bot.utils.global_dicts import last_clip
-from bot.utils.transcription_search import SearchTranscriptions
-from bot.utils.video_manager import VideoManager
+from bot.utils.transcription_finder import TranscriptionFinder
 
 
 class ManualClipHandler(BotMessageHandler):
@@ -56,15 +56,12 @@ class ManualClipHandler(BotMessageHandler):
         if end_seconds <= start_seconds:
             return await self.__reply_end_time_earlier_than_start(message)
 
-        video_path = await SearchTranscriptions.find_video_path_by_episode(episode.season, episode.get_absolute_episode_number())
+        video_path = await TranscriptionFinder.find_video_path_by_episode(episode.season, episode.get_absolute_episode_number())
         if not video_path or not os.path.exists(video_path):
             return await self.__reply_video_file_not_exist(message, video_path)
 
-        await VideoManager.extract_and_send_clip(message.chat.id, video_path, start_seconds, end_seconds, self._bot)
-        await self._log_system_message(
-            logging.INFO,
-            get_log_clip_extracted_message(episode, start_seconds, end_seconds),
-        )
+        await ClipsExtractor.extract_and_send_clip(video_path, message, self._bot, self._logger, start_seconds, end_seconds)
+        await self._log_system_message(logging.INFO, get_log_clip_extracted_message(episode, start_seconds, end_seconds))
 
         last_clip[message.chat.id] = {
             'video_path': video_path,

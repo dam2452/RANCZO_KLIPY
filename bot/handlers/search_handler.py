@@ -14,7 +14,7 @@ from bot.handlers.responses.search_handler_responses import (
     get_log_search_results_sent_message,
 )
 from bot.utils.global_dicts import last_search
-from bot.utils.transcription_search import SearchTranscriptions
+from bot.utils.transcription_finder import TranscriptionFinder
 
 
 class SearchHandler(BotMessageHandler):
@@ -28,7 +28,7 @@ class SearchHandler(BotMessageHandler):
 
         quote = ' '.join(content[1:])
 
-        segments = await SearchTranscriptions.find_segment_by_quote(quote, return_all=True)
+        segments = await TranscriptionFinder.find_segment_by_quote(quote, return_all=True)
         if not segments:
             return await self.__reply_no_segments_found(message, quote)
 
