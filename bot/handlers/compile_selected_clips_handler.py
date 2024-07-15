@@ -3,6 +3,7 @@ from typing import List
 
 from aiogram.types import Message
 
+from bot.database.database_manager import DatabaseManager
 from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.handlers.responses.compile_selected_clips_handler_responses import (
     get_clip_not_found_message,
@@ -12,8 +13,7 @@ from bot.handlers.responses.compile_selected_clips_handler_responses import (
     get_log_no_matching_clips_found_message,
     get_no_matching_clips_found_message,
 )
-from bot.utils.clips_compiler import ClipsCompiler
-from bot.utils.database_manager import DatabaseManager
+from bot.video.clips_compiler import ClipsCompiler
 
 
 class CompileSelectedClipsHandler(BotMessageHandler):

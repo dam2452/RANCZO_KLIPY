@@ -14,11 +14,11 @@ from aiogram import (
 )
 from aiogram.fsm.storage.memory import MemoryStorage
 
+from bot.database.database_manager import DatabaseManager
 from bot.handlers import *  # pylint: disable=wildcard-import
 from bot.middlewares.auth_middleware import AuthorizationMiddleware
 from bot.middlewares.error_middleware import ErrorHandlerMiddleware
 from bot.settings import Settings
-from bot.utils.database_manager import DatabaseManager
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

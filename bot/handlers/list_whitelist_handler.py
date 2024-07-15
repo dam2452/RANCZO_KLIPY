@@ -4,13 +4,13 @@ from typing import List
 from aiogram.types import Message
 from bot_message_handler import BotMessageHandler
 
+from bot.database.database_manager import DatabaseManager
 from bot.handlers.responses.list_whitelist_handler_responses import (
     create_whitelist_response,
     get_log_whitelist_empty_message,
     get_log_whitelist_sent_message,
     get_whitelist_empty_message,
 )
-from bot.utils.database_manager import DatabaseManager
 
 
 class ListWhitelistHandler(BotMessageHandler):

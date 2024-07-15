@@ -3,6 +3,7 @@ from typing import List
 
 from aiogram.types import Message
 
+from bot.database.global_dicts import last_search
 from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.handlers.responses.bot_message_handler_responses import (
     get_extraction_failure_message,
@@ -17,10 +18,9 @@ from bot.handlers.responses.select_clip_handler_responses import (
     get_no_previous_search_message,
 )
 from bot.settings import Settings
-from bot.utils.clips_extractor import ClipsExtractor
 from bot.utils.functions import update_last_clip
-from bot.utils.global_dicts import last_search
-from bot.utils.video_utils import FFMpegException
+from bot.video.clips_extractor import ClipsExtractor
+from bot.video.utils import FFMpegException
 
 
 class SelectClipHandler(BotMessageHandler):

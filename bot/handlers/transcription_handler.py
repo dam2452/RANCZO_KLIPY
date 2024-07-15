@@ -13,7 +13,7 @@ from bot.handlers.responses.transcription_handler_responses import (
     get_no_quote_provided_message,
     get_transcription_response,
 )
-from bot.utils.transcription_finder import TranscriptionFinder
+from bot.search.transcription_finder import TranscriptionFinder
 
 
 class TranscriptionHandler(BotMessageHandler):

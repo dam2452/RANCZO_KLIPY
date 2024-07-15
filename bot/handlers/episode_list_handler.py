@@ -14,7 +14,7 @@ from bot.handlers.responses.episode_list_handler_responses import (
     get_log_no_episodes_found_message,
     get_no_episodes_found_message,
 )
-from bot.utils.transcription_finder import TranscriptionFinder
+from bot.search.transcription_finder import TranscriptionFinder
 
 
 class EpisodeListHandler(BotMessageHandler):

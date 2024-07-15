@@ -1,7 +1,7 @@
 import logging
 from typing import Dict
 
-from bot.utils.database_manager import DatabaseManager
+from bot.database.database_manager import DatabaseManager
 
 LOG_LEVELS: Dict[int, str] = {
     logging.DEBUG: "DEBUG",

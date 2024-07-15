@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 from datetime import (
     date,
     timedelta,
@@ -11,19 +10,11 @@ from typing import (
 
 import asyncpg
 
+from bot.database.user import User
 from bot.settings import Settings
 
 
 class DatabaseManager:  # pylint: disable=too-many-public-methods
-    @dataclass
-    class User:
-        name: str
-        is_admin: Optional[bool]
-        is_moderator: Optional[bool]
-        full_name: Optional[str]
-        email: Optional[str]
-        phone: Optional[str]
-
     @staticmethod
     async def get_db_connection() -> Optional[asyncpg.Connection]:
         return await asyncpg.connect(

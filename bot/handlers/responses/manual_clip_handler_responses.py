@@ -1,4 +1,4 @@
-from bot.utils.episode import Episode
+from bot.video.episode import Episode
 
 
 def get_invalid_args_count_message() -> str:

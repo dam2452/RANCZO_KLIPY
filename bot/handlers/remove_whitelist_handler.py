@@ -4,12 +4,12 @@ from typing import List
 from aiogram.types import Message
 from bot_message_handler import BotMessageHandler
 
+from bot.database.database_manager import DatabaseManager
 from bot.handlers.responses.remove_whitelist_handler_responses import (
     get_log_user_removed_message,
     get_no_username_provided_message,
     get_user_removed_message,
 )
-from bot.utils.database_manager import DatabaseManager
 
 
 class RemoveWhitelistHandler(BotMessageHandler):

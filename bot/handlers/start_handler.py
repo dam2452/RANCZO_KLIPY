@@ -29,7 +29,7 @@ from bot.handlers.responses.start_handler_responses import (
 
 
 class StartHandler(BotMessageHandler):
-    def __init__(self, bot: Bot, middlewares: Optional[List[BaseMiddleware]] = None):
+    def __init__(self, bot: Bot, logger: logging.Logger, middlewares: Optional[List[BaseMiddleware]] = None):
         self.__RESPONSES: Dict[str, Callable[[], str]] = {
             "lista": get_lista_message,
             "all": get_full_message,
@@ -40,7 +40,7 @@ class StartHandler(BotMessageHandler):
             "subskrypcje": get_subskrypcje_message,
         }
 
-        super().__init__(bot, middlewares)
+        super().__init__(bot, logger, middlewares)
 
     def get_commands(self) -> List[str]:
         return ['start', 's', 'help', 'h']

@@ -14,6 +14,8 @@ from typing import (
 from aiogram.types import Message
 from bot_message_handler import BotMessageHandler
 
+from bot.database.database_manager import DatabaseManager
+from bot.database.global_dicts import last_clip
 from bot.handlers.responses.save_clip_handler_responses import (
     get_clip_name_exists_message,
     get_clip_saved_successfully_message,
@@ -24,11 +26,9 @@ from bot.handlers.responses.save_clip_handler_responses import (
     get_log_no_segment_selected_message,
     get_no_segment_selected_message,
 )
-from bot.utils.clips_extractor import ClipsExtractor
-from bot.utils.database_manager import DatabaseManager
-from bot.utils.global_dicts import last_clip
-from bot.utils.segment_info import SegmentInfo
-from bot.utils.video_utils import get_video_duration
+from bot.video.clips_extractor import ClipsExtractor
+from bot.video.segment_info import SegmentInfo
+from bot.video.utils import get_video_duration
 
 
 class SaveClipHandler(BotMessageHandler):

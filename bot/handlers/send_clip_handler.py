@@ -5,6 +5,7 @@ from typing import List
 
 from aiogram.types import Message
 
+from bot.database.database_manager import DatabaseManager
 from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.handlers.responses.send_clip_handler_responses import (
     get_clip_not_found_message,
@@ -15,8 +16,7 @@ from bot.handlers.responses.send_clip_handler_responses import (
     get_log_empty_clip_file_message,
     get_log_empty_file_error_message,
 )
-from bot.utils.database_manager import DatabaseManager
-from bot.utils.video_utils import send_video
+from bot.video.utils import send_video
 
 
 class SendClipHandler(BotMessageHandler):

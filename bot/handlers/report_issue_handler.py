@@ -3,6 +3,7 @@ from typing import List
 
 from aiogram.types import Message
 
+from bot.database.database_manager import DatabaseManager
 from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.handlers.responses.report_issue_handler_responses import (
     get_log_no_report_content_message,
@@ -10,7 +11,6 @@ from bot.handlers.responses.report_issue_handler_responses import (
     get_no_report_content_message,
     get_report_received_message,
 )
-from bot.utils.database_manager import DatabaseManager
 
 
 class ReportIssueHandler(BotMessageHandler):

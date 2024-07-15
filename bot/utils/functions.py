@@ -7,8 +7,8 @@ from typing import (
 
 from aiogram.types import Message
 
-from bot.utils.database_manager import DatabaseManager
-from bot.utils.global_dicts import last_clip
+from bot.database.user import User
+from bot.database.global_dicts import last_clip
 
 
 @dataclass(frozen=True)
@@ -53,11 +53,8 @@ def minutes_str_to_seconds(time_str: str) -> float:
         raise InvalidTimeStringException from e
 
 
-def parse_whitelist_message(
-        content: List[str], default_admin_status: Optional[bool],
-        default_moderator_status: Optional[bool],
-) -> DatabaseManager.User:
-    return DatabaseManager.User(
+def parse_whitelist_message(content: List[str], default_admin_status: Optional[bool], default_moderator_status: Optional[bool]) -> User:
+    return User(
         name=content[1],
         is_admin=bool(int(content[2])) if len(content) > 2 else default_admin_status,
         is_moderator=bool(int(content[3])) if len(content) > 3 else default_moderator_status,

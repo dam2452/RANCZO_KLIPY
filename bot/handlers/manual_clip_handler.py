@@ -7,6 +7,7 @@ from typing import (
 
 from aiogram.types import Message
 
+from bot.database.global_dicts import last_clip
 from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.handlers.responses.manual_clip_handler_responses import (
     get_end_time_earlier_than_start_message,
@@ -20,17 +21,16 @@ from bot.handlers.responses.manual_clip_handler_responses import (
     get_log_video_file_not_exist_message,
     get_video_file_not_exist_message,
 )
-from bot.utils.clips_extractor import ClipsExtractor
-from bot.utils.episode import (
-    Episode,
-    InvalidSeasonEpisodeStringException,
-)
+from bot.search.transcription_finder import TranscriptionFinder
 from bot.utils.functions import (
     InvalidTimeStringException,
     minutes_str_to_seconds,
 )
-from bot.utils.global_dicts import last_clip
-from bot.utils.transcription_finder import TranscriptionFinder
+from bot.video.clips_extractor import ClipsExtractor
+from bot.video.episode import (
+    Episode,
+    InvalidSeasonEpisodeStringException,
+)
 
 
 class ManualClipHandler(BotMessageHandler):

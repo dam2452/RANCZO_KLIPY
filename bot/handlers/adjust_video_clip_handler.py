@@ -4,6 +4,10 @@ from typing import List
 from aiogram.types import Message
 from bot_message_handler import BotMessageHandler
 
+from bot.database.global_dicts import (
+    last_clip,
+    last_search,
+)
 from bot.handlers.responses.adjust_video_clip_handler_responses import (
     get_extraction_failure_message,
     get_invalid_args_count_message,
@@ -13,12 +17,8 @@ from bot.handlers.responses.adjust_video_clip_handler_responses import (
     get_no_quotes_selected_message,
 )
 from bot.settings import Settings
-from bot.utils.clips_extractor import ClipsExtractor
-from bot.utils.global_dicts import (
-    last_clip,
-    last_search,
-)
-from bot.utils.video_utils import FFMpegException
+from bot.video.clips_extractor import ClipsExtractor
+from bot.video.utils import FFMpegException
 
 
 class AdjustVideoClipHandler(BotMessageHandler):

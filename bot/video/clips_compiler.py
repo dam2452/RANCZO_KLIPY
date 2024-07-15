@@ -7,9 +7,9 @@ from aiogram import Bot
 from aiogram.types import Message
 from ffmpeg.asyncio import FFmpeg
 
-from bot.utils.global_dicts import last_clip
+from bot.database.global_dicts import last_clip
 from bot.utils.log import log_system_message
-from bot.utils.video_utils import (
+from bot.video.utils import (
     FFMpegException,
     send_video,
 )

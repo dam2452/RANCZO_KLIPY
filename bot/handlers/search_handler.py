@@ -4,6 +4,7 @@ from typing import List
 from aiogram.types import Message
 from bot_message_handler import BotMessageHandler
 
+from bot.database.global_dicts import last_search
 from bot.handlers.responses.bot_message_handler_responses import (
     get_log_no_segments_found_message,
     get_no_segments_found_message,
@@ -13,8 +14,7 @@ from bot.handlers.responses.search_handler_responses import (
     get_invalid_args_count_message,
     get_log_search_results_sent_message,
 )
-from bot.utils.global_dicts import last_search
-from bot.utils.transcription_finder import TranscriptionFinder
+from bot.search.transcription_finder import TranscriptionFinder
 
 
 class SearchHandler(BotMessageHandler):

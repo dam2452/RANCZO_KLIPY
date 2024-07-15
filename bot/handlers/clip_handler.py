@@ -15,11 +15,11 @@ from bot.handlers.responses.clip_handler_responses import (
     get_no_quote_provided_message,
     get_no_segments_found_message,
 )
+from bot.search.transcription_finder import TranscriptionFinder
 from bot.settings import Settings
-from bot.utils.clips_extractor import ClipsExtractor
 from bot.utils.functions import update_last_clip
-from bot.utils.transcription_finder import TranscriptionFinder
-from bot.utils.video_utils import FFMpegException
+from bot.video.clips_extractor import ClipsExtractor
+from bot.video.utils import FFMpegException
 
 
 class ClipHandler(BotMessageHandler):
