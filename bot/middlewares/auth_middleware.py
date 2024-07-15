@@ -1,4 +1,3 @@
-import logging
 from typing import (
     Any,
     Awaitable,
@@ -7,28 +6,19 @@ from typing import (
     Optional,
 )
 
-from aiogram import BaseMiddleware
-from aiogram.types import (
-    Message,
-    TelegramObject,
-)
+from aiogram.types import TelegramObject
 
 from bot.database.database_manager import DatabaseManager
+from bot.middlewares.bot_middleware import BotMiddleware
 
-logger = logging.getLogger(__name__)
 
-
-class AuthorizationMiddleware(BaseMiddleware):
-    async def __call__(
+class AuthorizationMiddleware(BotMiddleware):
+    async def handle(
         self, handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]], event: TelegramObject,
         data: Dict[str, Any],
     ) -> Optional[Awaitable]:
-        if not isinstance(event, Message):
-            return await handler(event, data)
-
-        username = event.from_user.username
-        if username and await DatabaseManager.is_user_authorized(username):
+        if event.from_user.username and await DatabaseManager.is_user_authorized(event.from_user.username):
             return await handler(event, data)
 
         await event.answer("❌ Nie masz uprawnień do korzystania z tego bota.❌")
-        logger.warning(f"Unauthorized access attempt by user: {username}")
+        self._logger.warning(f"Unauthorized access attempt by user: {event.from_user.username}")

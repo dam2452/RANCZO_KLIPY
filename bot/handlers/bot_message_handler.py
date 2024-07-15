@@ -4,25 +4,18 @@ from abc import (
 )
 import logging
 from typing import (
-    Any,
-    Awaitable,
-    Callable,
-    Dict,
     List,
     Optional,
 )
 
 from aiogram import (
-    BaseMiddleware,
     Bot,
     Dispatcher,
 )
 from aiogram.filters import Command
-from aiogram.types import (
-    Message,
-    TelegramObject,
-)
+from aiogram.types import Message
 
+from bot.middlewares.bot_middleware import BotMiddleware
 from bot.responses.bot_message_handler_responses import (
     get_general_error_message,
     get_invalid_args_count_message,
@@ -33,30 +26,19 @@ from bot.utils.log import (
 )
 
 
-class DummyMiddleware(BaseMiddleware):
-    async def __call__(
-        self,
-        handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
-        event: TelegramObject,
-        data: Dict[str, Any],
-    ) -> Optional[Awaitable]:
-        raise Exception("tbd: zmienic na BotMiddleware, wyniesc do folderu odpowiedniego z tego pliku i uzyc jako baza obecnych")
-
-
 class BotMessageHandler(ABC):
-    def __init__(self, bot: Bot, logger: logging.Logger, middlewares: Optional[List[BaseMiddleware]] = None):
+    def __init__(self, bot: Bot, logger: logging.Logger, middlewares: Optional[List[BotMiddleware]] = None):
         self._bot: Bot = bot
         self._logger: logging.Logger = logger
 
-        self._middlewares: List[DummyMiddleware] = middlewares if middlewares else [
-            DummyMiddleware(),
-            DummyMiddleware(),
-            # todo
-        ]
+        self._middlewares: Optional[List[BotMiddleware]] = middlewares
 
     def register(self, dp: Dispatcher) -> None:
-        for middleware in self._middlewares:
-            dp.message.middleware(middleware)
+        if self._middlewares:
+            for middleware in self._middlewares:
+                dp.message.middleware(middleware)
+        else:
+            self._log_system_message(logging.WARN, f"No middlewares for {self.get_action_name()}")
 
         dp.message.register(self.handle, Command(commands=self.get_commands()))
 

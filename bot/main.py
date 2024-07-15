@@ -16,8 +16,7 @@ from aiogram.fsm.storage.memory import MemoryStorage
 
 from bot.database.database_manager import DatabaseManager
 from bot.handlers import *  # pylint: disable=wildcard-import
-from bot.middlewares.auth_middleware import AuthorizationMiddleware
-from bot.middlewares.error_middleware import ErrorHandlerMiddleware
+from bot.middlewares import *  # pylint: disable=wildcard-import
 from bot.settings import Settings
 
 logging.basicConfig(level=logging.INFO)
@@ -41,38 +40,37 @@ class DBLogHandler(logging.Handler):
 bot = Bot(token=Settings.TELEGRAM_BOT_TOKEN)
 dp = Dispatcher(storage=MemoryStorage())
 
-# fixme zmienic na liste middlewarow i przekazywac tamtym klasom w ctor
-dp.update.middleware(AuthorizationMiddleware())
-dp.update.middleware(ErrorHandlerMiddleware())
-
+middlewares: List[BotMiddleware] = [
+    AuthorizationMiddleware(logger),
+]
 
 handlers: List[BotMessageHandler] = [
-    AddSubscriptionHandler(bot, logger),
-    AddWhitelistHandler(bot, logger),
-    AdjustVideoClipHandler(bot, logger),
-    AdminHelpHandler(bot, logger),
-    ClipHandler(bot, logger),
-    CompileClipsHandler(bot, logger),
-    CompileSelectedClipsHandler(bot, logger),
-    DeleteClipHandler(bot, logger),
-    EpisodeListHandler(bot, logger),
-    ListAdminsHandler(bot, logger),
-    ListModeratorsHandler(bot, logger),
-    ListWhitelistHandler(bot, logger),
-    ManualClipHandler(bot, logger),
-    MyClipsHandler(bot, logger),
-    RemoveSubscriptionHandler(bot, logger),
-    RemoveWhitelistHandler(bot, logger),
-    ReportIssueHandler(bot, logger),
-    SaveClipHandler(bot, logger),
-    SearchHandler(bot, logger),
-    SearchListHandler(bot, logger),
-    SelectClipHandler(bot, logger),
-    SendClipHandler(bot, logger),
-    StartHandler(bot, logger),
-    SubscriptionStatusHandler(bot, logger),
-    TranscriptionHandler(bot, logger),
-    UpdateWhitelistHandler(bot, logger),
+    AddSubscriptionHandler(bot, logger, middlewares),
+    AddWhitelistHandler(bot, logger, middlewares),
+    AdjustVideoClipHandler(bot, logger, middlewares),
+    AdminHelpHandler(bot, logger, middlewares),
+    ClipHandler(bot, logger, middlewares),
+    CompileClipsHandler(bot, logger, middlewares),
+    CompileSelectedClipsHandler(bot, logger, middlewares),
+    DeleteClipHandler(bot, logger, middlewares),
+    EpisodeListHandler(bot, logger, middlewares),
+    ListAdminsHandler(bot, logger, middlewares),
+    ListModeratorsHandler(bot, logger, middlewares),
+    ListWhitelistHandler(bot, logger, middlewares),
+    ManualClipHandler(bot, logger, middlewares),
+    MyClipsHandler(bot, logger, middlewares),
+    RemoveSubscriptionHandler(bot, logger, middlewares),
+    RemoveWhitelistHandler(bot, logger, middlewares),
+    ReportIssueHandler(bot, logger, middlewares),
+    SaveClipHandler(bot, logger, middlewares),
+    SearchHandler(bot, logger, middlewares),
+    SearchListHandler(bot, logger, middlewares),
+    SelectClipHandler(bot, logger, middlewares),
+    SendClipHandler(bot, logger, middlewares),
+    StartHandler(bot, logger, middlewares),
+    SubscriptionStatusHandler(bot, logger, middlewares),
+    TranscriptionHandler(bot, logger, middlewares),
+    UpdateWhitelistHandler(bot, logger, middlewares),
 ]
 
 

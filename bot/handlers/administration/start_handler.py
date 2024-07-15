@@ -6,13 +6,11 @@ from typing import (
     Optional,
 )
 
-from aiogram import (
-    BaseMiddleware,
-    Bot,
-)
+from aiogram import Bot
 from aiogram.types import Message
 
 from bot.handlers.bot_message_handler import BotMessageHandler
+from bot.middlewares.bot_middleware import BotMiddleware
 from bot.responses.administration.start_handler_responses import (
     get_basic_message,
     get_edycja_message,
@@ -29,7 +27,7 @@ from bot.responses.administration.start_handler_responses import (
 
 
 class StartHandler(BotMessageHandler):
-    def __init__(self, bot: Bot, logger: logging.Logger, middlewares: Optional[List[BaseMiddleware]] = None):
+    def __init__(self, bot: Bot, logger: logging.Logger, middlewares: Optional[List[BotMiddleware]] = None):
         self.__RESPONSES: Dict[str, Callable[[], str]] = {
             "lista": get_lista_message,
             "all": get_full_message,
