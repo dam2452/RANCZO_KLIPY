@@ -81,16 +81,18 @@ async def on_startup() -> None:
         await DatabaseManager.init_db()
         await DatabaseManager.set_default_admin(os.getenv("DEFAULT_ADMIN"))
         logger.info("📦 Database initialized and default admin set. 📦")
-    except Exception as e:
+    except Exception as e: #fixme da radę?
         logger.error(f"❌ Failed to initialize database or set default admin: {e} ❌")
+        raise
 
     try:
         for handler in handlers:
             handler.register(dp)
 
         logger.info("🔧 Handlers registered successfully. 🔧")
-    except Exception as e:
+    except Exception as e:#fixme da radę?
         logger.error(f"❌ Failed to register handlers_old: {e} ❌")
+        raise
 
 
 async def main() -> None:
@@ -98,8 +100,9 @@ async def main() -> None:
         await on_startup()
         logger.info("🚀 Bot started successfully.🚀")
         await dp.start_polling(bot)
-    except Exception as e:
+    except Exception as e:#fixme da radę?
         logger.error(f"❌ Bot encountered an error: {e} ❌")
+        raise
 
 
 if __name__ == "__main__":
