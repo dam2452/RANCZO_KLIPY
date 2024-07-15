@@ -18,6 +18,16 @@ from bot.utils.database import DatabaseManager
 from bot.utils.global_dicts import last_clip
 from bot.utils.segment_info import SegmentInfo
 from bot.utils.video_manager import VideoProcessor
+from bot.handlers.responses.save_clip_handler_responses import (
+    get_clip_name_exists_message,
+    get_no_segment_selected_message,
+    get_failed_to_verify_clip_length_message,
+    get_clip_saved_successfully_message,
+    get_log_clip_name_exists_message,
+    get_log_no_segment_selected_message,
+    get_log_failed_to_verify_clip_length_message,
+    get_log_clip_saved_successfully_message
+)
 
 
 class SaveClipHandler(BotMessageHandler):
@@ -31,7 +41,8 @@ class SaveClipHandler(BotMessageHandler):
         return ['zapisz', 'save', 'z']
 
     async def _do_handle(self, message: Message) -> None:
-        await self._log_user_activity(message.from_user.username, f"/zapisz {message.text}")
+        command = self.get_commands()[0]
+        await self._log_user_activity(message.from_user.username, f"/{command} {message.text}")
         clip_name = self.__parse_clip_name(message)
 
         if not clip_name:
@@ -137,29 +148,29 @@ class SaveClipHandler(BotMessageHandler):
         )
 
     async def __reply_clip_name_exists(self, message: Message, clip_name: str) -> None:
-        await message.answer("⚠️ Klip o takiej nazwie już istnieje. Wybierz inną nazwę.⚠️")
+        await message.answer(get_clip_name_exists_message(clip_name))
         await self._log_system_message(
             logging.INFO,
-            f"Clip name '{clip_name}' already exists for user '{message.from_user.username}'.",
+            get_log_clip_name_exists_message(clip_name, message.from_user.username),
         )
 
     async def __reply_no_segment_selected(self, message: Message) -> None:
-        await message.answer("⚠️ Najpierw wybierz segment za pomocą /klip, /wytnij lub skompiluj klipy.⚠️")
+        await message.answer(get_no_segment_selected_message())
         await self._log_system_message(
             logging.INFO,
-            "No segment selected, manual clip, or compiled clip available for user.",
+            get_log_no_segment_selected_message(),
         )
 
     async def __reply_failed_to_verify_clip_length(self, message: Message, clip_name: str) -> None:
-        await message.answer("❌ Nie udało się zweryfikować długości klipu.❌")
+        await message.answer(get_failed_to_verify_clip_length_message())
         await self._log_system_message(
             logging.ERROR,
-            f"Failed to verify the length of the clip '{clip_name}' for user '{message.from_user.username}'.",
+            get_log_failed_to_verify_clip_length_message(clip_name, message.from_user.username),
         )
 
     async def __reply_clip_saved_successfully(self, message: Message, clip_name: str) -> None:
-        await message.answer(f"✅ Klip '{clip_name}' został zapisany pomyślnie. ✅")
+        await message.answer(get_clip_saved_successfully_message(clip_name))
         await self._log_system_message(
             logging.INFO,
-            f"Clip '{clip_name}' saved successfully for user '{message.from_user.username}'.",
+            get_log_clip_saved_successfully_message(clip_name, message.from_user.username),
         )
