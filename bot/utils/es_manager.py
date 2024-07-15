@@ -1,7 +1,6 @@
 import json
 import logging
 import os
-from typing import Optional
 
 from elasticsearch import (
     AsyncElasticsearch,
@@ -19,7 +18,6 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # fixme: zgrupowac to w klase?
 # fixme: sensowne exceptiony rzucac
-# fixme: nie lapac wszystkiego jak zwierze
 # fixme: przeczyscic te funkcje
 
 

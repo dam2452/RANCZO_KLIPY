@@ -1,4 +1,9 @@
-from typing import Dict
+from typing import (
+    Dict,
+    List,
+)
+
+import asyncpg
 
 number_to_emoji: Dict[str, str] = {
     '0': '0️⃣',
@@ -18,9 +23,7 @@ def convert_number_to_emoji(number: int) -> str:
     return ''.join(number_to_emoji.get(digit, digit) for digit in str(number))
 
 
-def format_myclips_response(clips, username) -> str:
-    response = "🎬 Twoje Zapisane Klipy 🎬\n\n"
-    response += f"🎥 Użytkownik: @{username}\n\n"
+def format_myclips_response(clips: List[asyncpg.Record], username: str) -> str:
     clip_lines = []
 
     for idx, (clip_name, start_time, end_time, season, episode_number, is_compilation) in enumerate(clips, start=1):
@@ -31,19 +34,15 @@ def format_myclips_response(clips, username) -> str:
         else:
             length_str = "Brak danych"
 
-        if is_compilation or season is None or episode_number is None:
+        if is_compilation:
             season_episode = "Kompilacja"
         else:
             episode_number_mod = (episode_number - 1) % 13 + 1
             season_episode = f"S{season:02d}E{episode_number_mod:02d}"
 
-        emoji_index = convert_number_to_emoji(idx)
-        line1 = f"{emoji_index} | 📺 {season_episode} | 🕒 {length_str}"
-        line2 = f"👉 {clip_name}"
-        clip_lines.append(f"{line1} \n{line2}")
+        clip_lines.append(f"{convert_number_to_emoji(idx)} | 📺 {season_episode} | 🕒 {length_str}\n👉 {clip_name}")
 
-    response += "```\n" + "\n\n".join(clip_lines) + "\n```"
-    return response
+    return f"🎬 Twoje Zapisane Klipy 🎬\n\n🎥 Użytkownik: @{username}\n\n" + "```\n" + "\n\n".join(clip_lines) + "\n```"
 
 
 def get_no_saved_clips_message() -> str:

@@ -18,8 +18,6 @@ class ListAdminsHandler(BotMessageHandler):
         return ['listadmins', 'listad']
 
     async def _do_handle(self, message: Message) -> None:
-        command = self.get_commands()[0]
-        await self._log_user_activity(message.from_user.username, f"/{command}")
         users = await DatabaseManager.get_admin_users()
         if not users:
             return await self.__reply_no_admins_found(message)

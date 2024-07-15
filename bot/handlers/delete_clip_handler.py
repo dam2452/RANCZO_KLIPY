@@ -19,8 +19,6 @@ class DeleteClipHandler(BotMessageHandler):
         return ['usunklip', 'deleteclip', 'uk']
 
     async def _do_handle(self, message: Message) -> None:
-        command = self.get_commands()[0]
-        await self._log_user_activity(message.from_user.username, f"/{command} {message.text}")
         username = message.from_user.username
 
         command_parts = message.text.split(maxsplit=1)

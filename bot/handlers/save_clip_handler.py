@@ -41,8 +41,6 @@ class SaveClipHandler(BotMessageHandler):
         return ['zapisz', 'save', 'z']
 
     async def _do_handle(self, message: Message) -> None:
-        command = self.get_commands()[0]
-        await self._log_user_activity(message.from_user.username, f"/{command} {message.text}")
         clip_name = self.__parse_clip_name(message)
 
         if not clip_name:
@@ -55,13 +53,11 @@ class SaveClipHandler(BotMessageHandler):
         if not segment_info:
             return await self.__reply_no_segment_selected(message)
 
-        output_filename, start_time, end_time, is_compilation, season, episode_number = await self.__prepare_clip_file(
-            segment_info,
-        )
-        actual_duration = await self.__verify_clip_length(message, output_filename, clip_name)
+        output_filename, start_time, end_time, is_compilation, season, episode_number = await self.__prepare_clip_file(segment_info)
+        actual_duration = await self.__get_actual_duration(output_filename)
         if actual_duration is None:
             os.remove(output_filename)
-            return
+            return await self.__reply_failed_to_verify_clip_length(message, clip_name)
 
         await self.__save_clip_to_db(message, clip_name, output_filename, start_time, end_time, is_compilation, season, episode_number)
         await self.__reply_clip_saved_successfully(message, clip_name)
@@ -108,22 +104,21 @@ class SaveClipHandler(BotMessageHandler):
             end_time = segment_info.end
             season = segment_info.episode_info.season
             episode_number = segment_info.episode_info.episode_number
-            output_filename = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4").name
+            output_filename = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4").name  # pylint: disable=consider-using-with
             await VideoProcessor.extract_clip(clip_path, start_time, end_time, output_filename)
 
         return output_filename, start_time, end_time, is_compilation, season, episode_number
 
     @staticmethod
     def __write_clip_to_file(clip_data: bytes) -> str:
-        output_filename = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4").name
+        output_filename = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4").name  # pylint: disable=consider-using-with
         with open(output_filename, 'wb') as f:
             f.write(clip_data)
         return output_filename
 
-    async def __verify_clip_length(self, message: Message, output_filename: str, clip_name: str) -> Optional[int]:
+    @staticmethod
+    async def __get_actual_duration(output_filename: str) -> Optional[int]:
         actual_duration = await VideoProcessor.get_video_duration(output_filename)
-        if actual_duration is None:
-            await self.__reply_failed_to_verify_clip_length(message, clip_name)
         return actual_duration
 
     @staticmethod

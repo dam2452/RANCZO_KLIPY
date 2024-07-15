@@ -27,7 +27,10 @@ from bot.handlers.responses.bot_message_handler_responses import (
     get_general_error_message,
     get_invalid_args_count_message,
 )
-from bot.utils.database import DatabaseManager
+from bot.utils.log import (
+    log_system_message,
+    log_user_activity,
+)
 
 
 class DummyMiddleware(BaseMiddleware):
@@ -41,14 +44,6 @@ class DummyMiddleware(BaseMiddleware):
 
 
 class BotMessageHandler(ABC):
-    __LOG_LEVELS: Dict[int, str] = {
-        logging.DEBUG: "DEBUG",
-        logging.INFO: "INFO",
-        logging.WARNING: "WARNING",
-        logging.ERROR: "ERROR",
-        logging.CRITICAL: "CRITICAL",
-    }
-
     def __init__(self, bot: Bot, middlewares: Optional[List[BaseMiddleware]] = None):
         self._bot: Bot = bot
         self._logger: logging.Logger = logging.getLogger(__name__)
@@ -66,6 +61,7 @@ class BotMessageHandler(ABC):
         dp.message.register(self.handle, Command(commands=self.get_commands()))
 
     async def handle(self, message: Message) -> None:
+        await self._log_user_activity(message.from_user.username, f"/{self.get_commands()[0]} {message.text}")
         try:
             await self._do_handle(message)
         except Exception as e:  # pylint: disable=broad-exception-caught
@@ -73,12 +69,10 @@ class BotMessageHandler(ABC):
             await self._log_system_message(logging.ERROR, f"Error in {self.get_action_name()} for user '{message.from_user.username}': {e}")
 
     async def _log_system_message(self, level: int, message: str) -> None:
-        self._logger.log(level, message)
-        await DatabaseManager.log_system_message(self.__LOG_LEVELS[level], message)
+        await log_system_message(level, message, self._logger)
 
     async def _log_user_activity(self, username: str, message: str) -> None:
-        await DatabaseManager.log_user_activity(username, message)
-        await self._log_system_message(logging.INFO, f"User '{username}' performed action: {message}")
+        await log_user_activity(username, message, self._logger)
 
     async def _reply_invalid_args_count(
         self,

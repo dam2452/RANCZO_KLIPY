@@ -19,8 +19,6 @@ class TranscriptionHandler(BotMessageHandler):
         return ['transkrypcja', 'trans']
 
     async def _do_handle(self, message: Message) -> None:
-        command = self.get_commands()[0]
-        await self._log_user_activity(message.from_user.username, f"/{command} {message.text}")
         content = message.text.split()
         if len(content) < 2:
             return await self._reply_invalid_args_count(message, get_no_quote_provided_message())

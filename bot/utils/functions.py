@@ -46,12 +46,12 @@ def format_segment(segment: json) -> FormattedSegmentInfo:
 async def compile_clips(selected_clips_data: List[bytes]) -> str:
     temp_files = []
     for video_data in selected_clips_data:
-        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
+        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")  # pylint: disable=consider-using-with
         temp_files.append(temp_file.name)
         with open(temp_file.name, 'wb') as f:
             f.write(video_data)
 
-    compiled_output = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
+    compiled_output = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")  # pylint: disable=consider-using-with
     compiled_output.close()
 
     await VideoManager.concatenate_clips(temp_files, compiled_output.name)

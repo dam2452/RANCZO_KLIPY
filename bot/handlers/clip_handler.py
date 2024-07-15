@@ -16,10 +16,8 @@ from bot.handlers.responses.clip_handler_responses import (
 from bot.settings import Settings
 from bot.utils.global_dicts import last_clip
 from bot.utils.transcription_search import SearchTranscriptions
-from bot.utils.video_manager import (
-    FFmpegException,
-    VideoManager,
-)
+from bot.utils.video_manager import VideoManager
+from bot.utils.video_utils import FFmpegException
 
 
 class ClipHandler(BotMessageHandler):
@@ -27,8 +25,6 @@ class ClipHandler(BotMessageHandler):
         return ['klip', 'clip', 'k']
 
     async def _do_handle(self, message: Message) -> None:
-        command = self.get_commands()[0]
-        await self._log_user_activity(message.from_user.username, f"/{command} {message.text}")
         content = message.text.split()
         if len(content) < 2:
             return await self._reply_invalid_args_count(message, get_no_quote_provided_message())

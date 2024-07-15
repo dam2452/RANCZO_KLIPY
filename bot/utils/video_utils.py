@@ -4,6 +4,7 @@ from typing import Optional
 from ffmpeg.asyncio import FFmpeg
 
 from bot.utils.database import DatabaseManager
+from bot.utils.log import log_system_message
 
 logger = logging.getLogger(__name__)
 
@@ -18,10 +19,9 @@ class VideoProcessor:
     @staticmethod
     async def extract_clip(video_path: str, start_time: float, end_time: float, output_filename: str) -> None:
         duration = end_time - start_time
-        logger.info(f"Extracting clip from {video_path}, start: {start_time}, end: {end_time}, duration: {duration}")
-        await DatabaseManager.log_system_message(
-            "INFO",
-            f"Extracting clip from {video_path}, start: {start_time}, end: {end_time}, duration: {duration}",
+        await log_system_message(
+            logging.INFO,
+            f"Extracting clip from {video_path}, start: {start_time}, end: {end_time}, duration: {duration}", logger,
         )
 
         ffmpeg = (

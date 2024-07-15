@@ -24,8 +24,6 @@ class SearchHandler(BotMessageHandler):
         return ['szukaj', 'search', 'sz']
 
     async def _do_handle(self, message: Message) -> None:
-        command = self.get_commands()[0]
-        await self._log_user_activity(message.from_user.username, f"/{command} {message.text}")
         chat_id = message.chat.id
         content = message.text.split()
         if len(content) < 2:

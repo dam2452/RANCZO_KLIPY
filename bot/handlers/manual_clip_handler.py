@@ -36,9 +36,6 @@ class ManualClipHandler(BotMessageHandler):
         return ['wytnij', 'cut', 'wyt', 'pawlos']
 
     async def _do_handle(self, message: Message) -> None:
-        command = self.get_commands()[0]
-        await self._log_user_activity(message.from_user.username, f"/{command} {message.text}")
-
         content = message.text.split()
         if len(content) != 4:
             await self._reply_invalid_args_count(
