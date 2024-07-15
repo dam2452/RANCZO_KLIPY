@@ -11,17 +11,6 @@ from tabulate import tabulate
 
 
 
-def format_subscription_status_response(username: str, subscription_end: date, days_remaining: int) -> str:
-    return f"""
-    ✨ **Status Twojej subskrypcji** ✨
-
-    👤 **Użytkownik:** {username}
-    📅 **Data zakończenia:** {subscription_end}
-    ⏳ **Pozostało dni:** {days_remaining}
-
-    Dzięki za wsparcie projektu! 🎉
-    """
-
 
 
 
@@ -62,12 +51,6 @@ def get_no_segments_found_message(quote: str) -> str:
     return f"❌ Nie znaleziono pasujących segmentów dla cytatu: \"{quote}\".❌"
 
 
-def get_transcription_response(quote: str, context_segments: List[Dict[str, Union[int, str]]]) -> str:
-    response = f"🔍 Transkrypcja dla cytatu: \"{quote}\"\n\n```\n"
-    for segment in context_segments:
-        response += f"🆔 {segment['id']} - {segment['text']}\n"
-    response += "```"
-    return response
 
 
 
