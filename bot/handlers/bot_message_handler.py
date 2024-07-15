@@ -24,6 +24,10 @@ from aiogram.types import (
 )
 
 from bot.utils.database import DatabaseManager
+from bot.handlers.responses.bot_message_handler_responses import (
+    get_general_error_message,
+    get_invalid_args_count_message
+)
 
 
 class DummyMiddleware(BaseMiddleware):
@@ -65,7 +69,7 @@ class BotMessageHandler(ABC):
         try:
             await self._do_handle(message)
         except Exception as e:  # pylint: disable=broad-exception-caught
-            await message.answer("⚠️ Wystąpił błąd podczas przetwarzania żądania. Prosimy spróbować ponownie później.⚠️")
+            await message.answer(get_general_error_message())
             await self._log_system_message(logging.ERROR, f"Error in {self.get_action_name()} for user '{message.from_user.username}': {e}")
 
     async def _log_system_message(self, level: int, message: str) -> None:
@@ -82,7 +86,7 @@ class BotMessageHandler(ABC):
         response: str,
     ) -> None:
         await message.answer(response)
-        await self._log_system_message(logging.INFO, f"Incorrect command ({self.get_action_name()}) format provided by user.")
+        await self._log_system_message(logging.INFO, get_invalid_args_count_message(self.get_action_name()))
 
     def get_action_name(self) -> str:
         return self.__class__.__name__

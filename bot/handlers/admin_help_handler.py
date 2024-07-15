@@ -4,7 +4,7 @@ from typing import List
 from aiogram.types import Message
 from bot_message_handler import BotMessageHandler
 
-from bot.utils.responses import get_admin_help_message
+from bot.handlers.responses.admin_help_handler_responses import get_admin_help_message
 
 
 class AdminHelpHandler(BotMessageHandler):
