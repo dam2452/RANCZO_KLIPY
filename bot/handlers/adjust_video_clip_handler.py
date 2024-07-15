@@ -4,12 +4,12 @@ from typing import List
 
 from aiogram.types import Message
 
-from bot.handlers.bot_message_handler import BotMessageHandler
+from bot_message_handler import BotMessageHandler
 from bot.settings import Settings
 from bot.utils.global_dicts import (
-    last_search_quotes,  # fixme nie wiem czy nie zamieszałem tym scaleniem dictów teraz już nie mam głowy do tego ajust
+    last_search,
+    last_clip,
 )
-from bot.utils.global_dicts import last_selected_segment
 from bot.utils.video_manager import (
     FFmpegException,
     VideoManager,
@@ -26,39 +26,51 @@ class AdjustVideoClipHandler(BotMessageHandler):
         content = message.text.split()
 
         if len(content) == 4:
-            if message.chat.id not in last_search_quotes:
+            if message.chat.id not in last_search:
                 return await self.__reply_no_previous_searches(message)
-            index = int(content[1]) - 1
-            segments = last_search_quotes[message.chat.id]
-            segment_info = segments[index]
+            try:
+                index = int(content[1]) - 1
+                segments = last_search[message.chat.id]['segments']
+                segment_info = segments[index]
+            except (ValueError, IndexError):
+                return await self.__reply_invalid_segment_index(message)
         elif len(content) == 3:
-            if message.chat.id not in last_selected_segment:
+            if message.chat.id not in last_clip:
                 return await self.__reply_no_quotes_selected(message)
-            segment_info = last_selected_segment[message.chat.id]
+            segment_info = last_clip[message.chat.id]['segment']
         else:
             return await self._reply_invalid_args_count(
-                message, "📝 Podaj czas w formacie `<float> <float>` lub "
-                "`<index> <float> <float>`. Przykład: /dostosuj 10.5"
-                " -15.2 lub /dostosuj 1 10.5 -15.2",
+                message,
+                "📝 Podaj czas w formacie `<float> <float>` lub `<index> <float> <float>`. Przykład: /dostosuj 10.5 -15.2 lub /dostosuj 1 10.5 -15.2"
             )
 
         await self._log_system_message(logging.INFO, f"Segment Info: {segment_info}")
 
-        original_start_time = segment_info['start'] - Settings.EXTEND_BEFORE
-        original_end_time = segment_info['end'] + Settings.EXTEND_AFTER
+        try:
+            original_start_time = float(segment_info.get('start', 0)) - float(Settings.EXTEND_BEFORE)
+            original_end_time = float(segment_info.get('end', 0)) + float(Settings.EXTEND_AFTER)
 
-        additional_start_offset = float(content[-2])
-        additional_end_offset = float(content[-1])
+            additional_start_offset = float(content[-2])
+            additional_end_offset = float(content[-1])
+        except (ValueError, TypeError):
+            return await self.__reply_invalid_args_count(
+                message,
+                "📝 Podaj czas w formacie `<float> <float>` lub `<index> <float> <float>`. Przykład: /dostosuj 10.5 -15.2 lub /dostosuj 1 10.5 -15.2"
+            )
 
-        start_time = max(0, original_start_time - additional_start_offset)
-        end_time = original_end_time + additional_end_offset
+        start_time = max(0, int(original_start_time - additional_start_offset))
+        end_time = int(original_end_time + additional_end_offset)
 
         if end_time <= start_time:
             return await self.__reply_invalid_interval(message)
 
+        video_path = segment_info.get('video_path')
+        if not isinstance(video_path, str):
+            return await self.__reply_invalid_video_path(message)
+
         with tempfile.NamedTemporaryFile(suffix=".mp4") as output_file:
             try:
-                await VideoProcessor.extract_clip(segment_info['video_path'], start_time, end_time, output_file.name)
+                await VideoProcessor.extract_clip(video_path, start_time, end_time, output_file.name)
             except FFmpegException as e:
                 return await self.__reply_extraction_failure(message, e)
 
@@ -66,7 +78,7 @@ class AdjustVideoClipHandler(BotMessageHandler):
 
         segment_info['start'] = start_time
         segment_info['end'] = end_time
-        last_selected_segment[message.chat.id] = segment_info
+        last_clip[message.chat.id] = {'segment': segment_info, 'type': 'segment'}
         await self._log_system_message(logging.INFO, f"Updated segment info for chat ID '{message.chat.id}'")
         await self._log_system_message(logging.INFO, f"Video clip adjusted successfully for user '{message.from_user.username}'.")
 
@@ -78,9 +90,21 @@ class AdjustVideoClipHandler(BotMessageHandler):
         await message.answer("⚠️ Najpierw wybierz cytat za pomocą /klip.⚠️")
         await self._log_system_message(logging.INFO, "No segment selected by user.")
 
+    async def __reply_invalid_args_count(self, message: Message, error_text: str) -> None:
+        await message.answer(error_text)
+        await self._log_system_message(logging.INFO, "Invalid number of arguments provided by user.")
+
     async def __reply_invalid_interval(self, message: Message) -> None:
         await message.answer("⚠️ Czas zakończenia musi być późniejszy niż czas rozpoczęcia.⚠️")
         await self._log_system_message(logging.INFO, "End time must be later than start time.")
+
+    async def __reply_invalid_segment_index(self, message: Message) -> None:
+        await message.answer("⚠️ Podano nieprawidłowy indeks segmentu.⚠️")
+        await self._log_system_message(logging.INFO, "Invalid segment index provided by user.")
+
+    async def __reply_invalid_video_path(self, message: Message) -> None:
+        await message.answer("⚠️ Nieprawidłowa ścieżka do wideo.⚠️")
+        await self._log_system_message(logging.INFO, "Invalid video path provided by user.")
 
     async def __reply_extraction_failure(self, message: Message, exception: FFmpegException) -> None:
         await message.answer(f"⚠️ Nie udało się zmienić klipu wideo: {exception}")
