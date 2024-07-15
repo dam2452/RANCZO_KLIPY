@@ -1,5 +1,4 @@
 import logging
-import os
 from typing import (
     Dict,
     List,
@@ -19,10 +18,7 @@ from bot.handlers.responses.compile_clips_handler_responses import (
     get_no_matching_segments_found_message,
     get_no_previous_search_results_message,
 )
-from bot.utils.functions import (
-    compile_clips,
-    send_compiled_clip,
-)
+from bot.utils.compilation import compile_and_send_clips
 from bot.utils.global_dicts import (
     last_clip,
     last_search,
@@ -53,10 +49,7 @@ class CompileClipsHandler(BotMessageHandler):
         if not selected_segments:
             return await self.__reply_no_matching_segments_found(message)
 
-        compiled_output = await compile_clips(selected_segments)
-        await send_compiled_clip(message.chat.id, compiled_output, self._bot)
-        if os.path.exists(compiled_output):
-            os.remove(compiled_output)
+        compiled_output = await compile_and_send_clips(message, selected_segments, self._bot)
 
         last_clip[message.chat.id] = {'compiled_clip': compiled_output, 'type': 'compiled'}
         await self._log_system_message(logging.INFO, get_compilation_success_message(message.from_user.username))

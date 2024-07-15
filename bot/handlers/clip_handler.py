@@ -4,19 +4,20 @@ from typing import List
 from aiogram.types import Message
 from bot_message_handler import BotMessageHandler
 
-from bot.handlers.responses.clip_handler_responses import (
+from bot.handlers.responses.bot_message_handler_responses import (
     get_extraction_failure_message,
-    get_log_clip_success_message,
     get_log_extraction_failure_message,
     get_log_no_segments_found_message,
+)
+from bot.handlers.responses.clip_handler_responses import (
+    get_log_clip_success_message,
     get_log_segment_saved_message,
     get_no_quote_provided_message,
     get_no_segments_found_message,
 )
-from bot.settings import Settings
+from bot.utils.functions import extract_and_send_clip
 from bot.utils.global_dicts import last_clip
 from bot.utils.transcription_search import SearchTranscriptions
-from bot.utils.video_manager import VideoManager
 from bot.utils.video_utils import FFmpegException
 
 
@@ -37,12 +38,9 @@ class ClipHandler(BotMessageHandler):
             return await self.__reply_no_segments_found(message, quote)
 
         segment = segments[0] if isinstance(segments, list) else segments
-        video_path = segment['video_path']
-        start_time = max(0, segment['start'] - Settings.EXTEND_BEFORE)
-        end_time = segment['end'] + Settings.EXTEND_AFTER
 
         try:
-            await VideoManager.extract_and_send_clip(message.chat.id, video_path, start_time, end_time, self._bot)
+            await extract_and_send_clip(segments[0], message, self._bot)
         except FFmpegException as e:
             return await self.__reply_extraction_failure(message, e)
 

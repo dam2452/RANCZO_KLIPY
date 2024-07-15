@@ -4,11 +4,13 @@ from typing import List
 from aiogram.types import Message
 from bot_message_handler import BotMessageHandler
 
-from bot.handlers.responses.transcription_handler_responses import (
+from bot.handlers.responses.bot_message_handler_responses import (
     get_log_no_segments_found_message,
+    get_no_segments_found_message,
+)
+from bot.handlers.responses.transcription_handler_responses import (
     get_log_transcription_response_sent_message,
     get_no_quote_provided_message,
-    get_no_segments_found_message,
     get_transcription_response,
 )
 from bot.utils.transcription_search import SearchTranscriptions
@@ -24,8 +26,7 @@ class TranscriptionHandler(BotMessageHandler):
             return await self._reply_invalid_args_count(message, get_no_quote_provided_message())
 
         quote = ' '.join(content[1:])
-        context_size = 15
-        result = await SearchTranscriptions.find_segment_with_context(quote, context_size)
+        result = await SearchTranscriptions.find_segment_with_context(quote, context_size=15)
 
         if not result:
             return await self.__reply_no_segments_found(message, quote)
@@ -40,7 +41,4 @@ class TranscriptionHandler(BotMessageHandler):
 
     async def __reply_transcription_response(self, message: Message, response: str, quote: str) -> None:
         await message.answer(response, parse_mode='Markdown')
-        await self._log_system_message(
-            logging.INFO,
-            get_log_transcription_response_sent_message(quote, message.from_user.username),
-        )
+        await self._log_system_message(logging.INFO, get_log_transcription_response_sent_message(quote, message.from_user.username))

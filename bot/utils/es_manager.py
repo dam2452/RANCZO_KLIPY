@@ -17,7 +17,6 @@ logger = logging.getLogger(__name__)
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # fixme: zgrupowac to w klase?
-# fixme: sensowne exceptiony rzucac
 # fixme: przeczyscic te funkcje
 
 
@@ -45,8 +44,6 @@ async def delete_all_indices(es: AsyncElasticsearch) -> None:
     await log_system_message(logging.INFO, "All indices have been deleted.", logger)
 
 
-    # fixme: kto to panu tak spierdolil xDD
-#fixme: XDDDD Panie o był jednorazowy kod i zadziałał XDD przynajmniej wtedy był jednorazowy bo teraz jak chcemy kiepskich itp to się zmieniło XDDDD
 async def index_transcriptions(base_path: str, es: AsyncElasticsearch) -> None:
     actions = []
     for season_dir in os.listdir(base_path):

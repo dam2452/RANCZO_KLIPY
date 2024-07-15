@@ -5,10 +5,6 @@ def get_invalid_args_count_message() -> str:
     return "🔍 Podaj cytat, który chcesz znaleźć. Przykład: /szukaj geniusz"
 
 
-def get_no_segments_found_message() -> str:
-    return "❌ Nie znaleziono pasujących cytatów.❌"
-
-
 def format_search_response(unique_segments_count: int, segments) -> str:
     response = f"🔍 Znaleziono {unique_segments_count} pasujących segmentów:\n"
     segment_lines = []
@@ -20,10 +16,6 @@ def format_search_response(unique_segments_count: int, segments) -> str:
 
     response += "```\n" + "\n\n".join(segment_lines) + "\n```"
     return response
-
-
-def get_log_no_segments_found_message(quote: str) -> str:
-    return f"No segments found for quote: '{quote}'"
 
 
 def get_log_search_results_sent_message(quote: str, username: str) -> str:

@@ -22,7 +22,6 @@ class RemoveSubscriptionHandler(BotMessageHandler):
             return await self._reply_invalid_args_count(message, get_no_username_provided_message())
 
         username = content[1]
-
         await DatabaseManager.remove_subscription(username)
         await self.__reply_subscription_removed(message, username)
 

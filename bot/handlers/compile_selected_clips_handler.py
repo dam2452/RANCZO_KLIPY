@@ -1,5 +1,4 @@
 import logging
-import os
 from typing import List
 
 from aiogram.types import Message
@@ -13,11 +12,8 @@ from bot.handlers.responses.compile_selected_clips_handler_responses import (
     get_log_no_matching_clips_found_message,
     get_no_matching_clips_found_message,
 )
+from bot.utils.compilation import compile_and_send_clips
 from bot.utils.database import DatabaseManager
-from bot.utils.functions import (
-    compile_clips,
-    send_compiled_clip,
-)
 
 
 class CompileSelectedClipsHandler(BotMessageHandler):
@@ -41,17 +37,9 @@ class CompileSelectedClipsHandler(BotMessageHandler):
         if not selected_clips_data:
             return await self.__reply_no_matching_clips_found(message)
 
-        compiled_output = await compile_clips(selected_clips_data)
-        await send_compiled_clip(message.chat.id, compiled_output, self._bot)
-        if os.path.exists(compiled_output):
-            os.remove(compiled_output)
+        await compile_and_send_clips(message, selected_clips_data, self._bot)
 
-        await self.__clean_up_temp_files(selected_clips_data)
-
-        await self._log_system_message(
-            logging.INFO,
-            get_compiled_clip_sent_message(message.from_user.username),
-        )
+        await self._log_system_message(logging.INFO, get_compiled_clip_sent_message(message.from_user.username))
 
     async def __get_selected_clips_data(self, clip_names: List[str], username: str, message: Message) -> List[bytes]:
         selected_clips_data = []
@@ -62,11 +50,6 @@ class CompileSelectedClipsHandler(BotMessageHandler):
             else:
                 selected_clips_data.append(clip[0])
         return selected_clips_data
-
-    @staticmethod
-    async def __clean_up_temp_files(selected_clips_data: List[bytes]) -> None:
-        for temp_file in selected_clips_data:
-            os.remove(temp_file)
 
     async def __reply_clip_not_found(self, message: Message, clip_name: str, username: str) -> None:
         await message.answer(get_clip_not_found_message(clip_name))
