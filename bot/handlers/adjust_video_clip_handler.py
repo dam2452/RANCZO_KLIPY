@@ -3,12 +3,12 @@ import tempfile
 from typing import List
 
 from aiogram.types import Message
-
 from bot_message_handler import BotMessageHandler
+
 from bot.settings import Settings
 from bot.utils.global_dicts import (
-    last_search,
     last_clip,
+    last_search,
 )
 from bot.utils.video_manager import (
     FFmpegException,
@@ -41,7 +41,7 @@ class AdjustVideoClipHandler(BotMessageHandler):
         else:
             return await self._reply_invalid_args_count(
                 message,
-                "📝 Podaj czas w formacie `<float> <float>` lub `<index> <float> <float>`. Przykład: /dostosuj 10.5 -15.2 lub /dostosuj 1 10.5 -15.2"
+                "📝 Podaj czas w formacie `<float> <float>` lub `<index> <float> <float>`. Przykład: /dostosuj 10.5 -15.2 lub /dostosuj 1 10.5 -15.2",
             )
 
         await self._log_system_message(logging.INFO, f"Segment Info: {segment_info}")
@@ -55,7 +55,7 @@ class AdjustVideoClipHandler(BotMessageHandler):
         except (ValueError, TypeError):
             return await self.__reply_invalid_args_count(
                 message,
-                "📝 Podaj czas w formacie `<float> <float>` lub `<index> <float> <float>`. Przykład: /dostosuj 10.5 -15.2 lub /dostosuj 1 10.5 -15.2"
+                "📝 Podaj czas w formacie `<float> <float>` lub `<index> <float> <float>`. Przykład: /dostosuj 10.5 -15.2 lub /dostosuj 1 10.5 -15.2",
             )
 
         start_time = max(0, int(original_start_time - additional_start_offset))
