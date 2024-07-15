@@ -5,6 +5,13 @@ from aiogram.types import Message
 
 from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.utils.database import DatabaseManager
+from bot.handlers.responses.delete_clip_handler_responses import (
+    get_invalid_args_count_message,
+    get_clip_not_exist_message,
+    get_clip_deleted_message,
+    get_log_clip_not_exist_message,
+    get_log_clip_deleted_message
+)
 
 
 class DeleteClipHandler(BotMessageHandler):
@@ -12,12 +19,13 @@ class DeleteClipHandler(BotMessageHandler):
         return ['usunklip', 'deleteclip', 'uk']
 
     async def _do_handle(self, message: Message) -> None:
-        await self._log_user_activity(message.from_user.username, f"/usunklip {message.text}")
+        command = self.get_commands()[0]
+        await self._log_user_activity(message.from_user.username, f"/{command} {message.text}")
         username = message.from_user.username
 
         command_parts = message.text.split(maxsplit=1)
         if len(command_parts) < 2:
-            return await self._reply_invalid_args_count(message, "❌ Podaj nazwę klipu do usunięcia. Przykład: /usunklip nazwa_klipu ❌")
+            return await self._reply_invalid_args_count(message, get_invalid_args_count_message())
 
         clip_name = command_parts[1]
 
@@ -29,12 +37,12 @@ class DeleteClipHandler(BotMessageHandler):
             await self.__reply_clip_deleted(message, clip_name, username)
 
     async def __reply_clip_not_exist(self, message: Message, clip_name: str, username: str) -> None:
-        await message.answer(f"🚫 Klip o nazwie '{clip_name}' nie istnieje.🚫")
-        await self._log_system_message(logging.INFO, f"Clip '{clip_name}' does not exist for user '{username}'.")
+        await message.answer(get_clip_not_exist_message(clip_name))
+        await self._log_system_message(logging.INFO, get_log_clip_not_exist_message(clip_name, username))
 
     async def __reply_clip_deleted(self, message: Message, clip_name: str, username: str) -> None:
-        await message.answer(f"✅ Klip o nazwie '{clip_name}' został usunięty.✅")
+        await message.answer(get_clip_deleted_message(clip_name))
         await self._log_system_message(
             logging.INFO,
-            f"Clip '{clip_name}' has been successfully deleted for user '{username}'.",
+            get_log_clip_deleted_message(clip_name, username),
         )
