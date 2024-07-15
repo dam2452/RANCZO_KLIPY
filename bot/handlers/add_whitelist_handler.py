@@ -22,7 +22,6 @@ class AddWhitelistHandler(BotMessageHandler):
         if len(content) < 2:
             return await self._reply_invalid_args_count(message, get_no_username_provided_message())
 
-        # fixme jakos ogarnac duplikat
         username = content[1]
         is_admin = bool(int(content[2])) if len(content) > 2 else False
         is_moderator = bool(int(content[3])) if len(content) > 3 else False
