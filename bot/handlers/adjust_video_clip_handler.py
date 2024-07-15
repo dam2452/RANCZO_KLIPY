@@ -15,6 +15,15 @@ from bot.utils.video_manager import (
     VideoManager,
     VideoProcessor,
 )
+from bot.handlers.responses.adjust_video_clip_handler_responses import (
+    get_no_previous_searches_message,
+    get_no_quotes_selected_message,
+    get_invalid_args_count_message,
+    get_invalid_interval_message,
+    get_invalid_segment_index_message,
+    get_invalid_video_path_message,
+    get_extraction_failure_message
+)
 
 
 class AdjustVideoClipHandler(BotMessageHandler):
@@ -39,10 +48,7 @@ class AdjustVideoClipHandler(BotMessageHandler):
                 return await self.__reply_no_quotes_selected(message)
             segment_info = last_clip[message.chat.id]['segment']
         else:
-            return await self._reply_invalid_args_count(
-                message,
-                "📝 Podaj czas w formacie `<float> <float>` lub `<index> <float> <float>`. Przykład: /dostosuj 10.5 -15.2 lub /dostosuj 1 10.5 -15.2",
-            )
+            return await self._reply_invalid_args_count(message, get_invalid_args_count_message())
 
         await self._log_system_message(logging.INFO, f"Segment Info: {segment_info}")
 
@@ -53,10 +59,7 @@ class AdjustVideoClipHandler(BotMessageHandler):
             additional_start_offset = float(content[-2])
             additional_end_offset = float(content[-1])
         except (ValueError, TypeError):
-            return await self.__reply_invalid_args_count(
-                message,
-                "📝 Podaj czas w formacie `<float> <float>` lub `<index> <float> <float>`. Przykład: /dostosuj 10.5 -15.2 lub /dostosuj 1 10.5 -15.2",
-            )
+            return await self.__reply_invalid_args_count(message)
 
         start_time = max(0, int(original_start_time - additional_start_offset))
         end_time = int(original_end_time + additional_end_offset)
@@ -83,29 +86,29 @@ class AdjustVideoClipHandler(BotMessageHandler):
         await self._log_system_message(logging.INFO, f"Video clip adjusted successfully for user '{message.from_user.username}'.")
 
     async def __reply_no_previous_searches(self, message: Message) -> None:
-        await message.answer("🔍 Najpierw wykonaj wyszukiwanie za pomocą /szukaj.")
+        await message.answer(get_no_previous_searches_message())
         await self._log_system_message(logging.INFO, "No previous search results found for user.")
 
     async def __reply_no_quotes_selected(self, message: Message) -> None:
-        await message.answer("⚠️ Najpierw wybierz cytat za pomocą /klip.⚠️")
+        await message.answer(get_no_quotes_selected_message())
         await self._log_system_message(logging.INFO, "No segment selected by user.")
 
-    async def __reply_invalid_args_count(self, message: Message, error_text: str) -> None:
-        await message.answer(error_text)
+    async def __reply_invalid_args_count(self, message: Message) -> None:
+        await message.answer(get_invalid_args_count_message())
         await self._log_system_message(logging.INFO, "Invalid number of arguments provided by user.")
 
     async def __reply_invalid_interval(self, message: Message) -> None:
-        await message.answer("⚠️ Czas zakończenia musi być późniejszy niż czas rozpoczęcia.⚠️")
+        await message.answer(get_invalid_interval_message())
         await self._log_system_message(logging.INFO, "End time must be later than start time.")
 
     async def __reply_invalid_segment_index(self, message: Message) -> None:
-        await message.answer("⚠️ Podano nieprawidłowy indeks segmentu.⚠️")
+        await message.answer(get_invalid_segment_index_message())
         await self._log_system_message(logging.INFO, "Invalid segment index provided by user.")
 
     async def __reply_invalid_video_path(self, message: Message) -> None:
-        await message.answer("⚠️ Nieprawidłowa ścieżka do wideo.⚠️")
+        await message.answer(get_invalid_video_path_message())
         await self._log_system_message(logging.INFO, "Invalid video path provided by user.")
 
     async def __reply_extraction_failure(self, message: Message, exception: FFmpegException) -> None:
-        await message.answer(f"⚠️ Nie udało się zmienić klipu wideo: {exception}")
+        await message.answer(get_extraction_failure_message(exception))
         await self._log_system_message(logging.ERROR, f"Failed to adjust video clip: {exception}")

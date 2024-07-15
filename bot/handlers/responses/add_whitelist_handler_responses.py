@@ -1,4 +1,3 @@
-from datetime import date
 
 
 def get_no_username_provided_message() -> str:
