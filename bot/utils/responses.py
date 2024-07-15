@@ -30,9 +30,9 @@ def format_subscription_status_response(username: str, subscription_end: date, d
     return f"""
 ✨ **Status Twojej subskrypcji** ✨
 
-👤 **Użytkownik:** {username}
-📅 **Data zakończenia:** {subscription_end}
-⏳ **Pozostało dni:** {days_remaining}
+👤 **Użytkownik:** {use{username}
+📅 **Data zakończenia:** {sub{subscription_end}
+⏳ **Pozostało dni:** {da{days_remaining}
 
 Dzięki za wsparcie projektu! 🎉
 """

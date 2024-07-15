@@ -1,12 +1,12 @@
 import asyncio
 import logging
 import os
-import subprocess
 import tempfile
 from typing import List
 
 from aiogram import Bot
 from aiogram.types import FSInputFile
+from ffmpeg.asyncio import FFmpeg
 
 from bot.utils.database import DatabaseManager
 from bot.utils.video_utils import (
@@ -45,10 +45,14 @@ class VideoManager:
             logger.info(f"Temporary file '{output_filename}' removed after sending clip.")
             await DatabaseManager.log_system_message("INFO", f"Temporary file '{output_filename}' removed after sending clip.")
 
-        except Exception as e:
+        except (OSError, FFmpegException) as e:
             logger.error(f"Failed to send video clip: {e}", exc_info=True)
             await DatabaseManager.log_system_message("ERROR", f"Failed to send video clip: {e}")
             await bot.send_message(chat_id, f"⚠️ Nie udało się wysłać klipu wideo: {str(e)}")
+        except Exception as e:
+            logger.error(f"Unexpected error: {e}", exc_info=True)
+            await DatabaseManager.log_system_message("ERROR", f"Unexpected error: {e}")
+            await bot.send_message(chat_id, f"⚠️ Nieoczekiwany błąd podczas wysyłania klipu wideo: {str(e)}")
             raise
 
     @staticmethod
@@ -57,10 +61,14 @@ class VideoManager:
             input_file = FSInputFile(file_path)
             await bot.send_video(chat_id, input_file, supports_streaming=True, width=1920, height=1080)
             await DatabaseManager.log_system_message("INFO", f"Sent video file: {file_path}")
-        except Exception as e:
+        except (OSError, FFmpegException) as e:
             logger.error(f"Failed to send video clip: {e}", exc_info=True)
             await DatabaseManager.log_system_message("ERROR", f"Failed to send video clip: {e}")
             await bot.send_message(chat_id, f"⚠️ Nie udało się wysłać klipu wideo: {str(e)}")
+        except Exception as e:
+            logger.error(f"Unexpected error: {e}", exc_info=True)
+            await DatabaseManager.log_system_message("ERROR", f"Unexpected error: {e}")
+            await bot.send_message(chat_id, f"⚠️ Nieoczekiwany błąd podczas wysyłania klipu wideo: {str(e)}")
             raise
 
     @staticmethod
@@ -70,24 +78,23 @@ class VideoManager:
         concat_file.write(concat_file_content)
         concat_file.close()
 
-        command = [
-            'ffmpeg', '-y', '-f', 'concat', '-safe', '0', '-i', concat_file.name,
-            '-c', 'copy', '-movflags', '+faststart', '-fflags', '+genpts',
-            '-avoid_negative_ts', '1', output_file,
-        ]
-
-        process = await asyncio.create_subprocess_exec(
-            *command,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+        ffmpeg = FFmpeg().option("y").input(
+            concat_file.name, format="concat", safe="0",
+        ).output(
+            output_file, c="copy", movflags="+faststart", fflags="+genpts", avoid_negative_ts="1",
         )
-        _, stderr = await process.communicate()
-        os.remove(concat_file.name)
 
-        if process.returncode != 0:
-            err = FFmpegException(stderr.decode())
-            await DatabaseManager.log_system_message("ERROR", err.message)
-            raise err
-
-        logger.info(f"Clips concatenated successfully into {output_file}")
-        await DatabaseManager.log_system_message("INFO", f"Clips concatenated successfully into {output_file}")
+        try:
+            await ffmpeg.execute()
+            os.remove(concat_file.name)
+            logger.info(f"Clips concatenated successfully into {output_file}")
+            await DatabaseManager.log_system_message("INFO", f"Clips concatenated successfully into {output_file}")
+        except FFmpegException as e:
+            os.remove(concat_file.name)
+            await DatabaseManager.log_system_message("ERROR", e.message)
+            raise e
+        except Exception as e:
+            os.remove(concat_file.name)
+            logger.error(f"Unexpected error: {e}", exc_info=True)
+            await DatabaseManager.log_system_message("ERROR", f"Unexpected error: {e}")
+            raise e
