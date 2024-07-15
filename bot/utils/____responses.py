@@ -224,8 +224,6 @@ def get_whitelist_empty_message() -> str:
 
 
 
-def get_no_moderators_found_message() -> str:
-    return "📭 Nie znaleziono moderatorów.📭"
 
 
 def get_subscription_removed_message(username: str) -> str:
