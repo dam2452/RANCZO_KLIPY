@@ -1,5 +1,4 @@
 python-ffmpeg
-ffmpeg
 elasticsearch
 urllib3
 python-dotenv

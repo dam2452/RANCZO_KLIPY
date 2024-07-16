@@ -1,16 +1,7 @@
 import logging
-from typing import (
-    Dict,
-    List,
-    Union,
-)
-
+from typing import Dict, List, Union
 from aiogram.types import Message
-
-from bot.database.global_dicts import (
-    last_clip,
-    last_search,
-)
+from bot.database.global_dicts import last_clip, last_search
 from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.responses.sending_videos.compile_clips_handler_responses import (
     get_compilation_success_message,
@@ -23,7 +14,6 @@ from bot.responses.sending_videos.compile_clips_handler_responses import (
     get_no_previous_search_results_message,
 )
 from bot.video.clips_compiler import ClipsCompiler
-
 
 class CompileClipsHandler(BotMessageHandler):
     class ParseSegmentsException(Exception):
@@ -55,33 +45,43 @@ class CompileClipsHandler(BotMessageHandler):
         await self._log_system_message(logging.INFO, get_compilation_success_message(message.from_user.username))
 
     @staticmethod
-    def __parse_segments(content: List[str], segments: List[Dict[str, Union[str, bytes]]]) -> List[bytes]:
+    def __parse_segments(content: List[str], segments: List[Dict[str, Union[str, float]]]) -> List[Dict[str, Union[str, float]]]:
         selected_segments = []
-
         for index in content:
             if index.lower() == "wszystko":
-                selected_segments.extend(segment['data'] for segment in segments)
+                selected_segments.extend(
+                    {'video_path': segment['video_path'], 'start': segment['start'], 'end': segment['end']}
+                    for segment in segments
+                )
                 return selected_segments
 
             if '-' in index:
                 selected_segments.extend(CompileClipsHandler.__parse_range(index, segments))
             else:
-                selected_segments.append(CompileClipsHandler.__parse_single(index, segments))
+                try:
+                    selected_segments.append(CompileClipsHandler.__parse_single(index, segments))
+                except CompileClipsHandler.ParseSegmentsException as e:
+                    print(e)
+                    continue
 
         return selected_segments
 
     @staticmethod
-    def __parse_range(index: str, segments: List[Dict[str, Union[str, bytes]]]) -> List[bytes]:
+    def __parse_range(index: str, segments: List[Dict[str, Union[str, float]]]) -> List[Dict[str, Union[str, float]]]:
         try:
             start, end = [int(i) for i in index.split('-')]
-            return [segments[i - 1]['data'] for i in range(start, end + 1)]
+            return [
+                {'video_path': segments[i - 1]['video_path'], 'start': segments[i - 1]['start'], 'end': segments[i - 1]['end']}
+                for i in range(start, end + 1)
+            ]
         except ValueError as e:
             raise CompileClipsHandler.ParseSegmentsException(get_invalid_range_message(index)) from e
 
     @staticmethod
-    def __parse_single(index: str, segments: List[Dict[str, Union[str, bytes]]]) -> bytes:
+    def __parse_single(index: str, segments: List[Dict[str, Union[str, float]]]) -> Dict[str, Union[str, float]]:
         try:
-            return segments[int(index) - 1]['data']
+            segment = segments[int(index) - 1]
+            return {'video_path': segment['video_path'], 'start': segment['start'], 'end': segment['end']}
         except (ValueError, IndexError) as e:
             raise CompileClipsHandler.ParseSegmentsException(get_invalid_index_message(index)) from e
 
