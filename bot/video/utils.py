@@ -20,6 +20,7 @@ class FFMpegException(Exception):
 
 
 async def get_video_duration(file_path: str, logger: logging.Logger) -> Optional[float]:
+    #fixme jebane gówno tu jest zjebane probe
     probe = ffmpeg.probe(file_path)
     duration = float(probe['format']['duration'])
     await log_system_message(logging.INFO, f"Video duration for '{file_path}': {duration} seconds", logger)

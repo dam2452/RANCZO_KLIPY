@@ -49,7 +49,7 @@ class ClipsCompiler:
                 concat_content = f.read()
                 print(f"Concat file content:\n{concat_content}")
                 await log_system_message(logging.INFO, f"Concat file content:\n{concat_content}", logger)
-
+            # fixme jebane gówno tu jest zjebane
             ffmpeg = FFmpeg().input(concat_file_path, format="concat", safe=0).output(output_file, c="copy", movflags="+faststart", fflags="+genpts", avoid_negative_ts="1")
 
             await ffmpeg.execute()
