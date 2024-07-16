@@ -3,7 +3,10 @@ from dataclasses import (
     field,
 )
 import json
-from typing import Optional
+from typing import (
+    Optional,
+    List,
+)
 
 
 @dataclass
@@ -15,13 +18,20 @@ class EpisodeInfo:
 @dataclass
 class SegmentInfo:
     video_path: Optional[str] = None
-    start: int = 0
-    end: int = 0
-    episode_info: EpisodeInfo = field(default_factory=EpisodeInfo)
+    start: float = 0.0
+    end: float = 0.0
+    text: Optional[str] = None
+    id: Optional[int] = None
     compiled_clip: Optional[bytes] = None
     expanded_clip: Optional[bytes] = None
-    expanded_start: int = 0
-    expanded_end: int = 0
+    expanded_start: float = 0.0
+    expanded_end: float = 0.0
+    episode_info: EpisodeInfo = field(default_factory=EpisodeInfo)
+    author: Optional[str] = None
+    comment: Optional[str] = None
+    tags: Optional[List[str]] = None
+    location: Optional[str] = None
+    actors: Optional[List[str]] = None
 
 
 @dataclass(frozen=True)

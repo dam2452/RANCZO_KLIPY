@@ -1,5 +1,6 @@
 import logging
 import os
+import ffmpeg
 from typing import Optional
 
 from aiogram import Bot
@@ -7,7 +8,6 @@ from aiogram.types import (
     FSInputFile,
     Message,
 )
-from ffmpeg.asyncio import FFmpeg
 
 from bot.settings import settings
 from bot.utils.log import log_system_message
@@ -20,17 +20,10 @@ class FFMpegException(Exception):
 
 
 async def get_video_duration(file_path: str, logger: logging.Logger) -> Optional[float]:
-    try:
-        probe = await FFmpeg.probe(file_path)
-        duration = float(probe['format']['duration'])
-        await log_system_message(logging.INFO, f"Video duration for '{file_path}': {duration} seconds", logger)
-        return duration
-    except FFMpegException as e:
-        await log_system_message(logging.ERROR, f"Error getting video duration for '{file_path}': {e}", logger)
-        return None
-    except Exception as e:
-        await log_system_message(logging.ERROR, f"Unexpected error: {e}", logger)
-        raise
+    probe = ffmpeg.probe(file_path)
+    duration = float(probe['format']['duration'])
+    await log_system_message(logging.INFO, f"Video duration for '{file_path}': {duration} seconds", logger)
+    return duration
 
 
 async def send_video(message: Message, file_path: str, bot: Bot, logger: logging.Logger) -> None:

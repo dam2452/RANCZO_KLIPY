@@ -27,14 +27,17 @@ from bot.responses.not_sending_videos.save_clip_handler_responses import (
     get_no_segment_selected_message,
 )
 from bot.video.clips_extractor import ClipsExtractor
-from bot.video.segment_info import SegmentInfo
+from bot.video.segment_info import (
+    SegmentInfo,
+    EpisodeInfo,
+)
 from bot.video.utils import get_video_duration
 
 
 class SaveClipHandler(BotMessageHandler):
     __SEGMENT_INFO_GETTERS: Dict[str, Callable[[Dict[str, Union[json, str]]], SegmentInfo]] = {
         "manual": (lambda last_clip_info: SegmentInfo(**last_clip_info)),
-        "segment": (lambda last_clip_info: SegmentInfo(**last_clip_info['segment'])),
+        "segment": (lambda last_clip_info: SaveClipHandler.__convert_to_segment_info(last_clip_info['segment'])),
         "compiled": (lambda last_clip_info: SegmentInfo(**last_clip_info['compiled_clip'])),
     }
 
@@ -80,7 +83,17 @@ class SaveClipHandler(BotMessageHandler):
         if last_clip_info is None:
             return None
 
+        if 'segment' in last_clip_info and 'episode_info' not in last_clip_info['segment']:
+            last_clip_info['segment']['episode_info'] = {}
+
         return SaveClipHandler.__SEGMENT_INFO_GETTERS[last_clip_info['type']](last_clip_info)
+
+    @staticmethod
+    def __convert_to_segment_info(segment: dict) -> SegmentInfo:
+        episode_info = segment.get('episode_info', {})
+        episode_info_obj = EpisodeInfo(season=episode_info.get('season'), episode_number=episode_info.get('episode_number'))
+        segment['episode_info'] = episode_info_obj
+        return SegmentInfo(**segment)
 
     async def __prepare_clip_file(self, segment_info: SegmentInfo) -> Tuple[str, int, int, bool, Optional[int], Optional[int]]:
         start_time = 0
@@ -88,6 +101,7 @@ class SaveClipHandler(BotMessageHandler):
         is_compilation = False
         season = None
         episode_number = None
+        print(segment_info)
 
         if segment_info.compiled_clip:
             output_filename = self.__write_clip_to_file(segment_info.compiled_clip)
