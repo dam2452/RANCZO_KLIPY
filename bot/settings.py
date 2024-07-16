@@ -5,8 +5,10 @@ from pydantic import Field
 from pydantic_settings import BaseSettings
 
 env_path: str = os.path.join(os.path.dirname(__file__), '..', '.env')
+#print(env_path)
 if os.path.exists(env_path):
     load_dotenv(env_path)
+    #print(env_path)
 
 
 class Settings(BaseSettings):
@@ -22,8 +24,11 @@ class Settings(BaseSettings):
     POSTGRES_DB: str = Field(..., env='POSTGRES_DB')
 
     ES_HOST: str = Field(..., env='ES_HOST')
-    ES_USERNAME: str = Field(..., env='ES_USERNAME')
-    ES_PASSWORD: str = Field(..., env='ES_PASSWORD')
+    ES_USER: str = Field(..., env='ES_USERNAME')
+    ES_PASS: str = Field(..., env='ES_PASSWORD')
 
     EXTEND_BEFORE: int = Field(5, env='EXTEND_BEFORE')
     EXTEND_AFTER: int = Field(5, env='EXTEND_AFTER')
+
+
+settings = Settings()

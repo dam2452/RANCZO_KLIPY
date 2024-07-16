@@ -17,7 +17,7 @@ from bot.responses.sending_videos.select_clip_handler_responses import (
     get_log_segment_selected_message,
     get_no_previous_search_message,
 )
-from bot.settings import Settings
+from bot.settings import settings
 from bot.utils.functions import update_last_clip
 from bot.video.clips_extractor import ClipsExtractor
 from bot.video.utils import FFMpegException
@@ -43,8 +43,8 @@ class SelectClipHandler(BotMessageHandler):
             return await self.__reply_invalid_segment_number(message, index)
 
         segment = segments[index - 1]
-        start_time = max(0, segment['start'] - Settings.EXTEND_BEFORE)
-        end_time = segment['end'] + Settings.EXTEND_AFTER
+        start_time = max(0, segment['start'] - settings.EXTEND_BEFORE)
+        end_time = segment['end'] + settings.EXTEND_AFTER
         try:
             await ClipsExtractor.extract_and_send_clip(segment['video_path'], message, self._bot, self._logger, start_time, end_time)
         except FFMpegException as e:

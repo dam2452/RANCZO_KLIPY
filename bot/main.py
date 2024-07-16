@@ -17,7 +17,7 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from bot.database.database_manager import DatabaseManager
 from bot.handlers import *  # pylint: disable=wildcard-import
 from bot.middlewares import *  # pylint: disable=wildcard-import, unused-wildcard-import
-from bot.settings import Settings
+from bot.settings import settings
 
 
 class DBLogHandler(logging.Handler):
@@ -37,8 +37,8 @@ class DBLogHandler(logging.Handler):
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-
-bot = Bot(token=Settings.TELEGRAM_BOT_TOKEN)
+#print(settings.TELEGRAM_BOT_TOKEN)
+bot = Bot(token=settings.TELEGRAM_BOT_TOKEN)
 dp = Dispatcher(storage=MemoryStorage())
 
 admin_middleware = AdminMiddleware(logger)
@@ -118,7 +118,7 @@ async def on_startup() -> None:
 async def main() -> None:
     await on_startup()
     logger.info("🚀 Bot started successfully.🚀")
-    await dp.start_polling(bot, logger)
+    await dp.start_polling(bot)
 
 
 if __name__ == "__main__":

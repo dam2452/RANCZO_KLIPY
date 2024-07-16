@@ -24,7 +24,7 @@ from bot.responses.sending_videos.adjust_video_clip_handler_responses import (
     get_successful_adjustment_message,
     get_updated_segment_info_log,
 )
-from bot.settings import Settings
+from bot.settings import settings
 from bot.video.clips_extractor import ClipsExtractor
 from bot.video.utils import FFMpegException
 
@@ -55,8 +55,8 @@ class AdjustVideoClipHandler(BotMessageHandler):
         await self._log_system_message(logging.INFO, f"Segment Info: {segment_info}")
 
         try:
-            original_start_time = float(segment_info.get('start', 0)) - float(Settings.EXTEND_BEFORE)
-            original_end_time = float(segment_info.get('end', 0)) + float(Settings.EXTEND_AFTER)
+            original_start_time = float(segment_info.get('start', 0)) - float(settings.EXTEND_BEFORE)
+            original_end_time = float(segment_info.get('end', 0)) + float(settings.EXTEND_AFTER)
 
             additional_start_offset = float(content[-2])
             additional_end_offset = float(content[-1])

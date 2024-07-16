@@ -16,7 +16,7 @@ from bot.responses.sending_videos.clip_handler_responses import (
     get_no_segments_found_message,
 )
 from bot.search.transcription_finder import TranscriptionFinder
-from bot.settings import Settings
+from bot.settings import settings
 from bot.utils.functions import update_last_clip
 from bot.video.clips_extractor import ClipsExtractor
 from bot.video.utils import FFMpegException
@@ -39,8 +39,8 @@ class ClipHandler(BotMessageHandler):
             return await self.__reply_no_segments_found(message, quote)
 
         segment = segments[0] if isinstance(segments, list) else segments
-        start_time = max(0, segment['start'] - Settings.EXTEND_BEFORE)
-        end_time = segment['end'] + Settings.EXTEND_AFTER
+        start_time = max(0, segment['start'] - settings.EXTEND_BEFORE)
+        end_time = segment['end'] + settings.EXTEND_AFTER
         try:
             await ClipsExtractor.extract_and_send_clip(segment['video_path'], message, self._bot, self._logger, start_time, end_time)
         except FFMpegException as e:

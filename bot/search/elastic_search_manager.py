@@ -9,7 +9,7 @@ from elasticsearch import (
 )
 import urllib3
 
-from bot.settings import Settings
+from bot.settings import settings
 from bot.utils.log import log_system_message
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -19,8 +19,8 @@ class ElasticSearchManager:
     @staticmethod
     async def connect_to_elasticsearch(logger: logging.Logger) -> AsyncElasticsearch:
         es = AsyncElasticsearch(
-            hosts=[Settings.ES_HOST],
-            basic_auth=(Settings.ES_USER, Settings.ES_PASS),
+            hosts=[settings.ES_HOST],
+            basic_auth=(settings.ES_USER, settings.ES_PASS),
             verify_certs=False,
         )
         if not await es.ping():

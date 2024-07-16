@@ -11,18 +11,18 @@ from typing import (
 import asyncpg
 
 from bot.database.user import User
-from bot.settings import Settings
+from bot.settings import settings
 
 
 class DatabaseManager:  # pylint: disable=too-many-public-methods
     @staticmethod
     async def get_db_connection() -> Optional[asyncpg.Connection]:
         return await asyncpg.connect(
-            host=Settings.POSTGRES_HOST,
-            port=Settings.POSTGRES_PORT,
-            database=Settings.POSTGRES_DB,
-            user=Settings.POSTGRES_USER,
-            password=Settings.POSTGRES_PASSWORD,
+            host=settings.POSTGRES_HOST,
+            port=settings.POSTGRES_PORT,
+            database=settings.POSTGRES_DB,
+            user=settings.POSTGRES_USER,
+            password=settings.POSTGRES_PASSWORD,
         )
 
     @staticmethod

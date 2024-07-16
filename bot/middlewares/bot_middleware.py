@@ -33,7 +33,7 @@ class BotMiddleware(BaseMiddleware, ABC):
         if not isinstance(event, Message):
             return await handler(event, data)
 
-        return self.handle(handler, event, data)
+        return await self.handle(handler, event, data)
 
     @abstractmethod
     async def handle(

@@ -9,7 +9,7 @@ from aiogram.types import (
 )
 from ffmpeg.asyncio import FFmpeg
 
-from bot.settings import Settings
+from bot.settings import settings
 from bot.utils.log import log_system_message
 
 
@@ -38,10 +38,10 @@ async def send_video(message: Message, file_path: str, bot: Bot, logger: logging
     file_size = os.path.getsize(file_path) / (1024 * 1024)
     await log_system_message(logging.INFO, f"{file_path} Clip size: {file_size:.2f} MB", logger)
 
-    if file_size > Settings.TELEGRAM_FILE_SIZE_LIMIT_MB:
+    if file_size > settings.TELEGRAM_FILE_SIZE_LIMIT_MB:
         await log_system_message(
             logging.WARN,
-            f"Clip size {file_size:.2f} MB exceeds the {Settings.TELEGRAM_FILE_SIZE_LIMIT_MB} MB limit.",
+            f"Clip size {file_size:.2f} MB exceeds the {settings.TELEGRAM_FILE_SIZE_LIMIT_MB} MB limit.",
             logger,
         )
         await bot.send_message(
