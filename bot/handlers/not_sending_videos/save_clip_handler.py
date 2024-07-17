@@ -68,7 +68,7 @@ class SaveClipHandler(BotMessageHandler):
         print(f"season {season}")
         print(f"episode_number {episode_number}")
         print("-------------------------------------------------------------------------------")
-        duration = float(get_video_duration(output_filename)) #fixme IDE gęga
+        duration = await get_video_duration(output_filename)  #fixme jak mu tego loggera dać narazie wydupcam XDD , self._logger
         print(f"duration {duration}")
         print("-------------------------------------------------------------------------------")
         await self.__save_clip_to_db(message, clip_name, output_filename, start_time, end_time, duration, is_compilation, season, episode_number)
@@ -94,22 +94,35 @@ class SaveClipHandler(BotMessageHandler):
 
         if 'segment' in last_clip_info and 'episode_info' not in last_clip_info['segment']:
             last_clip_info['segment']['episode_info'] = {}
+
+        # Konwersja słownika episode_info na instancję EpisodeInfo, jeśli jest w formie słownika
+        if isinstance(last_clip_info['segment']['episode_info'], dict):
+            episode_info_data = last_clip_info['segment']['episode_info']
+            # Filtrowanie tylko wymaganych argumentów dla EpisodeInfo
+            filtered_episode_info = {k: episode_info_data[k] for k in ['season', 'episode_number'] if k in episode_info_data}
+            last_clip_info['segment']['episode_info'] = EpisodeInfo(**filtered_episode_info)
+
         print(f"last_clip_info2 {last_clip_info}")
-        print(f"SaveClipHandler.__SEGMENT_INFO_GETTERS[last_clip_info['type']](last_clip_info) {SaveClipHandler.__SEGMENT_INFO_GETTERS[last_clip_info['type']](last_clip_info)}")
+        print(
+            f"SaveClipHandler.__SEGMENT_INFO_GETTERS[last_clip_info['type']](last_clip_info) {SaveClipHandler.__SEGMENT_INFO_GETTERS[last_clip_info['type']](last_clip_info)}")
         return SaveClipHandler.__SEGMENT_INFO_GETTERS[last_clip_info['type']](last_clip_info)
 
     @staticmethod
     def _convert_to_segment_info(segment: dict) -> SegmentInfo:
         print(f"_convert_to_segment_info segment1 {segment}")
-        episode_info_data = segment.get('episode_info', {})
-        print(f"_convert_to_segment_info episode_info_data {episode_info_data}")
+        episode_info_data = segment.get('episode_info')
 
-        print(f"_convert_to_segment_info season {episode_info_data['season']}")
-        print(f"_convert_to_segment_info episode_number {episode_info_data['episode_number']}")
-        episode_info_obj = EpisodeInfo(
+        # Sprawdzanie, czy episode_info_data jest instancją EpisodeInfo
+        if isinstance(episode_info_data, EpisodeInfo):
+            episode_info_obj = episode_info_data
+        else:
+            # Jeśli to słownik, konwersja na instancję EpisodeInfo
+            print(f"_convert_to_segment_info episode_info_data {episode_info_data}")
+            episode_info_obj = EpisodeInfo(
                 season=episode_info_data['season'],
-                episode_number=episode_info_data['episode_number'],
+                episode_number=episode_info_data['episode_number']
             )
+
         print(f"_convert_to_segment_info episode_info_obj {episode_info_obj}")
         segment['episode_info'] = episode_info_obj
 

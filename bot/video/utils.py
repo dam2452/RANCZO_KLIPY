@@ -18,7 +18,7 @@ class FFMpegException(Exception):
         super().__init__(self.message)
 
 
-async def get_video_duration(file_path: str, logger: logging.Logger) -> float:
+async def get_video_duration(file_path: str) -> float: #fixme , logger: logging.Logger wyjebałem mu loggera XD
     try:
         result = subprocess.run(
             [
@@ -37,10 +37,10 @@ async def get_video_duration(file_path: str, logger: logging.Logger) -> float:
             raise FFMpegException(result.stderr)
 
         duration = float(result.stdout.strip())
-        await log_system_message(logging.INFO, f"Video duration for '{file_path}': {duration} seconds", logger)
+        #await log_system_message(logging.INFO, f"Video duration for '{file_path}': {duration} seconds", logger)
         return duration
     except Exception as e:
-        await log_system_message(logging.ERROR, f"Error getting video duration: {str(e)}", logger)
+      #  await log_system_message(logging.ERROR, f"Error getting video duration: {str(e)}", logger)
         raise FFMpegException(str(e)) from e
 
 

@@ -254,7 +254,7 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
             await conn.execute(
                 """
                 INSERT INTO clips (chat_id, username, clip_name, video_data, start_time, end_time, duration, season, episode_number, is_compilation)
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9 , $10)
                 """,
                 chat_id, username, clip_name, video_data, start_time, end_time, duration, season, episode_number, is_compilation,
             )
