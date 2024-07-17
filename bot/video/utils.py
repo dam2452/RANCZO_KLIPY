@@ -26,11 +26,12 @@ async def get_video_duration(file_path: str, logger: logging.Logger) -> float:
                 '-v', 'error',
                 '-show_entries', 'format=duration',
                 '-of', 'default=noprint_wrappers=1:nokey=1',
-                file_path
+                file_path,
             ],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            text=True
+            text=True,
+            check=True,
         )
         if result.returncode != 0:
             raise FFMpegException(result.stderr)

@@ -1,8 +1,8 @@
+import asyncio
 import logging
 import os
-import tempfile
 import subprocess
-import asyncio
+import tempfile
 from typing import (
     Dict,
     List,
@@ -37,11 +37,9 @@ class ClipsCompiler:
         )
         try:
             arguments = ffmpeg.arguments
-            print(f"FFmpeg arguments for extracting segment: {arguments}")
-            await log_system_message(logging.INFO, f"FFmpeg arguments for extracting segment: {arguments}", logger)
+            await log_system_message(logging.DEBUG, f"FFmpeg arguments for extracting segment: {arguments}", logger)
 
             ffmpeg.execute()
-            print(f"Extracted segment: {temp_file.name}")
             return temp_file.name
         except Exception as e:
             await log_system_message(logging.ERROR, f"Error extracting segment: {e}", logger)
@@ -51,18 +49,9 @@ class ClipsCompiler:
     async def __do_compile_clips(segment_files: List[str], output_file: str, logger: logging.Logger) -> None:
         concat_file = tempfile.NamedTemporaryFile(delete=False, mode='w', suffix=".txt")
         try:
-            with open(concat_file.name, 'w') as f:
+            with open(concat_file.name, 'w', encoding="utf-8") as f:
                 for tmp_file in segment_files:
                     f.write(f"file '{tmp_file}'\n")
-
-            # Debugging
-            with open(concat_file.name, 'r') as f:
-                concat_content = f.readlines()
-                await log_system_message(logging.DEBUG, f"Concat file content:\n{concat_content}", logger)
-
-            for path in concat_content:
-                path = path.split(" ")[-1].strip().strip("'")
-                print(f"{path}: {os.path.exists(path)}")
 
             command = [
                 'ffmpeg', '-y', '-f', 'concat', '-safe', '0', '-i', concat_file.name,
@@ -77,10 +66,6 @@ class ClipsCompiler:
             )
             _, stderr = await process.communicate()
             os.remove(concat_file.name)
-
-            for path in concat_content:
-                path = path.split(" ")[-1].strip().strip("'")
-                print(f"{path}: {os.path.exists(path)}")
 
             await log_system_message(logging.INFO, f"Clips concatenated successfully into {output_file}", logger)
         except Exception as e:
