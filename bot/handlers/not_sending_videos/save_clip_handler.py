@@ -118,14 +118,14 @@ class SaveClipHandler(BotMessageHandler):
             end_time = segment_info.end
             season = segment_info.episode_info.season
             episode_number = segment_info.episode_info.episode_number
-            output_filename = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4").name  # pylint: disable=consider-using-with
+            output_filename = tempfile.NamedTemporaryFile(delete=False, delete_on_close=False,suffix=".mp4").name  # pylint: disable=consider-using-with
             await ClipsExtractor.extract_clip(clip_path, start_time, end_time, output_filename, self._logger)
 
         return output_filename, start_time, end_time, is_compilation, season, episode_number
 
     @staticmethod
     def __write_clip_to_file(clip_data: bytes) -> str:
-        output_filename = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4").name  # pylint: disable=consider-using-with
+        output_filename = tempfile.NamedTemporaryFile(delete=False,delete_on_close=False, suffix=".mp4").name  # pylint: disable=consider-using-with
         with open(output_filename, 'wb') as f:
             f.write(clip_data)
         return output_filename

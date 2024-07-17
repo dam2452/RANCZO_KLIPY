@@ -1,6 +1,8 @@
 import logging
 import os
 import tempfile
+import subprocess
+import asyncio
 from typing import (
     Dict,
     List,
@@ -9,7 +11,7 @@ from typing import (
 
 from aiogram import Bot
 from aiogram.types import Message
-from ffmpeg.asyncio import FFmpeg
+from ffmpeg.ffmpeg import FFmpeg
 
 from bot.database.global_dicts import last_clip
 from bot.utils.log import log_system_message
@@ -22,7 +24,8 @@ from bot.video.utils import (
 class ClipsCompiler:
     @staticmethod
     async def __extract_segment(segment: Dict[str, Union[str, float]], logger: logging.Logger) -> str:
-        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
+        temp_file = tempfile.NamedTemporaryFile(delete=False, delete_on_close=False , suffix=".mp4")
+        temp_file.close()  # Close the file to ensure it's written to disk properly
         duration = segment['end'] - segment['start']
         ffmpeg = FFmpeg().option("y").input(segment['video_path'], ss=segment['start']).output(
             temp_file.name,
@@ -33,7 +36,11 @@ class ClipsCompiler:
             avoid_negative_ts='1',
         )
         try:
-            await ffmpeg.execute()
+            arguments = ffmpeg.arguments
+            print(f"FFmpeg arguments for extracting segment: {arguments}")
+            await log_system_message(logging.INFO, f"FFmpeg arguments for extracting segment: {arguments}", logger)
+
+            ffmpeg.execute()
             print(f"Extracted segment: {temp_file.name}")
             return temp_file.name
         except Exception as e:
@@ -42,32 +49,49 @@ class ClipsCompiler:
 
     @staticmethod
     async def __do_compile_clips(segment_files: List[str], output_file: str, logger: logging.Logger) -> None:
+        concat_file = tempfile.NamedTemporaryFile(delete=False, mode='w', suffix=".txt")
         try:
-            with tempfile.NamedTemporaryFile(delete=False, mode='w', suffix=".txt") as concat_file:
-                for temp_file in segment_files:
-                    concat_file.write(f"file '{temp_file}'\n")
-                concat_file_path = concat_file.name
+            with open(concat_file.name, 'w') as f:
+                for tmp_file in segment_files:
+                    f.write(f"file '{tmp_file}'\n")
 
             # Debugging
-            with open(concat_file_path, 'r') as f:
-                concat_content = f.read()
-                print(f"Concat file content:\n{concat_content}")
-                await log_system_message(logging.INFO, f"Concat file content:\n{concat_content}", logger)
-            # fixme jebane gówno tu jest zjebane
-            ffmpeg = FFmpeg().input(concat_file_path, format="concat", safe=0).output(
-                output_file, c="copy", movflags="+faststart",
-                fflags="+genpts", avoid_negative_ts="1",
-            )
+            with open(concat_file.name, 'r') as f:
+                concat_content = f.readlines()
+                await log_system_message(logging.DEBUG, f"Concat file content:\n{concat_content}", logger)
 
-            await ffmpeg.execute()
+            for path in concat_content:
+                path = path.split(" ")[-1].strip().strip("'")
+                print(f"{path}: {os.path.exists(path)}")
+
+            command = [
+                'ffmpeg', '-y', '-f', 'concat', '-safe', '0', '-i', concat_file.name,
+                '-c', 'copy', '-movflags', '+faststart', '-fflags', '+genpts',
+                '-avoid_negative_ts', '1', output_file,
+            ]
+
+            process = await asyncio.create_subprocess_exec(
+                *command,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+            _, stderr = await process.communicate()
+            os.remove(concat_file.name)
+
+            for path in concat_content:
+                path = path.split(" ")[-1].strip().strip("'")
+                print(f"{path}: {os.path.exists(path)}")
+
             await log_system_message(logging.INFO, f"Clips concatenated successfully into {output_file}", logger)
         except Exception as e:
             await log_system_message(logging.ERROR, f"Error during concatenation: {e}", logger)
             raise FFMpegException(str(e)) from e
         finally:
-            os.remove(concat_file_path)
+            if os.path.exists(concat_file.name):
+                os.remove(concat_file.name)
             for temp_file in segment_files:
-                os.remove(temp_file)
+                if os.path.exists(temp_file):
+                    os.remove(temp_file)
 
     @staticmethod
     async def __compile_clips(selected_clips: List[Dict[str, Union[str, float]]], logger: logging.Logger) -> str:
@@ -109,8 +133,8 @@ class ClipsCompiler:
 
     @staticmethod
     async def compile_and_send_clips(
-            message: Message, selected_segments: List[Dict[str, Union[str, float]]], bot: Bot,
-            logger: logging.Logger,
+        message: Message, selected_segments: List[Dict[str, Union[str, float]]], bot: Bot,
+        logger: logging.Logger,
     ) -> str:
         compiled_output = await ClipsCompiler.__compile_clips(selected_segments, logger)
         await ClipsCompiler.__send_compiled_clip(message, compiled_output, bot, logger)

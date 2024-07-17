@@ -1,8 +1,9 @@
 import logging
 from typing import List
 
-from bot.factory.admin_permission_level_factory import AdminPermissionLevelFactory
 import aiogram
+
+from bot.factory.admin_permission_level_factory import AdminPermissionLevelFactory
 from bot.factory.moderator_permission_level_factory import ModeratorPermissionLevelFactory
 from bot.factory.permission_level_factory import PermissionLevelFactory
 from bot.factory.subscribed_permission_level_factory import SubscribedPermissionLevelFactory

@@ -1,13 +1,12 @@
 import logging
 import os
-from typing import Optional
+import subprocess
 
 from aiogram import Bot
 from aiogram.types import (
     FSInputFile,
     Message,
 )
-import ffmpeg
 
 from bot.settings import settings
 from bot.utils.log import log_system_message
@@ -19,12 +18,29 @@ class FFMpegException(Exception):
         super().__init__(self.message)
 
 
-async def get_video_duration(file_path: str, logger: logging.Logger) -> Optional[float]:
-    #fixme jebane gówno tu jest zjebane probe
-    probe = ffmpeg.probe(file_path)
-    duration = float(probe['format']['duration'])
-    await log_system_message(logging.INFO, f"Video duration for '{file_path}': {duration} seconds", logger)
-    return duration
+async def get_video_duration(file_path: str, logger: logging.Logger) -> float:
+    try:
+        result = subprocess.run(
+            [
+                'ffprobe',
+                '-v', 'error',
+                '-show_entries', 'format=duration',
+                '-of', 'default=noprint_wrappers=1:nokey=1',
+                file_path
+            ],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True
+        )
+        if result.returncode != 0:
+            raise FFMpegException(result.stderr)
+
+        duration = float(result.stdout.strip())
+        await log_system_message(logging.INFO, f"Video duration for '{file_path}': {duration} seconds", logger)
+        return duration
+    except Exception as e:
+        await log_system_message(logging.ERROR, f"Error getting video duration: {str(e)}", logger)
+        raise FFMpegException(str(e)) from e
 
 
 async def send_video(message: Message, file_path: str, bot: Bot, logger: logging.Logger) -> None:
