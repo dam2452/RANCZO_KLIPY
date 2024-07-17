@@ -12,7 +12,6 @@ from aiogram import (
 from aiogram.filters import Command
 from aiogram.types import Message
 
-from bot.middlewares.bot_middleware import BotMiddleware
 from bot.responses.bot_message_handler_responses import (
     get_general_error_message,
     get_invalid_args_count_message,
@@ -28,13 +27,7 @@ class BotMessageHandler(ABC):
         self._bot: Bot = bot
         self._logger: logging.Logger = logger
 
-    def register(self, dp: Dispatcher, middlewares: List[BotMiddleware]) -> None:
-        if middlewares:
-            for middleware in middlewares:
-                dp.message.middleware(middleware)
-        else:
-            self._log_system_message(logging.WARN, f"No middlewares for {self.get_action_name()}")
-
+    def register(self, dp: Dispatcher) -> None:
         dp.message.register(self.handle, Command(commands=self.get_commands()))
 
     async def handle(self, message: Message) -> None:

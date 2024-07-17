@@ -101,15 +101,21 @@ async def on_startup() -> None:
     logger.info("📦 Database initialized and default admin set. 📦")
 
     for handler in standard_handlers:
-        handler.register(dp, [auth_middleware])
+        handler.register(dp)
 
     for handler in moderator_handlers:
-        handler.register(dp, [mod_middleware, auth_middleware])
+        handler.register(dp)
 
     for handler in admin_handlers:
-        handler.register(dp, [admin_middleware, auth_middleware])
+        handler.register(dp)
 
     logger.info("🔧 Handlers registered successfully. 🔧")
+
+    dp.message.middleware.register(auth_middleware)
+    dp.message.middleware.register(mod_middleware)
+    dp.message.middleware.register(admin_middleware)
+
+    logger.info("Middlewares registered successfully.")
 
 
 async def main() -> None:

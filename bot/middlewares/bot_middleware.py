@@ -25,7 +25,7 @@ class BotMiddleware(BaseMiddleware, ABC):
     def __init__(self, logger: logging.Logger, supported_commands: List[str]):
         self._logger = logger
         self.__supported_commands = supported_commands
-        self._logger.warning(f"Supported commands: {self.__supported_commands}")
+        self._logger.info(f"({self.get_middleware_name()}) Supported commands: {self.__supported_commands}")
 
     async def __call__(
             self,
@@ -33,16 +33,18 @@ class BotMiddleware(BaseMiddleware, ABC):
             event: TelegramObject,
             data: Dict[str, Any],
     ) -> Optional[Awaitable]:
-        if not isinstance(event, Message):
-            return await handler(event, data)
-
-        self._logger.warning(f"event.text {event.text.split()}")
-
-        if event.text.split()[0] not in self.__supported_commands:
-            self._logger.error(f"{event.text.split()[0]} not in {self.__supported_commands}")
+        if not isinstance(event, Message) or self.get_command(event) not in self.__supported_commands:
+            self._logger.warning(f"{self.get_command(event)} not in {self.__supported_commands}")
             return await handler(event, data)
 
         return await self.handle(handler, event, data)
+
+    def get_middleware_name(self) -> str:
+        return self.__class__.__name__
+
+    @staticmethod
+    def get_command(event: TelegramObject) -> str:
+        return event.text.split()[0][1:]
 
     @abstractmethod
     async def handle(
