@@ -48,8 +48,9 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
                     username TEXT NOT NULL,
                     clip_name TEXT NOT NULL,
                     video_data BYTEA NOT NULL,
-                    start_time INT,
-                    end_time INT,
+                    start_time FLOAT,
+                    end_time FLOAT,
+                    duration FLOAT,
                     season INT,
                     episode_number INT,
                     is_compilation BOOLEAN NOT NULL DEFAULT FALSE,
@@ -237,7 +238,7 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
     async def get_saved_clips(username: str) -> Optional[List[asyncpg.Record]]:
         conn = await DatabaseManager.get_db_connection()
         result = await conn.fetch(
-            'SELECT clip_name, start_time, end_time, season, episode_number, is_compilation FROM clips WHERE username = $1',
+            'SELECT clip_name, start_time, end_time, duration, season, episode_number, is_compilation FROM clips WHERE username = $1',
             username,
         )
         await conn.close()
@@ -245,17 +246,17 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
 
     @staticmethod
     async def save_clip(
-            chat_id: int, username: str, clip_name: str, video_data: bytes, start_time: int, end_time: int, is_compilation: bool,
+            chat_id: int, username: str, clip_name: str, video_data: bytes, start_time: float, end_time: float, duration: float, is_compilation: bool,
             season: Optional[int] = None, episode_number: Optional[int] = None,
     ) -> None:
         conn = await DatabaseManager.get_db_connection()
         async with conn.transaction():
             await conn.execute(
                 """
-                INSERT INTO clips (chat_id, username, clip_name, video_data, start_time, end_time, season, episode_number, is_compilation)
+                INSERT INTO clips (chat_id, username, clip_name, video_data, start_time, end_time, duration, season, episode_number, is_compilation)
                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
                 """,
-                chat_id, username, clip_name, video_data, start_time, end_time, season, episode_number, is_compilation,
+                chat_id, username, clip_name, video_data, start_time, end_time, duration, season, episode_number, is_compilation,
             )
         await conn.close()
 
@@ -264,7 +265,7 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         conn = await DatabaseManager.get_db_connection()
         result = await conn.fetchrow(
             '''
-            SELECT video_data, start_time, end_time
+            SELECT video_data, duration
             FROM clips
             WHERE username = $1 AND clip_name = $2
         ''', username, clip_name,
@@ -277,7 +278,7 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         conn = await DatabaseManager.get_db_connection()
         clip = await conn.fetchrow(
             '''
-            SELECT clip_name, start_time, end_time, season, episode_number, is_compilation
+            SELECT clip_name, duration, season, episode_number, is_compilation
             FROM clips
             WHERE username = $1
             ORDER BY id

@@ -26,16 +26,17 @@ def convert_number_to_emoji(number: int) -> str:
 def format_myclips_response(clips: List[asyncpg.Record], username: str) -> str:
     clip_lines = []
 
-    for idx, (clip_name, start_time, end_time, season, episode_number, is_compilation) in enumerate(clips, start=1):
-        length = end_time - start_time if end_time and start_time is not None else None
-        if length:
-            minutes, seconds = divmod(length, 60)
+    for idx, (clip_name, start_time, end_time, duration, season, episode_number, is_compilation) in enumerate(clips, start=1):
+        if duration:
+            minutes, seconds = divmod(duration, 60)
             length_str = f"{minutes}m{seconds}s" if minutes else f"{seconds}s"
         else:
             length_str = "Brak danych"
 
         if is_compilation:
-            season_episode = "Kompilacja"
+            minutes, seconds = divmod(duration, 60)
+            length_str = f"{minutes}m{seconds}s" if minutes else f"{seconds}s"
+            #season_episode = "Kompilacja" # fixme można by jakoś umieścić info że coś jest kompilacją ale na razie chuj z tym niech to zadziała XDD
         else:
             episode_number_mod = (episode_number - 1) % 13 + 1
             season_episode = f"S{season:02d}E{episode_number_mod:02d}"
