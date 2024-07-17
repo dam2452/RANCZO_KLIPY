@@ -108,6 +108,9 @@ async def on_startup() -> None:
     await DatabaseManager.set_default_admin(os.getenv("DEFAULT_ADMIN"))
     logger.info("📦 Database initialized and default admin set. 📦")
 
+    for handler in whitelist_handlers:
+        handler.register(dp)
+
     for handler in subscribed_handlers:
         handler.register(dp)
 
