@@ -4,8 +4,8 @@ from dataclasses import (
 )
 import json
 from typing import (
-    Optional,
     List,
+    Optional,
 )
 
 
@@ -16,7 +16,7 @@ class EpisodeInfo:
 
 
 @dataclass
-class SegmentInfo:
+class SegmentInfo:  # pylint: disable=too-many-instance-attributes
     video_path: Optional[str] = None
     start: float = 0.0
     end: float = 0.0

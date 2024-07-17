@@ -1,11 +1,15 @@
 import logging
 import os
 import tempfile
-from typing import List, Dict, Union
-from ffmpeg.asyncio import FFmpeg
+from typing import (
+    Dict,
+    List,
+    Union,
+)
 
 from aiogram import Bot
 from aiogram.types import Message
+from ffmpeg.asyncio import FFmpeg
 
 from bot.database.global_dicts import last_clip
 from bot.utils.log import log_system_message
@@ -21,12 +25,12 @@ class ClipsCompiler:
         temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
         duration = segment['end'] - segment['start']
         ffmpeg = FFmpeg().option("y").input(segment['video_path'], ss=segment['start']).output(
-                temp_file.name,
-                t=duration,
-                c='copy',
-                movflags='+faststart',
-                fflags='+genpts',
-                avoid_negative_ts='1',
+            temp_file.name,
+            t=duration,
+            c='copy',
+            movflags='+faststart',
+            fflags='+genpts',
+            avoid_negative_ts='1',
         )
         try:
             await ffmpeg.execute()
@@ -50,7 +54,10 @@ class ClipsCompiler:
                 print(f"Concat file content:\n{concat_content}")
                 await log_system_message(logging.INFO, f"Concat file content:\n{concat_content}", logger)
             # fixme jebane gówno tu jest zjebane
-            ffmpeg = FFmpeg().input(concat_file_path, format="concat", safe=0).output(output_file, c="copy", movflags="+faststart", fflags="+genpts", avoid_negative_ts="1")
+            ffmpeg = FFmpeg().input(concat_file_path, format="concat", safe=0).output(
+                output_file, c="copy", movflags="+faststart",
+                fflags="+genpts", avoid_negative_ts="1",
+            )
 
             await ffmpeg.execute()
             await log_system_message(logging.INFO, f"Clips concatenated successfully into {output_file}", logger)
@@ -101,8 +108,10 @@ class ClipsCompiler:
                 os.remove(temp_file)
 
     @staticmethod
-    async def compile_and_send_clips(message: Message, selected_segments: List[Dict[str, Union[str, float]]], bot: Bot,
-                                     logger: logging.Logger) -> str:
+    async def compile_and_send_clips(
+            message: Message, selected_segments: List[Dict[str, Union[str, float]]], bot: Bot,
+            logger: logging.Logger,
+    ) -> str:
         compiled_output = await ClipsCompiler.__compile_clips(selected_segments, logger)
         await ClipsCompiler.__send_compiled_clip(message, compiled_output, bot, logger)
 
@@ -111,4 +120,3 @@ class ClipsCompiler:
 
         await ClipsCompiler.__clean_up_temp_files([compiled_output])
         return compiled_output
-

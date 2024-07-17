@@ -1,6 +1,5 @@
 import logging
 import os
-import ffmpeg
 from typing import Optional
 
 from aiogram import Bot
@@ -8,6 +7,7 @@ from aiogram.types import (
     FSInputFile,
     Message,
 )
+import ffmpeg
 
 from bot.settings import settings
 from bot.utils.log import log_system_message

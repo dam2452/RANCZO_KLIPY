@@ -28,8 +28,8 @@ from bot.responses.not_sending_videos.save_clip_handler_responses import (
 )
 from bot.video.clips_extractor import ClipsExtractor
 from bot.video.segment_info import (
-    SegmentInfo,
     EpisodeInfo,
+    SegmentInfo,
 )
 from bot.video.utils import get_video_duration
 

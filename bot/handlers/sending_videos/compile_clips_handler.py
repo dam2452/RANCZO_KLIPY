@@ -1,7 +1,16 @@
 import logging
-from typing import Dict, List, Union
+from typing import (
+    Dict,
+    List,
+    Union,
+)
+
 from aiogram.types import Message
-from bot.database.global_dicts import last_clip, last_search
+
+from bot.database.global_dicts import (
+    last_clip,
+    last_search,
+)
 from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.responses.sending_videos.compile_clips_handler_responses import (
     get_compilation_success_message,
@@ -14,6 +23,7 @@ from bot.responses.sending_videos.compile_clips_handler_responses import (
     get_no_previous_search_results_message,
 )
 from bot.video.clips_compiler import ClipsCompiler
+
 
 class CompileClipsHandler(BotMessageHandler):
     class ParseSegmentsException(Exception):
