@@ -11,6 +11,7 @@ from typing import (
 import asyncpg
 
 from bot.database.user import User
+from bot.main import logger
 from bot.settings import settings
 
 
@@ -175,6 +176,7 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         conn = await DatabaseManager.get_db_connection()
         result = await conn.fetch("SELECT COUNT(*) FROM users WHERE username = $1", username)
         await conn.close()
+        logger.error(f"dupa: {result}")
         return bool(result[0])
 
     @staticmethod
