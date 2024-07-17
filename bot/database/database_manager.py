@@ -171,6 +171,13 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         return result
 
     @staticmethod
+    async def is_user_in_db(username: str) -> bool:
+        conn = await DatabaseManager.get_db_connection()
+        result = await conn.fetch("SELECT COUNT(*) FROM users WHERE username = $1", username)
+        await conn.close()
+        return bool(result[0])
+
+    @staticmethod
     async def get_admin_users() -> Optional[List[asyncpg.Record]]:
         conn = await DatabaseManager.get_db_connection()
         result = await conn.fetch('SELECT username, full_name, email, phone FROM users WHERE is_admin = TRUE')
@@ -185,7 +192,7 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         return result
 
     @staticmethod
-    async def is_user_authorized(username: str) -> bool:
+    async def is_user_subscribed(username: str) -> bool:
         conn = await DatabaseManager.get_db_connection()
         result = await conn.fetchrow(
             'SELECT is_admin, is_moderator, subscription_end FROM users WHERE username = $1',

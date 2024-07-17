@@ -33,8 +33,7 @@ class BotMiddleware(BaseMiddleware, ABC):
             event: TelegramObject,
             data: Dict[str, Any],
     ) -> Optional[Awaitable]:
-        if not isinstance(event, Message) or self.get_command(event) not in self.__supported_commands:
-            self._logger.warning(f"{self.get_command(event)} not in {self.__supported_commands}")
+        if not isinstance(event, Message) or self.get_command_without_initial_slash(event) not in self.__supported_commands:
             return await handler(event, data)
 
         return await self.handle(handler, event, data)
@@ -43,7 +42,7 @@ class BotMiddleware(BaseMiddleware, ABC):
         return self.__class__.__name__
 
     @staticmethod
-    def get_command(event: TelegramObject) -> str:
+    def get_command_without_initial_slash(event: TelegramObject) -> str:
         return event.text.split()[0][1:]
 
     @abstractmethod

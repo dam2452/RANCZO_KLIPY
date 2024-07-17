@@ -41,7 +41,14 @@ bot = Bot(token=settings.TELEGRAM_BOT_TOKEN)
 dp = Dispatcher(storage=MemoryStorage())
 
 
-def create_standard_handlers(_logger: logging.Logger) -> List[BotMessageHandler]:
+def create_whitelist_handlers(_logger: logging.Logger) -> List[BotMessageHandler]:
+    return [
+        StartHandler(bot, _logger),
+        SubscriptionStatusHandler(bot, _logger),
+    ]
+
+
+def create_subscribed_handlers(_logger: logging.Logger) -> List[BotMessageHandler]:
     return [
         AdjustVideoClipHandler(bot, _logger),
         ClipHandler(bot, _logger),
@@ -57,8 +64,6 @@ def create_standard_handlers(_logger: logging.Logger) -> List[BotMessageHandler]
         SearchListHandler(bot, _logger),
         SelectClipHandler(bot, _logger),
         SendClipHandler(bot, _logger),
-        StartHandler(bot, _logger),
-        SubscriptionStatusHandler(bot, _logger),
         TranscriptionHandler(bot, _logger),
     ]
 
@@ -82,17 +87,20 @@ def create_admin_handlers(_logger: logging.Logger) -> List[BotMessageHandler]:
     ]
 
 
-standard_handlers = create_standard_handlers(logger)
+whitelist_handlers = create_whitelist_handlers(logger)
+subscribed_handlers = create_subscribed_handlers(logger)
 moderator_handlers = create_moderator_handlers(logger)
 admin_handlers = create_admin_handlers(logger)
 
+whitelist_commands = [command for handler in whitelist_handlers for command in handler.get_commands()]
+subscribed_commands = [command for handler in subscribed_handlers for command in handler.get_commands()]
 moderator_commands = [command for handler in moderator_handlers for command in handler.get_commands()]
-standard_commands = [command for handler in standard_handlers for command in handler.get_commands()]
 admin_commands = [command for handler in admin_handlers for command in handler.get_commands()]
 
-admin_middleware = AdminMiddleware(logger, admin_commands)
-auth_middleware = AuthorizationMiddleware(logger, standard_commands + moderator_commands + admin_commands)
+whitelist_middleware = WhitelistMiddleware(logger, whitelist_commands)
+subscribed_middleware = SubscriberMiddleware(logger, subscribed_commands)
 mod_middleware = ModeratorMiddleware(logger, moderator_commands)
+admin_middleware = AdminMiddleware(logger, admin_commands)
 
 
 async def on_startup() -> None:
@@ -100,7 +108,7 @@ async def on_startup() -> None:
     await DatabaseManager.set_default_admin(os.getenv("DEFAULT_ADMIN"))
     logger.info("📦 Database initialized and default admin set. 📦")
 
-    for handler in standard_handlers:
+    for handler in subscribed_handlers:
         handler.register(dp)
 
     for handler in moderator_handlers:
@@ -111,7 +119,8 @@ async def on_startup() -> None:
 
     logger.info("🔧 Handlers registered successfully. 🔧")
 
-    dp.message.middleware.register(auth_middleware)
+    dp.message.middleware.register(whitelist_middleware)
+    dp.message.middleware.register(subscribed_middleware)
     dp.message.middleware.register(mod_middleware)
     dp.message.middleware.register(admin_middleware)
 
