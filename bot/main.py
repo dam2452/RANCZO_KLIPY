@@ -64,7 +64,6 @@ def create_subscribed_handlers(_logger: logging.Logger) -> List[BotMessageHandle
         SearchListHandler(bot, _logger),
         SelectClipHandler(bot, _logger),
         SendClipHandler(bot, _logger),
-        TranscriptionHandler(bot, _logger),
     ]
 
 
@@ -74,6 +73,7 @@ def create_moderator_handlers(_logger: logging.Logger) -> List[BotMessageHandler
         ListAdminsHandler(bot, _logger),
         ListModeratorsHandler(bot, _logger),
         ListWhitelistHandler(bot, _logger),
+        TranscriptionHandler(bot, _logger),
     ]
 
 
