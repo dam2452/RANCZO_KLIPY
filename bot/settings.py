@@ -5,10 +5,8 @@ from pydantic import Field
 from pydantic_settings import BaseSettings
 
 env_path: str = os.path.join(os.path.dirname(__file__), '..', '.env')
-#print(env_path)
 if os.path.exists(env_path):
     load_dotenv(env_path)
-    #print(env_path)
 
 
 class Settings(BaseSettings):
