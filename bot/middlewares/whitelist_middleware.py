@@ -21,7 +21,7 @@ class WhitelistMiddleware(BotMiddleware):
         self._logger.error(f"dupa {result} {result[0]}")
         self._logger.error(result[0]['exists'])
 
-        if event.from_user.username and bool(result[0]):
+        if event.from_user.username and bool(result[0]['exists']):
             return await handler(event, data)
 
         await event.answer("❌ Nie masz uprawnień do korzystania z tego bota.❌")
