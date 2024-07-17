@@ -32,7 +32,6 @@ class SegmentInfo:  # pylint: disable=too-many-instance-attributes
     tags: Optional[List[str]] = None
     location: Optional[str] = None
     actors: Optional[List[str]] = None
-    type: Optional[str] = None
 
 
 @dataclass(frozen=True)
