@@ -39,6 +39,7 @@ class BotMiddleware(BaseMiddleware, ABC):
         self._logger.warning(f"event.text {event.text.split()}")
 
         if event.text.split()[0] not in self.__supported_commands:
+            self._logger.error(f"{event.text.split()[0]} not in {self.__supported_commands}")
             return await handler(event, data)
 
         return await self.handle(handler, event, data)
