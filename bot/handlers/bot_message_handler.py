@@ -3,10 +3,7 @@ from abc import (
     abstractmethod,
 )
 import logging
-from typing import (
-    List,
-    Optional,
-)
+from typing import List
 
 from aiogram import (
     Bot,
@@ -27,15 +24,13 @@ from bot.utils.log import (
 
 
 class BotMessageHandler(ABC):
-    def __init__(self, bot: Bot, logger: logging.Logger, middlewares: Optional[List[BotMiddleware]] = None):
+    def __init__(self, bot: Bot, logger: logging.Logger):
         self._bot: Bot = bot
         self._logger: logging.Logger = logger
 
-        self._middlewares: Optional[List[BotMiddleware]] = middlewares
-
-    def register(self, dp: Dispatcher) -> None:
-        if self._middlewares:
-            for middleware in self._middlewares:
+    def register(self, dp: Dispatcher, middlewares: List[BotMiddleware]) -> None:
+        if middlewares:
+            for middleware in middlewares:
                 dp.message.middleware(middleware)
         else:
             self._log_system_message(logging.WARN, f"No middlewares for {self.get_action_name()}")

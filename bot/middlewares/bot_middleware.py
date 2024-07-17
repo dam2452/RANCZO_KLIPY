@@ -8,6 +8,7 @@ from typing import (
     Awaitable,
     Callable,
     Dict,
+    List,
     Optional,
 )
 
@@ -21,8 +22,9 @@ from bot.database.database_manager import DatabaseManager
 
 
 class BotMiddleware(BaseMiddleware, ABC):
-    def __init__(self, logger: logging.Logger):
+    def __init__(self, logger: logging.Logger, supported_commands: List[str]):
         self._logger = logger
+        self.__supported_commands = supported_commands
 
     async def __call__(
             self,
@@ -30,7 +32,7 @@ class BotMiddleware(BaseMiddleware, ABC):
             event: TelegramObject,
             data: Dict[str, Any],
     ) -> Optional[Awaitable]:
-        if not isinstance(event, Message):
+        if not isinstance(event, Message) or event.text.split()[0] not in self.__supported_commands:
             return await handler(event, data)
 
         return await self.handle(handler, event, data)

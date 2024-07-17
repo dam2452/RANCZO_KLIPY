@@ -40,67 +40,59 @@ logger = logging.getLogger(__name__)
 bot = Bot(token=settings.TELEGRAM_BOT_TOKEN)
 dp = Dispatcher(storage=MemoryStorage())
 
-admin_middleware = AdminMiddleware(logger)
-auth_middleware = AuthorizationMiddleware(logger)
-mod_middleware = ModeratorMiddleware(logger)
-
 
 def create_standard_handlers(_logger: logging.Logger) -> List[BotMessageHandler]:
-    middlewares = [
-        auth_middleware,
-    ]
-
     return [
-        AdjustVideoClipHandler(bot, _logger, middlewares),
-        ClipHandler(bot, _logger, middlewares),
-        CompileClipsHandler(bot, _logger, middlewares),
-        CompileSelectedClipsHandler(bot, _logger, middlewares),
-        DeleteClipHandler(bot, _logger, middlewares),
-        EpisodeListHandler(bot, _logger, middlewares),
-        ManualClipHandler(bot, _logger, middlewares),
-        MyClipsHandler(bot, _logger, middlewares),
-        ReportIssueHandler(bot, _logger, middlewares),
-        SaveClipHandler(bot, _logger, middlewares),
-        SearchHandler(bot, _logger, middlewares),
-        SearchListHandler(bot, _logger, middlewares),
-        SelectClipHandler(bot, _logger, middlewares),
-        SendClipHandler(bot, _logger, middlewares),
-        StartHandler(bot, _logger, middlewares),
-        SubscriptionStatusHandler(bot, _logger, middlewares),
-        TranscriptionHandler(bot, logger, middlewares),
+        AdjustVideoClipHandler(bot, _logger),
+        ClipHandler(bot, _logger),
+        CompileClipsHandler(bot, _logger),
+        CompileSelectedClipsHandler(bot, _logger),
+        DeleteClipHandler(bot, _logger),
+        EpisodeListHandler(bot, _logger),
+        ManualClipHandler(bot, _logger),
+        MyClipsHandler(bot, _logger),
+        ReportIssueHandler(bot, _logger),
+        SaveClipHandler(bot, _logger),
+        SearchHandler(bot, _logger),
+        SearchListHandler(bot, _logger),
+        SelectClipHandler(bot, _logger),
+        SendClipHandler(bot, _logger),
+        StartHandler(bot, _logger),
+        SubscriptionStatusHandler(bot, _logger),
+        TranscriptionHandler(bot, _logger),
     ]
 
 
 def create_moderator_handlers(_logger: logging.Logger) -> List[BotMessageHandler]:
-    middlewares = [
-        auth_middleware,
-        mod_middleware,
-    ]
-
     return [
-        AdminHelpHandler(bot, _logger, middlewares),
-        ListAdminsHandler(bot, _logger, middlewares),
-        ListModeratorsHandler(bot, _logger, middlewares),
-        ListWhitelistHandler(bot, _logger, middlewares),
+        AdminHelpHandler(bot, _logger),
+        ListAdminsHandler(bot, _logger),
+        ListModeratorsHandler(bot, _logger),
+        ListWhitelistHandler(bot, _logger),
     ]
 
 
 def create_admin_handlers(_logger: logging.Logger) -> List[BotMessageHandler]:
-    middlewares = [
-        admin_middleware,
-        auth_middleware,
-    ]
-
     return [
-        AddSubscriptionHandler(bot, _logger, middlewares),
-        AddWhitelistHandler(bot, _logger, middlewares),
-        RemoveSubscriptionHandler(bot, _logger, middlewares),
-        RemoveWhitelistHandler(bot, _logger, middlewares),
-        UpdateWhitelistHandler(bot, _logger, middlewares),
+        AddSubscriptionHandler(bot, _logger),
+        AddWhitelistHandler(bot, _logger),
+        RemoveSubscriptionHandler(bot, _logger),
+        RemoveWhitelistHandler(bot, _logger),
+        UpdateWhitelistHandler(bot, _logger),
     ]
 
 
-handlers: List[BotMessageHandler] = create_standard_handlers(logger) + create_moderator_handlers(logger) + create_admin_handlers(logger)
+standard_handlers = create_standard_handlers(logger)
+moderator_handlers = create_moderator_handlers(logger)
+admin_handlers = create_admin_handlers(logger)
+
+moderator_commands = [command for handler in moderator_handlers for command in handler.get_commands()]
+standard_commands = [command for handler in standard_handlers for command in handler.get_commands()]
+admin_commands = [command for handler in admin_handlers for command in handler.get_commands()]
+
+admin_middleware = AdminMiddleware(logger, admin_commands)
+auth_middleware = AuthorizationMiddleware(logger, standard_commands + moderator_commands + admin_commands)
+mod_middleware = ModeratorMiddleware(logger, moderator_commands)
 
 
 async def on_startup() -> None:
@@ -108,8 +100,14 @@ async def on_startup() -> None:
     await DatabaseManager.set_default_admin(os.getenv("DEFAULT_ADMIN"))
     logger.info("📦 Database initialized and default admin set. 📦")
 
-    for handler in handlers:
-        handler.register(dp)
+    for handler in standard_handlers:
+        handler.register(dp, [auth_middleware])
+
+    for handler in moderator_handlers:
+        handler.register(dp, [mod_middleware, auth_middleware])
+
+    for handler in admin_handlers:
+        handler.register(dp, [admin_middleware, auth_middleware])
 
     logger.info("🔧 Handlers registered successfully. 🔧")
 
