@@ -61,8 +61,8 @@ class ClipsCompiler:
         try:
             for segment in selected_clips:
                 temp_file_name = tempfile.NamedTemporaryFile(delete=False, delete_on_close=False, suffix=".mp4").name  # pylint: disable=consider-using-with
-                temp_file = await ClipsExtractor.extract_clip(segment['video_path'], segment['start'], segment['end'], temp_file_name, logger)
-                temp_files.append(temp_file)
+                temp_files.append(temp_file_name)
+                await ClipsExtractor.extract_clip(segment['video_path'], segment['start'], segment['end'], temp_file_name, logger)
 
             compiled_output = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
             compiled_output.close()
