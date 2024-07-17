@@ -171,11 +171,11 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         return result
 
     @staticmethod
-    async def is_user_in_db(username: str) -> list:
+    async def is_user_in_db(username: str) -> bool:
         conn = await DatabaseManager.get_db_connection()
         result = await conn.fetch("SELECT EXISTS (SELECT 1 FROM users where username = $1)", username)
         await conn.close()
-        return result
+        return result[0]['exists']
 
     @staticmethod
     async def get_admin_users() -> Optional[List[asyncpg.Record]]:
