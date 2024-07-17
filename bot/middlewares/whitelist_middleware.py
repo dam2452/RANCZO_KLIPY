@@ -18,7 +18,8 @@ class WhitelistMiddleware(BotMiddleware):
             data: Dict[str, Any],
     ) -> Optional[Awaitable]:
         result = await DatabaseManager.is_user_in_db(event.from_user.username)
-        self._logger.error(f"dupa {result}")
+        self._logger.error(f"dupa {result} {result[0]}")
+        self._logger.error(result[0]['exists'])
 
         if event.from_user.username and bool(result[0]):
             return await handler(event, data)
