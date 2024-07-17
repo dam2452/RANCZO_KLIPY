@@ -25,6 +25,7 @@ class BotMiddleware(BaseMiddleware, ABC):
     def __init__(self, logger: logging.Logger, supported_commands: List[str]):
         self._logger = logger
         self.__supported_commands = supported_commands
+        self._logger.warning(f"Supported commands: {self.__supported_commands}")
 
     async def __call__(
             self,
@@ -32,7 +33,12 @@ class BotMiddleware(BaseMiddleware, ABC):
             event: TelegramObject,
             data: Dict[str, Any],
     ) -> Optional[Awaitable]:
-        if not isinstance(event, Message) or event.text.split()[0] not in self.__supported_commands:
+        if not isinstance(event, Message):
+            return await handler(event, data)
+
+        self._logger.warning(f"event.text {event.text.split()}")
+
+        if event.text.split()[0] not in self.__supported_commands:
             return await handler(event, data)
 
         return await self.handle(handler, event, data)
