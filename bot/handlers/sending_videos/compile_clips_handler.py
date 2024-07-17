@@ -70,7 +70,7 @@ class CompileClipsHandler(BotMessageHandler):
             else:
                 try:
                     selected_segments.append(CompileClipsHandler.__parse_single(index, segments))
-                except CompileClipsHandler.ParseSegmentsException as e:
+                except CompileClipsHandler.ParseSegmentsException:
                     continue
 
         return selected_segments

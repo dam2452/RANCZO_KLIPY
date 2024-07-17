@@ -11,10 +11,10 @@ from typing import (
 
 from aiogram import Bot
 from aiogram.types import Message
-from ffmpeg.ffmpeg import FFmpeg
 
 from bot.database.global_dicts import last_clip
 from bot.utils.log import log_system_message
+from bot.video.clips_extractor import ClipsExtractor
 from bot.video.utils import (
     FFMpegException,
     send_video,
@@ -22,29 +22,6 @@ from bot.video.utils import (
 
 
 class ClipsCompiler:
-    @staticmethod
-    async def __extract_segment(segment: Dict[str, Union[str, float]], logger: logging.Logger) -> str:
-        temp_file = tempfile.NamedTemporaryFile(delete=False, delete_on_close=False , suffix=".mp4")
-        temp_file.close()  # Close the file to ensure it's written to disk properly
-        duration = segment['end'] - segment['start']
-        ffmpeg = FFmpeg().option("y").input(segment['video_path'], ss=segment['start']).output(
-            temp_file.name,
-            t=duration,
-            c='copy',
-            movflags='+faststart',
-            fflags='+genpts',
-            avoid_negative_ts='1',
-        )
-        try:
-            arguments = ffmpeg.arguments
-            await log_system_message(logging.DEBUG, f"FFmpeg arguments for extracting segment: {arguments}", logger)
-
-            ffmpeg.execute()
-            return temp_file.name
-        except Exception as e:
-            await log_system_message(logging.ERROR, f"Error extracting segment: {e}", logger)
-            raise FFMpegException(str(e)) from e
-
     @staticmethod
     async def __do_compile_clips(segment_files: List[str], output_file: str, logger: logging.Logger) -> None:
         concat_file = tempfile.NamedTemporaryFile(delete=False, mode='w', suffix=".txt")
@@ -64,7 +41,7 @@ class ClipsCompiler:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
             )
-            _, stderr = await process.communicate()
+            await process.communicate()
             os.remove(concat_file.name)
 
             await log_system_message(logging.INFO, f"Clips concatenated successfully into {output_file}", logger)
@@ -83,7 +60,8 @@ class ClipsCompiler:
         temp_files = []
         try:
             for segment in selected_clips:
-                temp_file = await ClipsCompiler.__extract_segment(segment, logger)
+                temp_file_name = tempfile.NamedTemporaryFile(delete=False, delete_on_close=False, suffix=".mp4").name  # pylint: disable=consider-using-with
+                temp_file = await ClipsExtractor.extract_clip(segment['video_path'], segment['start'], segment['end'], temp_file_name, logger)
                 temp_files.append(temp_file)
 
             compiled_output = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
