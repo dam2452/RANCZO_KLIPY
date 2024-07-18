@@ -53,7 +53,7 @@ class SaveClipHandler(BotMessageHandler):
             return await self.__reply_clip_name_exists(message, clip_name)
         print("33333333333333333333333333333333333333333333333333333333333333333333")
         segment_info = self.__get_segment_info(message)
-        print(f"4444444444444444444444444444444444segment_info {segment_info}") #fixme tu się dziwka wypierdala
+        print(f"4444444444444444444444444444444444segment_info {segment_info}")  # fixme tu się dziwka wypierdala
         if not segment_info:
             return await self.__reply_no_segment_selected(message)
 
@@ -68,7 +68,7 @@ class SaveClipHandler(BotMessageHandler):
         print(f"season {season}")
         print(f"episode_number {episode_number}")
         print("-------------------------------------------------------------------------------")
-        duration = await get_video_duration(output_filename)  #fixme jak mu tego loggera dać narazie wydupcam XDD , self._logger
+        duration = await get_video_duration(output_filename)  # fixme jak mu tego loggera dać narazie wydupcam XDD , self._logger
         print(f"duration {duration}")
         print("-------------------------------------------------------------------------------")
         await self.__save_clip_to_db(message, clip_name, output_filename, start_time, end_time, duration, is_compilation, season, episode_number)
@@ -93,19 +93,23 @@ class SaveClipHandler(BotMessageHandler):
             return None
 
         if 'segment' in last_clip_info and 'episode_info' not in last_clip_info['segment']:
+            print(f"not fixed {last_clip_info}")
             last_clip_info['segment']['episode_info'] = {}
+            print(f"fixed {last_clip_info}")
 
         # Konwersja słownika episode_info na instancję EpisodeInfo, jeśli jest w formie słownika
-        if isinstance(last_clip_info['segment']['episode_info'], dict):
+        if isinstance(last_clip_info['segment']['episode_info'], dict):  # fixme segment nie istnieje: last_clip_info {'compiled_clip': '/tmp/tmp3gvjihr6.mp4', 'type': 'compiled'}
+            print("is instance")
             episode_info_data = last_clip_info['segment']['episode_info']
             # Filtrowanie tylko wymaganych argumentów dla EpisodeInfo
             filtered_episode_info = {k: episode_info_data[k] for k in ['season', 'episode_number'] if k in episode_info_data}
+            print(f"fildered {filtered_episode_info}")
             last_clip_info['segment']['episode_info'] = EpisodeInfo(**filtered_episode_info)
 
         print(f"last_clip_info2 {last_clip_info}")
-        print(
-            f"SaveClipHandler.__SEGMENT_INFO_GETTERS[last_clip_info['type']](last_clip_info) {SaveClipHandler.__SEGMENT_INFO_GETTERS[last_clip_info['type']](last_clip_info)}")
-        return SaveClipHandler.__SEGMENT_INFO_GETTERS[last_clip_info['type']](last_clip_info)
+        result = SaveClipHandler.__SEGMENT_INFO_GETTERS[last_clip_info['type']](last_clip_info)
+        print(result)
+        return result
 
     @staticmethod
     def _convert_to_segment_info(segment: dict) -> SegmentInfo:
@@ -152,7 +156,7 @@ class SaveClipHandler(BotMessageHandler):
             season = segment_info.episode_info.season
             episode_number = segment_info.episode_info.episode_number
             with tempfile.NamedTemporaryFile(
-                delete=False, delete_on_close=False, suffix=".mp4",
+                    delete=False, delete_on_close=False, suffix=".mp4",
             ) as tmp_file:
                 output_filename = tmp_file.name
             await ClipsExtractor.extract_clip(clip_path, start_time, end_time, output_filename, self._logger)
@@ -162,7 +166,7 @@ class SaveClipHandler(BotMessageHandler):
     @staticmethod
     def __write_clip_to_file(clip_data: bytes) -> str:
         with tempfile.NamedTemporaryFile(
-            delete=False, delete_on_close=False, suffix=".mp4",
+                delete=False, delete_on_close=False, suffix=".mp4",
         ) as tmp_file:
             output_filename = tmp_file.name
         with open(output_filename, 'wb') as f:
