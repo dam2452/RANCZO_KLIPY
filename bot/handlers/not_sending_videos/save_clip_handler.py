@@ -95,20 +95,22 @@ class SaveClipHandler(BotMessageHandler):
         if last_clip_info is None:
             return None
 
+        # Remove the 'type' key from the dictionary before passing it to the constructor
+        clip_info_without_type = {key: value for key, value in last_clip_info.items() if key != 'type'}
+
+        # Convert 'episode_info' to EpisodeInfo instance if it's a dictionary
+        if 'episode_info' in clip_info_without_type and isinstance(clip_info_without_type['episode_info'], dict):
+            episode_info_data = clip_info_without_type['episode_info']
+            clip_info_without_type['episode_info'] = EpisodeInfo(**episode_info_data)
+
+        # Use the appropriate constructor or method based on the 'type' of clip
         if last_clip_info['type'] == 'compiled':
-            # Assuming compiled_clip only needs the path to be set correctly
-            # and other attributes can be set to their default values or derived values.
-            return SegmentInfo(compiled_clip=last_clip_info['compiled_clip'])
-        elif last_clip_info['type'] == 'manual' or last_clip_info['type'] == 'segment':
-            # Handle other types as before
-            if 'segment' in last_clip_info:
-                if 'episode_info' not in last_clip_info['segment']:
-                    last_clip_info['segment']['episode_info'] = {}
-                if isinstance(last_clip_info['segment']['episode_info'], dict):
-                    episode_info_data = last_clip_info['segment']['episode_info']
-                    filtered_episode_info = {k: episode_info_data[k] for k in ['season', 'episode_number'] if k in episode_info_data}
-                    last_clip_info['segment']['episode_info'] = EpisodeInfo(**filtered_episode_info)
-            return SaveClipHandler.__SEGMENT_INFO_GETTERS[last_clip_info['type']](last_clip_info)
+            return SegmentInfo(**clip_info_without_type)
+        elif last_clip_info['type'] in ['manual', 'segment']:
+            if 'segment' in clip_info_without_type:
+                segment_info_data = clip_info_without_type['segment']
+                return SaveClipHandler._convert_to_segment_info(segment_info_data)
+            return SaveClipHandler.__SEGMENT_INFO_GETTERS[last_clip_info['type']](clip_info_without_type)
         else:
             return None
 
