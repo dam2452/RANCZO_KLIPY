@@ -23,12 +23,12 @@ class ClipsExtractor:
         )
 
         ffmpeg = FFmpeg().option("y").input(video_path, ss=start_time).output(
-                output_filename,
-                t=duration,
-                c='copy',
-                movflags='+faststart',
-                fflags='+genpts',
-                avoid_negative_ts='1',
+            output_filename,
+            t=duration,
+            c='copy',
+            movflags='+faststart',
+            fflags='+genpts',
+            avoid_negative_ts='1',
         )
 
         try:
@@ -39,7 +39,10 @@ class ClipsExtractor:
             raise FFMpegException(str(e)) from e
 
     @staticmethod
-    async def extract_and_send_clip(video_path: str, message: Message, bot: Bot, logger: logging.Logger, start_time: float, end_time: float) -> None:
+    async def extract_and_send_clip(
+        video_path: str, message: Message, bot: Bot, logger: logging.Logger, start_time: float,
+        end_time: float,
+    ) -> None:
         output_filename = tempfile.mktemp(suffix='.mp4')
         try:
             await ClipsExtractor.extract_clip(video_path, start_time, end_time, output_filename, logger)
@@ -48,4 +51,3 @@ class ClipsExtractor:
             if os.path.exists(output_filename):
                 os.remove(output_filename)
             await log_system_message(logging.INFO, f"Temporary file '{output_filename}' removed after sending clip.", logger)
-

@@ -245,7 +245,7 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         return result
 
     @staticmethod
-    async def save_clip(
+    async def save_clip(  # pylint: disable=too-many-arguments
             chat_id: int, username: str, clip_name: str, video_data: bytes, start_time: float, end_time: float, duration: float, is_compilation: bool,
             season: Optional[int] = None, episode_number: Optional[int] = None,
     ) -> None:

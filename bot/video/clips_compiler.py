@@ -48,16 +48,19 @@ class ClipsCompiler:
         except Exception as e:
             await log_system_message(logging.ERROR, f"Error during concatenation: {e}", logger)
             raise FFMpegException(str(e)) from e
-        # finally:
-        #     if os.path.exists(concat_file.name):
-        #         os.remove(concat_file.name)
+        finally:
+            if os.path.exists(concat_file.name):
+                os.remove(concat_file.name)
 
     @staticmethod
     async def __compile_clips(selected_clips: List[Dict[str, Union[str, float]]], logger: logging.Logger) -> str:
         temp_files = []
         try:
             for segment in selected_clips:
-                temp_file_name = tempfile.NamedTemporaryFile(delete=False, delete_on_close=False, suffix=".mp4").name  # pylint: disable=consider-using-with
+                temp_file_name = tempfile.NamedTemporaryFile(    # pylint: disable=consider-using-with
+                    delete=False, delete_on_close=False,
+                    suffix=".mp4",
+                ).name
                 temp_files.append(temp_file_name)
                 await ClipsExtractor.extract_clip(segment['video_path'], segment['start'], segment['end'], temp_file_name, logger)
 
@@ -90,8 +93,8 @@ class ClipsCompiler:
 
         for temp_file in temp_files:
             if os.path.exists(temp_file):
-                print(f"Removing temp file {temp_file}")
-                #os.remove(temp_file)
+                os.remove(temp_file)
+
     @staticmethod
     async def compile_and_send_clips(
         message: Message, selected_segments: List[Dict[str, Union[str, float]]], bot: Bot,
@@ -100,8 +103,8 @@ class ClipsCompiler:
         compiled_output = await ClipsCompiler.__compile_clips(selected_segments, logger)
         await ClipsCompiler.__send_compiled_clip(message, compiled_output, bot, logger)
 
-        # if os.path.exists(compiled_output):
-        #     os.remove(compiled_output)
+        if os.path.exists(compiled_output):
+            os.remove(compiled_output)
 
         await ClipsCompiler.__clean_up_temp_files([compiled_output])
         return compiled_output

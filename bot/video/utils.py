@@ -18,7 +18,7 @@ class FFMpegException(Exception):
         super().__init__(self.message)
 
 
-async def get_video_duration(file_path: str) -> float: #fixme , logger: logging.Logger wyjebałem mu loggera XD
+async def get_video_duration(file_path: str) -> float:
     if not os.path.exists(file_path):
         raise FileNotFoundError(f"File not found: {file_path}")
 
