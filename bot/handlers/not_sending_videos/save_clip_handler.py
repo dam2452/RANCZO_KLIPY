@@ -38,6 +38,7 @@ class SaveClipHandler(BotMessageHandler):
         "manual": (lambda last_clip_info: SegmentInfo(**last_clip_info)),
         "segment": (lambda last_clip_info: SaveClipHandler._convert_to_segment_info(last_clip_info['segment'])),
         "compiled": (lambda last_clip_info: SegmentInfo(**last_clip_info['compiled_clip'])),
+        "adjusted": (lambda last_clip_info: SaveClipHandler._convert_to_segment_info_with_adjustment(last_clip_info))
     }
 
     def get_commands(self) -> List[str]:
@@ -89,6 +90,10 @@ class SaveClipHandler(BotMessageHandler):
         if last_clip_info['type'] == 'compiled':
             return SegmentInfo(**clip_info_without_type)
 
+        if last_clip_info['type'] == 'adjusted':
+            segment_info = SaveClipHandler._convert_to_segment_info_with_adjustment(last_clip_info)
+            return segment_info
+
         if last_clip_info['type'] in {'manual', 'segment'}:
             if 'segment' in clip_info_without_type:
                 segment_info_data = clip_info_without_type['segment']
@@ -112,6 +117,33 @@ class SaveClipHandler(BotMessageHandler):
         segment['episode_info'] = episode_info_obj
 
         return SegmentInfo(**segment)
+
+    @staticmethod
+    def _convert_to_segment_info_with_adjustment(last_clip_info: Dict[str, Union[json, str]]) -> SegmentInfo:
+        segment = last_clip_info['segment']
+        episode_info_data = segment.get('episode_info')
+
+        if isinstance(episode_info_data, EpisodeInfo):
+            episode_info_obj = episode_info_data
+        else:
+            episode_info_obj = EpisodeInfo(
+                season=episode_info_data['season'],
+                episode_number=episode_info_data['episode_number'],
+            )
+
+        return SegmentInfo(
+            video_path=last_clip_info['video_path'],
+            start=last_clip_info['start'],
+            end=last_clip_info['end'],
+            episode_info=episode_info_obj,
+            text=segment.get('text'),
+            id=segment.get('id'),
+            author=segment.get('author'),
+            comment=segment.get('comment'),
+            tags=segment.get('tags'),
+            location=segment.get('location'),
+            actors=segment.get('actors')
+        )
 
     async def __prepare_clip_file(self, segment_info: SegmentInfo) -> Tuple[str, int, int, bool, Optional[int], Optional[int]]:
         start_time = 0

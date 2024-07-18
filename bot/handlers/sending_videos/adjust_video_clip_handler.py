@@ -74,6 +74,15 @@ class AdjustVideoClipHandler(BotMessageHandler):
                 segment_info.get("video_path"), message, self._bot, self._logger, start_time,
                 end_time,
             )
+
+            last_clip[message.chat.id] = {
+                'segment': segment_info,
+                'start': start_time,
+                'end': end_time,
+                'video_path': segment_info.get("video_path"),
+                'type': 'adjusted'
+            }
+
         except FFMpegException as e:
             return await self.__reply_extraction_failure(message, e)
 
@@ -103,3 +112,4 @@ class AdjustVideoClipHandler(BotMessageHandler):
     async def __reply_extraction_failure(self, message: Message, exception: FFMpegException) -> None:
         await message.answer(get_extraction_failure_message(exception))
         await self._log_system_message(logging.ERROR, get_extraction_failure_log(exception))
+
