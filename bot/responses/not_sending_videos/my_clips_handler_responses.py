@@ -29,13 +29,13 @@ def format_myclips_response(clips: List[asyncpg.Record], username: str) -> str:
     for idx, (clip_name, start_time, end_time, duration, season, episode_number, is_compilation) in enumerate(clips, start=1):
         if duration:
             minutes, seconds = divmod(duration, 60)
-            length_str = f"{minutes}m{seconds}s" if minutes else f"{seconds}s"
+            length_str = f"{minutes}m{seconds:.2f}s" if minutes else f"{seconds:.2f}s"
         else:
             length_str = "Brak danych"
 
         if is_compilation:
             minutes, seconds = divmod(duration, 60)
-            length_str = f"{minutes}m{seconds}s" if minutes else f"{seconds}s"
+            length_str = f"{minutes}m{seconds:.2f}s" if minutes else f"{seconds:.2f}s"
             #season_episode = "Kompilacja" # fixme można by jakoś umieścić info że coś jest kompilacją ale na razie chuj z tym niech to zadziała XDD
         else:
             episode_number_mod = (episode_number - 1) % 13 + 1

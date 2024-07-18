@@ -68,6 +68,9 @@ class SaveClipHandler(BotMessageHandler):
         print(f"season {season}")
         print(f"episode_number {episode_number}")
         print("-------------------------------------------------------------------------------")
+        #sprzecz czy plik istneiej czy nie
+        output_filename.replace(" ", "_")
+
         duration = await get_video_duration(output_filename)  # fixme jak mu tego loggera dać narazie wydupcam XDD , self._logger
         print(f"duration {duration}")
         print("-------------------------------------------------------------------------------")
@@ -92,24 +95,22 @@ class SaveClipHandler(BotMessageHandler):
         if last_clip_info is None:
             return None
 
-        if 'segment' in last_clip_info and 'episode_info' not in last_clip_info['segment']:
-            print(f"not fixed {last_clip_info}")
-            last_clip_info['segment']['episode_info'] = {}
-            print(f"fixed {last_clip_info}")
-
-        # Konwersja słownika episode_info na instancję EpisodeInfo, jeśli jest w formie słownika
-        if isinstance(last_clip_info['segment']['episode_info'], dict):  # fixme segment nie istnieje: last_clip_info {'compiled_clip': '/tmp/tmp3gvjihr6.mp4', 'type': 'compiled'}
-            print("is instance")
-            episode_info_data = last_clip_info['segment']['episode_info']
-            # Filtrowanie tylko wymaganych argumentów dla EpisodeInfo
-            filtered_episode_info = {k: episode_info_data[k] for k in ['season', 'episode_number'] if k in episode_info_data}
-            print(f"fildered {filtered_episode_info}")
-            last_clip_info['segment']['episode_info'] = EpisodeInfo(**filtered_episode_info)
-
-        print(f"last_clip_info2 {last_clip_info}")
-        result = SaveClipHandler.__SEGMENT_INFO_GETTERS[last_clip_info['type']](last_clip_info)
-        print(result)
-        return result
+        if last_clip_info['type'] == 'compiled':
+            # Assuming compiled_clip only needs the path to be set correctly
+            # and other attributes can be set to their default values or derived values.
+            return SegmentInfo(compiled_clip=last_clip_info['compiled_clip'])
+        elif last_clip_info['type'] == 'manual' or last_clip_info['type'] == 'segment':
+            # Handle other types as before
+            if 'segment' in last_clip_info:
+                if 'episode_info' not in last_clip_info['segment']:
+                    last_clip_info['segment']['episode_info'] = {}
+                if isinstance(last_clip_info['segment']['episode_info'], dict):
+                    episode_info_data = last_clip_info['segment']['episode_info']
+                    filtered_episode_info = {k: episode_info_data[k] for k in ['season', 'episode_number'] if k in episode_info_data}
+                    last_clip_info['segment']['episode_info'] = EpisodeInfo(**filtered_episode_info)
+            return SaveClipHandler.__SEGMENT_INFO_GETTERS[last_clip_info['type']](last_clip_info)
+        else:
+            return None
 
     @staticmethod
     def _convert_to_segment_info(segment: dict) -> SegmentInfo:
@@ -139,25 +140,27 @@ class SaveClipHandler(BotMessageHandler):
         is_compilation = False
         season = None
         episode_number = None
+        output_filename = ""
 
-        if segment_info.compiled_clip:
-            output_filename = self.__write_clip_to_file(segment_info.compiled_clip)
+        if segment_info.compiled_clip is not None:
+            # For compiled clips, use the existing file path directly.
+            output_filename = segment_info.compiled_clip
             is_compilation = True
-        elif segment_info.expanded_clip:
+        elif segment_info.expanded_clip is not None:
+            # Handle expanded clips as before.
             output_filename = self.__write_clip_to_file(segment_info.expanded_clip)
             start_time = segment_info.expanded_start
             end_time = segment_info.expanded_end
             season = segment_info.episode_info.season
             episode_number = segment_info.episode_info.episode_number
         else:
+            # Handle other clip types as before.
             clip_path = segment_info.video_path
             start_time = segment_info.start
             end_time = segment_info.end
             season = segment_info.episode_info.season
             episode_number = segment_info.episode_info.episode_number
-            with tempfile.NamedTemporaryFile(
-                    delete=False, delete_on_close=False, suffix=".mp4",
-            ) as tmp_file:
+            with tempfile.NamedTemporaryFile(delete=False, delete_on_close=False, suffix=".mp4") as tmp_file:
                 output_filename = tmp_file.name
             await ClipsExtractor.extract_clip(clip_path, start_time, end_time, output_filename, self._logger)
 
@@ -181,7 +184,8 @@ class SaveClipHandler(BotMessageHandler):
     ) -> None:
         with open(output_filename, 'rb') as file:
             video_data = file.read()
-        os.remove(output_filename)
+        # Remove file only after successful save
+        #os.remove(output_filename)
         await DatabaseManager.save_clip(
             chat_id=message.chat.id,
             username=message.from_user.username,

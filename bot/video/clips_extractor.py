@@ -45,5 +45,7 @@ class ClipsExtractor:
             await ClipsExtractor.extract_clip(video_path, start_time, end_time, output_filename, logger)
             await send_video(message, output_filename, bot, logger)
         finally:
-            os.remove(output_filename)
+            if os.path.exists(output_filename):
+                os.remove(output_filename)
             await log_system_message(logging.INFO, f"Temporary file '{output_filename}' removed after sending clip.", logger)
+
