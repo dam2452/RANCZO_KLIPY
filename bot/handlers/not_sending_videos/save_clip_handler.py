@@ -38,7 +38,7 @@ class SaveClipHandler(BotMessageHandler):
         "manual": (lambda last_clip_info: SegmentInfo(**last_clip_info)),
         "segment": (lambda last_clip_info: SaveClipHandler._convert_to_segment_info(last_clip_info['segment'])),
         "compiled": (lambda last_clip_info: SegmentInfo(**last_clip_info['compiled_clip'])),
-        "adjusted": (lambda last_clip_info: SaveClipHandler._convert_to_segment_info_with_adjustment(last_clip_info))
+        "adjusted": (lambda last_clip_info: SaveClipHandler._convert_to_segment_info_with_adjustment(last_clip_info)),
     }
 
     def get_commands(self) -> List[str]:
@@ -142,7 +142,7 @@ class SaveClipHandler(BotMessageHandler):
             comment=segment.get('comment'),
             tags=segment.get('tags'),
             location=segment.get('location'),
-            actors=segment.get('actors')
+            actors=segment.get('actors'),
         )
 
     async def __prepare_clip_file(self, segment_info: SegmentInfo) -> Tuple[str, int, int, bool, Optional[int], Optional[int]]:

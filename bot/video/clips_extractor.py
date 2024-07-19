@@ -1,14 +1,14 @@
+import asyncio
 import logging
 import os
 import tempfile
 
 from aiogram import Bot
 from aiogram.types import Message
-from ffmpeg.asyncio import FFmpeg
 
 from bot.utils.log import log_system_message
 from bot.video.utils import (
-    FFMpegException,
+    get_video_duration,
     send_video,
 )
 
@@ -19,24 +19,45 @@ class ClipsExtractor:
         duration = end_time - start_time
         await log_system_message(
             logging.INFO,
-            f"Extracting clip from {video_path}, start: {start_time}, end: {end_time}, duration: {duration}", logger,
+            f"Extracting clip from {video_path}, start: {start_time}, end: {end_time}, duration: {duration}",
+            logger,
         )
 
-        ffmpeg = FFmpeg().option("y").input(video_path, ss=start_time).output(
+        command = [
+            'ffmpeg',
+            '-y',  # overwrite output files
+            '-ss', str(start_time),
+            '-i', video_path,
+            '-t', str(duration),
+            '-c', 'copy',
+            '-movflags', '+faststart',
+            '-fflags', '+genpts',
+            '-avoid_negative_ts', '1',
+            '-loglevel', 'error',
             output_filename,
-            t=duration,
-            c='copy',
-            movflags='+faststart',
-            fflags='+genpts',
-            avoid_negative_ts='1',
-        )
+        ]
 
         try:
-            await ffmpeg.execute()
+            process = await asyncio.create_subprocess_exec(
+                *command,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+            )
+
+            stdout, stderr = await process.communicate()
+
+            if process.returncode != 0:
+                await log_system_message(logging.ERROR, f"Error extracting clip: {stderr.decode()}", logger)
+                raise Exception(f"FFmpeg execution failed: {stderr.decode()}")
+
             await log_system_message(logging.INFO, f"Clip extracted successfully: {output_filename}", logger)
+
+            clip_duration = await get_video_duration(output_filename)
+            print(f"Clip duration: {clip_duration}")
+
         except Exception as e:
             await log_system_message(logging.ERROR, f"Error extracting clip: {e}", logger)
-            raise FFMpegException(str(e)) from e
+            raise Exception(f"FFmpeg execution failed: {e}") from e
 
     @staticmethod
     async def extract_and_send_clip(

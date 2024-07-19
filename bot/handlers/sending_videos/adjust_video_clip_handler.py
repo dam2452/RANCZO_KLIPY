@@ -24,7 +24,6 @@ from bot.responses.sending_videos.adjust_video_clip_handler_responses import (
     get_successful_adjustment_message,
     get_updated_segment_info_log,
 )
-from bot.settings import settings
 from bot.video.clips_extractor import ClipsExtractor
 from bot.video.utils import FFMpegException
 
@@ -55,16 +54,16 @@ class AdjustVideoClipHandler(BotMessageHandler):
         await self._log_system_message(logging.INFO, f"Segment Info: {segment_info}")
 
         try:
-            original_start_time = float(segment_info.get('start', 0)) - float(settings.EXTEND_BEFORE)
-            original_end_time = float(segment_info.get('end', 0)) + float(settings.EXTEND_AFTER)
+            original_start_time = float(segment_info.get('start', 0))
+            original_end_time = float(segment_info.get('end', 0))
 
             additional_start_offset = float(content[-2])
             additional_end_offset = float(content[-1])
         except (ValueError, TypeError):
             return await self.__reply_invalid_args_count(message)
 
-        start_time = max(0, int(original_start_time - additional_start_offset))
-        end_time = int(original_end_time + additional_end_offset)
+        start_time = max(0, float(original_start_time - additional_start_offset))
+        end_time = float(original_end_time + additional_end_offset)
 
         if end_time <= start_time:
             return await self.__reply_invalid_interval(message)
@@ -80,7 +79,7 @@ class AdjustVideoClipHandler(BotMessageHandler):
                 'start': start_time,
                 'end': end_time,
                 'video_path': segment_info.get("video_path"),
-                'type': 'adjusted'
+                'type': 'adjusted',
             }
 
         except FFMpegException as e:
