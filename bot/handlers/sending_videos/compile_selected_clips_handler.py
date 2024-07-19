@@ -1,5 +1,9 @@
 import logging
-from typing import List
+import tempfile
+from typing import (
+    List,
+    Tuple,
+)
 
 from aiogram.types import Message
 
@@ -37,18 +41,29 @@ class CompileSelectedClipsHandler(BotMessageHandler):
         if not selected_clips_data:
             return await self.__reply_no_matching_clips_found(message)
 
-        await ClipsCompiler.compile_and_send_clips(message, selected_clips_data, self._bot, self._logger)
+        selected_segments = []
+        for clip_data, duration in selected_clips_data:
+            temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
+            temp_file.write(clip_data)
+            temp_file.close()
+            selected_segments.append({
+                'video_path': temp_file.name,
+                'start': 0,
+                'end': duration,
+            })
+
+        await ClipsCompiler.compile_and_send_clips(message, selected_segments, self._bot, self._logger)
 
         await self._log_system_message(logging.INFO, get_compiled_clip_sent_message(message.from_user.username))
 
-    async def __get_selected_clips_data(self, clip_names: List[str], username: str, message: Message) -> List[bytes]:
+    async def __get_selected_clips_data(self, clip_names: List[str], username: str, message: Message) -> List[Tuple[bytes, int]]:
         selected_clips_data = []
         for clip_name in clip_names:
             clip = await DatabaseManager.get_clip_by_name(username, clip_name)
             if not clip:
                 await self.__reply_clip_not_found(message, clip_name, username)
             else:
-                selected_clips_data.append(clip[0])
+                selected_clips_data.append((clip[0], clip[1]))
         return selected_clips_data
 
     async def __reply_clip_not_found(self, message: Message, clip_name: str, username: str) -> None:
