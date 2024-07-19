@@ -53,7 +53,7 @@ class ClipsExtractor:
             await log_system_message(logging.INFO, f"Clip extracted successfully: {output_filename}", logger)
 
             clip_duration = await get_video_duration(output_filename)
-            print(f"Clip duration: {clip_duration}")
+            await log_system_message(logging.INFO, f"Clip duration: {clip_duration}", logger)
 
         except Exception as e:
             await log_system_message(logging.ERROR, f"Error extracting clip: {e}", logger)
