@@ -8,6 +8,7 @@ from typing import (
 from aiogram.types import Message
 
 from bot.database.database_manager import DatabaseManager
+from bot.database.global_dicts import last_clip
 from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.responses.sending_videos.compile_selected_clips_handler_responses import (
     get_clip_not_found_message,
@@ -43,7 +44,7 @@ class CompileSelectedClipsHandler(BotMessageHandler):
 
         selected_segments = []
         for clip_data, duration in selected_clips_data:
-            temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
+            temp_file = tempfile.NamedTemporaryFile(delete=False, delete_on_close=False, suffix=".mp4")
             temp_file.write(clip_data)
             temp_file.close()
             selected_segments.append({
@@ -52,7 +53,9 @@ class CompileSelectedClipsHandler(BotMessageHandler):
                 'end': duration,
             })
 
-        await ClipsCompiler.compile_and_send_clips(message, selected_segments, self._bot, self._logger)
+        compiled_output = await ClipsCompiler.compile_and_send_clips(message, selected_segments, self._bot, self._logger)
+
+        last_clip[message.chat.id] = {'compiled_clip': compiled_output, 'type': 'compiled'}
 
         await self._log_system_message(logging.INFO, get_compiled_clip_sent_message(message.from_user.username))
 

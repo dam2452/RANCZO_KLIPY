@@ -42,7 +42,8 @@ class ClipsCompiler:
                 stderr=subprocess.PIPE,
             )
             await process.communicate()
-            os.remove(concat_file.name)
+            print(f"Not Removing temp file: {concat_file.name}")
+            # os.remove(concat_file.name)
 
             await log_system_message(logging.INFO, f"Clips concatenated successfully into {output_file}", logger)
         except Exception as e:
@@ -50,7 +51,8 @@ class ClipsCompiler:
             raise FFMpegException(str(e)) from e
         finally:
             if os.path.exists(concat_file.name):
-                os.remove(concat_file.name)
+                print(f"Not Removing temp file: {concat_file.name}")
+                # os.remove(concat_file.name)
 
     @staticmethod
     async def __compile_clips(selected_clips: List[Dict[str, Union[str, float]]], logger: logging.Logger) -> str:
@@ -93,7 +95,8 @@ class ClipsCompiler:
 
         for temp_file in temp_files:
             if os.path.exists(temp_file):
-                os.remove(temp_file)
+                print(f"Not Removing temp file: {temp_file}")
+                #os.remove(temp_file)
 
     @staticmethod
     async def compile_and_send_clips(
@@ -104,7 +107,8 @@ class ClipsCompiler:
         await ClipsCompiler.__send_compiled_clip(message, compiled_output, bot, logger)
 
         if os.path.exists(compiled_output):
-            os.remove(compiled_output)
+            print(f"Not Removing temp file: {compiled_output}")
+            #os.remove(compiled_output)
 
         await ClipsCompiler.__clean_up_temp_files([compiled_output])
         return compiled_output
