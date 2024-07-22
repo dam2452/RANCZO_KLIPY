@@ -37,29 +37,27 @@ class ClipsExtractor:
             output_filename,
         ]
 
-        try:
-            process = await asyncio.create_subprocess_exec(
-                *command,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE,
-            )
+        process = await asyncio.create_subprocess_exec(
+            *command,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
 
-            stdout, stderr = await process.communicate()
+        stdout, stderr = await process.communicate()
 
-            if process.returncode != 0:
-                await log_system_message(logging.ERROR, f"Error extracting clip: {stderr.decode()}", logger)
-                raise Exception(f"FFmpeg execution failed: {stderr.decode()}")
+        if process.returncode != 0:
+            await log_system_message(logging.ERROR, f"Error extracting clip: {stderr.decode()}", logger)
+            raise Exception(stderr.decode())
 
-            await log_system_message(logging.INFO, f"Clip extracted successfully: {output_filename}", logger)
+        await log_system_message(logging.INFO, f"Clip extracted successfully: {output_filename}", logger)
 
-            clip_duration = await get_video_duration(output_filename)
-            await log_system_message(logging.INFO, f"Clip duration: {clip_duration}", logger)
-
+        clip_duration = await get_video_duration(output_filename)
+        await log_system_message(logging.INFO, f"Clip duration: {clip_duration}", logger)
 
     @staticmethod
     async def extract_and_send_clip(
-        video_path: str, message: Message, bot: Bot, logger: logging.Logger, start_time: float,
-        end_time: float,
+            video_path: str, message: Message, bot: Bot, logger: logging.Logger, start_time: float,
+            end_time: float,
     ) -> None:
         output_filename = tempfile.mktemp(suffix='.mp4')
         try:
