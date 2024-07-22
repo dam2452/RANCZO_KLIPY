@@ -35,17 +35,12 @@ class ClipsCompiler:
                 '-avoid_negative_ts', '1', output_file,
             ]
 
-            process = await asyncio.create_subprocess_exec(
-                *command,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-            )
+            process = await asyncio.create_subprocess_exec(*command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             await process.communicate()
 
             await log_system_message(logging.INFO, f"Clips concatenated successfully into {output_file}", logger)
         except Exception as e:
-            await log_system_message(logging.ERROR, f"Error during concatenation: {e}", logger)
-            raise FFMpegException(str(e)) from e
+            raise FFMpegException(f"Error during concatenation: {e}") from e
 
     @staticmethod
     async def __compile_clips(selected_clips: List[Dict[str, Union[str, float]]], logger: logging.Logger) -> str:
@@ -66,9 +61,7 @@ class ClipsCompiler:
 
             return compiled_output.name
         except Exception as e:
-            error_message = f"Error during clip compilation: {str(e)}"
-            await log_system_message(logging.ERROR, error_message, logger)
-            raise FFMpegException(error_message) from e
+            raise FFMpegException(f"Error during clip compilation: {str(e)}") from e
 
     @staticmethod
     async def __send_compiled_clip(message: Message, compiled_output: str, bot: Bot, logger: logging.Logger) -> None:

@@ -8,6 +8,7 @@ from aiogram.types import Message
 
 from bot.utils.log import log_system_message
 from bot.video.utils import (
+    FFMpegException,
     get_video_duration,
     send_video,
 )
@@ -37,17 +38,12 @@ class ClipsExtractor:
             output_filename,
         ]
 
-        process = await asyncio.create_subprocess_exec(
-            *command,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-        )
+        process = await asyncio.create_subprocess_exec(*command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
 
-        _ , stderr = await process.communicate()
+        _, stderr = await process.communicate()
 
         if process.returncode != 0:
-            await log_system_message(logging.ERROR, f"Error extracting clip: {stderr.decode()}", logger)
-            raise Exception(stderr.decode())
+            raise FFMpegException(stderr.decode())
 
         await log_system_message(logging.INFO, f"Clip extracted successfully: {output_filename}", logger)
 
@@ -56,8 +52,8 @@ class ClipsExtractor:
 
     @staticmethod
     async def extract_and_send_clip(
-            video_path: str, message: Message, bot: Bot, logger: logging.Logger, start_time: float,
-            end_time: float,
+        video_path: str, message: Message, bot: Bot, logger: logging.Logger, start_time: float,
+        end_time: float,
     ) -> None:
         output_filename = tempfile.mktemp(suffix='.mp4')
         try:
