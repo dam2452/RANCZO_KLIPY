@@ -5,8 +5,8 @@ services:
     build: .
     environment:
       ES_HOST: ${ES_HOST}
-      ES_USERNAME: ${ES_USERNAME}
-      ES_PASSWORD: ${ES_PASSWORD}
+      ES_USER: ${ES_USER}
+      ES_PASS: ${ES_PASS}
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
       DEFAULT_ADMIN: ${DEFAULT_ADMIN}
       POSTGRES_USER: ${POSTGRES_USER}

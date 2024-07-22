@@ -1,0 +1,5 @@
+from bot.middlewares.admin_middleware import AdminMiddleware
+from bot.middlewares.bot_middleware import BotMiddleware
+from bot.middlewares.moderator_middleware import ModeratorMiddleware
+from bot.middlewares.subscriber_middleware import SubscriberMiddleware
+from bot.middlewares.whitelist_middleware import WhitelistMiddleware

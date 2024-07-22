@@ -1,5 +1,5 @@
 import asyncio
-from asyncio.selector_events import BaseSelectorEventLoop  # pylint: disable=unused-import
+import asyncio.selector_events
 import logging
 from logging import LogRecord
 import os
@@ -11,15 +11,9 @@ from aiogram import (
 )
 from aiogram.fsm.storage.memory import MemoryStorage
 
-from bot.handlers import register_handlers
-from bot.middlewares.auth_middleware import AuthorizationMiddleware
-from bot.middlewares.error_middleware import ErrorHandlerMiddleware
+from bot.database.database_manager import DatabaseManager
+from bot.factory import create_all_factories
 from bot.settings import settings
-from bot.utils.database import DatabaseManager
-
-# TODO loglevel from env
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 
 class DBLogHandler(logging.Handler):
@@ -36,39 +30,29 @@ class DBLogHandler(logging.Handler):
         await DatabaseManager.log_system_message(record.levelname, log_message)
 
 
-# Initialize bot and dispatcher
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 bot = Bot(token=settings.TELEGRAM_BOT_TOKEN)
 dp = Dispatcher(storage=MemoryStorage())
 
-# Add middlewares
-dp.update.middleware(AuthorizationMiddleware())
-dp.update.middleware(ErrorHandlerMiddleware())
-
 
 async def on_startup() -> None:
-    try:
-        # Initialize the database
-        await DatabaseManager.init_db()
-        await DatabaseManager.set_default_admin(os.getenv("DEFAULT_ADMIN"))
-        logger.info("📦 Database initialized and default admin set. 📦")
-    except Exception as e:
-        logger.error(f"❌ Failed to initialize database or set default admin: {e} ❌")
+    await DatabaseManager.init_db()
+    await DatabaseManager.set_default_admin(os.getenv("DEFAULT_ADMIN"))
+    logger.info("📦 Database initialized and default admin set. 📦")
 
-    try:
-        # Register all handlers
-        await register_handlers(dp)
-        logger.info("🔧 Handlers registered successfully. 🔧")
-    except Exception as e:
-        logger.error(f"❌ Failed to register handlers: {e} ❌")
+    factories = create_all_factories(logger, bot)
+    for factory in factories:
+        factory.create_and_register(dp)
+
+    logger.info("Handlers and middlewares registered successfully.")
 
 
 async def main() -> None:
-    try:
-        await on_startup()
-        logger.info("🚀 Bot started successfully.🚀")
-        await dp.start_polling(bot)
-    except Exception as e:
-        logger.error(f"❌ Bot encountered an error: {e} ❌")
+    await on_startup()
+    logger.info("🚀 Bot started successfully.🚀")
+    await dp.start_polling(bot)
 
 
 if __name__ == "__main__":
