@@ -1,6 +1,5 @@
 import asyncio
 import logging
-import os
 import subprocess
 import tempfile
 from typing import (
@@ -53,7 +52,7 @@ class ClipsCompiler:
         temp_files = []
         try:
             for segment in selected_clips:
-                temp_file_name = tempfile.NamedTemporaryFile(    # pylint: disable=consider-using-with
+                temp_file_name = tempfile.NamedTemporaryFile(  # pylint: disable=consider-using-with
                     delete=False, delete_on_close=False,
                     suffix=".mp4",
                 ).name
@@ -83,14 +82,12 @@ class ClipsCompiler:
 
         await send_video(message, compiled_output, bot, logger)
 
-
     @staticmethod
     async def compile_and_send_clips(
-        message: Message, selected_segments: List[Dict[str, Union[str, float]]], bot: Bot,
-        logger: logging.Logger,
+            message: Message, selected_segments: List[Dict[str, Union[str, float]]], bot: Bot,
+            logger: logging.Logger,
     ) -> str:
         compiled_output = await ClipsCompiler.__compile_clips(selected_segments, logger)
         await ClipsCompiler.__send_compiled_clip(message, compiled_output, bot, logger)
-
 
         return compiled_output

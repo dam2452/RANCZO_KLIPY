@@ -43,7 +43,7 @@ class ClipsExtractor:
             stderr=asyncio.subprocess.PIPE,
         )
 
-        stdout, stderr = await process.communicate()
+        _ , stderr = await process.communicate()
 
         if process.returncode != 0:
             await log_system_message(logging.ERROR, f"Error extracting clip: {stderr.decode()}", logger)

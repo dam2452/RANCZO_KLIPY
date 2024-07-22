@@ -111,4 +111,3 @@ class AdjustVideoClipHandler(BotMessageHandler):
     async def __reply_extraction_failure(self, message: Message, exception: FFMpegException) -> None:
         await message.answer(get_extraction_failure_message(exception))
         await self._log_system_message(logging.ERROR, get_extraction_failure_log(exception))
-
