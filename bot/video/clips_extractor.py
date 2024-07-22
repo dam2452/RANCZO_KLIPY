@@ -55,9 +55,6 @@ class ClipsExtractor:
             clip_duration = await get_video_duration(output_filename)
             await log_system_message(logging.INFO, f"Clip duration: {clip_duration}", logger)
 
-        except Exception as e:
-            await log_system_message(logging.ERROR, f"Error extracting clip: {e}", logger)
-            raise Exception(f"FFmpeg execution failed: {e}") from e
 
     @staticmethod
     async def extract_and_send_clip(
