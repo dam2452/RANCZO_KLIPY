@@ -7,10 +7,7 @@ from typing import (
 
 from aiogram.types import Message
 
-from bot.database.global_dicts import (
-    last_clip,
-    last_search,
-)
+from bot.database.database_manager import DatabaseManager
 from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.responses.sending_videos.compile_clips_handler_responses import (
     get_compilation_success_message,
@@ -40,10 +37,11 @@ class CompileClipsHandler(BotMessageHandler):
         if len(content) < 2:
             return await self._reply_invalid_args_count(message, get_invalid_args_count_message())
 
-        if message.chat.id not in last_search or not last_search[message.chat.id]['segments']:
+        last_search = await DatabaseManager.get_last_search_by_chat_id(message.chat.id)
+        if not last_search or not last_search['segments']:
             return await self.__reply_no_previous_search_results(message)
 
-        segments = last_search[message.chat.id]['segments']
+        segments = last_search['segments']
         selected_segments = self.__parse_segments(content[1:], segments)
 
         if not selected_segments:
@@ -51,7 +49,13 @@ class CompileClipsHandler(BotMessageHandler):
 
         compiled_output = await ClipsCompiler.compile_and_send_clips(message, selected_segments, self._bot, self._logger)
 
-        last_clip[message.chat.id] = {'compiled_clip': compiled_output, 'type': 'compiled'}
+        await DatabaseManager.insert_last_clip(
+            chat_id=message.chat.id,
+            segment=None,
+            compiled_clip=compiled_output,
+            clip_type='compiled'
+        )
+
         await self._log_system_message(logging.INFO, get_compilation_success_message(message.from_user.username))
 
     @staticmethod

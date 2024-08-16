@@ -7,7 +7,7 @@ from typing import (
 
 from aiogram.types import Message
 
-from bot.database.global_dicts import last_clip
+from bot.database.database_manager import DatabaseManager
 from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.responses.sending_videos.manual_clip_handler_responses import (
     get_end_time_earlier_than_start_message,
@@ -63,16 +63,20 @@ class ManualClipHandler(BotMessageHandler):
         await ClipsExtractor.extract_and_send_clip(video_path, message, self._bot, self._logger, start_seconds, end_seconds)
         await self._log_system_message(logging.INFO, get_log_clip_extracted_message(episode, start_seconds, end_seconds))
 
-        last_clip[message.chat.id] = {
-            'video_path': video_path,
-            'start': start_seconds,
-            'end': end_seconds,
-            'episode_info': {
-                'season': episode.season,
-                'episode_number': episode.number,
+        await DatabaseManager.insert_last_clip(
+            chat_id=message.chat.id,
+            segment={
+                'video_path': video_path,
+                'start': start_seconds,
+                'end': end_seconds,
+                'episode_info': {
+                    'season': episode.season,
+                    'episode_number': episode.number,
+                }
             },
-            'type': 'manual',
-        }
+            compiled_clip=None,
+            clip_type='manual'
+        )
 
     @staticmethod
     def __parse_content(content: List[str]) -> Tuple[Episode, float, float]:

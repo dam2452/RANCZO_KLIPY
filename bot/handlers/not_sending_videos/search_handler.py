@@ -3,7 +3,7 @@ from typing import List
 
 from aiogram.types import Message
 
-from bot.database.global_dicts import last_search
+from bot.database.database_manager import DatabaseManager  # Zamiast globalnych słowników
 from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.responses.bot_message_handler_responses import (
     get_log_no_segments_found_message,
@@ -32,7 +32,7 @@ class SearchHandler(BotMessageHandler):
         if not segments:
             return await self.__reply_no_segments_found(message, quote)
 
-        last_search[message.chat.id] = {'quote': quote, 'segments': segments}
+        await DatabaseManager.insert_last_search(chat_id=message.chat.id, quote=quote, segments=segments)
 
         response = format_search_response(len(segments), segments)
 

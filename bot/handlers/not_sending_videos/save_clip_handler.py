@@ -13,8 +13,7 @@ from typing import (
 
 from aiogram.types import Message
 
-from bot.database.database_manager import DatabaseManager
-from bot.database.global_dicts import last_clip
+from bot.database.database_manager import DatabaseManager  # Zamiast globalnych słowników
 from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.responses.not_sending_videos.save_clip_handler_responses import (
     get_clip_name_exists_message,
@@ -50,7 +49,7 @@ class SaveClipHandler(BotMessageHandler):
             return await self._reply_invalid_args_count(message, get_clip_name_not_provided_message())
         if not await self.__is_clip_name_unique(message, clip_name):
             return await self.__reply_clip_name_exists(message, clip_name)
-        segment_info = self.__get_segment_info(message)
+        segment_info = await self.__get_segment_info(message)
         if not segment_info:
             return await self.__reply_no_segment_selected(message)
 
@@ -75,9 +74,8 @@ class SaveClipHandler(BotMessageHandler):
     async def __is_clip_name_unique(message: Message, clip_name: str) -> bool:
         return await DatabaseManager.is_clip_name_unique(message.chat.id, clip_name)
 
-    @staticmethod
-    def __get_segment_info(message: Message) -> Optional[SegmentInfo]:
-        last_clip_info = last_clip.get(message.chat.id)
+    async def __get_segment_info(self, message: Message) -> Optional[SegmentInfo]:
+        last_clip_info = await DatabaseManager.get_last_clip_by_chat_id(message.chat.id)
         if last_clip_info is None:
             return None
 

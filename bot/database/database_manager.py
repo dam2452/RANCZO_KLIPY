@@ -82,6 +82,33 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
                     timestamp TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
                 )
             ''')
+            await conn.execute('''
+                CREATE TABLE IF NOT EXISTS last_search (
+                    id SERIAL PRIMARY KEY,
+                    chat_id BIGINT NOT NULL,
+                    quote TEXT NOT NULL,
+                    segments JSONB NOT NULL
+                )
+            ''')
+
+            await conn.execute('''
+                CREATE TABLE IF NOT EXISTS last_clip (
+                    id SERIAL PRIMARY KEY,
+                    chat_id BIGINT NOT NULL,
+                    segment JSONB,
+                    compiled_clip TEXT,
+                    type TEXT
+                )
+            ''')
+
+            await conn.execute('''
+                CREATE TABLE IF NOT EXISTS last_selected_segment (
+                    id SERIAL PRIMARY KEY,
+                    segment_id INT NOT NULL,
+                    segment_data JSONB NOT NULL
+                )
+            ''')
+
         await conn.close()
 
     @staticmethod
@@ -373,3 +400,178 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         )
         await conn.close()
         return result == 0
+
+    @staticmethod
+    async def insert_last_search(chat_id: int, quote: str, segments: dict) -> int:
+        conn = await DatabaseManager.get_db_connection()
+        search_id = await conn.fetchval(
+            '''
+            INSERT INTO last_search (chat_id, quote, segments)
+            VALUES ($1, $2, $3::jsonb)
+            RETURNING id
+            ''', chat_id, quote, segments
+        )
+        await conn.close()
+        return search_id
+
+    @staticmethod
+    async def get_last_search_by_chat_id(chat_id: int) -> Optional[asyncpg.Record]:
+        conn = await DatabaseManager.get_db_connection()
+        result = await conn.fetchrow(
+            '''
+            SELECT id, chat_id, quote, segments
+            FROM last_search
+            WHERE chat_id = $1
+            ''', chat_id
+        )
+        await conn.close()
+        return result
+
+    @staticmethod
+    async def update_last_search(search_id: int, new_quote: Optional[str] = None, new_segments: Optional[dict] = None) -> None:
+        conn = await DatabaseManager.get_db_connection()
+        if new_quote:
+            await conn.execute(
+                '''
+                UPDATE last_search
+                SET quote = $1
+                WHERE id = $2
+                ''', new_quote, search_id
+            )
+        if new_segments:
+            await conn.execute(
+                '''
+                UPDATE last_search
+                SET segments = $1::jsonb
+                WHERE id = $2
+                ''', new_segments, search_id
+            )
+        await conn.close()
+
+    @staticmethod
+    async def delete_last_search(search_id: int) -> None:
+        conn = await DatabaseManager.get_db_connection()
+        await conn.execute(
+            '''
+            DELETE FROM last_search
+            WHERE id = $1
+            ''', search_id
+        )
+        await conn.close()
+
+    @staticmethod
+    async def insert_last_clip(chat_id: int, segment: Optional[dict] = None, compiled_clip: Optional[str] = None,
+                               clip_type: Optional[str] = None) -> int:
+        conn = await DatabaseManager.get_db_connection()
+        clip_id = await conn.fetchval(
+            '''
+            INSERT INTO last_clip (chat_id, segment, compiled_clip, type)
+            VALUES ($1, $2::jsonb, $3, $4)
+            RETURNING id
+            ''', chat_id, segment, compiled_clip, clip_type
+        )
+        await conn.close()
+        return clip_id
+
+    @staticmethod
+    async def get_last_clip_by_chat_id(chat_id: int) -> Optional[asyncpg.Record]:
+        conn = await DatabaseManager.get_db_connection()
+        result = await conn.fetchrow(
+            '''
+            SELECT id, chat_id, segment, compiled_clip, type
+            FROM last_clip
+            WHERE chat_id = $1
+            ''', chat_id
+        )
+        await conn.close()
+        return result
+
+    @staticmethod
+    async def update_last_clip(clip_id: int, new_segment: Optional[dict] = None, new_compiled_clip: Optional[str] = None,
+                               new_type: Optional[str] = None) -> None:
+        conn = await DatabaseManager.get_db_connection()
+        if new_segment:
+            await conn.execute(
+                '''
+                UPDATE last_clip
+                SET segment = $1::jsonb
+                WHERE id = $2
+                ''', new_segment, clip_id
+            )
+        if new_compiled_clip:
+            await conn.execute(
+                '''
+                UPDATE last_clip
+                SET compiled_clip = $1
+                WHERE id = $2
+                ''', new_compiled_clip, clip_id
+            )
+        if new_type:
+            await conn.execute(
+                '''
+                UPDATE last_clip
+                SET type = $1
+                WHERE id = $2
+                ''', new_type, clip_id
+            )
+        await conn.close()
+
+    @staticmethod
+    async def delete_last_clip(clip_id: int) -> None:
+        conn = await DatabaseManager.get_db_connection()
+        await conn.execute(
+            '''
+            DELETE FROM last_clip
+            WHERE id = $1
+            ''', clip_id
+        )
+        await conn.close()
+
+    @staticmethod
+    async def insert_last_selected_segment(segment_id: int, segment_data: dict) -> int:
+        conn = await DatabaseManager.get_db_connection()
+        inserted_id = await conn.fetchval(
+            '''
+            INSERT INTO last_selected_segment (segment_id, segment_data)
+            VALUES ($1, $2::jsonb)
+            RETURNING id
+            ''', segment_id, segment_data
+        )
+        await conn.close()
+        return inserted_id
+
+    @staticmethod
+    async def get_last_selected_segment_by_id(segment_id: int) -> Optional[asyncpg.Record]:
+        conn = await DatabaseManager.get_db_connection()
+        result = await conn.fetchrow(
+            '''
+            SELECT id, segment_id, segment_data
+            FROM last_selected_segment
+            WHERE segment_id = $1
+            ''', segment_id
+        )
+        await conn.close()
+        return result
+
+    @staticmethod
+    async def update_last_selected_segment(segment_id: int, new_segment_data: dict) -> None:
+        conn = await DatabaseManager.get_db_connection()
+        await conn.execute(
+            '''
+            UPDATE last_selected_segment
+            SET segment_data = $1::jsonb
+            WHERE segment_id = $2
+            ''', new_segment_data, segment_id
+        )
+        await conn.close()
+
+    @staticmethod
+    async def delete_last_selected_segment(segment_id: int) -> None:
+        conn = await DatabaseManager.get_db_connection()
+        await conn.execute(
+            '''
+            DELETE FROM last_selected_segment
+            WHERE segment_id = $1
+            ''', segment_id
+        )
+        await conn.close()

@@ -11,7 +11,6 @@ from typing import (
 from aiogram import Bot
 from aiogram.types import Message
 
-from bot.database.global_dicts import last_clip
 from bot.utils.log import log_system_message
 from bot.video.clips_extractor import ClipsExtractor
 from bot.video.utils import (

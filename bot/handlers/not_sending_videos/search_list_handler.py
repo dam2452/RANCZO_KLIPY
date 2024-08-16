@@ -12,7 +12,7 @@ from aiogram.types import (
     Message,
 )
 
-from bot.database.global_dicts import last_search
+from bot.database.database_manager import DatabaseManager  # Importujemy DatabaseManager
 from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.responses.not_sending_videos.search_list_handler_responses import (
     format_search_list_response,
@@ -27,12 +27,12 @@ class SearchListHandler(BotMessageHandler):
         return ['lista', 'list', 'l']
 
     async def _do_handle(self, message: Message) -> None:
-        if message.chat.id not in last_search:
+        last_search = await DatabaseManager.get_last_search_by_chat_id(message.chat.id)
+        if not last_search:
             return await self.__reply_no_previous_search_results(message)
 
-        search_data: Dict[str, Union[str, List[Dict[str, Union[str, int]]]]] = last_search[message.chat.id]
-        segments = search_data['segments']
-        search_term = search_data['quote']
+        segments = last_search['segments']
+        search_term = last_search['quote']
 
         response = format_search_list_response(search_term, segments)
 

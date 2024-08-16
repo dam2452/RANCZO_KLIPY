@@ -3,6 +3,7 @@ from typing import List
 
 from aiogram.types import Message
 
+from bot.database.database_manager import DatabaseManager
 from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.responses.bot_message_handler_responses import (
     get_extraction_failure_message,
@@ -17,7 +18,6 @@ from bot.responses.sending_videos.clip_handler_responses import (
 )
 from bot.search.transcription_finder import TranscriptionFinder
 from bot.settings import settings
-from bot.utils.functions import update_last_clip
 from bot.video.clips_extractor import ClipsExtractor
 from bot.video.utils import FFMpegException
 
@@ -46,7 +46,12 @@ class ClipHandler(BotMessageHandler):
         except FFMpegException as e:
             return await self.__reply_extraction_failed(message, e)
 
-        update_last_clip(segment, start_time, end_time, message)
+        await DatabaseManager.insert_last_clip(
+            chat_id=message.chat.id,
+            segment=segment,
+            compiled_clip=None,
+            clip_type='single'
+        )
 
         await self.__log_segment_and_clip_success(message.chat.id, message.from_user.username)
 
