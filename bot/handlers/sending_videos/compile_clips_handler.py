@@ -42,14 +42,12 @@ class CompileClipsHandler(BotMessageHandler):
         if not last_search or not last_search['segments']:
             return await self.__reply_no_previous_search_results(message)
 
-
         segments = json.loads(last_search['segments'])
 
         selected_segments = self.__parse_segments(content[1:], segments)
 
         if not selected_segments:
             return await self.__reply_no_matching_segments_found(message)
-
 
         compiled_output = await ClipsCompiler.compile_and_send_clips(message, selected_segments, self._bot, self._logger)
         with open(compiled_output, 'rb') as f:

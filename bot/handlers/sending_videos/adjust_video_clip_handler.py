@@ -88,7 +88,6 @@ class AdjustVideoClipHandler(BotMessageHandler):
         except FFMpegException as e:
             return await self.__reply_extraction_failure(message, e)
 
-
         await self._log_system_message(logging.INFO, get_updated_segment_info_log(message.chat.id))
         await self._log_system_message(logging.INFO, get_successful_adjustment_message(message.from_user.username))
 
