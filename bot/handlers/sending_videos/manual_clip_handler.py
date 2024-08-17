@@ -1,5 +1,5 @@
-import logging
 import json
+import logging
 import os
 from typing import (
     List,
@@ -73,10 +73,10 @@ class ManualClipHandler(BotMessageHandler):
                 'episode_info': {
                     'season': episode.season,
                     'episode_number': episode.number,
-                }
+                },
             }),
             compiled_clip=None,
-            clip_type='manual'
+            clip_type='manual',
         )
 
     @staticmethod

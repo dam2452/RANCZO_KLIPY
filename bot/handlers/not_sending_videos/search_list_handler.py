@@ -1,18 +1,14 @@
+import json
 import logging
 import os
 import tempfile
-import json
-import asyncpg
-from typing import (
-    Dict,
-    List,
-    Union,
-)
+from typing import List
 
 from aiogram.types import (
     FSInputFile,
     Message,
 )
+import asyncpg
 
 from bot.database.database_manager import DatabaseManager  # Importujemy DatabaseManager
 from bot.handlers.bot_message_handler import BotMessageHandler

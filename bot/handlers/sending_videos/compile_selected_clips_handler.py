@@ -60,7 +60,7 @@ class CompileSelectedClipsHandler(BotMessageHandler):
             chat_id=message.chat.id,
             segment=None,
             compiled_clip=compiled_clip_data,  # Przekazujemy dane binarne, a nie ścieżkę
-            clip_type='compiled'
+            clip_type='compiled',
         )
 
         await self._log_system_message(logging.INFO, get_compiled_clip_sent_message(message.from_user.username))

@@ -80,7 +80,7 @@ class ClipsCompiler:
             chat_id=message.chat.id,
             segment=None,
             compiled_clip=compiled_clip_data,  # Przekazujemy dane binarne, nie ścieżkę
-            clip_type='compiled'
+            clip_type='compiled',
         )
 
         # Logowanie typu danych

@@ -1,6 +1,6 @@
+import json
 import logging
 from typing import List
-import json
 
 from aiogram.types import Message
 
@@ -54,7 +54,7 @@ class ClipHandler(BotMessageHandler):
             chat_id=message.chat.id,
             segment=segment_json,
             compiled_clip=None,
-            clip_type='single'
+            clip_type='single',
         )
 
         await self.__log_segment_and_clip_success(message.chat.id, message.from_user.username)

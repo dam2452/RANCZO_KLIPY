@@ -1,6 +1,6 @@
+import json
 import logging
 from typing import List
-import json
 
 from aiogram.types import Message
 

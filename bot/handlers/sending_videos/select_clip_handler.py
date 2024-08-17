@@ -1,5 +1,5 @@
-import logging
 import json
+import logging
 from typing import List
 
 from aiogram.types import Message
@@ -55,7 +55,7 @@ class SelectClipHandler(BotMessageHandler):
             chat_id=message.chat.id,
             segment=segment_json,
             compiled_clip=None,
-            clip_type='selected'
+            clip_type='selected',
         )
 
         await self._log_system_message(logging.INFO, get_log_segment_selected_message(segment['id'], message.from_user.username))

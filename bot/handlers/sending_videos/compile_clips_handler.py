@@ -1,5 +1,5 @@
-import logging
 import json
+import logging
 from typing import (
     Dict,
     List,
@@ -59,7 +59,7 @@ class CompileClipsHandler(BotMessageHandler):
             chat_id=message.chat.id,
             segment=None,
             compiled_clip=compiled_clip_data,  # Przekazujemy dane binarne, a nie ścieżkę
-            clip_type='compiled'
+            clip_type='compiled',
         )
 
         await self._log_system_message(logging.INFO, get_compilation_success_message(message.from_user.username))

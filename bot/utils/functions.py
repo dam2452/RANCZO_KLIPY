@@ -46,9 +46,3 @@ def parse_whitelist_message(content: List[str], default_admin_status: Optional[b
         email=content[5] if len(content) > 5 else None,
         phone=content[6] if len(content) > 6 else None,
     )
-
-
-def update_last_clip(segment: json, start_time: int, end_time: int, message: Message) -> None:
-    segment['start'] = start_time
-    segment['end'] = end_time
-    last_clip[message.chat.id] = {'segment': segment, 'type': 'segment'}

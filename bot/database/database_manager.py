@@ -408,7 +408,7 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
             INSERT INTO last_search (chat_id, quote, segments)
             VALUES ($1, $2, $3::jsonb)
             RETURNING id
-            ''', chat_id, quote, segments
+            ''', chat_id, quote, segments,
         )
         await conn.close()
         return search_id
@@ -421,7 +421,7 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
             SELECT id, chat_id, quote, segments
             FROM last_search
             WHERE chat_id = $1
-            ''', chat_id
+            ''', chat_id,
         )
         await conn.close()
         return result
@@ -435,7 +435,7 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
                 UPDATE last_search
                 SET quote = $1
                 WHERE id = $2
-                ''', new_quote, search_id
+                ''', new_quote, search_id,
             )
         if new_segments:
             await conn.execute(
@@ -443,7 +443,7 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
                 UPDATE last_search
                 SET segments = $1::jsonb
                 WHERE id = $2
-                ''', new_segments, search_id
+                ''', new_segments, search_id,
             )
         await conn.close()
 
@@ -454,20 +454,22 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
             '''
             DELETE FROM last_search
             WHERE id = $1
-            ''', search_id
+            ''', search_id,
         )
         await conn.close()
 
     @staticmethod
-    async def insert_last_clip(chat_id: int, segment: Optional[str] = None, compiled_clip: Optional[bytes] = None,
-                               clip_type: Optional[str] = None) -> int:
+    async def insert_last_clip(
+        chat_id: int, segment: Optional[str] = None, compiled_clip: Optional[bytes] = None,
+        clip_type: Optional[str] = None,
+    ) -> int:
         conn = await DatabaseManager.get_db_connection()
         clip_id = await conn.fetchval(
             '''
             INSERT INTO last_clip (chat_id, segment, compiled_clip, type)
             VALUES ($1, $2::jsonb, $3::bytea, $4)
             RETURNING id
-            ''', chat_id, segment, compiled_clip, clip_type
+            ''', chat_id, segment, compiled_clip, clip_type,
         )
         await conn.close()
         return clip_id
@@ -480,14 +482,16 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
             SELECT id, chat_id, segment, compiled_clip, type
             FROM last_clip
             WHERE chat_id = $1
-            ''', chat_id
+            ''', chat_id,
         )
         await conn.close()
         return result
 
     @staticmethod
-    async def update_last_clip(clip_id: int, new_segment: Optional[dict] = None, new_compiled_clip: Optional[bytes] = None,  # Zmieniono na bytes
-                               new_type: Optional[str] = None) -> None:
+    async def update_last_clip(
+        clip_id: int, new_segment: Optional[dict] = None, new_compiled_clip: Optional[bytes] = None,  # Zmieniono na bytes
+        new_type: Optional[str] = None,
+    ) -> None:
         conn = await DatabaseManager.get_db_connection()
         if new_segment:
             await conn.execute(
@@ -495,7 +499,7 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
                 UPDATE last_clip
                 SET segment = $1::jsonb
                 WHERE id = $2
-                ''', new_segment, clip_id
+                ''', new_segment, clip_id,
             )
         if new_compiled_clip:  # Now przekazuje bytes
             await conn.execute(
@@ -503,7 +507,7 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
                 UPDATE last_clip
                 SET compiled_clip = $1::bytea  # Upewnij się, że jest to BYTEA
                 WHERE id = $2
-                ''', new_compiled_clip, clip_id
+                ''', new_compiled_clip, clip_id,
             )
         if new_type:
             await conn.execute(
@@ -511,7 +515,7 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
                 UPDATE last_clip
                 SET type = $1
                 WHERE id = $2
-                ''', new_type, clip_id
+                ''', new_type, clip_id,
             )
         await conn.close()
 
@@ -522,7 +526,7 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
             '''
             DELETE FROM last_clip
             WHERE id = $1
-            ''', clip_id
+            ''', clip_id,
         )
         await conn.close()
 
@@ -534,7 +538,7 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
             INSERT INTO last_selected_segment (segment_id, segment_data)
             VALUES ($1, $2::jsonb)
             RETURNING id
-            ''', segment_id, segment_data
+            ''', segment_id, segment_data,
         )
         await conn.close()
         return inserted_id
@@ -547,7 +551,7 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
             SELECT id, segment_id, segment_data
             FROM last_selected_segment
             WHERE segment_id = $1
-            ''', segment_id
+            ''', segment_id,
         )
         await conn.close()
         return result
@@ -560,7 +564,7 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
             UPDATE last_selected_segment
             SET segment_data = $1::jsonb
             WHERE segment_id = $2
-            ''', new_segment_data, segment_id
+            ''', new_segment_data, segment_id,
         )
         await conn.close()
 
@@ -571,6 +575,6 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
             '''
             DELETE FROM last_selected_segment
             WHERE segment_id = $1
-            ''', segment_id
+            ''', segment_id,
         )
         await conn.close()

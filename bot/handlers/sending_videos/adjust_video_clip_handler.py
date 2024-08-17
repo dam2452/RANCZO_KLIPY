@@ -1,6 +1,6 @@
+import json
 import logging
 from typing import List
-import json
 
 from aiogram.types import Message
 
@@ -82,7 +82,7 @@ class AdjustVideoClipHandler(BotMessageHandler):
                 chat_id=message.chat.id,
                 segment=segment_json,
                 compiled_clip=None,
-                clip_type='adjusted'
+                clip_type='adjusted',
             )
 
         except FFMpegException as e:

@@ -116,7 +116,7 @@ class SaveClipHandler(BotMessageHandler):
             try:
                 episode_info = EpisodeInfo(
                     season=episode_info_data['season'],
-                    episode_number=episode_info_data['episode_number']
+                    episode_number=episode_info_data['episode_number'],
                 )
             except TypeError as e:
                 logging.error("Failed to create EpisodeInfo: %s", e)
