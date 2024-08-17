@@ -47,7 +47,7 @@ class ClipsCompiler:
         temp_files = []
         try:
             for segment in selected_clips:
-                temp_file_name = tempfile.NamedTemporaryFile(
+                temp_file_name = tempfile.NamedTemporaryFile(  # pylint: disable=consider-using-with
                     delete=False, delete_on_close=False,
                     suffix=".mp4",
                 ).name
