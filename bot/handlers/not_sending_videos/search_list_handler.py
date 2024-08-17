@@ -1,6 +1,8 @@
 import logging
 import os
 import tempfile
+import json
+import asyncpg
 from typing import (
     Dict,
     List,
@@ -28,11 +30,48 @@ class SearchListHandler(BotMessageHandler):
 
     async def _do_handle(self, message: Message) -> None:
         last_search = await DatabaseManager.get_last_search_by_chat_id(message.chat.id)
-        if not last_search:
+
+        # Convert asyncpg.Record to dictionary if necessary
+        if isinstance(last_search, asyncpg.Record):
+            last_search = dict(last_search)
+            logging.info(f"Converted last_search to dictionary for chat_id: {message.chat.id}")
+
+        # Ensure last_search is a dictionary
+        if isinstance(last_search, dict):
+            logging.info(f"last_search is already a dictionary for chat_id: {message.chat.id}")
+        elif isinstance(last_search, str):
+            try:
+                logging.info(f"Attempting to decode last_search JSON for chat_id: {message.chat.id}")
+                last_search = json.loads(last_search)
+                logging.info(f"Decoded last_search: {last_search}")
+            except json.JSONDecodeError as e:
+                logging.error(f"Failed to decode last_search JSON for chat_id: {message.chat.id}. Error: {str(e)}")
+                return await self.__reply_no_previous_search_results(message)
+        else:
+            logging.error(f"Unexpected type for last_search: {type(last_search)} for chat_id: {message.chat.id}")
             return await self.__reply_no_previous_search_results(message)
 
-        segments = last_search['segments']
-        search_term = last_search['quote']
+        if not isinstance(last_search, dict):
+            logging.error(f"Expected a dictionary for last_search but got {type(last_search)} for chat_id: {message.chat.id}")
+            return await self.__reply_no_previous_search_results(message)
+
+        # Ensure `segments` is parsed if necessary
+        segments = last_search.get('segments')
+        if isinstance(segments, str):
+            try:
+                logging.info(f"Attempting to decode segments JSON for chat_id: {message.chat.id}")
+                segments = json.loads(segments)
+                logging.info(f"Decoded segments: {segments}")
+                last_search['segments'] = segments  # Update the dictionary with parsed segments
+            except json.JSONDecodeError as e:
+                logging.error(f"Failed to decode segments JSON for chat_id: {message.chat.id}. Error: {str(e)}")
+                return await self.__reply_no_previous_search_results(message)
+
+        search_term = last_search.get('quote')
+
+        if not segments or not search_term:
+            logging.warning(f"No segments or search_term found in last_search for chat_id: {message.chat.id}")
+            return await self.__reply_no_previous_search_results(message)
 
         response = format_search_list_response(search_term, segments)
 

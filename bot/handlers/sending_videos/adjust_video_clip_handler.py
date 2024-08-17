@@ -1,5 +1,6 @@
 import logging
 from typing import List
+import json
 
 from aiogram.types import Message
 
@@ -46,7 +47,9 @@ class AdjustVideoClipHandler(BotMessageHandler):
             last_clip = await DatabaseManager.get_last_clip_by_chat_id(message.chat.id)
             if not last_clip:
                 return await self.__reply_no_quotes_selected(message)
-            segment_info = last_clip['segment']
+
+            segment_info = json.loads(last_clip['segment']) if last_clip['segment'] else None
+
         else:
             return await self._reply_invalid_args_count(message, get_invalid_args_count_message())
 
@@ -73,15 +76,18 @@ class AdjustVideoClipHandler(BotMessageHandler):
                 end_time,
             )
 
+            segment_json = json.dumps(segment_info)
+
             await DatabaseManager.insert_last_clip(
                 chat_id=message.chat.id,
-                segment=segment_info,
+                segment=segment_json,
                 compiled_clip=None,
                 clip_type='adjusted'
             )
 
         except FFMpegException as e:
             return await self.__reply_extraction_failure(message, e)
+
 
         await self._log_system_message(logging.INFO, get_updated_segment_info_log(message.chat.id))
         await self._log_system_message(logging.INFO, get_successful_adjustment_message(message.from_user.username))

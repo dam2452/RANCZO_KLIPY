@@ -76,29 +76,65 @@ class SaveClipHandler(BotMessageHandler):
 
     async def __get_segment_info(self, message: Message) -> Optional[SegmentInfo]:
         last_clip_info = await DatabaseManager.get_last_clip_by_chat_id(message.chat.id)
+
+        # Debugging full last_clip_info from the database
+        logging.debug("Full last_clip_info from DB: %s", last_clip_info)
+
         if last_clip_info is None:
+            logging.info("No last_clip_info found for chat_id: %s", message.chat.id)
             return None
 
-        clip_info_without_type = {key: value for key, value in last_clip_info.items() if key != 'type'}
+        segment_data = last_clip_info['segment']
+        logging.debug("Raw segment data: %s", segment_data)
 
-        if 'episode_info' in clip_info_without_type and isinstance(clip_info_without_type['episode_info'], dict):
-            episode_info_data = clip_info_without_type['episode_info']
-            clip_info_without_type['episode_info'] = EpisodeInfo(**episode_info_data)
+        # Check if segment_data is `None`
+        if segment_data is None:
+            logging.error("Segment data is None for chat_id: %s", message.chat.id)
+            return None
 
-        if last_clip_info['type'] == 'compiled':
-            return SegmentInfo(**clip_info_without_type)
+        # Check the data type of segment_data
+        if isinstance(segment_data, bytes):
+            logging.debug("Segment data is of type bytes.")
+            segment_info_str = segment_data.decode('utf-8')
+        else:
+            logging.debug("Segment data is of type: %s", type(segment_data))
+            segment_info_str = segment_data
 
-        if last_clip_info['type'] == 'adjusted':
-            segment_info = SaveClipHandler._convert_to_segment_info_with_adjustment(last_clip_info)
-            return segment_info
+        logging.debug("Decoded/Raw segment_info_str: %s", segment_info_str)
 
-        if last_clip_info['type'] in {'manual', 'segment'}:
-            if 'segment' in clip_info_without_type:
-                segment_info_data = clip_info_without_type['segment']
-                return SaveClipHandler._convert_to_segment_info(segment_info_data)
-            return SaveClipHandler.__SEGMENT_INFO_GETTERS[last_clip_info['type']](clip_info_without_type)
+        try:
+            segment_info_dict = json.loads(segment_info_str)
+        except json.JSONDecodeError as e:
+            logging.error("Failed to decode JSON from segment_info_str: %s", e)
+            return None
 
-        return None
+        logging.debug("Parsed segment_info_dict: %s", segment_info_dict)
+
+        # Safely extract episode info if present and valid
+        if 'episode_info' in segment_info_dict and isinstance(segment_info_dict['episode_info'], dict):
+            episode_info_data = segment_info_dict['episode_info']
+            try:
+                episode_info = EpisodeInfo(
+                    season=episode_info_data['season'],
+                    episode_number=episode_info_data['episode_number']
+                )
+            except TypeError as e:
+                logging.error("Failed to create EpisodeInfo: %s", e)
+                return None
+            segment_info_dict['episode_info'] = episode_info
+        else:
+            segment_info_dict['episode_info'] = None
+
+        # Construct the SegmentInfo object
+        try:
+            segment_info = SegmentInfo(**segment_info_dict)
+        except TypeError as e:
+            logging.error("Failed to create SegmentInfo: %s", e)
+            return None
+
+        logging.debug("Constructed SegmentInfo: %s", segment_info)
+
+        return segment_info
 
     @staticmethod
     def _convert_to_segment_info(segment: json) -> SegmentInfo:
@@ -187,14 +223,15 @@ class SaveClipHandler(BotMessageHandler):
             end_time: float, duration: float, is_compilation: bool, season: Optional[int],
             episode_number: Optional[int],
     ) -> None:
+        # Otwieramy plik w trybie binarnym i odczytujemy jego zawartość
         with open(output_filename, 'rb') as file:
-            video_data = file.read()
+            video_data = file.read()  # Odczyt jako bytes
         os.remove(output_filename)
         await DatabaseManager.save_clip(
             chat_id=message.chat.id,
             username=message.from_user.username,
             clip_name=clip_name,
-            video_data=video_data,
+            video_data=video_data,  # Przekazywanie danych binarnych
             start_time=start_time,
             end_time=end_time,
             duration=duration,

@@ -1,5 +1,6 @@
 import logging
 from typing import List
+import json
 
 from aiogram.types import Message
 
@@ -41,6 +42,9 @@ class ClipHandler(BotMessageHandler):
         segment = segments[0] if isinstance(segments, list) else segments
         start_time = max(0, segment['start'] - settings.EXTEND_BEFORE)
         end_time = segment['end'] + settings.EXTEND_AFTER
+
+        segment_json = json.dumps(segment)
+
         try:
             await ClipsExtractor.extract_and_send_clip(segment['video_path'], message, self._bot, self._logger, start_time, end_time)
         except FFMpegException as e:
@@ -48,7 +52,7 @@ class ClipHandler(BotMessageHandler):
 
         await DatabaseManager.insert_last_clip(
             chat_id=message.chat.id,
-            segment=segment,
+            segment=segment_json,
             compiled_clip=None,
             clip_type='single'
         )

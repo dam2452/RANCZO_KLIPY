@@ -1,4 +1,5 @@
 import logging
+import json
 from typing import List
 
 from aiogram.types import Message
@@ -37,7 +38,7 @@ class SelectClipHandler(BotMessageHandler):
             return await self.__reply_no_previous_search(message)
 
         index = int(content[1])
-        segments = last_search['segments']
+        segments = json.loads(last_search['segments'])
 
         if index not in range(1, len(segments) + 1):
             return await self.__reply_invalid_segment_number(message, index)
@@ -49,10 +50,10 @@ class SelectClipHandler(BotMessageHandler):
             await ClipsExtractor.extract_and_send_clip(segment['video_path'], message, self._bot, self._logger, start_time, end_time)
         except FFMpegException as e:
             return await self.__reply_extraction_failure(message, e)
-
+        segment_json = json.dumps(segment)
         await DatabaseManager.insert_last_clip(
             chat_id=message.chat.id,
-            segment=segment,
+            segment=segment_json,
             compiled_clip=None,
             clip_type='selected'
         )

@@ -1,5 +1,6 @@
 import logging
 from typing import List
+import json
 
 from aiogram.types import Message
 
@@ -32,7 +33,9 @@ class SearchHandler(BotMessageHandler):
         if not segments:
             return await self.__reply_no_segments_found(message, quote)
 
-        await DatabaseManager.insert_last_search(chat_id=message.chat.id, quote=quote, segments=segments)
+        segments_json = json.dumps(segments)
+
+        await DatabaseManager.insert_last_search(chat_id=message.chat.id, quote=quote, segments=segments_json)
 
         response = format_search_response(len(segments), segments)
 

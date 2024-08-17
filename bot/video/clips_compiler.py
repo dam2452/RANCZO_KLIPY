@@ -11,6 +11,7 @@ from typing import (
 from aiogram import Bot
 from aiogram.types import Message
 
+from bot.database.database_manager import DatabaseManager  # Import DatabaseManager
 from bot.utils.log import log_system_message
 from bot.video.clips_extractor import ClipsExtractor
 from bot.video.utils import (
@@ -46,7 +47,7 @@ class ClipsCompiler:
         temp_files = []
         try:
             for segment in selected_clips:
-                temp_file_name = tempfile.NamedTemporaryFile(  # pylint: disable=consider-using-with
+                temp_file_name = tempfile.NamedTemporaryFile(
                     delete=False, delete_on_close=False,
                     suffix=".mp4",
                 ).name
@@ -64,14 +65,32 @@ class ClipsCompiler:
 
     @staticmethod
     async def __send_compiled_clip(message: Message, compiled_output: str, bot: Bot, logger: logging.Logger) -> None:
+        # Odczytaj dane binarne z pliku
         with open(compiled_output, 'rb') as f:
             compiled_clip_data = f.read()
+        # Logowanie typu danych
+        logger.info(f"Type of compiled_clip_data: {type(compiled_clip_data)}")
+        # Logowanie typu danych
+        logger.info(f"Type of compiled_clip_data: {type(compiled_clip_data)}")
+        # Logowanie typu danych
+        logger.info(f"Type of compiled_clip_data: {type(compiled_clip_data)}")
 
-        last_clip[message.chat.id] = {
-            'compiled_clip': compiled_clip_data,
-            'type': 'compiled',
-        }
+        # Zapisz dane binarne do bazy danych
+        await DatabaseManager.insert_last_clip(
+            chat_id=message.chat.id,
+            segment=None,
+            compiled_clip=compiled_clip_data,  # Przekazujemy dane binarne, nie ścieżkę
+            clip_type='compiled'
+        )
 
+        # Logowanie typu danych
+        logger.info(f"Type of compiled_clip_data: {type(compiled_clip_data)}")
+        # Logowanie typu danych
+        logger.info(f"Type of compiled_clip_data: {type(compiled_clip_data)}")
+        # Logowanie typu danych
+        logger.info(f"Type of compiled_clip_data: {type(compiled_clip_data)}")
+
+        # Wyślij plik wideo
         await send_video(message, compiled_output, bot, logger)
 
     @staticmethod

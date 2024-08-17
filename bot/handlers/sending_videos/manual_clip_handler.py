@@ -1,4 +1,5 @@
 import logging
+import json
 import os
 from typing import (
     List,
@@ -65,7 +66,7 @@ class ManualClipHandler(BotMessageHandler):
 
         await DatabaseManager.insert_last_clip(
             chat_id=message.chat.id,
-            segment={
+            segment=json.dumps({  # Konwertuj słownik na JSON
                 'video_path': video_path,
                 'start': start_seconds,
                 'end': end_seconds,
@@ -73,7 +74,7 @@ class ManualClipHandler(BotMessageHandler):
                     'season': episode.season,
                     'episode_number': episode.number,
                 }
-            },
+            }),
             compiled_clip=None,
             clip_type='manual'
         )

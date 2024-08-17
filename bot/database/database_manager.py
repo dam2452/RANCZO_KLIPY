@@ -96,7 +96,7 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
                     id SERIAL PRIMARY KEY,
                     chat_id BIGINT NOT NULL,
                     segment JSONB,
-                    compiled_clip TEXT,
+                    compiled_clip BYTEA,
                     type TEXT
                 )
             ''')
@@ -281,12 +281,11 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
             await conn.execute(
                 """
                 INSERT INTO clips (chat_id, username, clip_name, video_data, start_time, end_time, duration, season, episode_number, is_compilation)
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9 , $10)
+                VALUES ($1, $2, $3, $4::bytea, $5, $6, $7, $8, $9, $10)
                 """,
                 chat_id, username, clip_name, video_data, start_time, end_time, duration, season, episode_number, is_compilation,
             )
         await conn.close()
-
     @staticmethod
     async def get_clip_by_name(username: str, clip_name: str) -> Optional[Tuple[bytes, int, int]]:
         conn = await DatabaseManager.get_db_connection()
@@ -460,13 +459,13 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         await conn.close()
 
     @staticmethod
-    async def insert_last_clip(chat_id: int, segment: Optional[dict] = None, compiled_clip: Optional[str] = None,
+    async def insert_last_clip(chat_id: int, segment: Optional[str] = None, compiled_clip: Optional[bytes] = None,
                                clip_type: Optional[str] = None) -> int:
         conn = await DatabaseManager.get_db_connection()
         clip_id = await conn.fetchval(
             '''
             INSERT INTO last_clip (chat_id, segment, compiled_clip, type)
-            VALUES ($1, $2::jsonb, $3, $4)
+            VALUES ($1, $2::jsonb, $3::bytea, $4)
             RETURNING id
             ''', chat_id, segment, compiled_clip, clip_type
         )
@@ -487,7 +486,7 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         return result
 
     @staticmethod
-    async def update_last_clip(clip_id: int, new_segment: Optional[dict] = None, new_compiled_clip: Optional[str] = None,
+    async def update_last_clip(clip_id: int, new_segment: Optional[dict] = None, new_compiled_clip: Optional[bytes] = None,  # Zmieniono na bytes
                                new_type: Optional[str] = None) -> None:
         conn = await DatabaseManager.get_db_connection()
         if new_segment:
@@ -498,11 +497,11 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
                 WHERE id = $2
                 ''', new_segment, clip_id
             )
-        if new_compiled_clip:
+        if new_compiled_clip:  # Now przekazuje bytes
             await conn.execute(
                 '''
                 UPDATE last_clip
-                SET compiled_clip = $1
+                SET compiled_clip = $1::bytea  # Upewnij się, że jest to BYTEA
                 WHERE id = $2
                 ''', new_compiled_clip, clip_id
             )
