@@ -5,7 +5,7 @@ from typing import List
 
 from aiogram.types import Message
 
-from bot.database.database_manager import DatabaseManager  # Import już jest poprawny
+from bot.database.database_manager import DatabaseManager
 from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.responses.sending_videos.send_clip_handler_responses import (
     get_clip_not_found_message,

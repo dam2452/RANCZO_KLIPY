@@ -13,7 +13,7 @@ from typing import (
 
 from aiogram.types import Message
 
-from bot.database.database_manager import DatabaseManager  # Zamiast globalnych słowników
+from bot.database.database_manager import DatabaseManager
 from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.responses.not_sending_videos.save_clip_handler_responses import (
     get_clip_name_exists_message,
@@ -77,7 +77,6 @@ class SaveClipHandler(BotMessageHandler):
     async def __get_segment_info(self, message: Message) -> Optional[SegmentInfo]:
         last_clip_info = await DatabaseManager.get_last_clip_by_chat_id(message.chat.id)
 
-        # Debugging full last_clip_info from the database
         logging.debug("Full last_clip_info from DB: %s", last_clip_info)
 
         if last_clip_info is None:
@@ -87,12 +86,10 @@ class SaveClipHandler(BotMessageHandler):
         segment_data = last_clip_info['segment']
         logging.debug("Raw segment data: %s", segment_data)
 
-        # Check if segment_data is `None`
         if segment_data is None:
             logging.error("Segment data is None for chat_id: %s", message.chat.id)
             return None
 
-        # Check the data type of segment_data
         if isinstance(segment_data, bytes):
             logging.debug("Segment data is of type bytes.")
             segment_info_str = segment_data.decode('utf-8')
@@ -110,7 +107,6 @@ class SaveClipHandler(BotMessageHandler):
 
         logging.debug("Parsed segment_info_dict: %s", segment_info_dict)
 
-        # Safely extract episode info if present and valid
         if 'episode_info' in segment_info_dict and isinstance(segment_info_dict['episode_info'], dict):
             episode_info_data = segment_info_dict['episode_info']
             try:
@@ -125,7 +121,6 @@ class SaveClipHandler(BotMessageHandler):
         else:
             segment_info_dict['episode_info'] = None
 
-        # Construct the SegmentInfo object
         try:
             segment_info = SegmentInfo(**segment_info_dict)
         except TypeError as e:
@@ -223,15 +218,15 @@ class SaveClipHandler(BotMessageHandler):
             end_time: float, duration: float, is_compilation: bool, season: Optional[int],
             episode_number: Optional[int],
     ) -> None:
-        # Otwieramy plik w trybie binarnym i odczytujemy jego zawartość
+
         with open(output_filename, 'rb') as file:
-            video_data = file.read()  # Odczyt jako bytes
+            video_data = file.read()
         os.remove(output_filename)
         await DatabaseManager.save_clip(
             chat_id=message.chat.id,
             username=message.from_user.username,
             clip_name=clip_name,
-            video_data=video_data,  # Przekazywanie danych binarnych
+            video_data=video_data,
             start_time=start_time,
             end_time=end_time,
             duration=duration,

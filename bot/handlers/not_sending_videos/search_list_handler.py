@@ -10,7 +10,7 @@ from aiogram.types import (
 )
 import asyncpg
 
-from bot.database.database_manager import DatabaseManager  # Importujemy DatabaseManager
+from bot.database.database_manager import DatabaseManager
 from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.responses.not_sending_videos.search_list_handler_responses import (
     format_search_list_response,
@@ -27,12 +27,10 @@ class SearchListHandler(BotMessageHandler):
     async def _do_handle(self, message: Message) -> None:
         last_search = await DatabaseManager.get_last_search_by_chat_id(message.chat.id)
 
-        # Convert asyncpg.Record to dictionary if necessary
         if isinstance(last_search, asyncpg.Record):
             last_search = dict(last_search)
             logging.info(f"Converted last_search to dictionary for chat_id: {message.chat.id}")
 
-        # Ensure last_search is a dictionary
         if isinstance(last_search, dict):
             logging.info(f"last_search is already a dictionary for chat_id: {message.chat.id}")
         elif isinstance(last_search, str):
@@ -51,14 +49,13 @@ class SearchListHandler(BotMessageHandler):
             logging.error(f"Expected a dictionary for last_search but got {type(last_search)} for chat_id: {message.chat.id}")
             return await self.__reply_no_previous_search_results(message)
 
-        # Ensure `segments` is parsed if necessary
         segments = last_search.get('segments')
         if isinstance(segments, str):
             try:
                 logging.info(f"Attempting to decode segments JSON for chat_id: {message.chat.id}")
                 segments = json.loads(segments)
                 logging.info(f"Decoded segments: {segments}")
-                last_search['segments'] = segments  # Update the dictionary with parsed segments
+                last_search['segments'] = segments
             except json.JSONDecodeError as e:
                 logging.error(f"Failed to decode segments JSON for chat_id: {message.chat.id}. Error: {str(e)}")
                 return await self.__reply_no_previous_search_results(message)

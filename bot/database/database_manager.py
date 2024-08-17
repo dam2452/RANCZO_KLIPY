@@ -489,7 +489,7 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
 
     @staticmethod
     async def update_last_clip(
-        clip_id: int, new_segment: Optional[dict] = None, new_compiled_clip: Optional[bytes] = None,  # Zmieniono na bytes
+        clip_id: int, new_segment: Optional[dict] = None, new_compiled_clip: Optional[bytes] = None,
         new_type: Optional[str] = None,
     ) -> None:
         conn = await DatabaseManager.get_db_connection()
@@ -501,11 +501,11 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
                 WHERE id = $2
                 ''', new_segment, clip_id,
             )
-        if new_compiled_clip:  # Now przekazuje bytes
+        if new_compiled_clip:
             await conn.execute(
                 '''
                 UPDATE last_clip
-                SET compiled_clip = $1::bytea  # Upewnij się, że jest to BYTEA
+                SET compiled_clip = $1::bytea
                 WHERE id = $2
                 ''', new_compiled_clip, clip_id,
             )

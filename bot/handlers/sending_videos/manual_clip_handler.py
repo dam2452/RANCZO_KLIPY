@@ -66,7 +66,7 @@ class ManualClipHandler(BotMessageHandler):
 
         await DatabaseManager.insert_last_clip(
             chat_id=message.chat.id,
-            segment=json.dumps({  # Konwertuj słownik na JSON
+            segment=json.dumps({
                 'video_path': video_path,
                 'start': start_seconds,
                 'end': end_seconds,

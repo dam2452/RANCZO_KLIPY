@@ -42,7 +42,7 @@ class CompileClipsHandler(BotMessageHandler):
         if not last_search or not last_search['segments']:
             return await self.__reply_no_previous_search_results(message)
 
-        # Konwersja JSON na listę segmentów
+
         segments = json.loads(last_search['segments'])
 
         selected_segments = self.__parse_segments(content[1:], segments)
@@ -50,15 +50,15 @@ class CompileClipsHandler(BotMessageHandler):
         if not selected_segments:
             return await self.__reply_no_matching_segments_found(message)
 
-        # Kompilacja i wysyłanie klipów
+
         compiled_output = await ClipsCompiler.compile_and_send_clips(message, selected_segments, self._bot, self._logger)
         with open(compiled_output, 'rb') as f:
             compiled_clip_data = f.read()
-        # Zapis skompilowanego klipu do bazy danych
+
         await DatabaseManager.insert_last_clip(
             chat_id=message.chat.id,
             segment=None,
-            compiled_clip=compiled_clip_data,  # Przekazujemy dane binarne, a nie ścieżkę
+            compiled_clip=compiled_clip_data,
             clip_type='compiled',
         )
 
