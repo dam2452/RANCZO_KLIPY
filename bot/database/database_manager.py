@@ -422,6 +422,8 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
             SELECT id, chat_id, quote, segments
             FROM last_search
             WHERE chat_id = $1
+            ORDER BY id DESC
+            LIMIT 1
             ''', chat_id,
         )
         await conn.close()
