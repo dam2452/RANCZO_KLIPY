@@ -53,11 +53,13 @@ class CompileSelectedClipsHandler(BotMessageHandler):
             })
 
         compiled_output = await ClipsCompiler.compile_and_send_clips(message, selected_segments, self._bot, self._logger)
-
+        with open(compiled_output, 'rb') as f:
+            compiled_clip_data = f.read()
+        # Zapis skompilowanego klipu do bazy danych
         await DatabaseManager.insert_last_clip(
             chat_id=message.chat.id,
             segment=None,
-            compiled_clip=compiled_output,
+            compiled_clip=compiled_clip_data,  # Przekazujemy dane binarne, a nie ścieżkę
             clip_type='compiled'
         )
 
