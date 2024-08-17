@@ -3,7 +3,6 @@ from typing import (
     Optional,
 )
 
-
 from bot.database.user import User
 
 
