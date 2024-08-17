@@ -68,14 +68,12 @@ class ClipsCompiler:
         with open(compiled_output, 'rb') as f:
             compiled_clip_data = f.read()
 
-
         await DatabaseManager.insert_last_clip(
             chat_id=message.chat.id,
             segment=None,
             compiled_clip=compiled_clip_data,
             clip_type='compiled',
         )
-
 
         await send_video(message, compiled_output, bot, logger)
 

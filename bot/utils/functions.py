@@ -1,10 +1,8 @@
-import json
 from typing import (
     List,
     Optional,
 )
 
-from aiogram.types import Message
 
 from bot.database.user import User
 

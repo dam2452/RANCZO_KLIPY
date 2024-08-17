@@ -286,6 +286,7 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
                 chat_id, username, clip_name, video_data, start_time, end_time, duration, season, episode_number, is_compilation,
             )
         await conn.close()
+
     @staticmethod
     async def get_clip_by_name(username: str, clip_name: str) -> Optional[Tuple[bytes, int, int]]:
         conn = await DatabaseManager.get_db_connection()
@@ -460,8 +461,8 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
 
     @staticmethod
     async def insert_last_clip(
-        chat_id: int, segment: Optional[str] = None, compiled_clip: Optional[bytes] = None,
-        clip_type: Optional[str] = None,
+            chat_id: int, segment: Optional[str] = None, compiled_clip: Optional[bytes] = None,
+            clip_type: Optional[str] = None,
     ) -> int:
         conn = await DatabaseManager.get_db_connection()
         clip_id = await conn.fetchval(
@@ -489,8 +490,8 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
 
     @staticmethod
     async def update_last_clip(
-        clip_id: int, new_segment: Optional[dict] = None, new_compiled_clip: Optional[bytes] = None,
-        new_type: Optional[str] = None,
+            clip_id: int, new_segment: Optional[dict] = None, new_compiled_clip: Optional[bytes] = None,
+            new_type: Optional[str] = None,
     ) -> None:
         conn = await DatabaseManager.get_db_connection()
         if new_segment:
