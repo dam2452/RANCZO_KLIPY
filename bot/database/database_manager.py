@@ -1,8 +1,18 @@
-from datetime import date, timedelta
-from typing import List, Optional, Tuple
+from datetime import (
+    date,
+    timedelta,
+)
+from typing import (
+    List,
+    Optional,
+    Tuple,
+)
+
 import asyncpg
+
 from bot.database.user import User
 from bot.settings import settings
+
 
 class DatabaseManager:  # pylint: disable=too-many-public-methods
     @staticmethod
@@ -30,7 +40,7 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         async with conn.transaction():
             try:
                 table_exists = await conn.fetchval(
-                    "SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'user_profiles')"
+                    "SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'user_profiles')",
                 )
 
                 if not table_exists:
@@ -152,7 +162,7 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
     async def get_admin_users() -> Optional[List[asyncpg.Record]]:
         conn = await DatabaseManager.get_db_connection()
         result = await conn.fetch(
-            'SELECT username, full_name, email, phone FROM user_profiles WHERE id IN (SELECT user_id FROM user_roles WHERE is_admin = TRUE)'
+            'SELECT username, full_name, email, phone FROM user_profiles WHERE id IN (SELECT user_id FROM user_roles WHERE is_admin = TRUE)',
         )
         await conn.close()
         return result
@@ -161,7 +171,7 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
     async def get_moderator_users() -> Optional[List[asyncpg.Record]]:
         conn = await DatabaseManager.get_db_connection()
         result = await conn.fetch(
-            'SELECT username, full_name, email, phone FROM user_profiles WHERE id IN (SELECT user_id FROM user_roles WHERE is_moderator = TRUE)'
+            'SELECT username, full_name, email, phone FROM user_profiles WHERE id IN (SELECT user_id FROM user_roles WHERE is_moderator = TRUE)',
         )
         await conn.close()
         return result
@@ -171,7 +181,7 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         conn = await DatabaseManager.get_db_connection()
         result = await conn.fetchrow(
             '''
-            SELECT ur.is_admin, ur.is_moderator, up.subscription_end 
+            SELECT ur.is_admin, ur.is_moderator, up.subscription_end
             FROM user_profiles up
             LEFT JOIN user_roles ur ON ur.user_id = up.id
             WHERE up.username = $1
@@ -238,8 +248,10 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         return result
 
     @staticmethod
-    async def save_clip(chat_id: int, user_id: int, clip_name: str, video_data: bytes, start_time: float, end_time: float, duration: float,
-                        is_compilation: bool, season: Optional[int] = None, episode_number: Optional[int] = None) -> None:
+    async def save_clip(
+        chat_id: int, user_id: int, clip_name: str, video_data: bytes, start_time: float, end_time: float, duration: float,
+        is_compilation: bool, season: Optional[int] = None, episode_number: Optional[int] = None,
+    ) -> None:
         conn = await DatabaseManager.get_db_connection()
         async with conn.transaction():
             await conn.execute(
@@ -413,9 +425,11 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         await conn.close()
 
     @staticmethod
-    async def insert_last_clip(chat_id: int, segment: Optional[dict] = None, compiled_clip: Optional[bytes] = None, clip_type: Optional[str] = None,
-                               adjusted_start_time: Optional[float] = None, adjusted_end_time: Optional[float] = None,
-                               is_adjusted: bool = False) -> int:
+    async def insert_last_clip(
+        chat_id: int, segment: Optional[dict] = None, compiled_clip: Optional[bytes] = None, clip_type: Optional[str] = None,
+        adjusted_start_time: Optional[float] = None, adjusted_end_time: Optional[float] = None,
+        is_adjusted: bool = False,
+    ) -> int:
         conn = await DatabaseManager.get_db_connection()
         clip_id = await conn.fetchval(
             'INSERT INTO last_clips (chat_id, segment, compiled_clip, type, adjusted_start_time, adjusted_end_time, is_adjusted) VALUES ($1, $2::jsonb, $3::bytea, $4, $5, $6, $7) RETURNING id',
@@ -440,8 +454,10 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         return result
 
     @staticmethod
-    async def update_last_clip(clip_id: int, new_segment: Optional[dict] = None, new_compiled_clip: Optional[bytes] = None,
-                               new_type: Optional[str] = None) -> None:
+    async def update_last_clip(
+        clip_id: int, new_segment: Optional[dict] = None, new_compiled_clip: Optional[bytes] = None,
+        new_type: Optional[str] = None,
+    ) -> None:
         conn = await DatabaseManager.get_db_connection()
         if new_segment:
             await conn.execute(
