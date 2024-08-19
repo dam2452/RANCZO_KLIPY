@@ -101,14 +101,6 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
                 )
             ''')
 
-            await conn.execute('''
-                CREATE TABLE IF NOT EXISTS last_selected_segment (
-                    id SERIAL PRIMARY KEY,
-                    segment_id INT NOT NULL,
-                    segment_data JSONB NOT NULL
-                )
-            ''')
-
         await conn.close()
 
     @staticmethod
@@ -530,54 +522,5 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
             DELETE FROM last_clip
             WHERE id = $1
             ''', clip_id,
-        )
-        await conn.close()
-
-    @staticmethod
-    async def insert_last_selected_segment(segment_id: int, segment_data: dict) -> int:
-        conn = await DatabaseManager.get_db_connection()
-        inserted_id = await conn.fetchval(
-            '''
-            INSERT INTO last_selected_segment (segment_id, segment_data)
-            VALUES ($1, $2::jsonb)
-            RETURNING id
-            ''', segment_id, segment_data,
-        )
-        await conn.close()
-        return inserted_id
-
-    @staticmethod
-    async def get_last_selected_segment_by_id(segment_id: int) -> Optional[asyncpg.Record]:
-        conn = await DatabaseManager.get_db_connection()
-        result = await conn.fetchrow(
-            '''
-            SELECT id, segment_id, segment_data
-            FROM last_selected_segment
-            WHERE segment_id = $1
-            ''', segment_id,
-        )
-        await conn.close()
-        return result
-
-    @staticmethod
-    async def update_last_selected_segment(segment_id: int, new_segment_data: dict) -> None:
-        conn = await DatabaseManager.get_db_connection()
-        await conn.execute(
-            '''
-            UPDATE last_selected_segment
-            SET segment_data = $1::jsonb
-            WHERE segment_id = $2
-            ''', new_segment_data, segment_id,
-        )
-        await conn.close()
-
-    @staticmethod
-    async def delete_last_selected_segment(segment_id: int) -> None:
-        conn = await DatabaseManager.get_db_connection()
-        await conn.execute(
-            '''
-            DELETE FROM last_selected_segment
-            WHERE segment_id = $1
-            ''', segment_id,
         )
         await conn.close()
