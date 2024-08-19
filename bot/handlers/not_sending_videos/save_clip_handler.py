@@ -91,13 +91,9 @@ class SaveClipHandler(BotMessageHandler):
             return None
 
         if isinstance(segment_data, bytes):
-            logging.debug("Segment data is of type bytes.")
             segment_info_str = segment_data.decode('utf-8')
         else:
-            logging.debug("Segment data is of type: %s", type(segment_data))
             segment_info_str = segment_data
-
-        logging.debug("Decoded/Raw segment_info_str: %s", segment_info_str)
 
         try:
             segment_info_dict = json.loads(segment_info_str)
@@ -105,31 +101,23 @@ class SaveClipHandler(BotMessageHandler):
             logging.error("Failed to decode JSON from segment_info_str: %s", e)
             return None
 
-        logging.debug("Parsed segment_info_dict: %s", segment_info_dict)
+        adjusted_start_time = last_clip_info.get('adjusted_start_time')
+        adjusted_end_time = last_clip_info.get('adjusted_end_time')
+        is_adjusted = last_clip_info.get('is_adjusted', False)
+
+        if is_adjusted and adjusted_start_time is not None and adjusted_end_time is not None:
+            segment_info_dict['start'] = adjusted_start_time
+            segment_info_dict['end'] = adjusted_end_time
 
         if 'episode_info' in segment_info_dict and isinstance(segment_info_dict['episode_info'], dict):
             episode_info_data = segment_info_dict['episode_info']
-            try:
-                episode_info = EpisodeInfo(
-                    season=episode_info_data['season'],
-                    episode_number=episode_info_data['episode_number'],
-                )
-            except TypeError as e:
-                logging.error("Failed to create EpisodeInfo: %s", e)
-                return None
+            episode_info = EpisodeInfo(
+                season=episode_info_data['season'],
+                episode_number=episode_info_data['episode_number']
+            )
             segment_info_dict['episode_info'] = episode_info
-        else:
-            segment_info_dict['episode_info'] = None
 
-        try:
-            segment_info = SegmentInfo(**segment_info_dict)
-        except TypeError as e:
-            logging.error("Failed to create SegmentInfo: %s", e)
-            return None
-
-        logging.debug("Constructed SegmentInfo: %s", segment_info)
-
-        return segment_info
+        return SegmentInfo(**segment_info_dict)
 
     @staticmethod
     def _convert_to_segment_info(segment: json) -> SegmentInfo:
@@ -175,8 +163,8 @@ class SaveClipHandler(BotMessageHandler):
         )
 
     async def __prepare_clip_file(self, segment_info: SegmentInfo) -> Tuple[str, int, int, bool, Optional[int], Optional[int]]:
-        start_time = 0
-        end_time = 0
+        start_time = segment_info.start
+        end_time = segment_info.end
         is_compilation = False
         season = None
         episode_number = None
@@ -184,16 +172,8 @@ class SaveClipHandler(BotMessageHandler):
         if segment_info.compiled_clip is not None:
             output_filename = segment_info.compiled_clip
             is_compilation = True
-        elif segment_info.expanded_clip is not None:
-            output_filename = self.__write_clip_to_file(segment_info.expanded_clip)
-            start_time = segment_info.expanded_start
-            end_time = segment_info.expanded_end
-            season = segment_info.episode_info.season
-            episode_number = segment_info.episode_info.episode_number
         else:
             clip_path = segment_info.video_path
-            start_time = segment_info.start
-            end_time = segment_info.end
             season = segment_info.episode_info.season
             episode_number = segment_info.episode_info.episode_number
             with tempfile.NamedTemporaryFile(delete=False, delete_on_close=False, suffix=".mp4") as tmp_file:

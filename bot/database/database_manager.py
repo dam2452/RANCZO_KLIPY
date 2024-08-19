@@ -97,7 +97,10 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
                     chat_id BIGINT NOT NULL,
                     segment JSONB,
                     compiled_clip BYTEA,
-                    type TEXT
+                    type TEXT,
+                    adjusted_start_time FLOAT NULL,
+                    adjusted_end_time FLOAT NULL,
+                    is_adjusted BOOLEAN DEFAULT FALSE
                 )
             ''')
 
@@ -456,15 +459,16 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
     @staticmethod
     async def insert_last_clip(
             chat_id: int, segment: Optional[str] = None, compiled_clip: Optional[bytes] = None,
-            clip_type: Optional[str] = None,
+            clip_type: Optional[str] = None, adjusted_start_time: Optional[float] = None,
+            adjusted_end_time: Optional[float] = None, is_adjusted: bool = False
     ) -> int:
         conn = await DatabaseManager.get_db_connection()
         clip_id = await conn.fetchval(
             '''
-            INSERT INTO last_clip (chat_id, segment, compiled_clip, type)
-            VALUES ($1, $2::jsonb, $3::bytea, $4)
+            INSERT INTO last_clip (chat_id, segment, compiled_clip, type, adjusted_start_time, adjusted_end_time, is_adjusted)
+            VALUES ($1, $2::jsonb, $3::bytea, $4, $5, $6, $7)
             RETURNING id
-            ''', chat_id, segment, compiled_clip, clip_type,
+            ''', chat_id, segment, compiled_clip, clip_type, adjusted_start_time, adjusted_end_time, is_adjusted,
         )
         await conn.close()
         return clip_id
@@ -474,9 +478,11 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         conn = await DatabaseManager.get_db_connection()
         result = await conn.fetchrow(
             '''
-            SELECT id, chat_id, segment, compiled_clip, type
+            SELECT id, chat_id, segment, compiled_clip, type, adjusted_start_time, adjusted_end_time, is_adjusted
             FROM last_clip
             WHERE chat_id = $1
+            ORDER BY id DESC 
+            LIMIT 1
             ''', chat_id,
         )
         await conn.close()

@@ -83,6 +83,9 @@ class AdjustVideoClipHandler(BotMessageHandler):
                 segment=segment_json,
                 compiled_clip=None,
                 clip_type='adjusted',
+                adjusted_start_time=start_time,
+                adjusted_end_time=end_time,
+                is_adjusted=True,
             )
 
         except FFMpegException as e:
