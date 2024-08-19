@@ -18,7 +18,8 @@ class MyClipsHandler(BotMessageHandler):
         return ['mojeklipy', 'myclips', 'mk']
 
     async def _do_handle(self, message: Message) -> None:
-        clips = await DatabaseManager.get_saved_clips(message.from_user.username)
+        user_id = await DatabaseManager.get_user_id_by_username(message.from_user.username)
+        clips = await DatabaseManager.get_saved_clips(user_id)
         if not clips:
             return await self.__reply_no_saved_clips(message)
 
@@ -28,3 +29,4 @@ class MyClipsHandler(BotMessageHandler):
     async def __reply_no_saved_clips(self, message: Message) -> None:
         await message.answer(get_no_saved_clips_message())
         await self._log_system_message(logging.INFO, get_log_no_saved_clips_message(message.from_user.username))
+

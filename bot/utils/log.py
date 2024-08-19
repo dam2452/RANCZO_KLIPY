@@ -17,6 +17,6 @@ async def log_system_message(level: int, message: str, logger: logging.Logger) -
     await DatabaseManager.log_system_message(LOG_LEVELS[level], message)
 
 
-async def log_user_activity(username: str, message: str, logger: logging.Logger) -> None:
+async def log_user_activity(user_id: int, message: str, logger: logging.Logger) -> None:
     await log_system_message(logging.INFO, message, logger)
-    await DatabaseManager.log_user_activity(username, message)
+    await DatabaseManager.log_user_activity(user_id, message)

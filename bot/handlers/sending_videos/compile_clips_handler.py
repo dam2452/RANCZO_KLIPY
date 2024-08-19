@@ -60,7 +60,8 @@ class CompileClipsHandler(BotMessageHandler):
             clip_type='compiled',
         )
 
-        await self._log_system_message(logging.INFO, get_compilation_success_message(message.from_user.username))
+        user_id = await DatabaseManager.get_user_id_by_username(message.from_user.username)
+        await self._log_system_message(logging.INFO, get_compilation_success_message(user_id))
 
     @staticmethod
     def __parse_segments(content: List[str], segments: List[Dict[str, Union[str, float]]]) -> List[Dict[str, Union[str, float]]]:

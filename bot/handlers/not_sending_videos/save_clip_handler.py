@@ -84,7 +84,14 @@ class SaveClipHandler(BotMessageHandler):
             return None
 
         segment_data = last_clip_info['segment']
+        compiled_clip_data = last_clip_info['compiled_clip']
+
         logging.debug("Raw segment data: %s", segment_data)
+        logging.debug("Raw compiled clip data: %s", compiled_clip_data)
+
+        if segment_data is None and compiled_clip_data is not None:
+            logging.info("Using compiled clip data for chat_id: %s", message.chat.id)
+            return SegmentInfo(compiled_clip=compiled_clip_data)
 
         if segment_data is None:
             logging.error("Segment data is None for chat_id: %s", message.chat.id)
@@ -170,7 +177,7 @@ class SaveClipHandler(BotMessageHandler):
         episode_number = None
 
         if segment_info.compiled_clip is not None:
-            output_filename = segment_info.compiled_clip
+            output_filename = self.__write_clip_to_file(segment_info.compiled_clip)
             is_compilation = True
         else:
             clip_path = segment_info.video_path
@@ -202,9 +209,12 @@ class SaveClipHandler(BotMessageHandler):
         with open(output_filename, 'rb') as file:
             video_data = file.read()
         os.remove(output_filename)
+
+        user_id = await DatabaseManager.get_user_id_by_username(message.from_user.username)
+
         await DatabaseManager.save_clip(
             chat_id=message.chat.id,
-            username=message.from_user.username,
+            user_id=user_id,
             clip_name=clip_name,
             video_data=video_data,
             start_time=start_time,
