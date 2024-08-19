@@ -460,7 +460,7 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
     async def insert_last_clip(
             chat_id: int, segment: Optional[str] = None, compiled_clip: Optional[bytes] = None,
             clip_type: Optional[str] = None, adjusted_start_time: Optional[float] = None,
-            adjusted_end_time: Optional[float] = None, is_adjusted: bool = False
+            adjusted_end_time: Optional[float] = None, is_adjusted: bool = False,
     ) -> int:
         conn = await DatabaseManager.get_db_connection()
         clip_id = await conn.fetchval(
@@ -481,7 +481,7 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
             SELECT id, chat_id, segment, compiled_clip, type, adjusted_start_time, adjusted_end_time, is_adjusted
             FROM last_clip
             WHERE chat_id = $1
-            ORDER BY id DESC 
+            ORDER BY id DESC
             LIMIT 1
             ''', chat_id,
         )

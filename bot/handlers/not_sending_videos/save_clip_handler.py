@@ -113,7 +113,7 @@ class SaveClipHandler(BotMessageHandler):
             episode_info_data = segment_info_dict['episode_info']
             episode_info = EpisodeInfo(
                 season=episode_info_data['season'],
-                episode_number=episode_info_data['episode_number']
+                episode_number=episode_info_data['episode_number'],
             )
             segment_info_dict['episode_info'] = episode_info
 
