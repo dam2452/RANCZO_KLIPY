@@ -1,4 +1,8 @@
-from typing import Dict, List
+from typing import (
+    Dict,
+    List,
+)
+
 from bot.database.models import VideoClip
 
 number_to_emoji: Dict[str, str] = {

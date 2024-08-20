@@ -1,6 +1,8 @@
 from typing import List
-from bot.database.models import UserProfile
+
 from tabulate import tabulate
+
+from bot.database.models import UserProfile
 
 
 def create_whitelist_response(users: List[UserProfile]) -> str:
@@ -11,7 +13,7 @@ def create_whitelist_response(users: List[UserProfile]) -> str:
             user.full_name or "N/A",
             user.email or "N/A",
             user.phone or "N/A",
-            user.subscription_end or "N/A"
+            user.subscription_end or "N/A",
         ])
 
     response = f"```whitelista\n{tabulate(table, headers='firstrow', tablefmt='grid')}```"

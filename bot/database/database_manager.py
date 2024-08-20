@@ -12,10 +12,10 @@ import asyncpg
 
 from bot.database.models import (
     LastClip,
+    User,
     UserProfile,
     UserRole,
     VideoClip,
-    User
 )
 from bot.settings import settings
 

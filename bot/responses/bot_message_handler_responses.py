@@ -1,4 +1,5 @@
 from typing import List
+
 from bot.database.models import UserProfile
 
 
