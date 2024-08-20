@@ -40,7 +40,8 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         async with conn.transaction():
             try:
                 table_exists = await conn.fetchval(
-                    "SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'user_profiles')",
+                    "SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = $1)",
+                    'user_profiles',
                 )
 
                 if not table_exists:
@@ -99,16 +100,16 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         params = []
 
         if user.full_name is not None:
-            updates.append('full_name = $' + str(len(params) + 1))
+            updates.append(f'full_name = ${len(params) + 1}')
             params.append(user.full_name)
         if user.email is not None:
-            updates.append('email = $' + str(len(params) + 1))
+            updates.append(f'email = ${len(params) + 1}')
             params.append(user.email)
         if user.phone is not None:
-            updates.append('phone = $' + str(len(params) + 1))
+            updates.append(f'phone = ${len(params) + 1}')
             params.append(user.phone)
         if subscription_end is not None:
-            updates.append('subscription_end = $' + str(len(params) + 1))
+            updates.append(f'subscription_end = ${len(params) + 1}')
             params.append(subscription_end)
 
         if updates:
@@ -122,10 +123,10 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
             role_params = []
 
             if user.is_admin is not None:
-                role_updates.append('is_admin = $' + str(len(role_params) + 1))
+                role_updates.append(f'is_admin = ${len(role_params) + 1}')
                 role_params.append(bool(user.is_admin))
             if user.is_moderator is not None:
-                role_updates.append('is_moderator = $' + str(len(role_params) + 1))
+                role_updates.append(f'is_moderator = ${len(role_params) + 1}')
                 role_params.append(bool(user.is_moderator))
 
             if role_updates:
@@ -156,7 +157,7 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         conn = await DatabaseManager.get_db_connection()
         result = await conn.fetch("SELECT EXISTS (SELECT 1 FROM user_profiles where username = $1)", username)
         await conn.close()
-        return result[0]['exists']
+        return result['exists']
 
     @staticmethod
     async def get_admin_users() -> Optional[List[asyncpg.Record]]:
@@ -502,5 +503,3 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         user_id = await conn.fetchval('SELECT id FROM user_profiles WHERE username = $1', username)
         await conn.close()
         return user_id
-
-

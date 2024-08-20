@@ -30,7 +30,7 @@ from bot.video.segment_info import (
     SegmentInfo,
 )
 from bot.video.utils import get_video_duration
-
+from bot.settings import settings
 
 class SaveClipHandler(BotMessageHandler):
     __SEGMENT_INFO_GETTERS: Dict[str, Callable[[Dict[str, Union[json, str]]], SegmentInfo]] = {
@@ -170,8 +170,8 @@ class SaveClipHandler(BotMessageHandler):
         )
 
     async def __prepare_clip_file(self, segment_info: SegmentInfo) -> Tuple[str, int, int, bool, Optional[int], Optional[int]]:
-        start_time = segment_info.start
-        end_time = segment_info.end
+        start_time = segment_info.start  - settings.EXTEND_BEFORE
+        end_time = segment_info.end + settings.EXTEND_AFTER
         is_compilation = False
         season = None
         episode_number = None
