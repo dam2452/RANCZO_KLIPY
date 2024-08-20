@@ -3,7 +3,7 @@ from typing import (
     Optional,
 )
 
-from bot.database.user import User
+from bot.database.database_manager import User
 
 
 class InvalidTimeStringException(Exception):

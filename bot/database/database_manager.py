@@ -15,8 +15,8 @@ from bot.database.models import (
     UserProfile,
     UserRole,
     VideoClip,
+    User
 )
-from bot.database.user import User
 from bot.settings import settings
 
 
