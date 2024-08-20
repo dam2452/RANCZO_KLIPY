@@ -1,9 +1,5 @@
-from typing import (
-    Dict,
-    List,
-)
-
-import asyncpg
+from typing import Dict, List
+from bot.database.models import VideoClip
 
 number_to_emoji: Dict[str, str] = {
     '0': '0️⃣',
@@ -23,25 +19,23 @@ def convert_number_to_emoji(number: int) -> str:
     return ''.join(number_to_emoji.get(digit, digit) for digit in str(number))
 
 
-def format_myclips_response(clips: List[asyncpg.Record], username: str) -> str:
+def format_myclips_response(clips: List[VideoClip], username: str) -> str:
     clip_lines = []
 
-    for idx, (clip_name, _, _, duration, season, episode_number, is_compilation) in enumerate(clips, start=1):
-        if duration:
-            minutes, seconds = divmod(duration, 60)
+    for idx, clip in enumerate(clips, start=1):
+        if clip.duration:
+            minutes, seconds = divmod(clip.duration, 60)
             length_str = f"{minutes}m{seconds:.2f}s" if minutes else f"{seconds:.2f}s"
         else:
             length_str = "Brak danych"
 
-        if is_compilation:
-            minutes, seconds = divmod(duration, 60)
-            length_str = f"{minutes}m{seconds:.2f}s" if minutes else f"{seconds:.2f}s"
+        if clip.is_compilation:
             season_episode = "Kompilacja"
         else:
-            episode_number_mod = (episode_number - 1) % 13 + 1
-            season_episode = f"S{season:02d}E{episode_number_mod:02d}"
+            episode_number_mod = (clip.episode_number - 1) % 13 + 1 if clip.episode_number else "N/A"
+            season_episode = f"S{clip.season:02d}E{episode_number_mod:02d}"
 
-        clip_lines.append(f"{convert_number_to_emoji(idx)} | 📺 {season_episode} | 🕒 {length_str}\n👉 {clip_name}")
+        clip_lines.append(f"{convert_number_to_emoji(idx)} | 📺 {season_episode} | 🕒 {length_str}\n👉 {clip.clip_name}")
 
     return f"🎬 Twoje Zapisane Klipy 🎬\n\n🎥 Użytkownik: @{username}\n\n" + "```\n" + "\n\n".join(clip_lines) + "\n```"
 

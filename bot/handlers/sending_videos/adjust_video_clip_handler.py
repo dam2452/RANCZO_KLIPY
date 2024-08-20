@@ -48,11 +48,12 @@ class AdjustVideoClipHandler(BotMessageHandler):
             if not last_clip:
                 return await self.__reply_no_quotes_selected(message)
 
-            segment_info = json.loads(last_clip['segment']) if last_clip['segment'] else None
+            segment_info = last_clip.segment if last_clip.segment else None
+            if isinstance(segment_info, str):
+                segment_info = json.loads(segment_info)
 
         else:
             return await self._reply_invalid_args_count(message, get_invalid_args_count_message())
-
         await self._log_system_message(logging.INFO, f"Segment Info: {segment_info}")
 
         try:

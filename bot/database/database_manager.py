@@ -10,6 +10,12 @@ from typing import (
 
 import asyncpg
 
+from bot.database.models import (
+    LastClip,
+    UserProfile,
+    UserRole,
+    VideoClip,
+)
 from bot.database.user import User
 from bot.settings import settings
 
@@ -144,13 +150,13 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         await conn.close()
 
     @staticmethod
-    async def get_all_users() -> Optional[List[asyncpg.Record]]:
+    async def get_all_users() -> Optional[List[UserProfile]]:
         conn = await DatabaseManager.get_db_connection()
-        result = await conn.fetch(
-            'SELECT username, full_name, email, phone, subscription_end FROM user_profiles',
+        rows = await conn.fetch(
+            'SELECT id, username, full_name, email, phone, subscription_end FROM user_profiles',
         )
         await conn.close()
-        return result
+        return [UserProfile(**row) for row in rows] if rows else None
 
     @staticmethod
     async def is_user_in_db(username: str) -> bool:
@@ -160,22 +166,22 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         return result['exists']
 
     @staticmethod
-    async def get_admin_users() -> Optional[List[asyncpg.Record]]:
+    async def get_admin_users() -> Optional[List[UserProfile]]:
         conn = await DatabaseManager.get_db_connection()
-        result = await conn.fetch(
-            'SELECT username, full_name, email, phone FROM user_profiles WHERE id IN (SELECT user_id FROM user_roles WHERE is_admin = TRUE)',
+        rows = await conn.fetch(
+            'SELECT id, username, full_name, email, phone, subscription_end FROM user_profiles WHERE id IN (SELECT user_id FROM user_roles WHERE is_admin = TRUE)',
         )
         await conn.close()
-        return result
+        return [UserProfile(**row) for row in rows] if rows else None
 
     @staticmethod
-    async def get_moderator_users() -> Optional[List[asyncpg.Record]]:
+    async def get_moderator_users() -> Optional[List[UserProfile]]:
         conn = await DatabaseManager.get_db_connection()
-        result = await conn.fetch(
-            'SELECT username, full_name, email, phone FROM user_profiles WHERE id IN (SELECT user_id FROM user_roles WHERE is_moderator = TRUE)',
+        rows = await conn.fetch(
+            'SELECT id, username, full_name, email, phone FROM user_profiles WHERE id IN (SELECT user_id FROM user_roles WHERE is_moderator = TRUE)',
         )
         await conn.close()
-        return result
+        return [UserProfile(**row) for row in rows] if rows else None
 
     @staticmethod
     async def is_user_subscribed(username: str) -> bool:
@@ -239,14 +245,14 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         await conn.close()
 
     @staticmethod
-    async def get_saved_clips(user_id: int) -> Optional[List[asyncpg.Record]]:
+    async def get_saved_clips(user_id: int) -> Optional[List[VideoClip]]:
         conn = await DatabaseManager.get_db_connection()
-        result = await conn.fetch(
+        rows = await conn.fetch(
             'SELECT clip_name, start_time, end_time, duration, season, episode_number, is_compilation FROM video_clips WHERE user_id = $1',
             user_id,
         )
         await conn.close()
-        return result
+        return [VideoClip(**row) for row in rows] if rows else None
 
     @staticmethod
     async def save_clip(
@@ -440,19 +446,18 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         return clip_id
 
     @staticmethod
-    async def get_last_clip_by_chat_id(chat_id: int) -> Optional[asyncpg.Record]:
+    async def get_last_clip_by_chat_id(chat_id: int) -> Optional[LastClip]:
         conn = await DatabaseManager.get_db_connection()
-        result = await conn.fetchrow(
+        row = await conn.fetchrow(
             '''
-            SELECT id, chat_id, segment, compiled_clip, type, adjusted_start_time, adjusted_end_time, is_adjusted
+            SELECT id, chat_id, segment, compiled_clip, type AS clip_type, adjusted_start_time, adjusted_end_time, is_adjusted, timestamp
             FROM last_clips
             WHERE chat_id = $1
             ORDER BY id DESC
             LIMIT 1
             ''', chat_id,
         )
-        await conn.close()
-        return result
+        return LastClip(**row) if row else None
 
     @staticmethod
     async def update_last_clip(

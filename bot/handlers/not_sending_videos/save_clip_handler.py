@@ -55,7 +55,7 @@ class SaveClipHandler(BotMessageHandler):
             return await self.__reply_no_segment_selected(message)
 
         output_filename, start_time, end_time, is_compilation, season, episode_number = await self.__prepare_clip_file(segment_info)
-        output_filename.replace(" ", "_")
+        output_filename = output_filename.replace(" ", "_")
 
         duration = await get_video_duration(output_filename)
         await self.__save_clip_to_db(
@@ -84,8 +84,8 @@ class SaveClipHandler(BotMessageHandler):
             logging.info("No last_clip_info found for chat_id: %s", message.chat.id)
             return None
 
-        segment_data = last_clip_info['segment']
-        compiled_clip_data = last_clip_info['compiled_clip']
+        segment_data = last_clip_info.segment
+        compiled_clip_data = last_clip_info.compiled_clip
 
         logging.debug("Raw segment data: %s", segment_data)
         logging.debug("Raw compiled clip data: %s", compiled_clip_data)
@@ -109,9 +109,9 @@ class SaveClipHandler(BotMessageHandler):
             logging.error("Failed to decode JSON from segment_info_str: %s", e)
             return None
 
-        adjusted_start_time = last_clip_info.get('adjusted_start_time')
-        adjusted_end_time = last_clip_info.get('adjusted_end_time')
-        is_adjusted = last_clip_info.get('is_adjusted', False)
+        adjusted_start_time = last_clip_info.adjusted_start_time
+        adjusted_end_time = last_clip_info.adjusted_end_time
+        is_adjusted = last_clip_info.is_adjusted
 
         if is_adjusted and adjusted_start_time is not None and adjusted_end_time is not None:
             segment_info_dict['start'] = adjusted_start_time

@@ -25,7 +25,9 @@ class DeleteClipHandler(BotMessageHandler):
 
         clip_name = command_parts[1]
 
-        result = await DatabaseManager.delete_clip(message.from_user.username, clip_name)
+        user_id = await DatabaseManager.get_user_id_by_username(message.from_user.username)
+
+        result = await DatabaseManager.delete_clip(user_id, clip_name)
 
         if result == "DELETE 0":
             await self.__reply_clip_not_exist(message, clip_name, message.from_user.username)
