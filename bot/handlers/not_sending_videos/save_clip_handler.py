@@ -24,13 +24,14 @@ from bot.responses.not_sending_videos.save_clip_handler_responses import (
     get_log_no_segment_selected_message,
     get_no_segment_selected_message,
 )
+from bot.settings import settings
 from bot.video.clips_extractor import ClipsExtractor
 from bot.video.segment_info import (
     EpisodeInfo,
     SegmentInfo,
 )
 from bot.video.utils import get_video_duration
-from bot.settings import settings
+
 
 class SaveClipHandler(BotMessageHandler):
     __SEGMENT_INFO_GETTERS: Dict[str, Callable[[Dict[str, Union[json, str]]], SegmentInfo]] = {
