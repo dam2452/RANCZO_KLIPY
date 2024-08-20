@@ -14,7 +14,6 @@ from bot.database.models import (
     LastClip,
     User,
     UserProfile,
-    UserRole,
     VideoClip,
 )
 from bot.settings import settings
