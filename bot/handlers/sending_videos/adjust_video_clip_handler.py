@@ -1,6 +1,7 @@
 import json
 import logging
 from typing import List
+from bot.settings import settings
 
 from aiogram.types import Message
 
@@ -65,8 +66,8 @@ class AdjustVideoClipHandler(BotMessageHandler):
         except (ValueError, TypeError):
             return await self.__reply_invalid_args_count(message)
 
-        start_time = max(0, float(original_start_time - additional_start_offset))
-        end_time = float(original_end_time + additional_end_offset)
+        start_time = max(0, float(original_start_time - additional_start_offset)) - settings.EXTEND_BEFORE
+        end_time = float(original_end_time + additional_end_offset) + settings.EXTEND_AFTER
 
         if end_time <= start_time:
             return await self.__reply_invalid_interval(message)
