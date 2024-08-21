@@ -3,10 +3,8 @@ CREATE EXTENSION IF NOT EXISTS pg_trgm;
 CREATE TABLE IF NOT EXISTS user_profiles (
     id SERIAL PRIMARY KEY,
     username TEXT UNIQUE NOT NULL,
-    full_name TEXT,
-    email TEXT,
-    phone TEXT,
-    subscription_end DATE DEFAULT NULL
+    subscription_end DATE DEFAULT NULL,
+    note TEXT DEFAULT NULL
 );
 
 CREATE TABLE IF NOT EXISTS user_roles (
@@ -23,7 +21,7 @@ CREATE TABLE IF NOT EXISTS user_logs (
     id SERIAL,
     user_id INT REFERENCES user_profiles(id) ON DELETE CASCADE,
     command TEXT NOT NULL,
-    timestamp TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id, timestamp)
 ) PARTITION BY RANGE (timestamp);
 
@@ -40,7 +38,7 @@ CREATE TABLE IF NOT EXISTS system_logs (
     id SERIAL PRIMARY KEY,
     log_level TEXT NOT NULL,
     log_message TEXT NOT NULL,
-    timestamp TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX IF NOT EXISTS idx_system_logs_timestamp ON system_logs(timestamp);
@@ -66,7 +64,7 @@ CREATE TABLE IF NOT EXISTS reports (
     id SERIAL PRIMARY KEY,
     user_id INT NOT NULL REFERENCES user_profiles(id) ON DELETE CASCADE,
     report TEXT NOT NULL,
-    timestamp TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX IF NOT EXISTS idx_reports_user_id ON reports(user_id);
@@ -76,7 +74,7 @@ CREATE TABLE IF NOT EXISTS search_history (
     chat_id BIGINT NOT NULL,
     quote TEXT NOT NULL,
     segments JSONB NOT NULL,
-    timestamp TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX IF NOT EXISTS idx_search_history_timestamp ON search_history(timestamp);
@@ -91,7 +89,7 @@ CREATE TABLE IF NOT EXISTS last_clips (
     adjusted_start_time FLOAT NULL,
     adjusted_end_time FLOAT NULL,
     is_adjusted BOOLEAN DEFAULT FALSE,
-    timestamp TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX IF NOT EXISTS idx_last_clips_timestamp ON last_clips(timestamp);
