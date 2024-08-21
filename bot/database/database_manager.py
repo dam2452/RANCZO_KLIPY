@@ -244,9 +244,9 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
 
     @staticmethod
     async def save_clip(
-        chat_id: int, user_id: int, clip_name: str, video_data: bytes, start_time: float,
-        end_time: float, duration: float, is_compilation: bool,
-        season: Optional[int] = None, episode_number: Optional[int] = None,
+            chat_id: int, user_id: int, clip_name: str, video_data: bytes, start_time: float,
+            end_time: float, duration: float, is_compilation: bool,
+            season: Optional[int] = None, episode_number: Optional[int] = None,
     ) -> None:
         conn = await DatabaseManager.get_db_connection()
         async with conn.transaction():
@@ -442,7 +442,7 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
             VALUES ($1, $2::jsonb, $3::bytea, $4, $5, $6, $7)
             ''',
             last_clip.chat_id,
-            json.dumps(last_clip.segment) if last_clip.segment else None,
+            last_clip.segment,
             last_clip.compiled_clip,
             last_clip.clip_type,
             last_clip.adjusted_start_time,
@@ -467,8 +467,8 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
 
     @staticmethod
     async def update_last_clip(
-        clip_id: int, new_segment: Optional[dict] = None, new_compiled_clip: Optional[bytes] = None,
-        new_type: Optional[str] = None,
+            clip_id: int, new_segment: Optional[dict] = None, new_compiled_clip: Optional[bytes] = None,
+            new_type: Optional[str] = None,
     ) -> None:
         conn = await DatabaseManager.get_db_connection()
         if new_segment:
