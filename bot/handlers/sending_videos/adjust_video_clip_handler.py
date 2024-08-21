@@ -1,7 +1,6 @@
 import json
 import logging
 from typing import List
-from bot.settings import settings
 
 from aiogram.types import Message
 
@@ -23,6 +22,7 @@ from bot.responses.sending_videos.adjust_video_clip_handler_responses import (
     get_successful_adjustment_message,
     get_updated_segment_info_log,
 )
+from bot.settings import settings
 from bot.video.clips_extractor import ClipsExtractor
 from bot.video.utils import FFMpegException
 
