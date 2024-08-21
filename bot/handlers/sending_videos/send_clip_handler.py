@@ -72,4 +72,3 @@ class SendClipHandler(BotMessageHandler):
             logging.ERROR,
             get_log_empty_file_error_message(clip_name, message.from_user.username),
         )
-

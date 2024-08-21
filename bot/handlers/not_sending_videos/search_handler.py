@@ -35,7 +35,7 @@ class SearchHandler(BotMessageHandler):
 
         segments_json = json.dumps(segments)
 
-        await DatabaseManager.insert_last_search(chat_id=message.chat.id, quote=quote, segments=segments_json) #fixme działa i nwm czego ta maszyna ode mnie chce XD
+        await DatabaseManager.insert_last_search(chat_id=message.chat.id, quote=quote, segments=segments_json)
 
         response = format_search_response(len(segments), segments)
 

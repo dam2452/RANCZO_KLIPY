@@ -2,6 +2,7 @@ from datetime import (
     date,
     timedelta,
 )
+import json
 from typing import (
     List,
     Optional,
@@ -34,7 +35,7 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
     async def execute_sql_file(file_path: str) -> None:
         conn = await DatabaseManager.get_db_connection()
         async with conn.transaction():
-            with open(file_path, 'r') as file:
+            with open(file_path, 'r', encoding='utf-8') as file:
                 sql = file.read()
                 await conn.execute(sql)
         await conn.close()
@@ -50,13 +51,12 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
                 )
 
                 if not table_exists:
-                    with open('./bot/database/init_db.sql', 'r') as file:
+                    with open('./bot/database/init_db.sql', 'r', encoding='utf-8') as file:
                         sql = file.read()
                         await conn.execute(sql)
                 else:
                     print("Database is already initialized. Skipping initialization script.")
-
-            except Exception as e:
+            except asyncpg.PostgresError as e:
                 print(f"Error during database initialization: {e}")
         await conn.close()
 
@@ -244,14 +244,18 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
 
     @staticmethod
     async def save_clip(
-        chat_id: int, user_id: int, clip_name: str, video_data: bytes, start_time: float, end_time: float, duration: float,
-        is_compilation: bool, season: Optional[int] = None, episode_number: Optional[int] = None,
+        chat_id: int, user_id: int, clip_name: str, video_data: bytes, start_time: float,
+        end_time: float, duration: float, is_compilation: bool,
+        season: Optional[int] = None, episode_number: Optional[int] = None,
     ) -> None:
         conn = await DatabaseManager.get_db_connection()
         async with conn.transaction():
             await conn.execute(
-                'INSERT INTO video_clips (chat_id, user_id, clip_name, video_data, start_time, end_time, duration, season, episode_number, is_compilation) VALUES ($1, $2, $3, $4::bytea, $5, $6, $7, $8, $9, $10)',
-                chat_id, user_id, clip_name, video_data, start_time, end_time, duration, season, episode_number, is_compilation,
+                'INSERT INTO video_clips (chat_id, user_id, clip_name, video_data, start_time, '
+                'end_time, duration, season, episode_number, is_compilation) '
+                'VALUES ($1, $2, $3, $4::bytea, $5, $6, $7, $8, $9, $10)',
+                chat_id, user_id, clip_name, video_data, start_time, end_time, duration,
+                season, episode_number, is_compilation,
             )
         await conn.close()
 
@@ -363,7 +367,7 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         return result == 0
 
     @staticmethod
-    async def insert_last_search(chat_id: int, quote: str, segments: dict) -> int:
+    async def insert_last_search(chat_id: int, quote: str, segments: Optional[dict,json]) -> int:
         conn = await DatabaseManager.get_db_connection()
         search_id = await conn.fetchval(
             'INSERT INTO search_history (chat_id, quote, segments) VALUES ($1, $2, $3::jsonb) RETURNING id',

@@ -22,9 +22,9 @@ class UpdateWhitelistHandler(BotMessageHandler):
         if len(content) < 2:
             return await self._reply_invalid_args_count(message, get_no_username_provided_message())
 
-        user = parse_whitelist_message(content, default_admin_status=None, default_moderator_status=None)
+        user = parse_whitelist_message(content)
         await DatabaseManager.update_user(user)
-        await self.__reply_user_updated(message, user.name)
+        await self.__reply_user_updated(message, user.full_name or user.username)
 
     async def __reply_user_updated(self, message: Message, username: str) -> None:
         await message.answer(get_user_updated_message(username))

@@ -1,7 +1,4 @@
-from typing import (
-    List,
-    Optional,
-)
+from typing import List
 
 from bot.database.database_manager import UserProfile
 
@@ -35,11 +32,12 @@ def time_str_to_seconds(time_str: str) -> int:
 
 
 def parse_whitelist_message(
-        content: List[str], default_admin_status: Optional[bool], default_moderator_status: Optional[bool],
+        content: List[str],
 ) -> UserProfile:
     return UserProfile(
         user_id=int(content[0]),
         username=content[1] if len(content) > 1 else None,
+        full_name=content[2] if len(content) > 2 else None,
         subscription_end=None,
         note=None,
     )
