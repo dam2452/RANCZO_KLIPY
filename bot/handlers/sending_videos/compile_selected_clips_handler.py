@@ -80,7 +80,7 @@ class CompileSelectedClipsHandler(BotMessageHandler):
             if not clip:
                 await self.__reply_clip_not_found(message, clip_name, username)
             else:
-                selected_clips_data.append((clip[0], clip[1]))
+                selected_clips_data.append((clip.video_data, clip.duration))
         return selected_clips_data
 
     async def __reply_clip_not_found(self, message: Message, clip_name: str, username: str) -> None:
