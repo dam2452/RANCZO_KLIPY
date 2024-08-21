@@ -5,7 +5,6 @@ from datetime import (
 from typing import (
     List,
     Optional,
-    Tuple,
 )
 
 from aiogram import Bot
@@ -127,8 +126,7 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
     @staticmethod
     async def remove_user(user_id: int) -> None:
         conn = await DatabaseManager.get_db_connection()
-        async with conn.transaction():
-            await conn.execute('DELETE FROM user_profiles WHERE user_id = $1', user_id)
+        await conn.execute('DELETE FROM user_profiles WHERE user_id = $1', user_id)
         await conn.close()
 
     @staticmethod
@@ -353,10 +351,10 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         new_end_date = await conn.fetchval(
             '''
             UPDATE user_profiles
-            SET subscription_end = COALESCE(subscription_end, CURRENT_DATE) + $1 * INTERVAL '1 day'
-            WHERE user_id = $2
+            SET subscription_end = CURRENT_DATE + $2 * interval '1 day'
+            WHERE user_id = $1
             RETURNING subscription_end
-            ''', days, user_id,
+            ''', user_id, days,
         )
         await conn.close()
         return new_end_date

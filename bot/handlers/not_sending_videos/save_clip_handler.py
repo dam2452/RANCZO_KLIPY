@@ -38,7 +38,8 @@ class SaveClipHandler(BotMessageHandler):
         "manual": (lambda last_clip_info: SegmentInfo(**last_clip_info)),
         "segment": (lambda last_clip_info: SaveClipHandler._convert_to_segment_info(last_clip_info['segment'])),
         "compiled": (lambda last_clip_info: SegmentInfo(**last_clip_info['compiled_clip'])),
-        "adjusted": (lambda last_clip_info: SaveClipHandler._convert_to_segment_info_with_adjustment(last_clip_info)),  # pylint: disable=unnecessary-lambda
+        "adjusted": (lambda last_clip_info: SaveClipHandler._convert_to_segment_info_with_adjustment(last_clip_info)),
+        # pylint: disable=unnecessary-lambda
     }
 
     def get_commands(self) -> List[str]:
@@ -202,15 +203,14 @@ class SaveClipHandler(BotMessageHandler):
 
     @staticmethod
     async def __save_clip_to_db(
-        message: Message, clip_name: str, output_filename: str, start_time: float,
-        end_time: float, duration: float, is_compilation: bool, season: Optional[int],
-        episode_number: Optional[int],
+            message: Message, clip_name: str, output_filename: str, start_time: float,
+            end_time: float, duration: float, is_compilation: bool, season: Optional[int],
+            episode_number: Optional[int],
     ) -> None:
 
         with open(output_filename, 'rb') as file:
             video_data = file.read()
         os.remove(output_filename)
-
 
         await DatabaseManager.save_clip(
             chat_id=message.chat.id,
