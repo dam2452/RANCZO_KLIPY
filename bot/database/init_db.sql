@@ -1,15 +1,16 @@
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 
 CREATE TABLE IF NOT EXISTS user_profiles (
-    id SERIAL PRIMARY KEY,
-    username TEXT UNIQUE NOT NULL,
+    user_id BIGINT PRIMARY KEY,
+    username TEXT UNIQUE,
+    full_name TEXT,
     subscription_end DATE DEFAULT NULL,
     note TEXT DEFAULT NULL
 );
 
 CREATE TABLE IF NOT EXISTS user_roles (
     id SERIAL PRIMARY KEY,
-    user_id INT REFERENCES user_profiles(id) ON DELETE CASCADE,
+    user_id BIGINT REFERENCES user_profiles(user_id),
     is_admin BOOLEAN NOT NULL DEFAULT FALSE,
     is_moderator BOOLEAN NOT NULL DEFAULT FALSE,
     CONSTRAINT unique_user_id UNIQUE(user_id)
@@ -19,9 +20,9 @@ CREATE INDEX IF NOT EXISTS idx_user_roles_user_id ON user_roles(user_id);
 
 CREATE TABLE IF NOT EXISTS user_logs (
     id SERIAL,
-    user_id INT REFERENCES user_profiles(id) ON DELETE CASCADE,
+    user_id BIGINT REFERENCES user_profiles(user_id),
     command TEXT NOT NULL,
-    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    timestamp TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id, timestamp)
 ) PARTITION BY RANGE (timestamp);
 
@@ -46,7 +47,7 @@ CREATE INDEX IF NOT EXISTS idx_system_logs_timestamp ON system_logs(timestamp);
 CREATE TABLE IF NOT EXISTS video_clips (
     id SERIAL PRIMARY KEY,
     chat_id BIGINT NOT NULL,
-    user_id INT NOT NULL REFERENCES user_profiles(id) ON DELETE CASCADE,
+    user_id INT NOT NULL REFERENCES user_profiles(user_id) ON DELETE CASCADE,
     clip_name TEXT NOT NULL,
     video_data BYTEA NOT NULL,
     start_time FLOAT,
@@ -62,7 +63,7 @@ CREATE INDEX IF NOT EXISTS idx_video_clips_clip_name ON video_clips(clip_name);
 
 CREATE TABLE IF NOT EXISTS reports (
     id SERIAL PRIMARY KEY,
-    user_id INT NOT NULL REFERENCES user_profiles(id) ON DELETE CASCADE,
+    user_id BIGINT NOT NULL REFERENCES user_profiles(user_id) ON DELETE CASCADE,
     report TEXT NOT NULL,
     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

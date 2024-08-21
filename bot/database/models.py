@@ -5,8 +5,9 @@ from typing import Optional
 
 @dataclass
 class UserProfile:
-    id: int
-    username: str
+    user_id: int
+    username: Optional[str]
+    full_name: Optional[str]
     subscription_end: Optional[date]
     note: Optional[str]
 
@@ -40,13 +41,3 @@ class LastClip:
     adjusted_end_time: Optional[float]
     is_adjusted: bool
     timestamp: date
-
-
-@dataclass
-class User:
-    name: str
-    is_admin: Optional[bool]
-    is_moderator: Optional[bool]
-    full_name: Optional[str]
-    email: Optional[str]
-    phone: Optional[str]

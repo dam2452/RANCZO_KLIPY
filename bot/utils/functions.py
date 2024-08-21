@@ -3,7 +3,7 @@ from typing import (
     Optional,
 )
 
-from bot.database.database_manager import User
+from bot.database.database_manager import UserProfile
 
 
 class InvalidTimeStringException(Exception):
@@ -34,12 +34,12 @@ def time_str_to_seconds(time_str: str) -> int:
     return h * 3600 + m * 60 + s
 
 
-def parse_whitelist_message(content: List[str], default_admin_status: Optional[bool], default_moderator_status: Optional[bool]) -> User:
-    return User(
-        name=content[1],
-        is_admin=bool(int(content[2])) if len(content) > 2 else default_admin_status,
-        is_moderator=bool(int(content[3])) if len(content) > 3 else default_moderator_status,
-        full_name=content[4] if len(content) > 4 else None,
-        email=content[5] if len(content) > 5 else None,
-        phone=content[6] if len(content) > 6 else None,
+def parse_whitelist_message(
+        content: List[str], default_admin_status: Optional[bool], default_moderator_status: Optional[bool],
+) -> UserProfile:
+    return UserProfile(
+        user_id=int(content[0]),
+        username=content[1] if len(content) > 1 else None,
+        subscription_end=None,
+        note=None,
     )

@@ -16,8 +16,8 @@ class AdminMiddleware(BotMiddleware):
             self, handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]], event: TelegramObject,
             data: Dict[str, Any],
     ) -> Optional[Awaitable]:
-        if event.from_user.username and await self._does_user_have_admin_privileges(event.from_user.username):
+        if event.from_user and await self._does_user_have_admin_privileges(event.from_user.id):
             return await handler(event, data)
 
         await event.answer("❌ Nie masz uprawnień admina.❌")
-        self._logger.warning(f"Unauthorized admin access attempt by user: {event.from_user.username}")
+        self._logger.warning(f"Unauthorized admin access attempt by user: {event.from_user.id}")

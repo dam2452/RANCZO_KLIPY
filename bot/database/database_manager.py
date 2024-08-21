@@ -8,11 +8,11 @@ from typing import (
     Tuple,
 )
 
+from aiogram import Bot
 import asyncpg
 
 from bot.database.models import (
     LastClip,
-    User,
     UserProfile,
     VideoClip,
 )
@@ -61,15 +61,13 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         await conn.close()
 
     @staticmethod
-    async def log_user_activity(username: str, command: str) -> None:
+    async def log_user_activity(user_id: int, command: str) -> None:
         conn = await DatabaseManager.get_db_connection()
         async with conn.transaction():
-            user_id = await conn.fetchval('SELECT id FROM user_profiles WHERE username = $1', username)
-            if user_id:
-                await conn.execute(
-                    'INSERT INTO user_logs (user_id, command) VALUES ($1, $2)',
-                    user_id, command,
-                )
+            await conn.execute(
+                'INSERT INTO user_logs (user_id, command) VALUES ($1, $2)',
+                user_id, command,
+            )
         await conn.close()
 
     @staticmethod
@@ -83,84 +81,70 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         await conn.close()
 
     @staticmethod
-    async def add_user(user: User, subscription_days: Optional[int] = None) -> None:
+    async def add_user(user: UserProfile, bot: Bot, subscription_days: Optional[int] = None) -> None:
         conn = await DatabaseManager.get_db_connection()
+
+        # Pobierz username i full_name na podstawie user_id, jeśli nie są dostarczone w UserProfile
+        if not user.username or not user.full_name:
+            user_data = await bot.get_chat(user.user_id)
+            user.username = user_data.username
+            user.full_name = user_data.full_name
+
         subscription_end = date.today() + timedelta(days=subscription_days) if subscription_days else None
         async with conn.transaction():
             await conn.execute(
-                'INSERT INTO user_profiles (username, full_name, email, phone, subscription_end) VALUES ($1, $2, $3, $4, $5) ON CONFLICT (username) DO NOTHING',
-                user.name, user.full_name, user.email, user.phone, subscription_end,
-            )
-            user_id = await conn.fetchval('SELECT id FROM user_profiles WHERE username = $1', user.name)
-            await conn.execute(
-                'INSERT INTO user_roles (user_id, is_admin, is_moderator) VALUES ($1, $2, $3)',
-                user_id, bool(user.is_admin), bool(user.is_moderator),
+                'INSERT INTO user_profiles (user_id, username, full_name, subscription_end, note) VALUES ($1, $2, $3, $4, $5) ON CONFLICT (user_id) DO NOTHING',
+                user.user_id, user.username, user.full_name, subscription_end, user.note,
             )
         await conn.close()
 
     @staticmethod
-    async def update_user(user: User, subscription_end: Optional[int] = None) -> None:
+    async def update_user(user: UserProfile, subscription_end: Optional[int] = None) -> None:
         conn = await DatabaseManager.get_db_connection()
         updates = []
         params = []
 
+        if user.username is not None:
+            updates.append(f'username = ${len(params) + 1}')
+            params.append(user.username)
         if user.full_name is not None:
             updates.append(f'full_name = ${len(params) + 1}')
             params.append(user.full_name)
-        if user.email is not None:
-            updates.append(f'email = ${len(params) + 1}')
-            params.append(user.email)
-        if user.phone is not None:
-            updates.append(f'phone = ${len(params) + 1}')
-            params.append(user.phone)
+        if user.note is not None:
+            updates.append(f'note = ${len(params) + 1}')
+            params.append(user.note)
         if subscription_end is not None:
             updates.append(f'subscription_end = ${len(params) + 1}')
             params.append(subscription_end)
 
         if updates:
-            query = f'UPDATE user_profiles SET {", ".join(updates)} WHERE username = ${len(params) + 1}'
-            params.append(user.name)
+            query = f'UPDATE user_profiles SET {", ".join(updates)} WHERE user_id = ${len(params) + 1}'
+            params.append(user.user_id)
             async with conn.transaction():
                 await conn.execute(query, *params)
-
-            user_id = await conn.fetchval('SELECT id FROM user_profiles WHERE username = $1', user.name)
-            role_updates = []
-            role_params = []
-
-            if user.is_admin is not None:
-                role_updates.append(f'is_admin = ${len(role_params) + 1}')
-                role_params.append(bool(user.is_admin))
-            if user.is_moderator is not None:
-                role_updates.append(f'is_moderator = ${len(role_params) + 1}')
-                role_params.append(bool(user.is_moderator))
-
-            if role_updates:
-                query = f'UPDATE user_roles SET {", ".join(role_updates)} WHERE user_id = ${len(role_params) + 1}'
-                role_params.append(user_id)
-                await conn.execute(query, *role_params)
 
         await conn.close()
 
     @staticmethod
-    async def remove_user(username: str) -> None:
+    async def remove_user(user_id: int) -> None:
         conn = await DatabaseManager.get_db_connection()
         async with conn.transaction():
-            await conn.execute('DELETE FROM user_profiles WHERE username = $1', username)
+            await conn.execute('DELETE FROM user_profiles WHERE user_id = $1', user_id)
         await conn.close()
 
     @staticmethod
     async def get_all_users() -> Optional[List[UserProfile]]:
         conn = await DatabaseManager.get_db_connection()
         rows = await conn.fetch(
-            'SELECT id, username, full_name, email, phone, subscription_end FROM user_profiles',
+            'SELECT user_id, username, subscription_end, note FROM user_profiles',
         )
         await conn.close()
         return [UserProfile(**row) for row in rows] if rows else None
 
     @staticmethod
-    async def is_user_in_db(username: str) -> bool:
+    async def is_user_in_db(user_id: int) -> bool:
         conn = await DatabaseManager.get_db_connection()
-        result = await conn.fetchval("SELECT EXISTS (SELECT 1 FROM user_profiles WHERE username = $1)", username)
+        result = await conn.fetchval("SELECT EXISTS (SELECT 1 FROM user_profiles WHERE user_id = $1)", user_id)
         await conn.close()
         return result
 
@@ -168,7 +152,7 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
     async def get_admin_users() -> Optional[List[UserProfile]]:
         conn = await DatabaseManager.get_db_connection()
         rows = await conn.fetch(
-            'SELECT id, username, full_name, email, phone, subscription_end FROM user_profiles WHERE id IN (SELECT user_id FROM user_roles WHERE is_admin = TRUE)',
+            'SELECT user_id, username, subscription_end, note FROM user_profiles WHERE user_id IN (SELECT user_id FROM user_roles WHERE is_admin = TRUE)',
         )
         await conn.close()
         return [UserProfile(**row) for row in rows] if rows else None
@@ -177,22 +161,22 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
     async def get_moderator_users() -> Optional[List[UserProfile]]:
         conn = await DatabaseManager.get_db_connection()
         rows = await conn.fetch(
-            'SELECT id, username, full_name, email, phone FROM user_profiles WHERE id IN (SELECT user_id FROM user_roles WHERE is_moderator = TRUE)',
+            'SELECT user_id, username, subscription_end, note FROM user_profiles WHERE user_id IN (SELECT user_id FROM user_roles WHERE is_moderator = TRUE)',
         )
         await conn.close()
         return [UserProfile(**row) for row in rows] if rows else None
 
     @staticmethod
-    async def is_user_subscribed(username: str) -> bool:
+    async def is_user_subscribed(user_id: int) -> bool:
         conn = await DatabaseManager.get_db_connection()
         result = await conn.fetchrow(
             '''
             SELECT ur.is_admin, ur.is_moderator, up.subscription_end
             FROM user_profiles up
-            LEFT JOIN user_roles ur ON ur.user_id = up.id
-            WHERE up.username = $1
+            LEFT JOIN user_roles ur ON ur.user_id = up.user_id
+            WHERE up.user_id = $1
             ''',
-            username,
+            user_id,
         )
         await conn.close()
         if result:
@@ -204,36 +188,41 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         return False
 
     @staticmethod
-    async def is_user_admin(username: str) -> Optional[bool]:
+    async def is_user_admin(user_id: int) -> Optional[bool]:
         conn = await DatabaseManager.get_db_connection()
         result = await conn.fetchval(
-            'SELECT is_admin FROM user_roles WHERE user_id = (SELECT id FROM user_profiles WHERE username = $1)',
-            username,
+            'SELECT is_admin FROM user_roles WHERE user_id = $1',
+            user_id,
         )
         await conn.close()
         return result
 
     @staticmethod
-    async def is_user_moderator(username: str) -> Optional[bool]:
+    async def is_user_moderator(user_id: int) -> Optional[bool]:
         conn = await DatabaseManager.get_db_connection()
         result = await conn.fetchval(
-            'SELECT is_moderator FROM user_roles WHERE user_id = (SELECT id FROM user_profiles WHERE username = $1)',
-            username,
+            'SELECT is_moderator FROM user_roles WHERE user_id = $1',
+            user_id,
         )
         await conn.close()
         return result
 
     @staticmethod
-    async def set_default_admin(admin_id: str) -> None:
+    async def set_default_admin(user_id: int, bot: Bot) -> None:
         conn = await DatabaseManager.get_db_connection()
+
+        # Pobierz username i full_name na podstawie user_id
+        user_data = await bot.get_chat(user_id)
+        username = user_data.username
+        full_name = user_data.full_name
+
         await conn.execute(
             '''
-            INSERT INTO user_profiles (username)
-            VALUES ($1)
-            ON CONFLICT (username) DO NOTHING
-            ''', admin_id,
+            INSERT INTO user_profiles (user_id, username, full_name)
+            VALUES ($1, $2, $3)
+            ON CONFLICT (user_id) DO NOTHING
+            ''', user_id, username, full_name,
         )
-        user_id = await conn.fetchval('SELECT id FROM user_profiles WHERE username = $1', admin_id)
         await conn.execute(
             '''
             INSERT INTO user_roles (user_id, is_admin)
@@ -306,35 +295,35 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         return result
 
     @staticmethod
-    async def add_subscription(username: str, days: int) -> Optional[date]:
+    async def add_subscription(user_id: int, days: int) -> Optional[date]:
         conn = await DatabaseManager.get_db_connection()
         new_end_date = await conn.fetchval(
             '''
             UPDATE user_profiles
             SET subscription_end = COALESCE(subscription_end, CURRENT_DATE) + $1 * INTERVAL '1 day'
-            WHERE username = $2
+            WHERE user_id = $2
             RETURNING subscription_end
-            ''', days, username,
+            ''', days, user_id,
         )
         await conn.close()
         return new_end_date
 
     @staticmethod
-    async def remove_subscription(username: str) -> None:
+    async def remove_subscription(user_id: int) -> None:
         conn = await DatabaseManager.get_db_connection()
         await conn.execute(
             '''
             UPDATE user_profiles
             SET subscription_end = NULL
-            WHERE username = $1
-            ''', username,
+            WHERE user_id = $1
+            ''', user_id,
         )
         await conn.close()
 
     @staticmethod
-    async def get_user_subscription(username: str) -> Optional[date]:
+    async def get_user_subscription(user_id: int) -> Optional[date]:
         conn = await DatabaseManager.get_db_connection()
-        subscription_end = await conn.fetchval('SELECT subscription_end FROM user_profiles WHERE username = $1', username)
+        subscription_end = await conn.fetchval('SELECT subscription_end FROM user_profiles WHERE user_id = $1', user_id)
         await conn.close()
         return subscription_end
 
@@ -504,6 +493,6 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
     @staticmethod
     async def get_user_id_by_username(username: str) -> Optional[int]:
         conn = await DatabaseManager.get_db_connection()
-        user_id = await conn.fetchval('SELECT id FROM user_profiles WHERE username = $1', username)
+        user_id = await conn.fetchval('SELECT user_id FROM user_profiles WHERE username = $1', username)
         await conn.close()
         return user_id
