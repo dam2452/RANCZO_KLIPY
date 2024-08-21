@@ -383,13 +383,12 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
     @staticmethod
     async def add_report(user_id: int, report: str) -> None:
         conn = await DatabaseManager.get_db_connection()
-        async with conn.transaction():
-            await conn.execute(
-                '''
-                INSERT INTO reports (user_id, report)
-                VALUES ($1, $2)
-                ''', user_id, report,
-            )
+        await conn.execute(
+            '''
+            INSERT INTO reports (user_id, report)
+            VALUES ($1, $2)
+            ''', user_id, report,
+        )
         await conn.close()
 
     @staticmethod
