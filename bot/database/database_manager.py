@@ -235,11 +235,32 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
     async def get_saved_clips(user_id: int) -> Optional[List[VideoClip]]:
         conn = await DatabaseManager.get_db_connection()
         rows = await conn.fetch(
-            'SELECT clip_name, start_time, end_time, duration, season, episode_number, is_compilation FROM video_clips WHERE user_id = $1',
-            user_id,
+            '''
+            SELECT id, chat_id, user_id, clip_name, video_data, start_time, end_time, duration, season, episode_number, is_compilation
+            FROM video_clips
+            WHERE user_id = $1
+            ''', user_id,
         )
         await conn.close()
-        return [VideoClip(**row) for row in rows] if rows else None
+
+        if rows:
+            return [
+                VideoClip(
+                    id=row['id'],
+                    chat_id=row['chat_id'],
+                    user_id=row['user_id'],
+                    clip_name=row['clip_name'],
+                    video_data=row['video_data'],
+                    start_time=row['start_time'],
+                    end_time=row['end_time'],
+                    duration=row['duration'],
+                    season=row['season'],
+                    episode_number=row['episode_number'],
+                    is_compilation=row['is_compilation'],
+                )
+                for row in rows
+            ]
+        return None
 
     @staticmethod
     async def save_clip(
