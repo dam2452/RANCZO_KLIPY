@@ -7,10 +7,8 @@ from typing import Optional
 class UserProfile:
     id: int
     username: str
-    full_name: Optional[str]
-    email: Optional[str]
-    phone: Optional[str]
     subscription_end: Optional[date]
+    note: Optional[str]
 
 
 @dataclass
