@@ -35,7 +35,6 @@ class StartHandler(BotMessageHandler):
             "raportowanie": get_raportowanie_message,
             "subskrypcje": get_subskrypcje_message,
         }
-
         super().__init__(bot, logger)
 
     def get_commands(self) -> List[str]:
@@ -48,8 +47,10 @@ class StartHandler(BotMessageHandler):
         if len(content) == 1:
             await self.__send_message(message, get_basic_message())
         elif len(content) == 2:
-            if content[1] in self.__RESPONSES:
-                await self.__send_message(message, self.__RESPONSES[content[1]]())
+            command = content[1].lower()
+            response_func = self.__RESPONSES.get(command)
+            if response_func:
+                await self.__send_message(message, response_func())
             else:
                 await self.__send_message(message, get_invalid_command_message())
 

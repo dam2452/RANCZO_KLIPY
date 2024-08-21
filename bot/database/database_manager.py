@@ -160,9 +160,9 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
     @staticmethod
     async def is_user_in_db(username: str) -> bool:
         conn = await DatabaseManager.get_db_connection()
-        result = await conn.fetch("SELECT EXISTS (SELECT 1 FROM user_profiles where username = $1)", username)
+        result = await conn.fetchval("SELECT EXISTS (SELECT 1 FROM user_profiles WHERE username = $1)", username)
         await conn.close()
-        return result['exists']
+        return result
 
     @staticmethod
     async def get_admin_users() -> Optional[List[UserProfile]]:
