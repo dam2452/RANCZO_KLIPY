@@ -2,7 +2,6 @@ from datetime import (
     date,
     timedelta,
 )
-import json
 from typing import (
     List,
     Optional,
@@ -45,20 +44,9 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
     async def init_db() -> None:
         conn = await DatabaseManager.get_db_connection()
         async with conn.transaction():
-            try:
-                table_exists = await conn.fetchval(
-                    "SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = $1)",
-                    'user_profiles',
-                )
-
-                if not table_exists:
-                    with open('./bot/database/init_db.sql', 'r', encoding='utf-8') as file:
-                        sql = file.read()
-                        await conn.execute(sql)
-                else:
-                    print("Database is already initialized. Skipping initialization script.")
-            except asyncpg.PostgresError as e:
-                print(f"Error during database initialization: {e}")
+            with open('./bot/database/init_db.sql', 'r', encoding='utf-8') as file:
+                sql = file.read()
+                await conn.execute(sql)
         await conn.close()
 
     @staticmethod
@@ -260,21 +248,39 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         await conn.close()
 
     @staticmethod
-    async def get_clip_by_name(user_id: int, clip_name: str) -> Optional[Tuple[bytes, int, int]]:
+    async def get_clip_by_name(user_id: int, clip_name: str) -> Optional[VideoClip]:
         conn = await DatabaseManager.get_db_connection()
-        result = await conn.fetchrow(
-            'SELECT video_data, duration FROM video_clips WHERE user_id = $1 AND clip_name = $2',
-            user_id, clip_name,
+        row = await conn.fetchrow(
+            '''
+            SELECT id, chat_id, user_id, clip_name, video_data, start_time, end_time, duration, season, episode_number, is_compilation
+            FROM video_clips
+            WHERE user_id = $1 AND clip_name = $2
+            ''', user_id, clip_name,
         )
         await conn.close()
-        return result
+
+        if row:
+            return VideoClip(
+                id=row['id'],
+                chat_id=row['chat_id'],
+                user_id=row['user_id'],
+                clip_name=row['clip_name'],
+                video_data=row['video_data'],
+                start_time=row['start_time'],
+                end_time=row['end_time'],
+                duration=row['duration'],
+                season=row['season'],
+                episode_number=row['episode_number'],
+                is_compilation=row['is_compilation'],
+            )
+        return None
 
     @staticmethod
-    async def get_clip_by_index(user_id: int, index: int) -> Optional[Tuple[str, int, int, int, int, bool]]:
+    async def get_clip_by_index(user_id: int, index: int) -> Optional[VideoClip]:
         conn = await DatabaseManager.get_db_connection()
-        clip = await conn.fetchrow(
+        row = await conn.fetchrow(
             '''
-            SELECT clip_name, duration, season, episode_number, is_compilation
+            SELECT id, chat_id, user_id, clip_name, video_data, start_time, end_time, duration, season, episode_number, is_compilation
             FROM video_clips
             WHERE user_id = $1
             ORDER BY id
@@ -283,9 +289,20 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         )
         await conn.close()
 
-        if clip:
-            clip_name, duration, season, episode_number, is_compilation = clip
-            return clip_name, duration, season, episode_number, is_compilation
+        if row:
+            return VideoClip(
+                id=row['id'],
+                chat_id=row['chat_id'],
+                user_id=row['user_id'],
+                clip_name=row['clip_name'],
+                video_data=row['video_data'],
+                start_time=row['start_time'],
+                end_time=row['end_time'],
+                duration=row['duration'],
+                season=row['season'],
+                episode_number=row['episode_number'],
+                is_compilation=row['is_compilation'],
+            )
         return None
 
     @staticmethod
@@ -380,7 +397,6 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         )
         await conn.close()
 
-
     @staticmethod
     async def get_last_search_by_chat_id(chat_id: int) -> Optional[SearchHistory]:
         conn = await DatabaseManager.get_db_connection()
@@ -405,7 +421,7 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         return None
 
     @staticmethod
-    async def update_last_search(search_id: int, new_quote: Optional[str] = None, new_segments: Optional[dict] = None) -> None:
+    async def update_last_search(search_id: int, new_quote: Optional[str] = None, new_segments: Optional[str] = None) -> None:
         conn = await DatabaseManager.get_db_connection()
         if new_quote:
             await conn.execute(
@@ -472,7 +488,7 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
 
     @staticmethod
     async def update_last_clip(
-            clip_id: int, new_segment: Optional[dict] = None, new_compiled_clip: Optional[bytes] = None,
+            clip_id: int, new_segment: Optional[str] = None, new_compiled_clip: Optional[bytes] = None,
             new_type: Optional[str] = None,
     ) -> None:
         conn = await DatabaseManager.get_db_connection()
@@ -512,13 +528,6 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
             ''', clip_id,
         )
         await conn.close()
-
-    @staticmethod
-    async def get_user_id_by_username(username: str) -> Optional[int]:
-        conn = await DatabaseManager.get_db_connection()
-        user_id = await conn.fetchval('SELECT user_id FROM user_profiles WHERE username = $1', username)
-        await conn.close()
-        return user_id
 
     @staticmethod
     async def save_user_message(user_id: int, message_content: str) -> None:

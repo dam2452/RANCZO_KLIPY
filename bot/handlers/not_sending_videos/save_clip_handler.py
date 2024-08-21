@@ -211,11 +211,10 @@ class SaveClipHandler(BotMessageHandler):
             video_data = file.read()
         os.remove(output_filename)
 
-        user_id = await DatabaseManager.get_user_id_by_username(message.from_user.username)
 
         await DatabaseManager.save_clip(
             chat_id=message.chat.id,
-            user_id=user_id,
+            user_id=message.from_user.id,
             clip_name=clip_name,
             video_data=video_data,
             start_time=start_time,

@@ -13,8 +13,8 @@ def get_invalid_args_count_message(action_name: str) -> str:
 
 def format_user(user: UserProfile) -> str:
     return (
-        f"👤 Username: {user.username}, 📛 Full Name: {user.full_name or 'N/A'}, ✉️ Email: {user.email or 'N/A'}, "
-        f"📞 Phone: {user.phone or 'N/A'}"
+        f"👤 Username: {user.username or 'N/A'}, 📛 Full Name: {user.full_name or 'N/A'}, "
+        f"🔒 Subscription End: {user.subscription_end or 'N/A'}, 📝 Note: {user.note or 'N/A'}"
     )
 
 

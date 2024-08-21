@@ -30,8 +30,7 @@ class SendClipHandler(BotMessageHandler):
 
         clip_name = content[1]
 
-        user_id = await DatabaseManager.get_user_id_by_username(message.from_user.username)
-        clip = await DatabaseManager.get_clip_by_name(user_id, clip_name)
+        clip = await DatabaseManager.get_clip_by_name(message.from_user.id, clip_name)
         if not clip:
             return await self.__reply_clip_not_found(message, clip_name)
 

@@ -74,10 +74,9 @@ class CompileSelectedClipsHandler(BotMessageHandler):
         await self._log_system_message(logging.INFO, get_compiled_clip_sent_message(message.from_user.username))
 
     async def __get_selected_clips_data(self, clip_names: List[str], username: str, message: Message) -> List[Tuple[bytes, int]]:
-        user_id = await DatabaseManager.get_user_id_by_username(username)
         selected_clips_data = []
         for clip_name in clip_names:
-            clip = await DatabaseManager.get_clip_by_name(user_id, clip_name)
+            clip = await DatabaseManager.get_clip_by_name(message.from_user.id, clip_name)
             if not clip:
                 await self.__reply_clip_not_found(message, clip_name, username)
             else:

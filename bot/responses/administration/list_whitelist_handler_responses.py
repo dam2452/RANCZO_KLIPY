@@ -6,14 +6,13 @@ from bot.database.models import UserProfile
 
 
 def create_whitelist_response(users: List[UserProfile]) -> str:
-    table = [["Username", "Full Name", "Email", "Phone", "Subskrypcja do"]]
+    table = [["Username", "Full Name", "Subskrypcja do", "Note"]]
     for user in users:
         table.append([
-            user.username,
+            user.username or "N/A",
             user.full_name or "N/A",
-            user.email or "N/A",
-            user.phone or "N/A",
             user.subscription_end or "N/A",
+            user.note or "N/A",
         ])
 
     response = f"```whitelista\n{tabulate(table, headers='firstrow', tablefmt='grid')}```"
