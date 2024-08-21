@@ -34,7 +34,7 @@ class SendClipHandler(BotMessageHandler):
         if not clip:
             return await self.__reply_clip_not_found(message, clip_name)
 
-        video_data = clip[0]
+        video_data = clip.video_data
         if not video_data:
             return await self.__reply_empty_clip_file(message, clip_name)
 
