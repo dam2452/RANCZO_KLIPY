@@ -44,9 +44,20 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
     async def init_db() -> None:
         conn = await DatabaseManager.get_db_connection()
         async with conn.transaction():
-            with open('./bot/database/init_db.sql', 'r', encoding='utf-8') as file:
-                sql = file.read()
-                await conn.execute(sql)
+            try:
+                table_exists = await conn.fetchval(
+                    "SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = $1)",
+                    'user_profiles',
+                )
+
+                if not table_exists:
+                    with open('./bot/database/init_db.sql', 'r', encoding='utf-8') as file:
+                        sql = file.read()
+                        await conn.execute(sql)
+                else:
+                    print("Database is already initialized. Skipping initialization script.")
+            except asyncpg.PostgresError as e:
+                print(f"Error during database initialization: {e}")
         await conn.close()
 
     @staticmethod
