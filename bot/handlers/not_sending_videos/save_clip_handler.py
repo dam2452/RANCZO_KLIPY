@@ -78,25 +78,25 @@ class SaveClipHandler(BotMessageHandler):
     async def __get_segment_info(self, message: Message) -> Optional[SegmentInfo]:
         last_clip_info = await DatabaseManager.get_last_clip_by_chat_id(message.chat.id)
 
-        logging.debug("Full last_clip_info from DB: %s", last_clip_info)
+        await self._log_system_message(logging.DEBUG, f"Full last_clip_info from DB: {last_clip_info}")
 
         if last_clip_info is None:
-            logging.info("No last_clip_info found for chat_id: %s", message.chat.id)
+            await self._log_system_message(logging.INFO, f"No last_clip_info found for chat_id: {message.chat.id}")
             return None
 
         segment_data = last_clip_info.segment
         compiled_clip_data = last_clip_info.compiled_clip
 
-        logging.debug("Raw segment data: %s", segment_data)
-        logging.debug("Raw compiled clip data: %s", compiled_clip_data)
-
-        if segment_data is None and compiled_clip_data is not None:
-            logging.info("Using compiled clip data for chat_id: %s", message.chat.id)
-            return SegmentInfo(compiled_clip=compiled_clip_data)
+        await self._log_system_message(logging.DEBUG, f"Raw segment data: {segment_data}")
+        await self._log_system_message(logging.DEBUG, f"Raw compiled clip data: {compiled_clip_data}")
 
         if segment_data is None:
-            logging.error("Segment data is None for chat_id: %s", message.chat.id)
-            return None
+            if compiled_clip_data:
+                await self._log_system_message(logging.INFO, f"Using compiled clip data for chat_id: {message.chat.id}")
+                return SegmentInfo(compiled_clip=compiled_clip_data)
+            else:
+                await self._log_system_message(logging.ERROR, f"Segment data is None for chat_id: {message.chat.id}")
+                return None
 
         if isinstance(segment_data, bytes):
             segment_info_str = segment_data.decode('utf-8')
@@ -106,7 +106,7 @@ class SaveClipHandler(BotMessageHandler):
         try:
             segment_info_dict = json.loads(segment_info_str)
         except json.JSONDecodeError as e:
-            logging.error("Failed to decode JSON from segment_info_str: %s", e)
+            await self._log_system_message(logging.ERROR, f"Failed to decode JSON from segment_info_str: {e}")
             return None
 
         adjusted_start_time = last_clip_info.adjusted_start_time
@@ -171,7 +171,7 @@ class SaveClipHandler(BotMessageHandler):
         )
 
     async def __prepare_clip_file(self, segment_info: SegmentInfo) -> Tuple[str, int, int, bool, Optional[int], Optional[int]]:
-        start_time = segment_info.start  - settings.EXTEND_BEFORE
+        start_time = segment_info.start - settings.EXTEND_BEFORE
         end_time = segment_info.end + settings.EXTEND_AFTER
         is_compilation = False
         season = None
@@ -202,9 +202,9 @@ class SaveClipHandler(BotMessageHandler):
 
     @staticmethod
     async def __save_clip_to_db(
-            message: Message, clip_name: str, output_filename: str, start_time: float,
-            end_time: float, duration: float, is_compilation: bool, season: Optional[int],
-            episode_number: Optional[int],
+        message: Message, clip_name: str, output_filename: str, start_time: float,
+        end_time: float, duration: float, is_compilation: bool, season: Optional[int],
+        episode_number: Optional[int],
     ) -> None:
 
         with open(output_filename, 'rb') as file:
