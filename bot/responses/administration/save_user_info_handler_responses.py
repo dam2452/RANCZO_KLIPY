@@ -1,9 +1,9 @@
 def get_no_message_provided_message() -> str:
-    return "Nie podano wiadomości."
+    return "⚠️ Nie podano wiadomości.⚠️"
 
 
 def get_message_saved_confirmation() -> str:
-    return "Twoja wiadomość została zapisana."
+    return "✅Twoja wiadomość została zapisana.✅"
 
 
 def get_log_message_saved(user_id: int) -> str:
