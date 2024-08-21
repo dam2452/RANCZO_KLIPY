@@ -367,7 +367,7 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         return result == 0
 
     @staticmethod
-    async def insert_last_search(chat_id: int, quote: str, segments: Optional[dict,json]) -> int:
+    async def insert_last_search(chat_id: int, quote: str, segments: Optional[dict, json]) -> int:
         conn = await DatabaseManager.get_db_connection()
         search_id = await conn.fetchval(
             'INSERT INTO search_history (chat_id, quote, segments) VALUES ($1, $2, $3::jsonb) RETURNING id',

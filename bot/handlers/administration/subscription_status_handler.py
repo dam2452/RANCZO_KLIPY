@@ -23,7 +23,7 @@ class SubscriptionStatusHandler(BotMessageHandler):
         return ['subskrypcja', 'subscription', 'sub']
 
     async def _do_handle(self, message: Message) -> None:
-        subscription_status = await self.__get_subscription_status(message.from_user.username)
+        subscription_status = await self.__get_subscription_status(message.from_user.id)
 
         if subscription_status is None:
             return await self.__reply_no_subscription(message)
@@ -35,8 +35,8 @@ class SubscriptionStatusHandler(BotMessageHandler):
         await self._log_system_message(logging.INFO, get_log_subscription_status_sent_message(message.from_user.username))
 
     @staticmethod
-    async def __get_subscription_status(username: str) -> Optional[Tuple[date, int]]:
-        subscription_end = await DatabaseManager.get_user_subscription(username)
+    async def __get_subscription_status(user_id: int) -> Optional[Tuple[date, int]]:
+        subscription_end = await DatabaseManager.get_user_subscription(user_id)
         if subscription_end is None:
             return None
         days_remaining = (subscription_end - date.today()).days
