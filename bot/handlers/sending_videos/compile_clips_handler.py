@@ -9,6 +9,10 @@ from typing import (
 from aiogram.types import Message
 
 from bot.database.database_manager import DatabaseManager
+from bot.database.models import (
+    LastClip,
+    SearchHistory,
+)
 from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.responses.sending_videos.compile_clips_handler_responses import (
     get_compilation_success_message,
@@ -38,11 +42,11 @@ class CompileClipsHandler(BotMessageHandler):
         if len(content) < 2:
             return await self._reply_invalid_args_count(message, get_invalid_args_count_message())
 
-        last_search = await DatabaseManager.get_last_search_by_chat_id(message.chat.id)
-        if not last_search or not last_search['segments']:
+        last_search: SearchHistory = await DatabaseManager.get_last_search_by_chat_id(message.chat.id)
+        if not last_search or not last_search.segments:
             return await self.__reply_no_previous_search_results(message)
 
-        segments = json.loads(last_search['segments'])
+        segments = json.loads(last_search.segments)
 
         selected_segments = self.__parse_segments(content[1:], segments)
 
@@ -53,15 +57,21 @@ class CompileClipsHandler(BotMessageHandler):
         with open(compiled_output, 'rb') as f:
             compiled_clip_data = f.read()
 
-        await DatabaseManager.insert_last_clip(
+        last_clip = LastClip(
+            id=0,
             chat_id=message.chat.id,
             segment=None,
             compiled_clip=compiled_clip_data,
             clip_type='compiled',
+            adjusted_start_time=None,
+            adjusted_end_time=None,
+            is_adjusted=False,
+            timestamp=None,
         )
 
-        user_id = await DatabaseManager.get_user_id_by_username(message.from_user.username)
-        await self._log_system_message(logging.INFO, get_compilation_success_message(user_id))
+        await DatabaseManager.insert_last_clip(last_clip)
+
+        await self._log_system_message(logging.INFO, get_compilation_success_message(message.from_user.username))
 
     @staticmethod
     def __parse_segments(content: List[str], segments: List[Dict[str, Union[str, float]]]) -> List[Dict[str, Union[str, float]]]:

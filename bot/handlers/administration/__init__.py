@@ -7,6 +7,7 @@ from bot.handlers.administration.list_whitelist_handler import ListWhitelistHand
 from bot.handlers.administration.remove_subscription_handler import RemoveSubscriptionHandler
 from bot.handlers.administration.remove_whitelist_handler import RemoveWhitelistHandler
 from bot.handlers.administration.report_issue_handler import ReportIssueHandler
+from bot.handlers.administration.save_user_info_handler import SaveUserInfoHandler
 from bot.handlers.administration.start_handler import StartHandler
 from bot.handlers.administration.subscription_status_handler import SubscriptionStatusHandler
 from bot.handlers.administration.update_whitelist_handler import UpdateWhitelistHandler

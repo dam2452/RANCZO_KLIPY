@@ -8,7 +8,6 @@ from aiogram.types import (
     FSInputFile,
     Message,
 )
-import asyncpg
 
 from bot.database.database_manager import DatabaseManager
 from bot.handlers.bot_message_handler import BotMessageHandler
@@ -31,21 +30,11 @@ class SearchListHandler(BotMessageHandler):
             return await self.__reply_no_previous_search_results(message)
 
         try:
-            if isinstance(last_search, asyncpg.Record):
-                last_search = dict(last_search)
-
-            if isinstance(last_search, str):
-                last_search = json.loads(last_search)
-
-            segments = last_search.get('segments')
-            if isinstance(segments, str):
-                segments = json.loads(segments)
-                last_search['segments'] = segments
-
+            segments = json.loads(last_search.segments)
         except (json.JSONDecodeError, TypeError):
             return await self.__reply_no_previous_search_results(message)
 
-        search_term = last_search.get('quote')
+        search_term = last_search.quote
         if not segments or not search_term:
             return await self.__reply_no_previous_search_results(message)
 

@@ -5,6 +5,7 @@ from typing import List
 from aiogram.types import Message
 
 from bot.database.database_manager import DatabaseManager
+from bot.database.models import LastClip
 from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.responses.bot_message_handler_responses import (
     get_extraction_failure_message,
@@ -38,7 +39,7 @@ class SelectClipHandler(BotMessageHandler):
             return await self.__reply_no_previous_search(message)
 
         index = int(content[1])
-        segments = json.loads(last_search['segments'])
+        segments = json.loads(last_search.segments)
 
         if index not in range(1, len(segments) + 1):
             return await self.__reply_invalid_segment_number(message, index)
@@ -46,17 +47,27 @@ class SelectClipHandler(BotMessageHandler):
         segment = segments[index - 1]
         start_time = max(0, segment['start'] - settings.EXTEND_BEFORE)
         end_time = segment['end'] + settings.EXTEND_AFTER
+
         try:
             await ClipsExtractor.extract_and_send_clip(segment['video_path'], message, self._bot, self._logger, start_time, end_time)
         except FFMpegException as e:
             return await self.__reply_extraction_failure(message, e)
+
         segment_json = json.dumps(segment)
-        await DatabaseManager.insert_last_clip(
+
+        last_clip = LastClip(
+            id=0,
             chat_id=message.chat.id,
             segment=segment_json,
             compiled_clip=None,
             clip_type='selected',
+            adjusted_start_time=None,
+            adjusted_end_time=None,
+            is_adjusted=False,
+            timestamp=None,
         )
+
+        await DatabaseManager.insert_last_clip(last_clip)
 
         await self._log_system_message(logging.INFO, get_log_segment_selected_message(segment['id'], message.from_user.username))
 

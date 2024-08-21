@@ -5,6 +5,10 @@ from typing import List
 from aiogram.types import Message
 
 from bot.database.database_manager import DatabaseManager
+from bot.database.models import (
+    LastClip,
+    SearchHistory,
+)
 from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.responses.sending_videos.adjust_video_clip_handler_responses import (
     get_extraction_failure_log,
@@ -35,12 +39,12 @@ class AdjustVideoClipHandler(BotMessageHandler):
         content = message.text.split()
 
         if len(content) == 4:
-            last_search = await DatabaseManager.get_last_search_by_chat_id(message.chat.id)
+            last_search: SearchHistory = await DatabaseManager.get_last_search_by_chat_id(message.chat.id)
             if not last_search:
                 return await self.__reply_no_previous_searches(message)
             try:
                 index = int(content[1]) - 1
-                segments = last_search['segments']
+                segments = json.loads(last_search.segments)
                 segment_info = segments[index]
             except (ValueError, IndexError):
                 return await self.__reply_invalid_segment_index(message)
@@ -49,12 +53,13 @@ class AdjustVideoClipHandler(BotMessageHandler):
             if not last_clip:
                 return await self.__reply_no_quotes_selected(message)
 
-            segment_info = last_clip.segment if last_clip.segment else None
+            segment_info = last_clip.segment
             if isinstance(segment_info, str):
                 segment_info = json.loads(segment_info)
 
         else:
             return await self._reply_invalid_args_count(message, get_invalid_args_count_message())
+
         await self._log_system_message(logging.INFO, f"Segment Info: {segment_info}")
 
         try:
@@ -78,17 +83,19 @@ class AdjustVideoClipHandler(BotMessageHandler):
                 end_time,
             )
 
-            segment_json = json.dumps(segment_info)
-
-            await DatabaseManager.insert_last_clip(
+            last_clip = LastClip(
+                id=0,
                 chat_id=message.chat.id,
-                segment=segment_json,
+                segment=json.dumps(segment_info),
                 compiled_clip=None,
                 clip_type='adjusted',
                 adjusted_start_time=start_time,
                 adjusted_end_time=end_time,
                 is_adjusted=True,
+                timestamp=None,
             )
+
+            await DatabaseManager.insert_last_clip(last_clip)
 
         except FFMpegException as e:
             return await self.__reply_extraction_failure(message, e)

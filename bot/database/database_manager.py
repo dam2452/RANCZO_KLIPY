@@ -14,6 +14,7 @@ import asyncpg
 
 from bot.database.models import (
     LastClip,
+    SearchHistory,
     UserProfile,
     VideoClip,
 )
@@ -84,7 +85,6 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
     async def add_user(user: UserProfile, bot: Bot, subscription_days: Optional[int] = None) -> None:
         conn = await DatabaseManager.get_db_connection()
 
-        # Pobierz username i full_name na podstawie user_id, jeśli nie są dostarczone w UserProfile
         if not user.username or not user.full_name:
             user_data = await bot.get_chat(user.user_id)
             user.username = user_data.username
@@ -367,7 +367,7 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         return result == 0
 
     @staticmethod
-    async def insert_last_search(chat_id: int, quote: str, segments: Optional[dict, json]) -> int:
+    async def insert_last_search(chat_id: int, quote: str, segments: str) -> int:
         conn = await DatabaseManager.get_db_connection()
         search_id = await conn.fetchval(
             'INSERT INTO search_history (chat_id, quote, segments) VALUES ($1, $2, $3::jsonb) RETURNING id',
@@ -377,7 +377,7 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         return search_id
 
     @staticmethod
-    async def get_last_search_by_chat_id(chat_id: int) -> Optional[asyncpg.Record]:
+    async def get_last_search_by_chat_id(chat_id: int) -> Optional[SearchHistory]:
         conn = await DatabaseManager.get_db_connection()
         result = await conn.fetchrow(
             '''
@@ -389,7 +389,15 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
             ''', chat_id,
         )
         await conn.close()
-        return result
+
+        if result:
+            return SearchHistory(
+                id=result['id'],
+                chat_id=result['chat_id'],
+                quote=result['quote'],
+                segments=result['segments'],
+            )
+        return None
 
     @staticmethod
     async def update_last_search(search_id: int, new_quote: Optional[str] = None, new_segments: Optional[dict] = None) -> None:
@@ -423,19 +431,25 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         )
         await conn.close()
 
+    from bot.database.models import LastClip
+
     @staticmethod
-    async def insert_last_clip(
-        chat_id: int, segment: Optional[dict] = None, compiled_clip: Optional[bytes] = None, clip_type: Optional[str] = None,
-        adjusted_start_time: Optional[float] = None, adjusted_end_time: Optional[float] = None,
-        is_adjusted: bool = False,
-    ) -> int:
+    async def insert_last_clip(last_clip: LastClip) -> None:
         conn = await DatabaseManager.get_db_connection()
-        clip_id = await conn.fetchval(
-            'INSERT INTO last_clips (chat_id, segment, compiled_clip, type, adjusted_start_time, adjusted_end_time, is_adjusted) VALUES ($1, $2::jsonb, $3::bytea, $4, $5, $6, $7) RETURNING id',
-            chat_id, segment, compiled_clip, clip_type, adjusted_start_time, adjusted_end_time, is_adjusted,
+        await conn.execute(
+            '''
+            INSERT INTO last_clips (chat_id, segment, compiled_clip, type, adjusted_start_time, adjusted_end_time, is_adjusted)
+            VALUES ($1, $2::jsonb, $3::bytea, $4, $5, $6, $7)
+            ''',
+            last_clip.chat_id,
+            json.dumps(last_clip.segment) if last_clip.segment else None,
+            last_clip.compiled_clip,
+            last_clip.clip_type,
+            last_clip.adjusted_start_time,
+            last_clip.adjusted_end_time,
+            last_clip.is_adjusted,
         )
         await conn.close()
-        return clip_id
 
     @staticmethod
     async def get_last_clip_by_chat_id(chat_id: int) -> Optional[LastClip]:
@@ -500,3 +514,16 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         user_id = await conn.fetchval('SELECT user_id FROM user_profiles WHERE username = $1', username)
         await conn.close()
         return user_id
+
+    @staticmethod
+    async def save_user_message(user_id: int, message_content: str) -> None:
+        conn = await DatabaseManager.get_db_connection()
+        async with conn.transaction():
+            await conn.execute(
+                '''
+                INSERT INTO user_messages (user_id, message_content)
+                VALUES ($1, $2)
+                ''',
+                user_id, message_content,
+            )
+        await conn.close()

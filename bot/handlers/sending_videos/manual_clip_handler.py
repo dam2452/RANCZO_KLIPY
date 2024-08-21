@@ -9,6 +9,7 @@ from typing import (
 from aiogram.types import Message
 
 from bot.database.database_manager import DatabaseManager
+from bot.database.models import LastClip
 from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.responses.sending_videos.manual_clip_handler_responses import (
     get_end_time_earlier_than_start_message,
@@ -41,10 +42,7 @@ class ManualClipHandler(BotMessageHandler):
     async def _do_handle(self, message: Message) -> None:
         content = message.text.split()
         if len(content) != 4:
-            await self._reply_invalid_args_count(
-                message,
-                get_invalid_args_count_message(),
-            )
+            await self._reply_invalid_args_count(message, get_invalid_args_count_message())
             return
 
         try:
@@ -64,20 +62,29 @@ class ManualClipHandler(BotMessageHandler):
         await ClipsExtractor.extract_and_send_clip(video_path, message, self._bot, self._logger, start_seconds, end_seconds)
         await self._log_system_message(logging.INFO, get_log_clip_extracted_message(episode, start_seconds, end_seconds))
 
-        await DatabaseManager.insert_last_clip(
+        segment_data = {
+            'video_path': video_path,
+            'start': start_seconds,
+            'end': end_seconds,
+            'episode_info': {
+                'season': episode.season,
+                'episode_number': episode.number,
+            },
+        }
+
+        last_clip = LastClip(
+            id=0,
             chat_id=message.chat.id,
-            segment=json.dumps({
-                'video_path': video_path,
-                'start': start_seconds,
-                'end': end_seconds,
-                'episode_info': {
-                    'season': episode.season,
-                    'episode_number': episode.number,
-                },
-            }),
+            segment=json.dumps(segment_data),
             compiled_clip=None,
             clip_type='manual',
+            adjusted_start_time=None,
+            adjusted_end_time=None,
+            is_adjusted=False,
+            timestamp=None,
         )
+
+        await DatabaseManager.insert_last_clip(last_clip)
 
     @staticmethod
     def __parse_content(content: List[str]) -> Tuple[Episode, float, float]:

@@ -12,6 +12,7 @@ from aiogram import Bot
 from aiogram.types import Message
 
 from bot.database.database_manager import DatabaseManager
+from bot.database.models import LastClip
 from bot.utils.log import log_system_message
 from bot.video.clips_extractor import ClipsExtractor
 from bot.video.utils import (
@@ -47,7 +48,7 @@ class ClipsCompiler:
         temp_files = []
         try:
             for segment in selected_clips:
-                temp_file_name = tempfile.NamedTemporaryFile(  # pylint: disable=consider-using-with
+                temp_file_name = tempfile.NamedTemporaryFile(
                     delete=False, delete_on_close=False,
                     suffix=".mp4",
                 ).name
@@ -68,12 +69,19 @@ class ClipsCompiler:
         with open(compiled_output, 'rb') as f:
             compiled_clip_data = f.read()
 
-        await DatabaseManager.insert_last_clip(
+        last_clip = LastClip(
+            id=0,
             chat_id=message.chat.id,
             segment=None,
             compiled_clip=compiled_clip_data,
             clip_type='compiled',
+            adjusted_start_time=None,
+            adjusted_end_time=None,
+            is_adjusted=False,
+            timestamp=Non,
         )
+
+        await DatabaseManager.insert_last_clip(last_clip)
 
         await send_video(message, compiled_output, bot, logger)
 

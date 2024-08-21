@@ -8,6 +8,7 @@ from typing import (
 from aiogram.types import Message
 
 from bot.database.database_manager import DatabaseManager
+from bot.database.models import LastClip
 from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.responses.sending_videos.compile_selected_clips_handler_responses import (
     get_clip_not_found_message,
@@ -56,12 +57,19 @@ class CompileSelectedClipsHandler(BotMessageHandler):
         with open(compiled_output, 'rb') as f:
             compiled_clip_data = f.read()
 
-        await DatabaseManager.insert_last_clip(
+        last_clip = LastClip(
+            id=0,
             chat_id=message.chat.id,
             segment=None,
             compiled_clip=compiled_clip_data,
             clip_type='compiled',
+            adjusted_start_time=None,
+            adjusted_end_time=None,
+            is_adjusted=False,
+            timestamp=None,
         )
+
+        await DatabaseManager.insert_last_clip(last_clip)
 
         await self._log_system_message(logging.INFO, get_compiled_clip_sent_message(message.from_user.username))
 

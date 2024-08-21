@@ -34,10 +34,26 @@ class VideoClip:
 class LastClip:
     id: int
     chat_id: int
-    segment: dict
+    segment: str
     compiled_clip: Optional[bytes]
     clip_type: Optional[str]
     adjusted_start_time: Optional[float]
     adjusted_end_time: Optional[float]
     is_adjusted: bool
     timestamp: date
+
+
+@dataclass #fixme użyć
+class UserMessage:
+    id: int
+    user_id: int
+    message_content: str
+    timestamp: date
+
+
+@dataclass
+class SearchHistory:
+    id: int
+    chat_id: int
+    quote: str
+    segments: str
