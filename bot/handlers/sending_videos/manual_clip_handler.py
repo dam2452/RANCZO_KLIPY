@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 import logging
 import os
@@ -84,7 +85,7 @@ class ManualClipHandler(BotMessageHandler):
             adjusted_start_time=None,
             adjusted_end_time=None,
             is_adjusted=False,
-            timestamp=None,
+            timestamp=datetime.now(),
         )
 
         await DatabaseManager.insert_last_clip(last_clip)

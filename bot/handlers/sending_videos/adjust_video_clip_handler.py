@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 import logging
 from typing import List
@@ -87,13 +88,13 @@ class AdjustVideoClipHandler(BotMessageHandler):
             last_clip = LastClip(
                 id=0,
                 chat_id=message.chat.id,
-                segment=json.dumps(segment_info),
+                segment=segment_info,
                 compiled_clip=None,
                 clip_type=ClipType.ADJUSTED,
                 adjusted_start_time=start_time,
                 adjusted_end_time=end_time,
                 is_adjusted=True,
-                timestamp=None,
+                timestamp=datetime.now(),
             )
 
             await DatabaseManager.insert_last_clip(last_clip)

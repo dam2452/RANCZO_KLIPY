@@ -12,10 +12,7 @@ from aiogram import Bot
 from aiogram.types import Message
 
 from bot.database.database_manager import DatabaseManager
-from bot.database.models import (
-    ClipType,
-    LastClip,
-)
+from bot.database.models import ClipType
 from bot.utils.log import log_system_message
 from bot.video.clips_extractor import ClipsExtractor
 from bot.video.utils import (
@@ -74,7 +71,7 @@ class ClipsCompiler:
 
         await DatabaseManager.insert_last_clip(
             chat_id=message.chat.id,
-            segment=None,
+            segment={},
             compiled_clip=compiled_clip_data,
             clip_type=ClipType.COMPILED.value,
             adjusted_start_time=None,

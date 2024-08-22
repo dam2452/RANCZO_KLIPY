@@ -1,3 +1,4 @@
+from datetime import datetime
 import logging
 import tempfile
 from typing import (
@@ -63,13 +64,13 @@ class CompileSelectedClipsHandler(BotMessageHandler):
         last_clip = LastClip(
             id=0,
             chat_id=message.chat.id,
-            segment=None,
+            segment={},
             compiled_clip=compiled_clip_data,
             clip_type=ClipType.COMPILED,
             adjusted_start_time=None,
             adjusted_end_time=None,
             is_adjusted=False,
-            timestamp=None,
+            timestamp=datetime.now(),
         )
 
         await DatabaseManager.insert_last_clip(last_clip)

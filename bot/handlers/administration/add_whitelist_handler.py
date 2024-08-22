@@ -25,7 +25,13 @@ class AddWhitelistHandler(BotMessageHandler):
 
         user = parse_whitelist_message(content)
 
-        await DatabaseManager.add_user(user, bot=self._bot)
+        await DatabaseManager.add_user(
+            user_id=user.user_id,
+            username=user.username,
+            full_name=user.full_name,
+            note=user.note,
+            bot=self._bot,
+        )
 
         await self.__reply_user_added(message, user.full_name or user.username)
 

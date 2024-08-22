@@ -56,7 +56,7 @@ class CompileClipsHandler(BotMessageHandler):
 
         await DatabaseManager.insert_last_clip(
             chat_id=message.chat.id,
-            segment=None,
+            segment={},
             compiled_clip=compiled_clip_data,
             clip_type=ClipType.COMPILED.value,
             adjusted_start_time=None,

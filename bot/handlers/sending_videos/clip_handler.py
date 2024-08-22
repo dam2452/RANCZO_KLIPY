@@ -44,7 +44,7 @@ class ClipHandler(BotMessageHandler):
         start_time = max(0, segment['start'] - settings.EXTEND_BEFORE)
         end_time = segment['end'] + settings.EXTEND_AFTER
 
-        segment_json = json.dumps(segment)
+
 
         try:
             await ClipsExtractor.extract_and_send_clip(segment['video_path'], message, self._bot, self._logger, start_time, end_time)
@@ -53,7 +53,7 @@ class ClipHandler(BotMessageHandler):
 
         await DatabaseManager.insert_last_clip(
             chat_id=message.chat.id,
-            segment=segment_json,
+            segment=segment,
             compiled_clip=None,
             clip_type=ClipType.SINGLE.value,
             adjusted_start_time=start_time,
