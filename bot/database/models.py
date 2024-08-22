@@ -1,5 +1,8 @@
 from dataclasses import dataclass
-from datetime import date
+from datetime import (
+    date,
+    datetime,
+)
 from enum import Enum
 from typing import (
     List,
@@ -95,3 +98,10 @@ class SegmentInfo:
     location: Optional[str] = None
     actors: Optional[List[str]] = None
     compiled_clip: Optional[bytes] = None
+
+
+@dataclass
+class UserMessage:
+    user_id: int
+    message_content: str
+    timestamp: Optional[datetime] = None

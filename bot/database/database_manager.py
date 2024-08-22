@@ -15,6 +15,7 @@ from bot.database.models import (
     ClipType,
     LastClip,
     SearchHistory,
+    UserMessage,
     UserProfile,
     VideoClip,
 )
@@ -83,8 +84,8 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
 
     @staticmethod
     async def add_user(
-        user_id: int, username: Optional[str], full_name: Optional[str], note: Optional[str], bot: Bot,
-        subscription_days: Optional[int] = None,
+            user_id: int, username: Optional[str], full_name: Optional[str], note: Optional[str], bot: Bot,
+            subscription_days: Optional[int] = None,
     ) -> None:
         conn = await DatabaseManager.get_db_connection()
 
@@ -105,8 +106,8 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
 
     @staticmethod
     async def update_user(
-        user_id: int, username: Optional[str] = None, full_name: Optional[str] = None, note: Optional[str] = None,
-        subscription_end: Optional[int] = None,
+            user_id: int, username: Optional[str] = None, full_name: Optional[str] = None, note: Optional[str] = None,
+            subscription_end: Optional[int] = None,
     ) -> None:
         conn = await DatabaseManager.get_db_connection()
         updates = []
@@ -555,3 +556,19 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
                 user_id, message_content,
             )
         await conn.close()
+
+    @staticmethod
+    async def get_all_user_messages() -> Optional[List[UserMessage]]:
+        conn = await DatabaseManager.get_db_connection()
+        rows = await conn.fetch(
+            "SELECT user_id, message_content, timestamp FROM user_messages",
+        )
+        await conn.close()
+
+        return [
+            UserMessage(
+                user_id=row["user_id"],
+                message_content=row["message_content"],
+                timestamp=row["timestamp"],
+            ) for row in rows
+        ] if rows else None
