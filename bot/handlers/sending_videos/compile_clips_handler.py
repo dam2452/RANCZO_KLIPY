@@ -10,6 +10,7 @@ from aiogram.types import Message
 
 from bot.database.database_manager import DatabaseManager
 from bot.database.models import (
+    ClipType,
     LastClip,
     SearchHistory,
 )
@@ -62,7 +63,7 @@ class CompileClipsHandler(BotMessageHandler):
             chat_id=message.chat.id,
             segment=None,
             compiled_clip=compiled_clip_data,
-            clip_type='compiled',
+            clip_type=ClipType.COMPILED,
             adjusted_start_time=None,
             adjusted_end_time=None,
             is_adjusted=False,

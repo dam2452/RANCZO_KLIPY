@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from datetime import date
+from enum import Enum
 from typing import Optional
 
 
@@ -34,20 +35,28 @@ class VideoClip:
     is_compilation: bool
 
 
+class ClipType(Enum):
+    MANUAL = 'manual'
+    COMPILED = 'compiled'
+    SELECTED = 'selected'
+    ADJUSTED = 'adjusted'
+    SINGLE = 'single'
+
+
 @dataclass
 class LastClip:
     id: int
     chat_id: int
     segment: str
     compiled_clip: Optional[bytes]
-    clip_type: Optional[str]
+    clip_type: Optional[ClipType]
     adjusted_start_time: Optional[float]
     adjusted_end_time: Optional[float]
     is_adjusted: bool
     timestamp: date
 
 
-@dataclass #fixme użyć
+@dataclass  #fixme użyć
 class UserMessage:
     id: int
     user_id: int

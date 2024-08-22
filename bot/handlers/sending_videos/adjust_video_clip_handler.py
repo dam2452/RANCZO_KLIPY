@@ -6,6 +6,7 @@ from aiogram.types import Message
 
 from bot.database.database_manager import DatabaseManager
 from bot.database.models import (
+    ClipType,
     LastClip,
     SearchHistory,
 )
@@ -88,7 +89,7 @@ class AdjustVideoClipHandler(BotMessageHandler):
                 chat_id=message.chat.id,
                 segment=json.dumps(segment_info),
                 compiled_clip=None,
-                clip_type='adjusted',
+                clip_type=ClipType.ADJUSTED,
                 adjusted_start_time=start_time,
                 adjusted_end_time=end_time,
                 is_adjusted=True,

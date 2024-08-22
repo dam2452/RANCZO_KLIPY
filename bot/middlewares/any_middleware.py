@@ -4,8 +4,8 @@ from typing import (
     Awaitable,
     Callable,
     Dict,
-    Optional,
     List,
+    Optional,
 )
 
 from aiogram import BaseMiddleware

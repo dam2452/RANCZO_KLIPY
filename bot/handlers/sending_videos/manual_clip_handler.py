@@ -9,7 +9,10 @@ from typing import (
 from aiogram.types import Message
 
 from bot.database.database_manager import DatabaseManager
-from bot.database.models import LastClip
+from bot.database.models import (
+    ClipType,
+    LastClip,
+)
 from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.responses.sending_videos.manual_clip_handler_responses import (
     get_end_time_earlier_than_start_message,
@@ -77,7 +80,7 @@ class ManualClipHandler(BotMessageHandler):
             chat_id=message.chat.id,
             segment=json.dumps(segment_data),
             compiled_clip=None,
-            clip_type='manual',
+            clip_type=ClipType.MANUAL,
             adjusted_start_time=None,
             adjusted_end_time=None,
             is_adjusted=False,
