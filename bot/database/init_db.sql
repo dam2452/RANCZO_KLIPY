@@ -20,7 +20,7 @@ CREATE INDEX IF NOT EXISTS idx_user_roles_user_id ON user_roles(user_id);
 
 CREATE TABLE IF NOT EXISTS user_logs (
     id SERIAL,
-    user_id BIGINT REFERENCES user_profiles(user_id),
+    user_id BIGINT,
     command TEXT NOT NULL,
     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id, timestamp)
@@ -47,7 +47,7 @@ CREATE INDEX IF NOT EXISTS idx_system_logs_timestamp ON system_logs(timestamp);
 CREATE TABLE IF NOT EXISTS video_clips (
     id SERIAL PRIMARY KEY,
     chat_id BIGINT NOT NULL,
-    user_id INT NOT NULL REFERENCES user_profiles(user_id) ON DELETE CASCADE,
+    user_id BIGINT NOT NULL,
     clip_name TEXT NOT NULL,
     video_data BYTEA NOT NULL,
     start_time FLOAT,
@@ -63,7 +63,7 @@ CREATE INDEX IF NOT EXISTS idx_video_clips_clip_name ON video_clips(clip_name);
 
 CREATE TABLE IF NOT EXISTS reports (
     id SERIAL PRIMARY KEY,
-    user_id BIGINT NOT NULL REFERENCES user_profiles(user_id) ON DELETE CASCADE,
+    user_id BIGINT NOT NULL,
     report TEXT NOT NULL,
     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
