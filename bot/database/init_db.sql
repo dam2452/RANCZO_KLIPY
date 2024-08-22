@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS user_logs (
     id SERIAL,
     user_id BIGINT REFERENCES user_profiles(user_id),
     command TEXT NOT NULL,
-    timestamp TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id, timestamp)
 ) PARTITION BY RANGE (timestamp);
 

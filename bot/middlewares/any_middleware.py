@@ -23,8 +23,7 @@ class AnyMiddleware(BaseMiddleware):
 
     async def __call__(
             self,
-            handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
-            event: TelegramObject,
+            handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]], event: TelegramObject,
             data: Dict[str, Any],
     ) -> Optional[Any]:
         if isinstance(event, Message):
