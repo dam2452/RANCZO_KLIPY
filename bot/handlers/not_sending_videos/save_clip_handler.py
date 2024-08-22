@@ -127,7 +127,6 @@ class SaveClipHandler(BotMessageHandler):
             )
             segment_info_dict['episode_info'] = episode_info
 
-        # Ensure that all required fields are present
         required_fields = ['video_path', 'start', 'end', 'episode_info']
         if all(field in segment_info_dict for field in required_fields):
             return SegmentInfo(
@@ -151,12 +150,10 @@ class SaveClipHandler(BotMessageHandler):
 
     @staticmethod
     def _convert_compiled_to_segment_info(last_clip_info: LastClip) -> SegmentInfo:
-        # Compiled clips may not have video_path, start, end, episode_info
-        # Provide default values or handle accordingly
         return SegmentInfo(
-            video_path='default_path.mp4',  # Default or fallback path
-            start=0.0,  # Default start time
-            end=last_clip_info.adjusted_end_time or 0.0,  # Default end time
+            video_path='default_path.mp4',
+            start=0.0,
+            end=last_clip_info.adjusted_end_time or 0.0,
             episode_info=EpisodeInfo(season=None, episode_number=None),
             compiled_clip=last_clip_info.compiled_clip,
         )
