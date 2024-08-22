@@ -9,11 +9,7 @@ from typing import (
 from aiogram.types import Message
 
 from bot.database.database_manager import DatabaseManager
-from bot.database.models import (
-    ClipType,
-    LastClip,
-    SearchHistory,
-)
+from bot.database.models import ClipType
 from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.responses.sending_videos.compile_clips_handler_responses import (
     get_compilation_success_message,
@@ -65,7 +61,7 @@ class CompileClipsHandler(BotMessageHandler):
             clip_type=ClipType.COMPILED.value,
             adjusted_start_time=None,
             adjusted_end_time=None,
-            is_adjusted=False
+            is_adjusted=False,
         )
 
         await self._log_system_message(logging.INFO, get_compilation_success_message(message.from_user.username))

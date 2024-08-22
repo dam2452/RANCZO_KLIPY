@@ -79,7 +79,7 @@ class ClipsCompiler:
             clip_type=ClipType.COMPILED.value,
             adjusted_start_time=None,
             adjusted_end_time=None,
-            is_adjusted=False
+            is_adjusted=False,
         )
 
         await send_video(message, compiled_output, bot, logger)

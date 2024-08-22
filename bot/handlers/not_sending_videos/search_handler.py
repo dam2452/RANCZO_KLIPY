@@ -5,7 +5,6 @@ from typing import List
 from aiogram.types import Message
 
 from bot.database.database_manager import DatabaseManager
-from bot.database.models import SearchHistory
 from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.responses.bot_message_handler_responses import (
     get_log_no_segments_found_message,
@@ -39,7 +38,7 @@ class SearchHandler(BotMessageHandler):
         await DatabaseManager.insert_last_search(
             chat_id=message.chat.id,
             quote=quote,
-            segments=segments_json
+            segments=segments_json,
         )
 
         response = format_search_response(len(segments), segments)

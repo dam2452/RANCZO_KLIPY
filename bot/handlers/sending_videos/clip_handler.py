@@ -5,10 +5,7 @@ from typing import List
 from aiogram.types import Message
 
 from bot.database.database_manager import DatabaseManager
-from bot.database.models import (
-    ClipType,
-    LastClip,
-)
+from bot.database.models import ClipType
 from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.responses.bot_message_handler_responses import (
     get_extraction_failure_message,
@@ -61,7 +58,7 @@ class ClipHandler(BotMessageHandler):
             clip_type=ClipType.SINGLE.value,
             adjusted_start_time=start_time,
             adjusted_end_time=end_time,
-            is_adjusted=False
+            is_adjusted=False,
         )
 
         await self.__log_segment_and_clip_success(message.chat.id, message.from_user.username)
