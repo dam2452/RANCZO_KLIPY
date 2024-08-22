@@ -14,6 +14,11 @@ from typing import (
 from aiogram.types import Message
 
 from bot.database.database_manager import DatabaseManager
+from bot.database.models import (
+    EpisodeInfo,
+    LastClip,
+    SegmentInfo,
+)
 from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.responses.not_sending_videos.save_clip_handler_responses import (
     get_clip_name_exists_message,
@@ -26,11 +31,6 @@ from bot.responses.not_sending_videos.save_clip_handler_responses import (
 )
 from bot.settings import settings
 from bot.video.clips_extractor import ClipsExtractor
-from bot.database.models import (
-    EpisodeInfo,
-    SegmentInfo,
-    LastClip,
-)
 from bot.video.utils import get_video_duration
 
 
@@ -77,76 +77,88 @@ class SaveClipHandler(BotMessageHandler):
         return await DatabaseManager.is_clip_name_unique(message.chat.id, clip_name)
 
     async def __get_segment_info(self, message: Message) -> Optional[SegmentInfo]:
-        last_clip_info = await DatabaseManager.get_last_clip_by_chat_id(message.chat.id)
+        last_clip_info = await self.__get_last_clip_info(message)
+        if not last_clip_info:
+            return None
 
+        if last_clip_info.compiled_clip:
+            return self._convert_compiled_to_segment_info(last_clip_info)
+
+        return await self.__parse_segment_info(last_clip_info)
+
+    async def __get_last_clip_info(self, message: Message) -> Optional[LastClip]:
+        last_clip_info = await DatabaseManager.get_last_clip_by_chat_id(message.chat.id)
         await self._log_system_message(logging.DEBUG, f"Full last_clip_info from DB: {last_clip_info}")
 
         if last_clip_info is None:
             await self._log_system_message(logging.INFO, f"No last_clip_info found for chat_id: {message.chat.id}")
             return None
 
+        return last_clip_info
+
+    async def __parse_segment_info(self, last_clip_info: LastClip) -> Optional[SegmentInfo]:
         segment_data = last_clip_info.segment
-        compiled_clip_data = last_clip_info.compiled_clip
-
-        await self._log_system_message(logging.DEBUG, f"Raw segment data: {segment_data}")
-        await self._log_system_message(logging.DEBUG, f"Raw compiled clip data: {compiled_clip_data}")
-
-        if segment_data is None:
-            if compiled_clip_data:
-                await self._log_system_message(logging.INFO, f"Using compiled clip data for chat_id: {message.chat.id}")
-                # Handle compiled clip separately, ensure defaults or handle missing fields
-                return self._convert_compiled_to_segment_info(last_clip_info)
-            else:
-                await self._log_system_message(logging.ERROR, f"Segment data is None for chat_id: {message.chat.id}")
-                return None
 
         if isinstance(segment_data, bytes):
             segment_info_str = segment_data.decode('utf-8')
         else:
             segment_info_str = segment_data
 
+        segment_info_dict = await self.__decode_segment_info(segment_info_str)
+        if not segment_info_dict:
+            return None
+
+        self.__apply_adjustments(segment_info_dict, last_clip_info)
+
+        if not self.__validate_required_fields(segment_info_dict):
+            return None
+
+        return self.__create_segment_info(segment_info_dict)
+
+    async def __decode_segment_info(self, segment_info_str: str) -> Optional[Dict]:
         try:
-            segment_info_dict = json.loads(segment_info_str)
+            return json.loads(segment_info_str)
         except json.JSONDecodeError as e:
             await self._log_system_message(logging.ERROR, f"Failed to decode JSON from segment_info_str: {e}")
             return None
 
-        adjusted_start_time = last_clip_info.adjusted_start_time
-        adjusted_end_time = last_clip_info.adjusted_end_time
-        is_adjusted = last_clip_info.is_adjusted
-
-        if is_adjusted and adjusted_start_time is not None and adjusted_end_time is not None:
-            segment_info_dict['start'] = adjusted_start_time
-            segment_info_dict['end'] = adjusted_end_time
+    @staticmethod
+    def __apply_adjustments(segment_info_dict: Dict, last_clip_info: LastClip) -> None:
+        if last_clip_info.is_adjusted:
+            segment_info_dict['start'] = last_clip_info.adjusted_start_time
+            segment_info_dict['end'] = last_clip_info.adjusted_end_time
 
         if 'episode_info' in segment_info_dict and isinstance(segment_info_dict['episode_info'], dict):
             episode_info_data = segment_info_dict['episode_info']
-            episode_info = EpisodeInfo(
+            segment_info_dict['episode_info'] = EpisodeInfo(
                 season=episode_info_data.get('season'),
                 episode_number=episode_info_data.get('episode_number'),
             )
-            segment_info_dict['episode_info'] = episode_info
 
+    async def __validate_required_fields(self, segment_info_dict: Dict) -> bool:
         required_fields = ['video_path', 'start', 'end', 'episode_info']
-        if all(field in segment_info_dict for field in required_fields):
-            return SegmentInfo(
-                video_path=segment_info_dict['video_path'],
-                start=segment_info_dict['start'],
-                end=segment_info_dict['end'],
-                episode_info=segment_info_dict['episode_info'],
-                # Optional fields
-                text=segment_info_dict.get('text'),
-                id=segment_info_dict.get('id'),
-                author=segment_info_dict.get('author'),
-                comment=segment_info_dict.get('comment'),
-                tags=segment_info_dict.get('tags'),
-                location=segment_info_dict.get('location'),
-                actors=segment_info_dict.get('actors'),
-                compiled_clip=segment_info_dict.get('compiled_clip'),
-            )
-        else:
+        missing_fields = [field for field in required_fields if field not in segment_info_dict]
+        if missing_fields:
             await self._log_system_message(logging.ERROR, f"Missing required fields for SegmentInfo: {segment_info_dict}")
-            return None
+            return False
+        return True
+
+    @staticmethod
+    def __create_segment_info(segment_info_dict: Dict) -> SegmentInfo:
+        return SegmentInfo(
+            video_path=segment_info_dict['video_path'],
+            start=segment_info_dict['start'],
+            end=segment_info_dict['end'],
+            episode_info=segment_info_dict['episode_info'],
+            text=segment_info_dict.get('text'),
+            id=segment_info_dict.get('id'),
+            author=segment_info_dict.get('author'),
+            comment=segment_info_dict.get('comment'),
+            tags=segment_info_dict.get('tags'),
+            location=segment_info_dict.get('location'),
+            actors=segment_info_dict.get('actors'),
+            compiled_clip=segment_info_dict.get('compiled_clip'),
+        )
 
     @staticmethod
     def _convert_compiled_to_segment_info(last_clip_info: LastClip) -> SegmentInfo:

@@ -11,13 +11,13 @@ from aiogram import Bot
 import asyncpg
 
 from bot.database.models import (
+    ClipType,
     LastClip,
     SearchHistory,
     UserProfile,
     VideoClip,
 )
 from bot.settings import settings
-from bot.database.models import ClipType
 
 
 class DatabaseManager:  # pylint: disable=too-many-public-methods
