@@ -246,6 +246,22 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         await conn.close()
 
     @staticmethod
+    def _row_to_video_clip(row: asyncpg.Record) -> VideoClip:
+        return VideoClip(
+            id=row["id"],
+            chat_id=row["chat_id"],
+            user_id=row["user_id"],
+            clip_name=row["clip_name"],
+            video_data=row["video_data"],
+            start_time=row["start_time"],
+            end_time=row["end_time"],
+            duration=row["duration"],
+            season=row["season"],
+            episode_number=row["episode_number"],
+            is_compilation=row["is_compilation"],
+        )
+
+    @staticmethod
     async def get_saved_clips(user_id: int) -> Optional[List[VideoClip]]:
         conn = await DatabaseManager.get_db_connection()
         rows = await conn.fetch(
@@ -257,22 +273,7 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         await conn.close()
 
         if rows:
-            return [
-                VideoClip(
-                    id=row["id"],
-                    chat_id=row["chat_id"],
-                    user_id=row["user_id"],
-                    clip_name=row["clip_name"],
-                    video_data=row["video_data"],
-                    start_time=row["start_time"],
-                    end_time=row["end_time"],
-                    duration=row["duration"],
-                    season=row["season"],
-                    episode_number=row["episode_number"],
-                    is_compilation=row["is_compilation"],
-                )
-                for row in rows
-            ]
+            return [DatabaseManager._row_to_video_clip(row) for row in rows]
         return None
 
     @staticmethod
@@ -304,19 +305,7 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         await conn.close()
 
         if row:
-            return VideoClip(
-                id=row["id"],
-                chat_id=row["chat_id"],
-                user_id=row["user_id"],
-                clip_name=row["clip_name"],
-                video_data=row["video_data"],
-                start_time=row["start_time"],
-                end_time=row["end_time"],
-                duration=row["duration"],
-                season=row["season"],
-                episode_number=row["episode_number"],
-                is_compilation=row["is_compilation"],
-            )
+            return DatabaseManager._row_to_video_clip(row)
         return None
 
     @staticmethod
@@ -333,19 +322,7 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         await conn.close()
 
         if row:
-            return VideoClip(
-                id=row["id"],
-                chat_id=row["chat_id"],
-                user_id=row["user_id"],
-                clip_name=row["clip_name"],
-                video_data=row["video_data"],
-                start_time=row["start_time"],
-                end_time=row["end_time"],
-                duration=row["duration"],
-                season=row["season"],
-                episode_number=row["episode_number"],
-                is_compilation=row["is_compilation"],
-            )
+            return DatabaseManager._row_to_video_clip(row)
         return None
 
     @staticmethod
