@@ -470,7 +470,7 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         await conn.close()
 
     @staticmethod
-    async def delete_last_search(search_id: int) -> None:
+    async def delete_search_by_id(search_id: int) -> None:
         conn = await DatabaseManager.get_db_connection()
         await conn.execute(
             '''
@@ -480,7 +480,7 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         )
         await conn.close()
 
-    from bot.database.models import LastClip
+
 
     @staticmethod
     async def insert_last_clip(last_clip: LastClip) -> None:
