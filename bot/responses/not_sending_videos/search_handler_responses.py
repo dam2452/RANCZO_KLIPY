@@ -1,5 +1,4 @@
-from bot.video.segment_info import format_segment
-
+from bot.utils.functions import format_segment
 
 def get_invalid_args_count_message() -> str:
     return "🔍 Podaj cytat, który chcesz znaleźć. Przykład: /szukaj geniusz"

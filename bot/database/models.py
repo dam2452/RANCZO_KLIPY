@@ -1,7 +1,10 @@
 from dataclasses import dataclass
 from datetime import date
 from enum import Enum
-from typing import Optional
+from typing import (
+    List,
+    Optional,
+)
 
 
 @dataclass
@@ -47,7 +50,7 @@ class ClipType(Enum):
 class LastClip:
     id: int
     chat_id: int
-    segment: str
+    segment: dict
     compiled_clip: Optional[bytes]
     clip_type: Optional[ClipType]
     adjusted_start_time: Optional[float]
@@ -56,7 +59,7 @@ class LastClip:
     timestamp: date
 
 
-@dataclass  #fixme użyć
+@dataclass
 class UserMessage:
     id: int
     user_id: int
@@ -70,3 +73,33 @@ class SearchHistory:
     chat_id: int
     quote: str
     segments: str
+
+
+@dataclass(frozen=True)
+class FormattedSegmentInfo:
+    episode_formatted: str
+    time_formatted: str
+    episode_title: str
+
+
+@dataclass
+class EpisodeInfo:
+    season: Optional[int] = None
+    episode_number: Optional[int] = None
+    title: Optional[str] = None
+
+
+@dataclass
+class SegmentInfo:
+    video_path: str
+    start: float
+    end: float
+    episode_info: EpisodeInfo
+    text: Optional[str] = None
+    id: Optional[int] = None
+    author: Optional[str] = None
+    comment: Optional[str] = None
+    tags: Optional[List[str]] = None
+    location: Optional[str] = None
+    actors: Optional[List[str]] = None
+    compiled_clip: Optional[bytes] = None

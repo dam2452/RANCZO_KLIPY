@@ -26,9 +26,10 @@ from bot.responses.not_sending_videos.save_clip_handler_responses import (
 )
 from bot.settings import settings
 from bot.video.clips_extractor import ClipsExtractor
-from bot.video.segment_info import (
+from bot.database.models import (
     EpisodeInfo,
     SegmentInfo,
+    LastClip,
 )
 from bot.video.utils import get_video_duration
 
@@ -37,7 +38,7 @@ class SaveClipHandler(BotMessageHandler):
     __SEGMENT_INFO_GETTERS: Dict[str, Callable[[Dict[str, Union[json, str]]], SegmentInfo]] = {
         "manual": (lambda last_clip_info: SegmentInfo(**last_clip_info)),
         "segment": (lambda last_clip_info: SaveClipHandler._convert_to_segment_info(last_clip_info['segment'])),
-        "compiled": (lambda last_clip_info: SegmentInfo(**last_clip_info['compiled_clip'])),
+        "compiled": (lambda last_clip_info: SaveClipHandler._convert_compiled_to_segment_info(last_clip_info)),
         "adjusted": (lambda last_clip_info: SaveClipHandler._convert_to_segment_info_with_adjustment(last_clip_info)),
     }
 
@@ -93,7 +94,8 @@ class SaveClipHandler(BotMessageHandler):
         if segment_data is None:
             if compiled_clip_data:
                 await self._log_system_message(logging.INFO, f"Using compiled clip data for chat_id: {message.chat.id}")
-                return SegmentInfo(compiled_clip=compiled_clip_data)
+                # Handle compiled clip separately, ensure defaults or handle missing fields
+                return self._convert_compiled_to_segment_info(last_clip_info)
             else:
                 await self._log_system_message(logging.ERROR, f"Segment data is None for chat_id: {message.chat.id}")
                 return None
@@ -120,12 +122,44 @@ class SaveClipHandler(BotMessageHandler):
         if 'episode_info' in segment_info_dict and isinstance(segment_info_dict['episode_info'], dict):
             episode_info_data = segment_info_dict['episode_info']
             episode_info = EpisodeInfo(
-                season=episode_info_data['season'],
-                episode_number=episode_info_data['episode_number'],
+                season=episode_info_data.get('season'),
+                episode_number=episode_info_data.get('episode_number'),
             )
             segment_info_dict['episode_info'] = episode_info
 
-        return SegmentInfo(**segment_info_dict)
+        # Ensure that all required fields are present
+        required_fields = ['video_path', 'start', 'end', 'episode_info']
+        if all(field in segment_info_dict for field in required_fields):
+            return SegmentInfo(
+                video_path=segment_info_dict['video_path'],
+                start=segment_info_dict['start'],
+                end=segment_info_dict['end'],
+                episode_info=segment_info_dict['episode_info'],
+                # Optional fields
+                text=segment_info_dict.get('text'),
+                id=segment_info_dict.get('id'),
+                author=segment_info_dict.get('author'),
+                comment=segment_info_dict.get('comment'),
+                tags=segment_info_dict.get('tags'),
+                location=segment_info_dict.get('location'),
+                actors=segment_info_dict.get('actors'),
+                compiled_clip=segment_info_dict.get('compiled_clip'),
+            )
+        else:
+            await self._log_system_message(logging.ERROR, f"Missing required fields for SegmentInfo: {segment_info_dict}")
+            return None
+
+    @staticmethod
+    def _convert_compiled_to_segment_info(last_clip_info: LastClip) -> SegmentInfo:
+        # Compiled clips may not have video_path, start, end, episode_info
+        # Provide default values or handle accordingly
+        return SegmentInfo(
+            video_path='default_path.mp4',  # Default or fallback path
+            start=0.0,  # Default start time
+            end=last_clip_info.adjusted_end_time or 0.0,  # Default end time
+            episode_info=EpisodeInfo(season=None, episode_number=None),
+            compiled_clip=last_clip_info.compiled_clip,
+        )
 
     @staticmethod
     def _convert_to_segment_info(segment: json) -> SegmentInfo:
