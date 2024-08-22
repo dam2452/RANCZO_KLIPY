@@ -36,13 +36,11 @@ class SearchHandler(BotMessageHandler):
 
         segments_json = json.dumps(segments)
 
-        search_history = SearchHistory(
-            id=0,
+        await DatabaseManager.insert_last_search(
             chat_id=message.chat.id,
             quote=quote,
-            segments=segments_json,
+            segments=segments_json
         )
-        await DatabaseManager.insert_last_search(search_history)
 
         response = format_search_response(len(segments), segments)
 

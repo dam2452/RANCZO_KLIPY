@@ -43,7 +43,7 @@ class CompileClipsHandler(BotMessageHandler):
         if len(content) < 2:
             return await self._reply_invalid_args_count(message, get_invalid_args_count_message())
 
-        last_search: SearchHistory = await DatabaseManager.get_last_search_by_chat_id(message.chat.id)
+        last_search = await DatabaseManager.get_last_search_by_chat_id(message.chat.id)
         if not last_search or not last_search.segments:
             return await self.__reply_no_previous_search_results(message)
 
@@ -58,19 +58,15 @@ class CompileClipsHandler(BotMessageHandler):
         with open(compiled_output, 'rb') as f:
             compiled_clip_data = f.read()
 
-        last_clip = LastClip(
-            id=0,
+        await DatabaseManager.insert_last_clip(
             chat_id=message.chat.id,
             segment=None,
             compiled_clip=compiled_clip_data,
-            clip_type=ClipType.COMPILED,
+            clip_type=ClipType.COMPILED.value,
             adjusted_start_time=None,
             adjusted_end_time=None,
-            is_adjusted=False,
-            timestamp=None,
+            is_adjusted=False
         )
-
-        await DatabaseManager.insert_last_clip(last_clip)
 
         await self._log_system_message(logging.INFO, get_compilation_success_message(message.from_user.username))
 

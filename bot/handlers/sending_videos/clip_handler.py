@@ -54,19 +54,15 @@ class ClipHandler(BotMessageHandler):
         except FFMpegException as e:
             return await self.__reply_extraction_failed(message, e)
 
-        last_clip = LastClip(
-            id=0,
+        await DatabaseManager.insert_last_clip(
             chat_id=message.chat.id,
             segment=segment_json,
             compiled_clip=None,
-            clip_type=ClipType.SINGLE,
+            clip_type=ClipType.SINGLE.value,
             adjusted_start_time=start_time,
             adjusted_end_time=end_time,
-            is_adjusted=False,
-            timestamp=None,
+            is_adjusted=False
         )
-
-        await DatabaseManager.insert_last_clip(last_clip)
 
         await self.__log_segment_and_clip_success(message.chat.id, message.from_user.username)
 

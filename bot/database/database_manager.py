@@ -81,13 +81,16 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         await conn.close()
 
     @staticmethod
-    async def add_user(user: UserProfile, bot: Bot, subscription_days: Optional[int] = None) -> None:
+    async def add_user(
+        user_id: int, username: Optional[str], full_name: Optional[str], note: Optional[str], bot: Bot,
+        subscription_days: Optional[int] = None,
+    ) -> None:
         conn = await DatabaseManager.get_db_connection()
 
-        if not user.username or not user.full_name:
-            user_data = await bot.get_chat(user.user_id)
-            user.username = user_data.username
-            user.full_name = user_data.full_name
+        if not username or not full_name:
+            user_data = await bot.get_chat(user_id)
+            username = user_data.username
+            full_name = user_data.full_name
 
         subscription_end = date.today() + timedelta(days=subscription_days) if subscription_days else None
         async with conn.transaction():
@@ -95,32 +98,35 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
                 "INSERT INTO user_profiles (user_id, username, full_name, subscription_end, note) "
                 "VALUES ($1, $2, $3, $4, $5) "
                 "ON CONFLICT (user_id) DO NOTHING",
-                user.user_id, user.username, user.full_name, subscription_end, user.note,
+                user_id, username, full_name, subscription_end, note,
             )
         await conn.close()
 
     @staticmethod
-    async def update_user(user: UserProfile, subscription_end: Optional[int] = None) -> None:
+    async def update_user(
+        user_id: int, username: Optional[str] = None, full_name: Optional[str] = None, note: Optional[str] = None,
+        subscription_end: Optional[int] = None,
+    ) -> None:
         conn = await DatabaseManager.get_db_connection()
         updates = []
         params = []
 
-        if user.username is not None:
+        if username is not None:
             updates.append(f"username = ${len(params) + 1}")
-            params.append(user.username)
-        if user.full_name is not None:
+            params.append(username)
+        if full_name is not None:
             updates.append(f"full_name = ${len(params) + 1}")
-            params.append(user.full_name)
-        if user.note is not None:
+            params.append(full_name)
+        if note is not None:
             updates.append(f"note = ${len(params) + 1}")
-            params.append(user.note)
+            params.append(note)
         if subscription_end is not None:
             updates.append(f"subscription_end = ${len(params) + 1}")
             params.append(subscription_end)
 
         if updates:
             query = f"UPDATE user_profiles SET {', '.join(updates)} WHERE user_id = ${len(params) + 1}"
-            params.append(user.user_id)
+            params.append(user_id)
             async with conn.transaction():
                 await conn.execute(query, *params)
 
@@ -136,10 +142,19 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
     async def get_all_users() -> Optional[List[UserProfile]]:
         conn = await DatabaseManager.get_db_connection()
         rows = await conn.fetch(
-            "SELECT user_id, username, subscription_end, note FROM user_profiles",
+            "SELECT user_id, username, full_name, subscription_end, note FROM user_profiles",
         )
         await conn.close()
-        return [UserProfile(**row) for row in rows] if rows else None
+
+        return [
+            UserProfile(
+                user_id=row["user_id"],
+                username=row["username"],
+                full_name=row["full_name"],
+                subscription_end=row["subscription_end"],
+                note=row["note"],
+            ) for row in rows
+        ] if rows else None
 
     @staticmethod
     async def is_user_in_db(user_id: int) -> bool:
@@ -406,14 +421,12 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         return result == 0
 
     @staticmethod
-    async def insert_last_search(search_history: SearchHistory) -> None:
+    async def insert_last_search(chat_id: int, quote: str, segments: str) -> None:
         conn = await DatabaseManager.get_db_connection()
         await conn.execute(
             "INSERT INTO search_history (chat_id, quote, segments) "
             "VALUES ($1, $2, $3::jsonb)",
-            search_history.chat_id,
-            search_history.quote,
-            search_history.segments,
+            chat_id, quote, segments,
         )
         await conn.close()
 
@@ -469,18 +482,20 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         await conn.close()
 
     @staticmethod
-    async def insert_last_clip(last_clip: LastClip) -> None:
+    async def insert_last_clip(
+            chat_id: int,
+            segment: dict,
+            compiled_clip: Optional[bytes],
+            clip_type: str,
+            adjusted_start_time: Optional[float],
+            adjusted_end_time: Optional[float],
+            is_adjusted: bool,
+    ) -> None:
         conn = await DatabaseManager.get_db_connection()
         await conn.execute(
             "INSERT INTO last_clips (chat_id, segment, compiled_clip, type, adjusted_start_time, adjusted_end_time, is_adjusted) "
             "VALUES ($1, $2::jsonb, $3::bytea, $4, $5, $6, $7)",
-            last_clip.chat_id,
-            last_clip.segment,
-            last_clip.compiled_clip,
-            last_clip.clip_type.value,
-            last_clip.adjusted_start_time,
-            last_clip.adjusted_end_time,
-            last_clip.is_adjusted,
+            chat_id, segment, compiled_clip, clip_type, adjusted_start_time, adjusted_end_time, is_adjusted,
         )
         await conn.close()
 

@@ -9,11 +9,9 @@ CREATE TABLE IF NOT EXISTS user_profiles (
 );
 
 CREATE TABLE IF NOT EXISTS user_roles (
-    id SERIAL PRIMARY KEY,
-    user_id BIGINT REFERENCES user_profiles(user_id),
+    user_id BIGINT PRIMARY KEY REFERENCES user_profiles(user_id),
     is_admin BOOLEAN NOT NULL DEFAULT FALSE,
-    is_moderator BOOLEAN NOT NULL DEFAULT FALSE,
-    CONSTRAINT unique_user_id UNIQUE(user_id)
+    is_moderator BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 CREATE INDEX IF NOT EXISTS idx_user_roles_user_id ON user_roles(user_id);
