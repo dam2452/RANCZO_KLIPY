@@ -36,4 +36,3 @@ class AnyMiddleware(BaseMiddleware):
     @staticmethod
     def get_command_without_initial_slash(event: TelegramObject) -> str:
         return event.text.split()[0][1:]
-

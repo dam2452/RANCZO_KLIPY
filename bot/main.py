@@ -64,4 +64,3 @@ if __name__ == "__main__":
         asyncio.set_event_loop(db_log_handler.loop)
     logging.getLogger().addHandler(db_log_handler)
     asyncio.run(main())
-

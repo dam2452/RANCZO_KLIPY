@@ -32,4 +32,3 @@ class ReportIssueHandler(BotMessageHandler):
         await DatabaseManager.add_report(message.from_user.id, report)
         await message.answer(get_report_received_message())
         await self._log_system_message(logging.INFO, get_log_report_received_message(message.from_user.username, report))
-
