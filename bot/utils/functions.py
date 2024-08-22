@@ -38,8 +38,8 @@ def parse_whitelist_message(
 ) -> UserProfile:
     try:
         user_id = int(content[0])
-    except ValueError:
-        raise ValueError(f"Invalid user_id: {content[0]} is not a valid integer.")
+    except ValueError as exc:
+        raise ValueError(f"Invalid user_id: {content[0]} is not a valid integer.") from exc
 
     return UserProfile(
         user_id=user_id,

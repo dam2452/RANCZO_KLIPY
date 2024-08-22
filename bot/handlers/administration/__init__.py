@@ -3,6 +3,7 @@ from bot.handlers.administration.add_whitelist_handler import AddWhitelistHandle
 from bot.handlers.administration.admin_help_handler import AdminHelpHandler
 from bot.handlers.administration.list_admins_handler import ListAdminsHandler
 from bot.handlers.administration.list_moderators_handler import ListModeratorsHandler
+from bot.handlers.administration.list_user_messages_handler import ListUserMessagesHandler
 from bot.handlers.administration.list_whitelist_handler import ListWhitelistHandler
 from bot.handlers.administration.remove_subscription_handler import RemoveSubscriptionHandler
 from bot.handlers.administration.remove_whitelist_handler import RemoveWhitelistHandler
@@ -11,4 +12,3 @@ from bot.handlers.administration.save_user_info_handler import SaveUserInfoHandl
 from bot.handlers.administration.start_handler import StartHandler
 from bot.handlers.administration.subscription_status_handler import SubscriptionStatusHandler
 from bot.handlers.administration.update_whitelist_handler import UpdateWhitelistHandler
-from bot.handlers.administration.list_user_messages_handler import ListUserMessagesHandler
