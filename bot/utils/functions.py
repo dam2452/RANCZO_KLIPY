@@ -36,8 +36,13 @@ def time_str_to_seconds(time_str: str) -> int:
 def parse_whitelist_message(
         content: List[str],
 ) -> UserProfile:
+    try:
+        user_id = int(content[0])
+    except ValueError:
+        raise ValueError(f"Invalid user_id: {content[0]} is not a valid integer.")
+
     return UserProfile(
-        user_id=int(content[0]),
+        user_id=user_id,
         username=content[1] if len(content) > 1 else None,
         full_name=content[2] if len(content) > 2 else None,
         subscription_end=None,
