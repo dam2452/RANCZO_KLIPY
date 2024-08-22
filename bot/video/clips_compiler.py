@@ -48,19 +48,19 @@ class ClipsCompiler:
         temp_files = []
         try:
             for segment in selected_clips:
-                temp_file_name = tempfile.NamedTemporaryFile(
-                    delete=False, delete_on_close=False,
-                    suffix=".mp4",
-                ).name
-                temp_files.append(temp_file_name)
-                await ClipsExtractor.extract_clip(segment['video_path'], segment['start'], segment['end'], temp_file_name, logger)
+                with tempfile.NamedTemporaryFile(
+                        delete=False, delete_on_close=False,
+                        suffix=".mp4",
+                ) as temp_file:
+                    temp_files.append(temp_file.name)
+                    await ClipsExtractor.extract_clip(segment['video_path'], segment['start'], segment['end'], temp_file.name, logger)
 
-            compiled_output = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
-            compiled_output.close()
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as compiled_output:
+                compiled_output_name = compiled_output.name
 
-            await ClipsCompiler.__do_compile_clips(temp_files, compiled_output.name, logger)
+            await ClipsCompiler.__do_compile_clips(temp_files, compiled_output_name, logger)
 
-            return compiled_output.name
+            return compiled_output_name
         except Exception as e:
             raise FFMpegException(f"Error during clip compilation: {str(e)}") from e
 
