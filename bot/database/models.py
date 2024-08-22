@@ -58,15 +58,6 @@ class LastClip:
     is_adjusted: bool
     timestamp: date
 
-
-@dataclass
-class UserMessage:
-    id: int
-    user_id: int
-    message_content: str
-    timestamp: date
-
-
 @dataclass
 class SearchHistory:
     id: int
