@@ -61,19 +61,16 @@ class CompileSelectedClipsHandler(BotMessageHandler):
         with open(compiled_output, 'rb') as f:
             compiled_clip_data = f.read()
 
-        last_clip = LastClip(
-            id=0,
+
+        await DatabaseManager.insert_last_clip(
             chat_id=message.chat.id,
             segment={},
             compiled_clip=compiled_clip_data,
-            clip_type=ClipType.COMPILED,
+            clip_type=ClipType.COMPILED.value,
             adjusted_start_time=None,
             adjusted_end_time=None,
             is_adjusted=False,
-            timestamp=datetime.now(),
         )
-
-        await DatabaseManager.insert_last_clip(last_clip)
 
         await self._log_system_message(logging.INFO, get_compiled_clip_sent_message(message.from_user.username))
 

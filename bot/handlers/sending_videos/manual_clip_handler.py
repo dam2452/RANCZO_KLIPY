@@ -76,19 +76,15 @@ class ManualClipHandler(BotMessageHandler):
             },
         }
 
-        last_clip = LastClip(
-            id=0,
+        await DatabaseManager.insert_last_clip(
             chat_id=message.chat.id,
-            segment=json.dumps(segment_data),
+            segment=segment_data,
             compiled_clip=None,
-            clip_type=ClipType.MANUAL,
+            clip_type=ClipType.MANUAL.value,
             adjusted_start_time=None,
             adjusted_end_time=None,
             is_adjusted=False,
-            timestamp=datetime.now(),
         )
-
-        await DatabaseManager.insert_last_clip(last_clip)
 
     @staticmethod
     def __parse_content(content: List[str]) -> Tuple[Episode, float, float]:

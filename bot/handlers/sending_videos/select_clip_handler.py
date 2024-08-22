@@ -59,19 +59,16 @@ class SelectClipHandler(BotMessageHandler):
 
         segment_json = json.dumps(segment)
 
-        last_clip = LastClip(
-            id=0,
+
+        await DatabaseManager.insert_last_clip(
             chat_id=message.chat.id,
-            segment=segment_json,
+            segment=segment,
             compiled_clip=None,
-            clip_type=ClipType.SELECTED,
+            clip_type=ClipType.SELECTED.value,
             adjusted_start_time=None,
             adjusted_end_time=None,
             is_adjusted=False,
-            timestamp=datetime.now(),
         )
-
-        await DatabaseManager.insert_last_clip(last_clip)
 
         await self._log_system_message(logging.INFO, get_log_segment_selected_message(segment['id'], message.from_user.username))
 

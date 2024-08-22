@@ -97,7 +97,15 @@ class AdjustVideoClipHandler(BotMessageHandler):
                 timestamp=datetime.now(),
             )
 
-            await DatabaseManager.insert_last_clip(last_clip)
+            await DatabaseManager.insert_last_clip(
+                chat_id=message.chat.id,
+                segment=segment_info,
+                compiled_clip=None,
+                clip_type=ClipType.ADJUSTED.value,
+                adjusted_start_time=start_time,
+                adjusted_end_time=end_time,
+                is_adjusted=True,
+            )
 
         except FFMpegException as e:
             return await self.__reply_extraction_failure(message, e)
