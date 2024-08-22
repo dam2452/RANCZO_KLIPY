@@ -18,13 +18,10 @@ class RemoveWhitelistHandler(BotMessageHandler):
 
     async def _do_handle(self, message: Message) -> None:
         content = message.text.split()
-        if len(content) < 2:
+        if len(content) < 2 or not content[1].isdigit():
             return await self._reply_invalid_args_count(message, get_no_user_id_provided_message())
 
-        try:
-            user_id = int(content[1])
-        except ValueError:
-            return await self._reply_invalid_args_count(message, get_no_user_id_provided_message())
+        user_id = int(content[1])
 
         await DatabaseManager.remove_user(user_id)
         await self.__reply_user_removed(message, user_id)
