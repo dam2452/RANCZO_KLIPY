@@ -57,7 +57,7 @@ class SelectClipHandler(BotMessageHandler):
             chat_id=message.chat.id,
             segment=segment,
             compiled_clip=None,
-            clip_type=ClipType.SELECTED.value,
+            clip_type=ClipType.SELECTED,
             adjusted_start_time=None,
             adjusted_end_time=None,
             is_adjusted=False,

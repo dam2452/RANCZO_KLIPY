@@ -18,7 +18,10 @@ from bot.responses.sending_videos.compile_selected_clips_handler_responses impor
     get_log_no_matching_clips_found_message,
     get_no_matching_clips_found_message,
 )
-from bot.video.clips_compiler import ClipsCompiler
+from bot.video.clips_compiler import (
+    ClipsCompiler,
+    process_compiled_clip,
+)
 
 
 class CompileSelectedClipsHandler(BotMessageHandler):
@@ -54,18 +57,7 @@ class CompileSelectedClipsHandler(BotMessageHandler):
             })
 
         compiled_output = await ClipsCompiler.compile_and_send_clips(message, selected_segments, self._bot, self._logger)
-        with open(compiled_output, 'rb') as f:
-            compiled_clip_data = f.read()
-
-        await DatabaseManager.insert_last_clip(
-            chat_id=message.chat.id,
-            segment={},
-            compiled_clip=compiled_clip_data,
-            clip_type=ClipType.COMPILED.value,
-            adjusted_start_time=None,
-            adjusted_end_time=None,
-            is_adjusted=False,
-        )
+        await process_compiled_clip(message, compiled_output, ClipType.COMPILED)
 
         await self._log_system_message(logging.INFO, get_compiled_clip_sent_message(message.from_user.username))
 

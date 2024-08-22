@@ -2,6 +2,7 @@ from datetime import (
     date,
     timedelta,
 )
+import json
 from typing import (
     List,
     Optional,
@@ -486,16 +487,19 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
             chat_id: int,
             segment: dict,
             compiled_clip: Optional[bytes],
-            clip_type: str,
+            clip_type: ClipType,
             adjusted_start_time: Optional[float],
             adjusted_end_time: Optional[float],
             is_adjusted: bool,
     ) -> None:
         conn = await DatabaseManager.get_db_connection()
+
+        segment_json = json.dumps(segment)
+
         await conn.execute(
             "INSERT INTO last_clips (chat_id, segment, compiled_clip, type, adjusted_start_time, adjusted_end_time, is_adjusted) "
             "VALUES ($1, $2::jsonb, $3::bytea, $4, $5, $6, $7)",
-            chat_id, segment, compiled_clip, clip_type, adjusted_start_time, adjusted_end_time, is_adjusted,
+            chat_id, segment_json, compiled_clip, clip_type.value, adjusted_start_time, adjusted_end_time, is_adjusted,
         )
         await conn.close()
 

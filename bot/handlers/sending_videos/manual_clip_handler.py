@@ -75,7 +75,7 @@ class ManualClipHandler(BotMessageHandler):
             chat_id=message.chat.id,
             segment=segment_data,
             compiled_clip=None,
-            clip_type=ClipType.MANUAL.value,
+            clip_type=ClipType.MANUAL,
             adjusted_start_time=None,
             adjusted_end_time=None,
             is_adjusted=False,

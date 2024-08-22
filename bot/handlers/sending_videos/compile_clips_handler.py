@@ -21,7 +21,10 @@ from bot.responses.sending_videos.compile_clips_handler_responses import (
     get_no_matching_segments_found_message,
     get_no_previous_search_results_message,
 )
-from bot.video.clips_compiler import ClipsCompiler
+from bot.video.clips_compiler import (
+    ClipsCompiler,
+    process_compiled_clip,
+)
 
 
 class CompileClipsHandler(BotMessageHandler):
@@ -51,18 +54,7 @@ class CompileClipsHandler(BotMessageHandler):
             return await self.__reply_no_matching_segments_found(message)
 
         compiled_output = await ClipsCompiler.compile_and_send_clips(message, selected_segments, self._bot, self._logger)
-        with open(compiled_output, 'rb') as f:
-            compiled_clip_data = f.read()
-
-        await DatabaseManager.insert_last_clip(
-            chat_id=message.chat.id,
-            segment={},
-            compiled_clip=compiled_clip_data,
-            clip_type=ClipType.COMPILED.value,
-            adjusted_start_time=None,
-            adjusted_end_time=None,
-            is_adjusted=False,
-        )
+        await process_compiled_clip(message, compiled_output, ClipType.COMPILED)
 
         await self._log_system_message(logging.INFO, get_compilation_success_message(message.from_user.username))
 

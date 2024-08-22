@@ -52,7 +52,7 @@ class ClipHandler(BotMessageHandler):
             chat_id=message.chat.id,
             segment=segment,
             compiled_clip=None,
-            clip_type=ClipType.SINGLE.value,
+            clip_type=ClipType.SINGLE,
             adjusted_start_time=start_time,
             adjusted_end_time=end_time,
             is_adjusted=False,

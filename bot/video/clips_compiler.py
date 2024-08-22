@@ -73,7 +73,7 @@ class ClipsCompiler:
             chat_id=message.chat.id,
             segment={},
             compiled_clip=compiled_clip_data,
-            clip_type=ClipType.COMPILED.value,
+            clip_type=ClipType.COMPILED,
             adjusted_start_time=None,
             adjusted_end_time=None,
             is_adjusted=False,
@@ -90,3 +90,20 @@ class ClipsCompiler:
         await ClipsCompiler.__send_compiled_clip(message, compiled_output, bot, logger)
 
         return compiled_output
+
+
+async def process_compiled_clip(
+        message: Message, compiled_output: str, clip_type: ClipType,
+) -> None:
+    with open(compiled_output, 'rb') as f:
+        compiled_clip_data = f.read()
+
+    await DatabaseManager.insert_last_clip(
+        chat_id=message.chat.id,
+        segment={},
+        compiled_clip=compiled_clip_data,
+        clip_type=clip_type,
+        adjusted_start_time=None,
+        adjusted_end_time=None,
+        is_adjusted=False,
+    )
