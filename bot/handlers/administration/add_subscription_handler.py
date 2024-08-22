@@ -22,14 +22,11 @@ class AddSubscriptionHandler(BotMessageHandler):
     async def _do_handle(self, message: Message) -> None:
         content = message.text.split()
 
-        if len(content) < 3:
+        if len(content) < 3 or not content[1].isdigit() or not content[2].isdigit():
             return await self._reply_invalid_args_count(message, get_no_user_id_provided_message())
 
-        try:
-            user_id = int(content[1])
-            days = int(content[2])
-        except ValueError:
-            return await self._reply_invalid_args_count(message, get_no_user_id_provided_message())
+        user_id = int(content[1])
+        days = int(content[2])
 
         new_end_date = await DatabaseManager.add_subscription(user_id, days)
         if new_end_date is None:
