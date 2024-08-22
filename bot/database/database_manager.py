@@ -208,7 +208,6 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
     async def set_default_admin(user_id: int, bot: Bot) -> None:
         conn = await DatabaseManager.get_db_connection()
 
-        # Pobierz username i full_name na podstawie user_id
         user_data = await bot.get_chat(user_id)
         username = user_data.username
         full_name = user_data.full_name
@@ -548,7 +547,7 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         await conn.close()
 
     @staticmethod
-    async def delete_last_clip(clip_id: int) -> None:
+    async def delete_clip_by_id(clip_id: int) -> None:
         conn = await DatabaseManager.get_db_connection()
         await conn.execute(
             '''
