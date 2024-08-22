@@ -73,8 +73,8 @@ class AdjustVideoClipHandler(BotMessageHandler):
         except (ValueError, TypeError):
             return await self.__reply_invalid_args_count(message)
 
-        start_time = max(0, float(original_start_time - additional_start_offset)) - settings.EXTEND_BEFORE
-        end_time = float(original_end_time + additional_end_offset) + settings.EXTEND_AFTER
+        start_time = max(0.0, original_start_time - additional_start_offset) - settings.EXTEND_BEFORE
+        end_time = original_end_time + additional_end_offset + settings.EXTEND_AFTER
 
         if end_time <= start_time:
             return await self.__reply_invalid_interval(message)
@@ -83,18 +83,6 @@ class AdjustVideoClipHandler(BotMessageHandler):
             await ClipsExtractor.extract_and_send_clip(
                 segment_info.get("video_path"), message, self._bot, self._logger, start_time,
                 end_time,
-            )
-
-            last_clip = LastClip(
-                id=0,
-                chat_id=message.chat.id,
-                segment=segment_info,
-                compiled_clip=None,
-                clip_type=ClipType.ADJUSTED,
-                adjusted_start_time=start_time,
-                adjusted_end_time=end_time,
-                is_adjusted=True,
-                timestamp=datetime.now(),
             )
 
             await DatabaseManager.insert_last_clip(

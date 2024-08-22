@@ -1,4 +1,3 @@
-from datetime import datetime
 import logging
 import tempfile
 from typing import (
@@ -9,10 +8,7 @@ from typing import (
 from aiogram.types import Message
 
 from bot.database.database_manager import DatabaseManager
-from bot.database.models import (
-    ClipType,
-    LastClip,
-)
+from bot.database.models import ClipType
 from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.responses.sending_videos.compile_selected_clips_handler_responses import (
     get_clip_not_found_message,
@@ -80,7 +76,7 @@ class CompileSelectedClipsHandler(BotMessageHandler):
             if not clip:
                 await self.__reply_clip_not_found(message, clip_name, username)
             else:
-                selected_clips_data.append((clip.video_data, clip.duration))
+                selected_clips_data.append((clip.video_data, int(clip.duration)))
         return selected_clips_data
 
     async def __reply_clip_not_found(self, message: Message, clip_name: str, username: str) -> None:

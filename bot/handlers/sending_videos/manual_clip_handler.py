@@ -1,5 +1,3 @@
-from datetime import datetime
-import json
 import logging
 import os
 from typing import (
@@ -10,10 +8,7 @@ from typing import (
 from aiogram.types import Message
 
 from bot.database.database_manager import DatabaseManager
-from bot.database.models import (
-    ClipType,
-    LastClip,
-)
+from bot.database.models import ClipType
 from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.responses.sending_videos.manual_clip_handler_responses import (
     get_end_time_earlier_than_start_message,

@@ -25,8 +25,8 @@ class Settings(BaseSettings):
     ES_USER: str = Field(..., env='ES_USERNAME')
     ES_PASS: str = Field(..., env='ES_PASSWORD')
 
-    EXTEND_BEFORE: int = Field(5, env='EXTEND_BEFORE')
-    EXTEND_AFTER: int = Field(5, env='EXTEND_AFTER')
+    EXTEND_BEFORE: float = Field(5, env='EXTEND_BEFORE')
+    EXTEND_AFTER: float = Field(5, env='EXTEND_AFTER')
 
 
 settings = Settings()
