@@ -26,14 +26,11 @@ class AnyMiddleware(BaseMiddleware):
             handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
             event: TelegramObject,
             data: Dict[str, Any],
-    ) -> Optional[Awaitable]:
-        if not isinstance(event, Message):
-            return await handler(event, data)
-
-        command = self.get_command_without_initial_slash(event)
-        if command in self.__supported_commands:
-            self._logger.info(f"Command '{command}' accessed by user {event.from_user.id}")
-            return await handler(event, data)
+    ) -> Optional[Any]:
+        if isinstance(event, Message):
+            command = self.get_command_without_initial_slash(event)
+            if command in self.__supported_commands:
+                self._logger.info(f"Command '{command}' accessed by user {event.from_user.id}")
 
         return await handler(event, data)
 
