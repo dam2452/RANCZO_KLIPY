@@ -44,8 +44,6 @@ class ClipHandler(BotMessageHandler):
         start_time = max(0, segment['start'] - settings.EXTEND_BEFORE)
         end_time = segment['end'] + settings.EXTEND_AFTER
 
-
-
         try:
             await ClipsExtractor.extract_and_send_clip(segment['video_path'], message, self._bot, self._logger, start_time, end_time)
         except FFMpegException as e:

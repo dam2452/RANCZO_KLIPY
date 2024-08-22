@@ -44,6 +44,7 @@ def parse_whitelist_message(
         note=None,
     )
 
+
 def format_segment(segment: json, episodes_per_season: int = 13) -> FormattedSegmentInfo:
     episode_info = segment.get('episode_info', {})
     total_episode_number = episode_info.get('episode_number', 'Unknown')
@@ -61,4 +62,3 @@ def format_segment(segment: json, episodes_per_season: int = 13) -> FormattedSeg
         time_formatted=f"{minutes:02}:{seconds:02}",
         episode_title=episode_info.get('title', 'Unknown'),
     )
-

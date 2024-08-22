@@ -57,9 +57,6 @@ class SelectClipHandler(BotMessageHandler):
         except FFMpegException as e:
             return await self.__reply_extraction_failure(message, e)
 
-        segment_json = json.dumps(segment)
-
-
         await DatabaseManager.insert_last_clip(
             chat_id=message.chat.id,
             segment=segment,

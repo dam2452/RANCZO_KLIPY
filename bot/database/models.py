@@ -58,6 +58,7 @@ class LastClip:
     is_adjusted: bool
     timestamp: date
 
+
 @dataclass
 class SearchHistory:
     id: int
