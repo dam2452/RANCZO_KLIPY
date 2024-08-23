@@ -155,7 +155,7 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
     async def get_admin_users() -> Optional[List[UserProfile]]:
         conn = await DatabaseManager.get_db_connection()
         rows = await conn.fetch(
-            "SELECT user_id, username, subscription_end, note FROM user_profiles "
+            "SELECT user_id, username, full_name, subscription_end, note FROM user_profiles "
             "WHERE user_id IN (SELECT user_id FROM user_roles WHERE is_admin = TRUE)",
         )
         await conn.close()
