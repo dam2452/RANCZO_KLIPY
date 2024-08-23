@@ -20,7 +20,9 @@ def format_admins_list(admins: List[UserProfile]) -> str:
     admin_lines = []
 
     for idx, admin in enumerate(admins, start=1):
-        line = f"{convert_number_to_emoji(idx)} | 🆔 {admin.user_id}\n   🧑‍💻 {admin.full_name or admin.username}\n   🗓 Subskrypcja do: {admin.subscription_end or 'N/A'}\n   📝 Note: {admin.note or 'Brak'}"
+        line = (f"{convert_number_to_emoji(idx)} | 🆔 {admin.user_id}\n  "
+                f" 🧑‍💻 {admin.full_name or admin.username}\n   🗓 Subskrypcja do: {admin.subscription_end or 'N/A'}\n  "
+                f" 📝 Note: {admin.note or 'Brak'}")
         admin_lines.append(line)
 
     response = "📃 Lista adminów:\n"

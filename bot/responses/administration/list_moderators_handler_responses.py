@@ -20,7 +20,9 @@ def format_moderators_list(moderators: List[UserProfile]) -> str:
     moderator_lines = []
 
     for idx, moderator in enumerate(moderators, start=1):
-        line = f"{convert_number_to_emoji(idx)} | 🆔 ID: {moderator.user_id}\n   🧑‍💻 {moderator.full_name or moderator.username}\n   🗓 Subskrypcja do: {moderator.subscription_end or 'N/A'}\n   📝 Note: {moderator.note or 'Brak'}"
+        line = (f"{convert_number_to_emoji(idx)} | 🆔 ID: {moderator.user_id}\n   "
+                f"🧑‍💻 {moderator.full_name or moderator.username}\n   🗓 Subskrypcja do: {moderator.subscription_end or 'N/A'}\n  "
+                f" 📝 Note: {moderator.note or 'Brak'}")
         moderator_lines.append(line)
 
     response = "📃 Lista moderatorów:\n"
