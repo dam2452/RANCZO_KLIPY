@@ -10,7 +10,10 @@ def format_myclips_response(clips: List[VideoClip], username: str) -> str:
     for idx, clip in enumerate(clips, start=1):
         if clip.duration:
             minutes, seconds = divmod(clip.duration, 60)
-            length_str = f"{minutes}m{seconds:.2f}s" if minutes else f"{seconds:.2f}s"
+            if minutes:
+                length_str = f"{minutes}m{int(seconds)}s"
+            else:
+                length_str = f"{seconds:.2f}s"
         else:
             length_str = "Brak danych"
 

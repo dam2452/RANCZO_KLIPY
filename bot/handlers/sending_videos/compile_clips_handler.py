@@ -62,7 +62,7 @@ class CompileClipsHandler(BotMessageHandler):
     def __parse_segments(content: List[str], segments: List[Dict[str, Union[str, float]]]) -> List[Dict[str, Union[str, float]]]:
         selected_segments = []
         for index in content:
-            if index.lower() == "wszystko":
+            if index.lower() == "wszystko" or index.lower() == "all":
                 selected_segments.extend(
                     {"video_path": segment["video_path"], "start": segment["start"], "end": segment["end"]}
                     for segment in segments

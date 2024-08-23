@@ -110,7 +110,7 @@ CREATE INDEX IF NOT EXISTS idx_user_messages_user_id ON user_keys (user_id);
 
 CREATE OR REPLACE FUNCTION clean_old_last_clips() RETURNS trigger AS $$
 BEGIN
-    DELETE FROM last_clips WHERE timestamp < NOW() - INTERVAL '30 days';
+    DELETE FROM last_clips WHERE timestamp < NOW() - INTERVAL '365 days';
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -128,7 +128,7 @@ END $$;
 
 CREATE OR REPLACE FUNCTION clean_old_search_history() RETURNS trigger AS $$
 BEGIN
-    DELETE FROM search_history WHERE timestamp < NOW() - INTERVAL '30 days';
+    DELETE FROM search_history WHERE timestamp < NOW() - INTERVAL '365 days';
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;

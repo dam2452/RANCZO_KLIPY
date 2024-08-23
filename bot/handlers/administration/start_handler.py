@@ -28,6 +28,7 @@ class StartHandler(BotMessageHandler):
     def __init__(self, bot: Bot, logger: logging.Logger):
         self.__RESPONSES: Dict[str, Callable[[], str]] = {
             "lista": get_lista_message,
+            "wszystko": get_full_message,
             "all": get_full_message,
             "wyszukiwanie": get_wyszukiwanie_message,
             "edycja": get_edycja_message,
