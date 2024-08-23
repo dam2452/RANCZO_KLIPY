@@ -9,6 +9,7 @@ from typing import (
 from elastic_transport import ObjectApiResponse
 
 from bot.search.elastic_search_manager import ElasticSearchManager
+from bot.settings import settings
 from bot.utils.log import log_system_message
 
 
@@ -53,26 +54,31 @@ class TranscriptionFinder:
             await log_system_message(logging.INFO, "No segments found matching the query.", logger)
             return None
 
-        unique_segments = {}
+        unique_segments = []
+        previous_segment = None
 
         for hit in hits:
             segment = hit["_source"]
-            episode_info = segment.get("episode_info", {})
+            start_time = segment["start"] - settings.EXTEND_BEFORE
+            end_time = segment["end"] + settings.EXTEND_AFTER
 
-            unique_key = (
-                f"{episode_info.get("title", "Unknown")}-{episode_info.get("season", "Unknown")}-"
-                f"{episode_info.get("episode_number", "Unknown")}-{segment.get("start", "Unknown")}"
-            )
+            if (
+                previous_segment and
+                previous_segment["episode_info"]["season"] == segment["episode_info"]["season"] and
+                previous_segment["episode_info"]["episode_number"] == segment["episode_info"]["episode_number"] and
+                start_time <= previous_segment["end"]
+            ):
+                previous_segment["end"] = max(previous_segment["end"], end_time)
+            else:
+                unique_segments.append(segment)
+                previous_segment = segment
 
-            if unique_key not in unique_segments:
-                unique_segments[unique_key] = segment
-
-        await log_system_message(logging.INFO, f"Found {len(unique_segments)} unique segments matching the query.", logger)
+        await log_system_message(logging.INFO, f"Found {len(unique_segments)} unique segments after merging.", logger)
 
         if return_all:
-            return list(unique_segments.values())
+            return unique_segments
 
-        return next(iter(unique_segments.values()), None)
+        return unique_segments[0] if unique_segments else None
 
     @staticmethod
     async def find_segment_with_context(

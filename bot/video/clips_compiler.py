@@ -13,6 +13,7 @@ from aiogram.types import Message
 
 from bot.database.database_manager import DatabaseManager
 from bot.database.models import ClipType
+from bot.settings import settings
 from bot.utils.log import log_system_message
 from bot.video.clips_extractor import ClipsExtractor
 from bot.video.utils import (
@@ -48,12 +49,15 @@ class ClipsCompiler:
         temp_files = []
         try:
             for segment in selected_clips:
+                start_time = segment["start"] - settings.EXTEND_BEFORE_COMPILE
+                end_time = segment["end"] + settings.EXTEND_AFTER_COMPILE
+
                 with tempfile.NamedTemporaryFile(
                         delete=False, delete_on_close=False,
                         suffix=".mp4",
                 ) as temp_file:
                     temp_files.append(temp_file.name)
-                    await ClipsExtractor.extract_clip(segment["video_path"], segment["start"], segment["end"], temp_file.name, logger)
+                    await ClipsExtractor.extract_clip(segment["video_path"], start_time, end_time, temp_file.name, logger)
 
             with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as compiled_output:
                 compiled_output_name = compiled_output.name

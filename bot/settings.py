@@ -28,6 +28,9 @@ class Settings(BaseSettings):
     EXTEND_BEFORE: float = Field(5)
     EXTEND_AFTER: float = Field(5)
 
+    EXTEND_BEFORE_COMPILE: float = Field(1)
+    EXTEND_AFTER_COMPILE: float = Field(1)
+
     class Config:
         env_file = env_path
         env_prefix = ""
