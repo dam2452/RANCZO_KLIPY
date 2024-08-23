@@ -15,7 +15,7 @@ from bot.responses.bot_message_handler_responses import get_users_string
 
 class ListAdminsHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
-        return ["listadmins", "listad"]
+        return ["listadmins", "la"]
 
     async def _do_handle(self, message: Message) -> None:
         users = await DatabaseManager.get_admin_users()

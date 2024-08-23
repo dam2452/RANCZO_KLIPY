@@ -14,7 +14,7 @@ from bot.responses.administration.remove_whitelist_handler_responses import (
 
 class RemoveWhitelistHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
-        return ["removewhitelist", "removew"]
+        return ["removewhitelist", "rmw"]
 
     async def _do_handle(self, message: Message) -> None:
         content = message.text.split()

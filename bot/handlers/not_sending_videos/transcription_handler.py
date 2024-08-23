@@ -18,7 +18,7 @@ from bot.search.transcription_finder import TranscriptionFinder
 
 class TranscriptionHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
-        return ["transkrypcja", "trans"]
+        return ["transkrypcja", "transcription", "t"]
 
     async def _do_handle(self, message: Message) -> None:
         content = message.text.split()
