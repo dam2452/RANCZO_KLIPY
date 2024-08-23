@@ -38,8 +38,8 @@ class SaveClipHandler(BotMessageHandler):
     __SEGMENT_INFO_GETTERS: Dict[str, Callable[[Dict[str, Union[json, str]]], SegmentInfo]] = {
         "manual": (lambda last_clip_info: SegmentInfo(**last_clip_info)),
         "segment": (lambda last_clip_info: SaveClipHandler._convert_to_segment_info(last_clip_info['segment'])),
-        "compiled": (lambda last_clip_info: SaveClipHandler._convert_compiled_to_segment_info(last_clip_info)),
-        "adjusted": (lambda last_clip_info: SaveClipHandler._convert_to_segment_info_with_adjustment(last_clip_info)),
+        "compiled": (lambda last_clip_info: SaveClipHandler._convert_compiled_to_segment_info(last_clip_info)),  # pylint: disable=unnecessary-lambda
+        "adjusted": (lambda last_clip_info: SaveClipHandler._convert_to_segment_info_with_adjustment(last_clip_info)),  # pylint: disable=unnecessary-lambda
     }
 
     def get_commands(self) -> List[str]:
