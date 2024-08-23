@@ -5,9 +5,9 @@ def get_basic_message() -> str:
 ════════════════════════
 🔎 /klip <cytat> - Wyszukuje klip na podstawie cytatu. Przykład: /klip geniusz.
 🔔 /subskrypcja - Sprawdza stan Twojej subskrypcji.
-
-🌟 Aby uzyskać pełną listę komend, użyj /start lista. 🌟
+📜 /start lista - Wyświetla pełną listę komend.
 ```"""
+
 
 
 def get_lista_message() -> str:
