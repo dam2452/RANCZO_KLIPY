@@ -582,4 +582,3 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
             note, user_id,
         )
         await conn.close()
-        
