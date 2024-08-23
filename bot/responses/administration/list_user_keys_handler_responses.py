@@ -1,25 +1,23 @@
 from typing import List
 
-from tabulate import tabulate
-
 from bot.database.models import UserMessage
+from bot.utils.functions import convert_number_to_emoji
 
 
 def create_user_keys_response(messages: List[UserMessage]) -> str:
-    table = [["User ID", "Message Content", "Timestamp"]]
-    for msg in messages:
-        table.append([
-            msg.user_id,
-            msg.message_content or "N/A",
-            msg.timestamp or "N/A",
-        ])
+    user_key_lines = []
 
-    response = f"```user_keys\n{tabulate(table, headers='firstrow', tablefmt='grid')}```"
+    for idx, msg in enumerate(messages, start=1):
+        line = f"{convert_number_to_emoji(idx)} | 🆔 {msg.user_id}\n   🔑 {msg.message_content or 'N/A'}\n   🕒 {msg.timestamp or 'N/A'}"
+        user_key_lines.append(line)
+
+    response = "📃 Lista kluczy użytkowników:\n"
+    response += "```\n" + "\n\n".join(user_key_lines) + "\n```"
     return response
 
 
 def get_user_keys_empty_message() -> str:
-    return "📭 Brak zapisanych wiadomości użytkowników.📭"
+    return "📭 Brak zapisanych kluczy użytkowników.📭"
 
 
 def get_log_user_keys_empty_message() -> str:

@@ -159,17 +159,33 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
             "WHERE user_id IN (SELECT user_id FROM user_roles WHERE is_admin = TRUE)",
         )
         await conn.close()
-        return [UserProfile(**row) for row in rows] if rows else None
+        return [
+            UserProfile(
+                user_id=row["user_id"],
+                username=row["username"],
+                full_name=row.get("full_name", "N/A"),
+                subscription_end=row.get("subscription_end", None),
+                note=row.get("note", "Brak"),
+            ) for row in rows
+        ] if rows else None
 
     @staticmethod
     async def get_moderator_users() -> Optional[List[UserProfile]]:
         conn = await DatabaseManager.get_db_connection()
         rows = await conn.fetch(
-            "SELECT user_id, username, subscription_end, note FROM user_profiles "
+            "SELECT user_id, username, full_name, subscription_end, note FROM user_profiles "
             "WHERE user_id IN (SELECT user_id FROM user_roles WHERE is_moderator = TRUE)",
         )
         await conn.close()
-        return [UserProfile(**row) for row in rows] if rows else None
+        return [
+            UserProfile(
+                user_id=row["user_id"],
+                username=row["username"],
+                full_name=row.get("full_name", "N/A"),
+                subscription_end=row.get("subscription_end", None),
+                note=row.get("note", "Brak"),
+            ) for row in rows
+        ] if rows else None
 
     @staticmethod
     async def is_user_subscribed(user_id: int) -> bool:

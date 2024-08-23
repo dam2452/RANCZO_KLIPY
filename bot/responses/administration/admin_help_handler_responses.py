@@ -4,9 +4,8 @@ def get_admin_help_message() -> str:
 ═════════════════════════════════
 🔐 Zarządzanie użytkownikami: 🔐
 ═════════════════════════════════
-➕ /addwhitelist <username> [is_admin=0] [is_moderator=0] [full_name] [email] [phone] - Dodaje użytkownika do whitelisty. Przykład: /addwhitelist johndoe 1 0 John Doe johndoe@example.com 123456789
-➖ /removewhitelist <username> - Usuwa użytkownika z whitelisty. Przykład: /removewhitelist johndoe
-✏️ /updatewhitelist <username> [is_admin] [is_moderator] [full_name] [email] [phone] - Aktualizuje dane użytkownika w whiteliście. Przykład: /updatewhitelist johndoe 0 1 John Doe johndoe@example.com 987654321
+➕ /addwhitelist <id> - Dodaje użytkownika do whitelisty. Przykład: /addwhitelist 123456789
+➖ /removewhitelist <id> - Usuwa użytkownika z whitelisty. Przykład: /removewhitelist 123456789
 📃 /listwhitelist - Wyświetla listę wszystkich użytkowników w whiteliście.
 📃 /listadmins - Wyświetla listę wszystkich adminów.
 📃 /listmoderators - Wyświetla listę wszystkich moderatorów.
@@ -16,8 +15,8 @@ def get_admin_help_message() -> str:
 ═════════════════════════════════
 💳 Zarządzanie subskrypcjami: 💳
 ═════════════════════════════════
-➕ /addsubscription <username> <days> - Dodaje subskrypcję użytkownikowi na określoną liczbę dni. Przykład: /addsubscription johndoe 30
-🚫 /removesubscription <username> - Usuwa subskrypcję użytkownika. Przykład: /removesubscription johndoe
+➕ /addsubscription <id> <days> - Dodaje subskrypcję użytkownikowi na określoną liczbę dni. Przykład: /addsubscription 123456789 30
+🚫 /removesubscription <id> - Usuwa subskrypcję użytkownika. Przykład: /removesubscription 123456789
 
 ══════════════════════════════════
 🔍 Zarządzanie transkrypcjami: 🔍

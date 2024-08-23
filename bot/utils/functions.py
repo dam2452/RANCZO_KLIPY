@@ -1,5 +1,8 @@
 import json
-from typing import List
+from typing import (
+    Dict,
+    List,
+)
 
 from bot.database.database_manager import UserProfile
 from bot.database.models import FormattedSegmentInfo
@@ -67,3 +70,21 @@ def format_segment(segment: json, episodes_per_season: int = 13) -> FormattedSeg
         time_formatted=f"{minutes:02}:{seconds:02}",
         episode_title=episode_info.get("title", "Unknown"),
     )
+
+
+number_to_emoji: Dict[str, str] = {
+    "0": "0️⃣",
+    "1": "1️⃣",
+    "2": "2️⃣",
+    "3": "3️⃣",
+    "4": "4️⃣",
+    "5": "5️⃣",
+    "6": "6️⃣",
+    "7": "7️⃣",
+    "8": "8️⃣",
+    "9": "9️⃣",
+}
+
+
+def convert_number_to_emoji(number: int) -> str:
+    return "".join(number_to_emoji.get(digit, digit) for digit in str(number))

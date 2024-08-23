@@ -15,7 +15,7 @@ from bot.responses.administration.list_whitelist_handler_responses import (
 
 class ListWhitelistHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
-        return ["listwhitelist", "listw"]
+        return ["listwhitelist", "lw"]
 
     async def _do_handle(self, message: Message) -> None:
         users = await DatabaseManager.get_all_users()

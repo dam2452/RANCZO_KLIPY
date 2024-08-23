@@ -1,5 +1,5 @@
 def get_no_user_id_provided_message() -> str:
-    return "⚠️ Nie podano ID użytkownika ani ilości dni.⚠️"
+    return "⚠️ Nie podano ID użytkownika.⚠️"
 
 
 def get_user_removed_message(username: str) -> str:

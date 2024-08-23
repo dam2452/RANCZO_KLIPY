@@ -11,4 +11,3 @@ from bot.handlers.administration.report_issue_handler import ReportIssueHandler
 from bot.handlers.administration.save_user_key_handler import SaveUserKeyHandler
 from bot.handlers.administration.start_handler import StartHandler
 from bot.handlers.administration.subscription_status_handler import SubscriptionStatusHandler
-from bot.handlers.administration.update_whitelist_handler import UpdateWhitelistHandler

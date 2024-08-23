@@ -1,21 +1,18 @@
 from typing import List
 
-from tabulate import tabulate
-
 from bot.database.models import UserProfile
+from bot.utils.functions import convert_number_to_emoji
 
 
 def create_whitelist_response(users: List[UserProfile]) -> str:
-    table = [["Username", "Full Name", "Subskrypcja do", "Note"]]
-    for user in users:
-        table.append([
-            user.username or "N/A",
-            user.full_name or "N/A",
-            user.subscription_end or "N/A",
-            user.note or "N/A",
-        ])
+    user_lines = []
 
-    response = f"```whitelista\n{tabulate(table, headers="firstrow", tablefmt="grid")}```"
+    for idx, user in enumerate(users, start=1):
+        line = f"{convert_number_to_emoji(idx)} | 🆔 {user.user_id}\n   🧑‍💻 {user.full_name or user.username}\n   🗓 Subskrypcja do: {user.subscription_end or 'N/A'}\n   📝 Note: {user.note or 'Brak'}"
+        user_lines.append(line)
+
+    response = "📃 Lista użytkowników w Whitelist:\n"
+    response += "```\n" + "\n\n".join(user_lines) + "\n```"
     return response
 
 
