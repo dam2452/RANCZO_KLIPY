@@ -10,6 +10,8 @@ def get_admin_help_message() -> str:
 📃 /listwhitelist - Wyświetla listę wszystkich użytkowników w whiteliście.
 📃 /listadmins - Wyświetla listę wszystkich adminów.
 📃 /listmoderators - Wyświetla listę wszystkich moderatorów.
+🔑 /klucz <user_id> <key_content> - Zapisuje nowy klucz dla użytkownika. Przykład: /klucz 12345 some_secret_key
+🔑 /listkey - Wyświetla listę wszystkich kluczy użytkowników.
 
 ═════════════════════════════════
 💳 Zarządzanie subskrypcjami: 💳

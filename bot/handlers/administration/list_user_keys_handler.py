@@ -15,7 +15,7 @@ from bot.responses.administration.list_user_keys_handler_responses import (
 
 class ListUserMessagesHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
-        return ["listusermessages", "listmsg"]
+        return ["listkey"]
 
     async def _do_handle(self, message: Message) -> None:
         messages = await DatabaseManager.get_all_user_keys()
