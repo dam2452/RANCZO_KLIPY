@@ -1,21 +1,11 @@
 from typing import List
 
 from bot.database.models import UserProfile
-from bot.utils.functions import convert_number_to_emoji
+from bot.utils.functions import format_user_list
 
 
 def create_whitelist_response(users: List[UserProfile]) -> str:
-    user_lines = []
-
-    for idx, user in enumerate(users, start=1):
-        line = (f"{convert_number_to_emoji(idx)} | 🆔 {user.user_id}\n   "
-                f"🧑‍💻 {user.full_name or user.username}\n   🗓 Subskrypcja do: {user.subscription_end or 'N/A'}\n "
-                f"  📝 Note: {user.note or 'Brak'}")
-        user_lines.append(line)
-
-    response = "📃 Lista użytkowników w Whitelist:\n"
-    response += "```\n" + "\n\n".join(user_lines) + "\n```"
-    return response
+    return format_user_list(users, "Lista użytkowników w Whitelist")
 
 
 def get_whitelist_empty_message() -> str:

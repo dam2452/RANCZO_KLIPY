@@ -88,3 +88,20 @@ number_to_emoji: Dict[str, str] = {
 
 def convert_number_to_emoji(number: int) -> str:
     return "".join(number_to_emoji.get(digit, digit) for digit in str(number))
+
+
+def format_user_list(users: List[UserProfile], title: str) -> str:
+    user_lines = []
+
+    for idx, user in enumerate(users, start=1):
+        line = (
+            f"{convert_number_to_emoji(idx)} | 🆔 {user.user_id}\n"
+            f"   🧑‍💻 {user.full_name or user.username}\n"
+            f"   🗓 Subskrypcja do: {user.subscription_end or 'N/A'}\n"
+            f"   📝 Note: {user.note or 'Brak'}"
+        )
+        user_lines.append(line)
+
+    response = f"📃 {title}:\n"
+    response += "```\n" + "\n\n".join(user_lines) + "\n```"
+    return response

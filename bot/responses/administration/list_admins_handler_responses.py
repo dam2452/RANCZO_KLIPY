@@ -1,7 +1,7 @@
 from typing import List
 
 from bot.database.models import UserProfile
-from bot.utils.functions import convert_number_to_emoji
+from bot.utils.functions import format_user_list
 
 
 def get_no_admins_found_message() -> str:
@@ -17,14 +17,4 @@ def get_log_admins_list_sent_message() -> str:
 
 
 def format_admins_list(admins: List[UserProfile]) -> str:
-    admin_lines = []
-
-    for idx, admin in enumerate(admins, start=1):
-        line = (f"{convert_number_to_emoji(idx)} | 🆔 {admin.user_id}\n  "
-                f" 🧑‍💻 {admin.full_name or admin.username}\n   🗓 Subskrypcja do: {admin.subscription_end or 'N/A'}\n  "
-                f" 📝 Note: {admin.note or 'Brak'}")
-        admin_lines.append(line)
-
-    response = "📃 Lista adminów:\n"
-    response += "```\n" + "\n\n".join(admin_lines) + "\n```"
-    return response
+    return format_user_list(admins, "Lista adminów")

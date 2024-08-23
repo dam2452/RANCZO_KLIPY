@@ -9,7 +9,6 @@ def get_basic_message() -> str:
 ```"""
 
 
-
 def get_lista_message() -> str:
     return """```🐐RanczoKlipy-Działy_Komend🐐
 ═══════════════════════════════════════
