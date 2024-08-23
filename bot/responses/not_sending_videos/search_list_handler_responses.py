@@ -29,6 +29,7 @@ def format_search_list_response(search_term: str, segments: List[Dict[str, Union
         segment_lines, headers=["#", "Odcinek", "Tytuł", "Czas"], tablefmt="pipe", colalign=("left", "center", "left", "right"),
     )
     response += f"{table}\n"
+
     return response
 
 

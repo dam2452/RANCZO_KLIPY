@@ -106,7 +106,7 @@ CREATE TABLE IF NOT EXISTS user_keys (
     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX IF NOT EXISTS idx_user_messages_user_id ON user_keys(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_messages_user_id ON user_keys (user_id);
 
 CREATE OR REPLACE FUNCTION clean_old_last_clips() RETURNS trigger AS $$
 BEGIN
@@ -115,9 +115,16 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trigger_clean_last_clips
-AFTER INSERT ON last_clips
-FOR EACH ROW EXECUTE FUNCTION clean_old_last_clips();
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_trigger WHERE tgname = 'trigger_clean_last_clips'
+    ) THEN
+        CREATE TRIGGER trigger_clean_last_clips
+        AFTER INSERT ON last_clips
+        FOR EACH ROW EXECUTE FUNCTION clean_old_last_clips();
+    END IF;
+END $$;
 
 CREATE OR REPLACE FUNCTION clean_old_search_history() RETURNS trigger AS $$
 BEGIN
@@ -126,17 +133,32 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trigger_clean_search_history
-AFTER INSERT ON search_history
-FOR EACH ROW EXECUTE FUNCTION clean_old_search_history();
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_trigger WHERE tgname = 'trigger_clean_search_history'
+    ) THEN
+        CREATE TRIGGER trigger_clean_search_history
+        AFTER INSERT ON search_history
+        FOR EACH ROW EXECUTE FUNCTION clean_old_search_history();
+    END IF;
+END $$;
 
-CREATE OR REPLACE FUNCTION clean_old_user_messages() RETURNS trigger AS $$
+CREATE OR REPLACE FUNCTION clean_old_user_keys() RETURNS trigger AS $$
 BEGIN
     DELETE FROM user_keys WHERE timestamp < NOW() - INTERVAL '7 days';
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trigger_clean_user_messages
-AFTER INSERT ON user_keys
-FOR EACH ROW EXECUTE FUNCTION clean_old_user_messages();
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_trigger WHERE tgname = 'trigger_clean_user_keys'
+    ) THEN
+        CREATE TRIGGER trigger_clean_user_keys
+        AFTER INSERT ON user_keys
+        FOR EACH ROW EXECUTE FUNCTION clean_old_user_keys();
+    END IF;
+END $$;
+
