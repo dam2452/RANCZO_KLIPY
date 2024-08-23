@@ -7,6 +7,8 @@ CREATE TABLE IF NOT EXISTS user_profiles (
     subscription_end DATE DEFAULT NULL,
     note TEXT DEFAULT NULL
 );
+CREATE INDEX IF NOT EXISTS idx_user_profiles_username ON user_profiles (user_id);
+CREATE INDEX IF NOT EXISTS idx_user_profiles_username ON user_profiles (username);
 
 CREATE TABLE IF NOT EXISTS user_roles (
     user_id BIGINT PRIMARY KEY REFERENCES user_profiles(user_id),
@@ -15,14 +17,17 @@ CREATE TABLE IF NOT EXISTS user_roles (
 );
 
 CREATE INDEX IF NOT EXISTS idx_user_roles_user_id ON user_roles(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_roles_admin ON user_roles (is_admin);
+CREATE INDEX IF NOT EXISTS idx_user_roles_moderator ON user_roles (is_moderator);
 
 CREATE TABLE IF NOT EXISTS user_logs (
-    id SERIAL,
+    id SERIAL PRIMARY KEY,
     user_id BIGINT,
     command TEXT NOT NULL,
-    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (id, timestamp)
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) PARTITION BY RANGE (timestamp);
+
+CREATE INDEX IF NOT EXISTS idx_user_logs_user_id ON user_logs(user_id);
 
 CREATE TABLE IF NOT EXISTS user_logs_y2023 PARTITION OF user_logs
 FOR VALUES FROM ('2023-01-01') TO ('2024-01-01');
@@ -91,7 +96,8 @@ CREATE TABLE IF NOT EXISTS last_clips (
     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX IF NOT EXISTS idx_last_clips_timestamp ON last_clips(timestamp);
+CREATE INDEX IF NOT EXISTS idx_last_clips_timestamp ON last_clips(id);
+CREATE INDEX IF NOT EXISTS idx_last_clips_timestamp ON last_clips(chat_id);
 
 CREATE TABLE IF NOT EXISTS user_messages (
     id SERIAL PRIMARY KEY,
