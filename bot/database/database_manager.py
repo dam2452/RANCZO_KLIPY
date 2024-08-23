@@ -573,3 +573,13 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
                 timestamp=row["timestamp"],
             ) for row in rows
         ] if rows else None
+
+    @staticmethod
+    async def update_user_note(user_id: int, note: str) -> None:
+        conn = await DatabaseManager.get_db_connection()
+        await conn.execute(
+            "UPDATE user_profiles SET note = $1 WHERE user_id = $2",
+            note, user_id,
+        )
+        await conn.close()
+        
