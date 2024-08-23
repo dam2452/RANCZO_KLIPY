@@ -55,7 +55,7 @@ class TranscriptionFinder:
             return None
 
         unique_segments = []
-        previous_segment = None
+        previous_segment = {}
 
         for hit in hits:
             segment = hit["_source"]
@@ -64,9 +64,9 @@ class TranscriptionFinder:
 
             if (
                 previous_segment and
-                previous_segment["episode_info"]["season"] == segment["episode_info"]["season"] and
-                previous_segment["episode_info"]["episode_number"] == segment["episode_info"]["episode_number"] and
-                start_time <= previous_segment["end"]
+                previous_segment.get("episode_info", {}).get("season") == segment["episode_info"]["season"] and
+                previous_segment.get("episode_info", {}).get("episode_number") == segment["episode_info"]["episode_number"] and
+                start_time <= previous_segment.get("end", 0)
             ):
                 previous_segment["end"] = max(previous_segment["end"], end_time)
             else:
