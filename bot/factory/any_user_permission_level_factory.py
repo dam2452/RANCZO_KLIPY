@@ -5,7 +5,7 @@ from bot.middlewares import AnyMiddleware
 class AnyUserPermissionLevelFactory(PermissionLevelFactory):
     def create_handlers(self) -> List[BotMessageHandler]:
         return [
-            SaveUserInfoHandler(self._bot, self._logger),
+            SaveUserKeyHandler(self._bot, self._logger),
         ]
 
     def create_middlewares(self, commands: List[str]) -> List[AnyMiddleware]:

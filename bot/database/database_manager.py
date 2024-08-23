@@ -550,17 +550,17 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
     async def save_user_message(user_id: int, message_content: str) -> None:
         conn = await DatabaseManager.get_db_connection()
         await conn.execute(
-            "INSERT INTO user_messages (user_id, message_content) "
+            "INSERT INTO user_keys (user_id, message_content) "
             "VALUES ($1, $2)",
             user_id, message_content,
         )
         await conn.close()
 
     @staticmethod
-    async def get_all_user_messages() -> Optional[List[UserMessage]]:
+    async def get_all_user_keys() -> Optional[List[UserMessage]]:
         conn = await DatabaseManager.get_db_connection()
         rows = await conn.fetch(
-            "SELECT user_id, message_content, timestamp FROM user_messages",
+            "SELECT user_id, message_content, timestamp FROM user_keys",
         )
         await conn.close()
 

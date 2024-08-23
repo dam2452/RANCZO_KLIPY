@@ -99,14 +99,14 @@ CREATE TABLE IF NOT EXISTS last_clips (
 CREATE INDEX IF NOT EXISTS idx_last_clips_timestamp ON last_clips(id);
 CREATE INDEX IF NOT EXISTS idx_last_clips_timestamp ON last_clips(chat_id);
 
-CREATE TABLE IF NOT EXISTS user_messages (
+CREATE TABLE IF NOT EXISTS user_keys (
     id SERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL,
     message_content TEXT NOT NULL,
     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX IF NOT EXISTS idx_user_messages_user_id ON user_messages(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_messages_user_id ON user_keys(user_id);
 
 CREATE OR REPLACE FUNCTION clean_old_last_clips() RETURNS trigger AS $$
 BEGIN
@@ -132,11 +132,11 @@ FOR EACH ROW EXECUTE FUNCTION clean_old_search_history();
 
 CREATE OR REPLACE FUNCTION clean_old_user_messages() RETURNS trigger AS $$
 BEGIN
-    DELETE FROM user_messages WHERE timestamp < NOW() - INTERVAL '7 days';
+    DELETE FROM user_keys WHERE timestamp < NOW() - INTERVAL '7 days';
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER trigger_clean_user_messages
-AFTER INSERT ON user_messages
+AFTER INSERT ON user_keys
 FOR EACH ROW EXECUTE FUNCTION clean_old_user_messages();
