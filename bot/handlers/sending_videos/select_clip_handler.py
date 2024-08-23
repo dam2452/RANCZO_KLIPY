@@ -26,7 +26,7 @@ from bot.video.utils import FFMpegException
 
 class SelectClipHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
-        return ['wybierz', 'select', 'w']
+        return ["wybierz", "select", "w"]
 
     async def _do_handle(self, message: Message) -> None:
         content = message.text.split()
@@ -45,11 +45,11 @@ class SelectClipHandler(BotMessageHandler):
             return await self.__reply_invalid_segment_number(message, index)
 
         segment = segments[index - 1]
-        start_time = max(0, segment['start'] - settings.EXTEND_BEFORE)
-        end_time = segment['end'] + settings.EXTEND_AFTER
+        start_time = max(0, segment["start"] - settings.EXTEND_BEFORE)
+        end_time = segment["end"] + settings.EXTEND_AFTER
 
         try:
-            await ClipsExtractor.extract_and_send_clip(segment['video_path'], message, self._bot, self._logger, start_time, end_time)
+            await ClipsExtractor.extract_and_send_clip(segment["video_path"], message, self._bot, self._logger, start_time, end_time)
         except FFMpegException as e:
             return await self.__reply_extraction_failure(message, e)
 
@@ -63,7 +63,7 @@ class SelectClipHandler(BotMessageHandler):
             is_adjusted=False,
         )
 
-        await self._log_system_message(logging.INFO, get_log_segment_selected_message(segment['id'], message.from_user.username))
+        await self._log_system_message(logging.INFO, get_log_segment_selected_message(segment["id"], message.from_user.username))
 
     async def __reply_no_previous_search(self, message: Message) -> None:
         await message.answer(get_no_previous_search_message())

@@ -19,7 +19,7 @@ from bot.search.transcription_finder import TranscriptionFinder
 
 class EpisodeListHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
-        return ['odcinki', 'episodes', 'o']
+        return ["odcinki", "episodes", "o"]
 
     async def _do_handle(self, message: Message) -> None:
         content = message.text.split()
@@ -45,7 +45,7 @@ class EpisodeListHandler(BotMessageHandler):
     def __split_message(message: str, max_length: int = 4096) -> Optional[List[str]]:
         parts = []
         while len(message) > max_length:
-            split_at = message.rfind('\n', 0, max_length)
+            split_at = message.rfind("\n", 0, max_length)
             if split_at == -1:
                 split_at = max_length
             parts.append(message[:split_at])

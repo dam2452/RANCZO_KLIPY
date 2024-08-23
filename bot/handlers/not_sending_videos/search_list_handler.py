@@ -21,7 +21,7 @@ from bot.responses.not_sending_videos.search_list_handler_responses import (
 
 class SearchListHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
-        return ['lista', 'list', 'l']
+        return ["lista", "list", "l"]
 
     async def _do_handle(self, message: Message) -> None:
         last_search = await DatabaseManager.get_last_search_by_chat_id(message.chat.id)
@@ -40,10 +40,10 @@ class SearchListHandler(BotMessageHandler):
 
         response = format_search_list_response(search_term, segments)
         temp_dir = tempfile.gettempdir()
-        sanitized_search_term = "".join([c for c in search_term if c.isalpha() or c.isdigit() or c == ' ']).rstrip().replace(" ", "_")
+        sanitized_search_term = "".join([c for c in search_term if c.isalpha() or c.isdigit() or c == " "]).rstrip().replace(" ", "_")
         file_name = os.path.join(temp_dir, f"Ranczo_Klipy_Wyniki_{sanitized_search_term}.txt")
 
-        with open(file_name, 'w', encoding='utf-8') as file:
+        with open(file_name, "w", encoding="utf-8") as file:
             file.write(response)
 
         input_file = FSInputFile(file_name)

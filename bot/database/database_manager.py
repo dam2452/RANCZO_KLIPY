@@ -37,7 +37,7 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
     async def execute_sql_file(file_path: str) -> None:
         conn = await DatabaseManager.get_db_connection()
         async with conn.transaction():
-            with open(file_path, 'r', encoding='utf-8') as file:
+            with open(file_path, "r", encoding="utf-8") as file:
                 sql = file.read()
                 await conn.execute(sql)
         await conn.close()
@@ -49,11 +49,11 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
             try:
                 table_exists = await conn.fetchval(
                     "SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = $1)",
-                    'user_profiles',
+                    "user_profiles",
                 )
 
                 if not table_exists:
-                    with open('./bot/database/init_db.sql', 'r', encoding='utf-8') as file:
+                    with open("./bot/database/init_db.sql", "r", encoding="utf-8") as file:
                         sql = file.read()
                         await conn.execute(sql)
                 else:
@@ -127,7 +127,7 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
             params.append(subscription_end)
 
         if updates:
-            query = f"UPDATE user_profiles SET {', '.join(updates)} WHERE user_id = ${len(params) + 1}"
+            query = f"UPDATE user_profiles SET {", ".join(updates)} WHERE user_id = ${len(params) + 1}"
             params.append(user_id)
             async with conn.transaction():
                 await conn.execute(query, *params)

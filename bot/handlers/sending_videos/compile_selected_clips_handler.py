@@ -31,7 +31,7 @@ class CompileSelectedClipsHandler(BotMessageHandler):
             super().__init__(self.message)
 
     def get_commands(self) -> List[str]:
-        return ['polaczklipy', 'concatclips', 'pk']
+        return ["polaczklipy", "concatclips", "pk"]
 
     async def _do_handle(self, message: Message) -> None:
         content = message.text.split()
@@ -51,9 +51,9 @@ class CompileSelectedClipsHandler(BotMessageHandler):
             temp_file.write(clip_data)
             temp_file.close()
             selected_segments.append({
-                'video_path': temp_file.name,
-                'start': 0,
-                'end': duration,
+                "video_path": temp_file.name,
+                "start": 0,
+                "end": duration,
             })
 
         compiled_output = await ClipsCompiler.compile_and_send_clips(message, selected_segments, self._bot, self._logger)

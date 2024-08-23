@@ -37,13 +37,13 @@ from bot.video.utils import get_video_duration
 class SaveClipHandler(BotMessageHandler):
     __SEGMENT_INFO_GETTERS: Dict[str, Callable[[Dict[str, Union[json, str]]], SegmentInfo]] = {
         "manual": (lambda last_clip_info: SegmentInfo(**last_clip_info)),
-        "segment": (lambda last_clip_info: SaveClipHandler._convert_to_segment_info(last_clip_info['segment'])),
+        "segment": (lambda last_clip_info: SaveClipHandler._convert_to_segment_info(last_clip_info["segment"])),
         "compiled": (lambda last_clip_info: SaveClipHandler._convert_compiled_to_segment_info(last_clip_info)),  # pylint: disable=unnecessary-lambda
         "adjusted": (lambda last_clip_info: SaveClipHandler._convert_to_segment_info_with_adjustment(last_clip_info)),  # pylint: disable=unnecessary-lambda
     }
 
     def get_commands(self) -> List[str]:
-        return ['zapisz', 'save', 'z']
+        return ["zapisz", "save", "z"]
 
     async def _do_handle(self, message: Message) -> None:
         clip_name = self.__parse_clip_name(message)
@@ -100,7 +100,7 @@ class SaveClipHandler(BotMessageHandler):
         segment_data = last_clip_info.segment
 
         if isinstance(segment_data, bytes):
-            segment_info_str = segment_data.decode('utf-8')
+            segment_info_str = segment_data.decode("utf-8")
         else:
             segment_info_str = segment_data
 
@@ -125,18 +125,18 @@ class SaveClipHandler(BotMessageHandler):
     @staticmethod
     def __apply_adjustments(segment_info_dict: Dict, last_clip_info: LastClip) -> None:
         if last_clip_info.is_adjusted:
-            segment_info_dict['start'] = last_clip_info.adjusted_start_time
-            segment_info_dict['end'] = last_clip_info.adjusted_end_time
+            segment_info_dict["start"] = last_clip_info.adjusted_start_time
+            segment_info_dict["end"] = last_clip_info.adjusted_end_time
 
-        if 'episode_info' in segment_info_dict and isinstance(segment_info_dict['episode_info'], dict):
-            episode_info_data = segment_info_dict['episode_info']
-            segment_info_dict['episode_info'] = EpisodeInfo(
-                season=episode_info_data.get('season'),
-                episode_number=episode_info_data.get('episode_number'),
+        if "episode_info" in segment_info_dict and isinstance(segment_info_dict["episode_info"], dict):
+            episode_info_data = segment_info_dict["episode_info"]
+            segment_info_dict["episode_info"] = EpisodeInfo(
+                season=episode_info_data.get("season"),
+                episode_number=episode_info_data.get("episode_number"),
             )
 
     async def __validate_required_fields(self, segment_info_dict: Dict) -> bool:
-        required_fields = ['video_path', 'start', 'end', 'episode_info']
+        required_fields = ["video_path", "start", "end", "episode_info"]
         missing_fields = [field for field in required_fields if field not in segment_info_dict]
         if missing_fields:
             await self._log_system_message(logging.ERROR, f"Missing required fields for SegmentInfo: {segment_info_dict}")
@@ -146,24 +146,24 @@ class SaveClipHandler(BotMessageHandler):
     @staticmethod
     def __create_segment_info(segment_info_dict: Dict) -> SegmentInfo:
         return SegmentInfo(
-            video_path=segment_info_dict['video_path'],
-            start=segment_info_dict['start'],
-            end=segment_info_dict['end'],
-            episode_info=segment_info_dict['episode_info'],
-            text=segment_info_dict.get('text'),
-            id=segment_info_dict.get('id'),
-            author=segment_info_dict.get('author'),
-            comment=segment_info_dict.get('comment'),
-            tags=segment_info_dict.get('tags'),
-            location=segment_info_dict.get('location'),
-            actors=segment_info_dict.get('actors'),
-            compiled_clip=segment_info_dict.get('compiled_clip'),
+            video_path=segment_info_dict["video_path"],
+            start=segment_info_dict["start"],
+            end=segment_info_dict["end"],
+            episode_info=segment_info_dict["episode_info"],
+            text=segment_info_dict.get("text"),
+            id=segment_info_dict.get("id"),
+            author=segment_info_dict.get("author"),
+            comment=segment_info_dict.get("comment"),
+            tags=segment_info_dict.get("tags"),
+            location=segment_info_dict.get("location"),
+            actors=segment_info_dict.get("actors"),
+            compiled_clip=segment_info_dict.get("compiled_clip"),
         )
 
     @staticmethod
     def _convert_compiled_to_segment_info(last_clip_info: LastClip) -> SegmentInfo:
         return SegmentInfo(
-            video_path='default_path.mp4',
+            video_path="default_path.mp4",
             start=0.0,
             end=last_clip_info.adjusted_end_time or 0.0,
             episode_info=EpisodeInfo(season=None, episode_number=None),
@@ -172,45 +172,45 @@ class SaveClipHandler(BotMessageHandler):
 
     @staticmethod
     def _convert_to_segment_info(segment: json) -> SegmentInfo:
-        episode_info_data = segment.get('episode_info')
+        episode_info_data = segment.get("episode_info")
 
         if isinstance(episode_info_data, EpisodeInfo):
             episode_info_obj = episode_info_data
         else:
             episode_info_obj = EpisodeInfo(
-                season=episode_info_data['season'],
-                episode_number=episode_info_data['episode_number'],
+                season=episode_info_data["season"],
+                episode_number=episode_info_data["episode_number"],
             )
 
-        segment['episode_info'] = episode_info_obj
+        segment["episode_info"] = episode_info_obj
 
         return SegmentInfo(**segment)
 
     @staticmethod
     def _convert_to_segment_info_with_adjustment(last_clip_info: Dict[str, Union[json, str]]) -> SegmentInfo:
-        segment = last_clip_info['segment']
-        episode_info_data = segment.get('episode_info')
+        segment = last_clip_info["segment"]
+        episode_info_data = segment.get("episode_info")
 
         if isinstance(episode_info_data, EpisodeInfo):
             episode_info_obj = episode_info_data
         else:
             episode_info_obj = EpisodeInfo(
-                season=episode_info_data['season'],
-                episode_number=episode_info_data['episode_number'],
+                season=episode_info_data["season"],
+                episode_number=episode_info_data["episode_number"],
             )
 
         return SegmentInfo(
-            video_path=last_clip_info['video_path'],
-            start=last_clip_info['start'],
-            end=last_clip_info['end'],
+            video_path=last_clip_info["video_path"],
+            start=last_clip_info["start"],
+            end=last_clip_info["end"],
             episode_info=episode_info_obj,
-            text=segment.get('text'),
-            id=segment.get('id'),
-            author=segment.get('author'),
-            comment=segment.get('comment'),
-            tags=segment.get('tags'),
-            location=segment.get('location'),
-            actors=segment.get('actors'),
+            text=segment.get("text"),
+            id=segment.get("id"),
+            author=segment.get("author"),
+            comment=segment.get("comment"),
+            tags=segment.get("tags"),
+            location=segment.get("location"),
+            actors=segment.get("actors"),
         )
 
     async def __prepare_clip_file(self, segment_info: SegmentInfo) -> Tuple[str, int, int, bool, Optional[int], Optional[int]]:
@@ -239,7 +239,7 @@ class SaveClipHandler(BotMessageHandler):
                 delete=False, delete_on_close=False, suffix=".mp4",
         ) as tmp_file:
             output_filename = tmp_file.name
-        with open(output_filename, 'wb') as f:
+        with open(output_filename, "wb") as f:
             f.write(clip_data)
         return output_filename
 
@@ -250,7 +250,7 @@ class SaveClipHandler(BotMessageHandler):
             episode_number: Optional[int],
     ) -> None:
 
-        with open(output_filename, 'rb') as file:
+        with open(output_filename, "rb") as file:
             video_data = file.read()
         os.remove(output_filename)
 

@@ -33,7 +33,7 @@ from bot.video.utils import FFMpegException
 
 class AdjustVideoClipHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
-        return ['dostosuj', 'adjust', 'd']
+        return ["dostosuj", "adjust", "d"]
 
     async def _do_handle(self, message: Message) -> None:
         content = message.text.split()
@@ -63,8 +63,8 @@ class AdjustVideoClipHandler(BotMessageHandler):
         await self._log_system_message(logging.INFO, f"Segment Info: {segment_info}")
 
         try:
-            original_start_time = float(segment_info.get('start', 0))
-            original_end_time = float(segment_info.get('end', 0))
+            original_start_time = float(segment_info.get("start", 0))
+            original_end_time = float(segment_info.get("end", 0))
 
             additional_start_offset = float(content[-2])
             additional_end_offset = float(content[-1])

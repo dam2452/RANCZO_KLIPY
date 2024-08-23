@@ -16,7 +16,7 @@ from bot.responses.not_sending_videos.delete_clip_handler_responses import (
 
 class DeleteClipHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
-        return ['usunklip', 'deleteclip', 'uk']
+        return ["usunklip", "deleteclip", "uk"]
 
     async def _do_handle(self, message: Message) -> None:
         command_parts = message.text.split(maxsplit=1)

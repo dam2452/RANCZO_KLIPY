@@ -14,7 +14,7 @@ from bot.responses.administration.save_user_info_handler_responses import (
 
 class SaveUserInfoHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
-        return ['toja']
+        return ["toja"]
 
     async def _do_handle(self, message: Message) -> None:
         content = message.text.split(maxsplit=1)

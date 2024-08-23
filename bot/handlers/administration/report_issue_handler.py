@@ -15,7 +15,7 @@ from bot.responses.administration.report_issue_handler_responses import (
 
 class ReportIssueHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
-        return ['report', 'zgłoś', 'zglos', 'r']
+        return ["report", "zgłoś", "zglos", "r"]
 
     async def _do_handle(self, message: Message) -> None:
         report_content = message.text.split(maxsplit=1)

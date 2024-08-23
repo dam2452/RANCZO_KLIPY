@@ -20,7 +20,7 @@ from bot.responses.administration.subscription_status_handler_responses import (
 
 class SubscriptionStatusHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
-        return ['subskrypcja', 'subscription', 'sub']
+        return ["subskrypcja", "subscription", "sub"]
 
     async def _do_handle(self, message: Message) -> None:
         subscription_status = await self.__get_subscription_status(message.from_user.id)
@@ -31,7 +31,7 @@ class SubscriptionStatusHandler(BotMessageHandler):
         subscription_end, days_remaining = subscription_status
         response = format_subscription_status_response(message.from_user.username, subscription_end, days_remaining)
 
-        await message.answer(response, parse_mode='Markdown')
+        await message.answer(response, parse_mode="Markdown")
         await self._log_system_message(logging.INFO, get_log_subscription_status_sent_message(message.from_user.username))
 
     @staticmethod

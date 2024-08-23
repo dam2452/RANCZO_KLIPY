@@ -24,16 +24,16 @@ from bot.video.utils import (
 class ClipsCompiler:
     @staticmethod
     async def __do_compile_clips(segment_files: List[str], output_file: str, logger: logging.Logger) -> None:
-        concat_file = tempfile.NamedTemporaryFile(delete=False, mode='w', suffix='.txt')
+        concat_file = tempfile.NamedTemporaryFile(delete=False, mode="w", suffix=".txt")
         try:
-            with open(concat_file.name, 'w', encoding="utf-8") as f:
+            with open(concat_file.name, "w", encoding="utf-8") as f:
                 for tmp_file in segment_files:
                     f.write(f"file '{tmp_file}'\n")
 
             command = [
-                'ffmpeg', '-y', '-f', 'concat', '-safe', '0', '-i', concat_file.name,
-                '-c', 'copy', '-movflags', '+faststart', '-fflags', '+genpts',
-                '-avoid_negative_ts', '1', output_file,
+                "ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", concat_file.name,
+                "-c", "copy", "-movflags", "+faststart", "-fflags", "+genpts",
+                "-avoid_negative_ts", "1", output_file,
             ]
 
             process = await asyncio.create_subprocess_exec(*command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -53,7 +53,7 @@ class ClipsCompiler:
                         suffix=".mp4",
                 ) as temp_file:
                     temp_files.append(temp_file.name)
-                    await ClipsExtractor.extract_clip(segment['video_path'], segment['start'], segment['end'], temp_file.name, logger)
+                    await ClipsExtractor.extract_clip(segment["video_path"], segment["start"], segment["end"], temp_file.name, logger)
 
             with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as compiled_output:
                 compiled_output_name = compiled_output.name
@@ -66,7 +66,7 @@ class ClipsCompiler:
 
     @staticmethod
     async def __send_compiled_clip(message: Message, compiled_output: str, bot: Bot, logger: logging.Logger) -> None:
-        with open(compiled_output, 'rb') as f:
+        with open(compiled_output, "rb") as f:
             compiled_clip_data = f.read()
 
         await DatabaseManager.insert_last_clip(
@@ -95,7 +95,7 @@ class ClipsCompiler:
 async def process_compiled_clip(
         message: Message, compiled_output: str, clip_type: ClipType,
 ) -> None:
-    with open(compiled_output, 'rb') as f:
+    with open(compiled_output, "rb") as f:
         compiled_clip_data = f.read()
 
     await DatabaseManager.insert_last_clip(

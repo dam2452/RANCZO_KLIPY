@@ -4,7 +4,7 @@ import os
 
 
 def load_episode_info() -> json:
-    with open('EpisodeInfo.json', 'r', encoding='utf-8') as file:
+    with open("EpisodeInfo.json", "r", encoding="utf-8") as file:
         episode_info = json.load(file)
     return episode_info
 
@@ -23,7 +23,7 @@ def add_episode_info_to_transcriptions(base_path: str = "RANCZO-TRANSKRYPCJE") -
 
                 transcriptions_path = os.path.join(base_path, f"Sezon {season}", episode_file_name)
                 if os.path.exists(transcriptions_path):
-                    with open(transcriptions_path, 'r', encoding='utf-8') as file:
+                    with open(transcriptions_path, "r", encoding="utf-8") as file:
                         transcriptions = json.load(file)
 
                     episode_info_data_with_season = {
@@ -36,7 +36,7 @@ def add_episode_info_to_transcriptions(base_path: str = "RANCZO-TRANSKRYPCJE") -
                         "segments": transcriptions.get("segments", []),
                     }
 
-                    with open(transcriptions_path, 'w', encoding='utf-8') as file:
+                    with open(transcriptions_path, "w", encoding="utf-8") as file:
                         json.dump(updated_transcriptions, file, ensure_ascii=False, indent=4)
                     logging.info(f"Updated: {transcriptions_path}")
                 else:

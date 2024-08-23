@@ -13,8 +13,8 @@ class InvalidTimeStringException(Exception):
 
 def minutes_str_to_seconds(time_str: str) -> float:
     try:
-        minutes, seconds = time_str.split(':')
-        seconds, milliseconds = seconds.split('.')
+        minutes, seconds = time_str.split(":")
+        seconds, milliseconds = seconds.split(".")
         total_seconds = int(minutes) * 60 + int(seconds) + int(milliseconds) / 1000
         return total_seconds
     except (TypeError, ValueError) as e:
@@ -29,7 +29,7 @@ def convert_seconds_to_time_str(seconds: int) -> str:
 
 
 def time_str_to_seconds(time_str: str) -> int:
-    h, m, s = [int(part) for part in time_str.split(':')]
+    h, m, s = [int(part) for part in time_str.split(":")]
     return h * 3600 + m * 60 + s
 
 
@@ -51,19 +51,19 @@ def parse_whitelist_message(
 
 
 def format_segment(segment: json, episodes_per_season: int = 13) -> FormattedSegmentInfo:
-    episode_info = segment.get('episode_info', {})
-    total_episode_number = episode_info.get('episode_number', 'Unknown')
-    season_number = (total_episode_number - 1) // episodes_per_season + 1 if isinstance(total_episode_number, int) else 'Unknown'
-    episode_number_in_season = (total_episode_number - 1) % episodes_per_season + 1 if isinstance(total_episode_number, int) else 'Unknown'
+    episode_info = segment.get("episode_info", {})
+    total_episode_number = episode_info.get("episode_number", "Unknown")
+    season_number = (total_episode_number - 1) // episodes_per_season + 1 if isinstance(total_episode_number, int) else "Unknown"
+    episode_number_in_season = (total_episode_number - 1) % episodes_per_season + 1 if isinstance(total_episode_number, int) else "Unknown"
 
     season = str(season_number).zfill(2)
     episode_number = str(episode_number_in_season).zfill(2)
 
-    start_time = int(segment['start'])
+    start_time = int(segment["start"])
     minutes, seconds = divmod(start_time, 60)
 
     return FormattedSegmentInfo(
         episode_formatted=f"S{season}E{episode_number}",
         time_formatted=f"{minutes:02}:{seconds:02}",
-        episode_title=episode_info.get('title', 'Unknown'),
+        episode_title=episode_info.get("title", "Unknown"),
     )

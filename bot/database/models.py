@@ -42,11 +42,11 @@ class VideoClip:
 
 
 class ClipType(Enum):
-    MANUAL = 'manual'
-    COMPILED = 'compiled'
-    SELECTED = 'selected'
-    ADJUSTED = 'adjusted'
-    SINGLE = 'single'
+    MANUAL = "manual"
+    COMPILED = "compiled"
+    SELECTED = "selected"
+    ADJUSTED = "adjusted"
+    SINGLE = "single"
 
 
 @dataclass

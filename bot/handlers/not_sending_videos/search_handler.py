@@ -20,14 +20,14 @@ from bot.search.transcription_finder import TranscriptionFinder
 
 class SearchHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
-        return ['szukaj', 'search', 'sz']
+        return ["szukaj", "search", "sz"]
 
     async def _do_handle(self, message: Message) -> None:
         content = message.text.split()
         if len(content) < 2:
             return await self._reply_invalid_args_count(message, get_invalid_args_count_message())
 
-        quote = ' '.join(content[1:])
+        quote = " ".join(content[1:])
 
         segments = await TranscriptionFinder.find_segment_by_quote(quote, self._logger, return_all=True)
         if not segments:
@@ -50,5 +50,5 @@ class SearchHandler(BotMessageHandler):
         await self._log_system_message(logging.INFO, get_log_no_segments_found_message(quote))
 
     async def __send_search_results(self, message: Message, response: str, quote: str) -> None:
-        await message.answer(response, parse_mode='Markdown')
+        await message.answer(response, parse_mode="Markdown")
         await self._log_system_message(logging.INFO, get_log_search_results_sent_message(quote, message.from_user.username))

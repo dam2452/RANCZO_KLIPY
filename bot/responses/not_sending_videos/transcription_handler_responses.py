@@ -12,7 +12,7 @@ def get_no_quote_provided_message() -> str:
 def get_transcription_response(quote: str, context_segments: List[Dict[str, Union[int, str]]]) -> str:
     response = f"🔍 Transkrypcja dla cytatu: \"{quote}\"\n\n```\n"
     for segment in context_segments:
-        response += f"🆔 {segment['id']} - {segment['text']}\n"
+        response += f"🆔 {segment["id"]} - {segment["text"]}\n"
     response += "```"
     return response
 

@@ -14,7 +14,7 @@ from bot.responses.administration.remove_subscription_handler_responses import (
 
 class RemoveSubscriptionHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
-        return ['removesubscription', 'removesub']
+        return ["removesubscription", "removesub"]
 
     async def _do_handle(self, message: Message) -> None:
         content = message.text.split()

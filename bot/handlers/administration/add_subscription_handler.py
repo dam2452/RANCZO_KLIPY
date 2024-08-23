@@ -17,7 +17,7 @@ from bot.responses.administration.add_subscription_handler_responses import (
 
 class AddSubscriptionHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
-        return ['addsubscription', 'addsub']
+        return ["addsubscription", "addsub"]
 
     async def _do_handle(self, message: Message) -> None:
         content = message.text.split()

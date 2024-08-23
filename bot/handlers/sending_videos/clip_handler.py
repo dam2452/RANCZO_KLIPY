@@ -25,14 +25,14 @@ from bot.video.utils import FFMpegException
 
 class ClipHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
-        return ['klip', 'clip', 'k']
+        return ["klip", "clip", "k"]
 
     async def _do_handle(self, message: Message) -> None:
         content = message.text.split()
         if len(content) < 2:
             return await self._reply_invalid_args_count(message, get_no_quote_provided_message())
 
-        quote = ' '.join(content[1:])
+        quote = " ".join(content[1:])
 
         segments = await TranscriptionFinder.find_segment_by_quote(quote, self._logger, return_all=False)
 
@@ -40,11 +40,11 @@ class ClipHandler(BotMessageHandler):
             return await self.__reply_no_segments_found(message, quote)
 
         segment = segments[0] if isinstance(segments, list) else segments
-        start_time = max(0, segment['start'] - settings.EXTEND_BEFORE)
-        end_time = segment['end'] + settings.EXTEND_AFTER
+        start_time = max(0, segment["start"] - settings.EXTEND_BEFORE)
+        end_time = segment["end"] + settings.EXTEND_AFTER
 
         try:
-            await ClipsExtractor.extract_and_send_clip(segment['video_path'], message, self._bot, self._logger, start_time, end_time)
+            await ClipsExtractor.extract_and_send_clip(segment["video_path"], message, self._bot, self._logger, start_time, end_time)
         except FFMpegException as e:
             return await self.__reply_extraction_failed(message, e)
 

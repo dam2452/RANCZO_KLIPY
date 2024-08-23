@@ -15,7 +15,7 @@ def create_whitelist_response(users: List[UserProfile]) -> str:
             user.note or "N/A",
         ])
 
-    response = f"```whitelista\n{tabulate(table, headers='firstrow', tablefmt='grid')}```"
+    response = f"```whitelista\n{tabulate(table, headers="firstrow", tablefmt="grid")}```"
     return response
 
 

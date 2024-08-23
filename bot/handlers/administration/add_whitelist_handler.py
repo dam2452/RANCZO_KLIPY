@@ -15,7 +15,7 @@ from bot.utils.functions import parse_whitelist_message
 
 class AddWhitelistHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
-        return ['addwhitelist', 'addw']
+        return ["addwhitelist", "addw"]
 
     async def _do_handle(self, message: Message) -> None:
         content = message.text.split()

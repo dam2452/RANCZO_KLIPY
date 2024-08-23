@@ -36,7 +36,7 @@ from bot.video.episode import (
 
 class ManualClipHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
-        return ['wytnij', 'cut', 'wyt', 'pawlos']
+        return ["wytnij", "cut", "wyt", "pawlos"]
 
     async def _do_handle(self, message: Message) -> None:
         content = message.text.split()
@@ -62,12 +62,12 @@ class ManualClipHandler(BotMessageHandler):
         await self._log_system_message(logging.INFO, get_log_clip_extracted_message(episode, start_seconds, end_seconds))
 
         segment_data = {
-            'video_path': video_path,
-            'start': start_seconds,
-            'end': end_seconds,
-            'episode_info': {
-                'season': episode.season,
-                'episode_number': episode.number,
+            "video_path": video_path,
+            "start": start_seconds,
+            "end": end_seconds,
+            "episode_info": {
+                "season": episode.season,
+                "episode_number": episode.number,
             },
         }
 

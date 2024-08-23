@@ -34,7 +34,7 @@ class CompileClipsHandler(BotMessageHandler):
             super().__init__(self.message)
 
     def get_commands(self) -> List[str]:
-        return ['kompiluj', 'compile', 'kom']
+        return ["kompiluj", "compile", "kom"]
 
     async def _do_handle(self, message: Message) -> None:
         content = message.text.split()
@@ -64,12 +64,12 @@ class CompileClipsHandler(BotMessageHandler):
         for index in content:
             if index.lower() == "wszystko":
                 selected_segments.extend(
-                    {'video_path': segment['video_path'], 'start': segment['start'], 'end': segment['end']}
+                    {"video_path": segment["video_path"], "start": segment["start"], "end": segment["end"]}
                     for segment in segments
                 )
                 return selected_segments
 
-            if '-' in index:
+            if "-" in index:
                 selected_segments.extend(CompileClipsHandler.__parse_range(index, segments))
             else:
                 try:
@@ -82,9 +82,9 @@ class CompileClipsHandler(BotMessageHandler):
     @staticmethod
     def __parse_range(index: str, segments: List[Dict[str, Union[str, float]]]) -> List[Dict[str, Union[str, float]]]:
         try:
-            start, end = [int(i) for i in index.split('-')]
+            start, end = [int(i) for i in index.split("-")]
             return [
-                {'video_path': segments[i - 1]['video_path'], 'start': segments[i - 1]['start'], 'end': segments[i - 1]['end']}
+                {"video_path": segments[i - 1]["video_path"], "start": segments[i - 1]["start"], "end": segments[i - 1]["end"]}
                 for i in range(start, end + 1)
             ]
         except ValueError as e:
@@ -94,7 +94,7 @@ class CompileClipsHandler(BotMessageHandler):
     def __parse_single(index: str, segments: List[Dict[str, Union[str, float]]]) -> Dict[str, Union[str, float]]:
         try:
             segment = segments[int(index) - 1]
-            return {'video_path': segment['video_path'], 'start': segment['start'], 'end': segment['end']}
+            return {"video_path": segment["video_path"], "start": segment["start"], "end": segment["end"]}
         except (ValueError, IndexError) as e:
             raise CompileClipsHandler.ParseSegmentsException(get_invalid_index_message(index)) from e
 

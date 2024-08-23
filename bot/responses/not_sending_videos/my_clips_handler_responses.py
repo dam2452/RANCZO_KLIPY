@@ -6,21 +6,21 @@ from typing import (
 from bot.database.models import VideoClip
 
 number_to_emoji: Dict[str, str] = {
-    '0': '0️⃣',
-    '1': '1️⃣',
-    '2': '2️⃣',
-    '3': '3️⃣',
-    '4': '4️⃣',
-    '5': '5️⃣',
-    '6': '6️⃣',
-    '7': '7️⃣',
-    '8': '8️⃣',
-    '9': '9️⃣',
+    "0": "0️⃣",
+    "1": "1️⃣",
+    "2": "2️⃣",
+    "3": "3️⃣",
+    "4": "4️⃣",
+    "5": "5️⃣",
+    "6": "6️⃣",
+    "7": "7️⃣",
+    "8": "8️⃣",
+    "9": "9️⃣",
 }
 
 
 def convert_number_to_emoji(number: int) -> str:
-    return ''.join(number_to_emoji.get(digit, digit) for digit in str(number))
+    return "".join(number_to_emoji.get(digit, digit) for digit in str(number))
 
 
 def format_myclips_response(clips: List[VideoClip], username: str) -> str:

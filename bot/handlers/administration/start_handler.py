@@ -38,7 +38,7 @@ class StartHandler(BotMessageHandler):
         super().__init__(bot, logger)
 
     def get_commands(self) -> List[str]:
-        return ['start', 's', 'help', 'h']
+        return ["start", "s", "help", "h"]
 
     async def _do_handle(self, message: Message) -> None:
         content = message.text.split()
@@ -55,5 +55,5 @@ class StartHandler(BotMessageHandler):
                 await self.__send_message(message, get_invalid_command_message())
 
     async def __send_message(self, message: Message, text: str) -> None:
-        await message.answer(text, parse_mode='Markdown')
+        await message.answer(text, parse_mode="Markdown")
         await self._log_system_message(logging.INFO, get_log_message_sent(message.from_user.username, text))
