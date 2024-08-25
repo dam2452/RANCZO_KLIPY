@@ -8,7 +8,7 @@ def create_user_keys_response(messages: List[UserMessage]) -> str:
     user_key_lines = []
 
     for idx, msg in enumerate(messages, start=1):
-        line = f"{convert_number_to_emoji(idx)} | 🆔 {msg.user_id}\n   🔑 {msg.message_content or 'N/A'}\n   🕒 {msg.timestamp or 'N/A'}"
+        line = f"{convert_number_to_emoji(idx)} | 🆔 {msg.user_id}\n   🔑 {msg.key or 'N/A'}\n   🕒 {msg.timestamp or 'N/A'}"
         user_key_lines.append(line)
 
     response = "📃 Lista kluczy użytkowników:\n"

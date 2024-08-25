@@ -103,5 +103,5 @@ class SegmentInfo:
 @dataclass
 class UserMessage:
     user_id: int
-    message_content: str
+    key: str
     timestamp: Optional[datetime] = None

@@ -549,12 +549,12 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         await conn.close()
 
     @staticmethod
-    async def save_user_key(user_id: int, message_content: str) -> None:
+    async def save_user_key(user_id: int, key: str) -> None:
         conn = await DatabaseManager.get_db_connection()
         await conn.execute(
             "INSERT INTO user_keys (user_id, key) "
             "VALUES ($1, $2)",
-            user_id, message_content,
+            user_id, key,
         )
         await conn.close()
 
@@ -562,14 +562,14 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
     async def get_all_user_keys() -> Optional[List[UserMessage]]:
         conn = await DatabaseManager.get_db_connection()
         rows = await conn.fetch(
-            "SELECT user_id, message_content, timestamp FROM user_keys",
+            "SELECT user_id, key, timestamp FROM user_keys",
         )
         await conn.close()
 
         return [
             UserMessage(
                 user_id=row["user_id"],
-                message_content=row["message_content"],
+                key=row["key"],
                 timestamp=row["timestamp"],
             ) for row in rows
         ] if rows else None
