@@ -1,4 +1,5 @@
 # RanczoKlipy Bot
+<img src="Avatar.png" alt="Avatar" width="225"/>
 
 RanczoKlipy Bot is a highly customizable Telegram bot designed to manage and process video clips from the popular TV series "Ranczo." The bot allows users to search for specific quotes, manage their own video clips, and perform various administrative tasks related to user management and content moderation.
 
