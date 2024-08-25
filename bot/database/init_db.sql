@@ -105,7 +105,7 @@ CREATE INDEX IF NOT EXISTS idx_last_clips_chat_id ON last_clips(chat_id);
 CREATE TABLE IF NOT EXISTS user_keys (
     id SERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL,
-    message_content TEXT NOT NULL,
+    key TEXT NOT NULL,
     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

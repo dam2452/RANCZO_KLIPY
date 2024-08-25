@@ -549,10 +549,10 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         await conn.close()
 
     @staticmethod
-    async def save_user_message(user_id: int, message_content: str) -> None:
+    async def save_user_key(user_id: int, message_content: str) -> None:
         conn = await DatabaseManager.get_db_connection()
         await conn.execute(
-            "INSERT INTO user_keys (user_id, message_content) "
+            "INSERT INTO user_keys (user_id, key) "
             "VALUES ($1, $2)",
             user_id, message_content,
         )

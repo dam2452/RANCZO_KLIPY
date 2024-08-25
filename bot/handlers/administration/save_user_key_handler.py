@@ -24,6 +24,6 @@ class SaveUserKeyHandler(BotMessageHandler):
 
         message_content = content[1]
 
-        await DatabaseManager.save_user_message(message.from_user.id, message_content)
+        await DatabaseManager.save_user_key(message.from_user.id, message_content)
         await message.answer(get_message_saved_confirmation())
         await self._log_system_message(logging.INFO, get_log_message_saved(message.from_user.id))
