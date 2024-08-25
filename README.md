@@ -3,6 +3,12 @@
 
 RanczoKlipy Bot is a highly customizable Telegram bot designed to manage and process video clips from the popular TV series "Ranczo." The bot allows users to search for specific quotes, manage their own video clips, and perform various administrative tasks related to user management and content moderation.
 
+## Video Demo
+
+Check out the video demo to see how the RanczoKlipy Bot works in action:
+
+[![Watch the video](https://img.youtube.com/vi/YOUR_VIDEO_ID/maxresdefault.jpg)](https://www.youtube.com/watch?v=YOUR_VIDEO_ID)
+
 ## Features
 
 ### 1. Video Clip Management
@@ -86,10 +92,5 @@ If you like this project and would like to support its development, consider buy
 
 [![Buy Me a Coffee](https://www.buymeacoffee.com/assets/img/custom_images/yellow_img.png)](https://www.buymeacoffee.com/yourprofile)
 
-## Video Demo
-
-Check out the video demo to see how the RanczoKlipy Bot works in action:
-
-[![Watch the video](https://img.youtube.com/vi/YOUR_VIDEO_ID/maxresdefault.jpg)](https://www.youtube.com/watch?v=YOUR_VIDEO_ID)
 
 ---
