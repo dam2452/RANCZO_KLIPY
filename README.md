@@ -1,66 +1,69 @@
 # RanczoKlipy Bot
 <img src="Avatar.png" alt="Avatar" width="225"/>
 
-RanczoKlipy Bot is a highly customizable Telegram bot designed to manage and process video clips from the popular TV series "Ranczo." The bot allows users to search for specific quotes, manage their own video clips, and perform various administrative tasks related to user management and content moderation.
+RanczoKlipy Bot to wysoce konfigurowalny bot Telegram, stworzony do zarządzania i przetwarzania klipów wideo z popularnego serialu "Ranczo". Bot umożliwia użytkownikom wyszukiwanie konkretnych cytatów, zarządzanie własnymi klipami wideo oraz wykonywanie różnych zadań administracyjnych związanych z zarządzaniem użytkownikami i moderacją treści.
 
-## Video Demo
+## Demo Wideo
 
-Check out the video demo to see how the RanczoKlipy Bot works in action:
+Zobacz demo wideo, aby zobaczyć, jak działa RanczoKlipy Bot w akcji:
 
-[![Watch the video](https://img.youtube.com/vi/YOUR_VIDEO_ID/maxresdefault.jpg)](https://www.youtube.com/watch?v=YOUR_VIDEO_ID)
+[![Zobacz wideo](https://img.youtube.com/vi/YOUR_VIDEO_ID/maxresdefault.jpg)](https://www.youtube.com/watch?v=YOUR_VIDEO_ID)
 
-## Features
+## English Version
+For the English version of this README, please refer to [README.md](./READMEen.md).
 
-### 1. Video Clip Management
-- **Search for Quotes:** Users can search for specific quotes within the series using commands like `/clip <quote>` and `/search <quote>`. The bot will return matching video segments.
-- **Clip Compilation:** Users can compile multiple clips into a single video file with commands like `/compile <clip_numbers>` or `/compile all`.
-- **Clip Adjustment:** The bot allows for fine-tuning of clips by adjusting start and end times using `/adjust <clip_number> <adjust_before> <adjust_after>`.
-- **Saved Clips Management:** Users can save, list, and delete their clips with commands like `/save`, `/myclips`, and `/deleteclip`.
+## Funkcje
 
-### 2. User and Role Management
-- **Admin and Moderator Roles:** Admins and moderators have access to specific functionalities. Commands like `/listadmins` and `/listmoderators` help view these roles.
-- **Whitelist Management:** Users can be added to or removed from the whitelist, allowing them access to certain features. Use `/addwhitelist <user_id>` or `/removewhitelist <user_id>` for this.
-- **Notes on Users:** Admins can add notes to user profiles using the `/note <user_id> <note>` command.
+### 1. Zarządzanie Klipami Wideo
+- **Wyszukiwanie Cytatów:** Użytkownicy mogą wyszukiwać konkretne cytaty z serialu za pomocą komend takich jak `/clip <quote>` i `/search <quote>`. Bot zwróci pasujące fragmenty wideo.
+- **Kompilacja Klipów:** Użytkownicy mogą kompilować wiele klipów w jeden plik wideo za pomocą komend takich jak `/compile <clip_numbers>` lub `/compile all`.
+- **Dopasowanie Klipów:** Bot umożliwia dopasowanie klipów poprzez regulację czasu rozpoczęcia i zakończenia za pomocą komendy `/adjust <clip_number> <adjust_before> <adjust_after>`.
+- **Zarządzanie Zapisanymi Klipami:** Użytkownicy mogą zapisywać, wyświetlać listę i usuwać swoje klipy za pomocą komend takich jak `/save`, `/myclips` i `/deleteclip`.
 
-### 3. Content Moderation
-- **Report Issues:** Users can report issues directly to admins using the `/report <issue_description>` command.
-- **Cooldown and Limits:** To prevent spamming, cooldown periods and limits are enforced for non-admin users, ensuring a balanced usage experience.
+### 2. Zarządzanie Użytkownikami i Rolami
+- **Role Administratora i Moderatora:** Administratorzy i moderatorzy mają dostęp do specjalnych funkcji. Komendy takie jak `/listadmins` i `/listmoderators` pomagają wyświetlić te role.
+- **Zarządzanie Listą Dozwolonych Użytkowników:** Użytkownicy mogą być dodawani do lub usuwani z listy dozwolonych, co daje im dostęp do określonych funkcji. Użyj komend `/addwhitelist <user_id>` lub `/removewhitelist <user_id>` w tym celu.
+- **Notatki o Użytkownikach:** Administratorzy mogą dodawać notatki do profili użytkowników za pomocą komendy `/note <user_id> <note>`.
 
-### 4. Elasticsearch Integration
-- The bot is integrated with Elasticsearch to efficiently manage and search through transcripts of the series. This integration allows fast and accurate retrieval of video segments based on text queries.
+### 3. Moderacja Treści
+- **Zgłaszanie Problemów:** Użytkownicy mogą zgłaszać problemy bezpośrednio do administratorów za pomocą komendy `/report <issue_description>`.
+- **Ograniczenia i Limity:** Aby zapobiec spamowaniu, dla użytkowników niebędących administratorami wprowadzono okresy karencji i limity, co zapewnia zrównoważone korzystanie z bota.
 
-### 5. Database Management
-- The bot uses PostgreSQL for storing user data, video clips, search history, and logs. Database operations like initializing the schema and managing user data are handled through a set of robust asynchronous functions.
+### 4. Integracja z Elasticsearch
+- Bot jest zintegrowany z Elasticsearch, co umożliwia efektywne zarządzanie i przeszukiwanie transkrypcji serialu. Ta integracja pozwala na szybkie i dokładne wyszukiwanie segmentów wideo na podstawie zapytań tekstowych.
 
-### 6. Dockerized for Easy Deployment
-- The bot is fully containerized using Docker, making it easy to deploy and run on any system. The Docker setup ensures all dependencies and configurations are handled seamlessly.
+### 5. Zarządzanie Bazą Danych
+- Bot używa PostgreSQL do przechowywania danych użytkowników, klipów wideo, historii wyszukiwań i logów. Operacje na bazie danych, takie jak inicjalizacja schematu i zarządzanie danymi użytkowników, są obsługiwane przez zestaw solidnych funkcji asynchronicznych.
 
-## Key Commands
+### 6. Dockerized dla Łatwego Wdrożenia
+- Bot jest w pełni konteneryzowany za pomocą Docker, co ułatwia jego wdrożenie i uruchomienie na dowolnym systemie. Konfiguracja Docker zapewnia bezproblemowe zarządzanie zależnościami i konfiguracjami.
 
-### Basic User Commands
-- **`/start`**: Displays a welcome message with basic commands.
-- **`/clip <quote>`**: Searches for a specific quote and returns the matching video clip.
-- **`/myclips`**: Lists all the clips saved by the user.
-- **`/compile <clip_numbers>`**: Compiles selected clips into one video.
+## Kluczowe Komendy
 
-### Administrative Commands
-- **`/admin`**: Displays admin commands.
-- **`/listadmins`**: Lists all admins.
-- **`/listmoderators`**: Lists all moderators.
-- **`/addwhitelist <user_id>`**: Adds a user to the whitelist.
-- **`/removewhitelist <user_id>`**: Removes a user from the whitelist.
-- **`/note <user_id> <note>`**: Adds or updates a note for a user.
-- **`/report <issue_description>`**: Reports an issue to the admins.
+### Podstawowe Komendy Użytkownika
+- **`/start`**: Wyświetla wiadomość powitalną z podstawowymi komendami.
+- **`/clip <quote>`**: Wyszukuje konkretny cytat i zwraca pasujący klip wideo.
+- **`/myclips`**: Wyświetla listę wszystkich klipów zapisanych przez użytkownika.
+- **`/compile <clip_numbers>`**: Kompiluje wybrane klipy w jedno wideo.
 
-For a full list of commands, refer to the [Commands Documentation](./COMMANDS.md).
+### Komendy Administracyjne
+- **`/admin`**: Wyświetla komendy administratora.
+- **`/listadmins`**: Wyświetla listę wszystkich administratorów.
+- **`/listmoderators`**: Wyświetla listę wszystkich moderatorów.
+- **`/addwhitelist <user_id>`**: Dodaje użytkownika do listy dozwolonych.
+- **`/removewhitelist <user_id>`**: Usuwa użytkownika z listy dozwolonych.
+- **`/note <user_id> <note>`**: Dodaje lub aktualizuje notatkę dla użytkownika.
+- **`/report <issue_description>`**: Zgłasza problem do administratorów.
 
-## Prerequisites
+Pełna lista komend znajduje się w [Dokumentacji Komend](./COMMANDS.md).
+
+## Wymagania
 - **Python 3.12**
-- **PostgreSQL Database**
+- **Baza danych PostgreSQL**
 - **Elasticsearch**
 - **FFmpeg**
 
-### Required Python Libraries
+### Wymagane Biblioteki Python
 - **ffmpeg**
 - **elasticsearch**
 - **urllib3**
@@ -74,24 +77,20 @@ For a full list of commands, refer to the [Commands Documentation](./COMMANDS.md
 - **pydantic-settings**
 - **pydantic**
 
-## Contributing
+## Wkład w Projekt
 
-Contributions are always welcome! If you'd like to help improve the project, feel free to collaborate by submitting pull requests or suggesting changes.
+Wkład w projekt jest zawsze mile widziany! Jeśli chciałbyś pomóc w jego udoskonaleniu, śmiało współpracuj poprzez zgłaszanie pull requestów lub sugerowanie zmian.
 
-## License
+## Licencja
 
-This project is licensed under the MIT License. You are free to use and modify the software for personal or internal purposes. However, distribution or public sharing of modified versions should be done through contributions to this project. If you wish to use this software in a significant or commercial capacity, please contact the project maintainers for further discussion.
+Ten projekt jest licencjonowany na podstawie licencji MIT. Możesz używać i modyfikować oprogramowanie do celów osobistych lub wewnętrznych. Jednak dystrybucja lub publiczne udostępnianie zmodyfikowanych wersji powinno odbywać się poprzez wkład w ten projekt. Jeśli chcesz użyć tego oprogramowania w znacznej lub komercyjnej formie, skontaktuj się z twórcami projektu w celu dalszej dyskusji.
 
+## Uzyskaj Dostęp do Bota
 
-## Get Access to the Bot
+Jeśli jesteś zainteresowany dostępem do RanczoKlipy Bot, proszę skontaktuj się ze mną na Telegramie: [@dam2452](https://t.me/dam2452).
 
-If you're interested in accessing the RanczoKlipy Bot, please reach out to me on Telegram: [@dam2452](https://t.me/dam2452).
+## Wesprzyj Projekt
 
-## Support the Project
-
-If you like this project and would like to support its development, consider buying me a coffee:
+Jeśli podoba Ci się ten projekt i chciałbyś wesprzeć jego rozwój, rozważ postawienie mi kawy:
 
 [![Buy Me a Coffee](https://www.buymeacoffee.com/assets/img/custom_images/yellow_img.png)](https://www.buymeacoffee.com/yourprofile)
-
-
----

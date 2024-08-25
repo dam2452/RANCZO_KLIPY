@@ -1,30 +1,30 @@
-# Full List of Commands
+# Pełna Lista Komend
 
-## Basic User Commands
-- **`/start`**: Displays a welcome message with basic commands.
-- **`/clip <quote>`**: Searches for a clip based on a quote. Example: `/clip genius`.
-- **`/search <quote>`**: Finds clips matching the quote (returns the first 5 results). Example: `/search goat`.
-- **`/list`**: Displays all clips found by `/search`.
-- **`/select <clip_number>`**: Selects a clip from the list obtained by `/search` for further operations. Example: `/select 1`.
-- **`/episodes <season>`**: Displays a list of episodes for the specified season. Example: `/episodes 2`.
-- **`/cut <season_episode> <start_time> <end_time>`**: Cuts a fragment of the clip. Example: `/cut S02E10 20:30.11 21:32.50`.
-- **`/adjust <before> <after>`**: Adjusts the selected clip by extending the start and end times. Example: `/adjust -5.5 1.2`.
-- **`/compile all`**: Creates a compilation of all clips.
-- **`/compile <range>`**: Creates a compilation from a range of clips. Example: `/compile 1-4`.
-- **`/compile <clip_number1> <clip_number2> ...`**: Creates a compilation from selected clips. Example: `/compile 1 5 7`.
-- **`/save <name>`**: Saves the selected clip with a given name. Example: `/save my_clip`.
-- **`/myclips`**: Displays a list of saved clips.
-- **`/send <name>`**: Sends a saved clip with the given name. Example: `/send my_clip`.
-- **`/deleteclip <clip_name>`**: Deletes a saved clip with the given name. Example: `/deleteclip my_clip`.
+## Podstawowe Komendy Użytkownika
+- **`/start`**: Wyświetla wiadomość powitalną z podstawowymi komendami.
+- **`/klip <cytat>`**: Wyszukuje klip na podstawie cytatu. Przykład: `/klip geniusz`.
+- **`/szukaj <cytat>`**: Znajduje klipy pasujące do cytatu (pierwsze 5 wyników). Przykład: `/szukaj kozioł`.
+- **`/lista`**: Wyświetla wszystkie klipy znalezione przez `/szukaj`.
+- **`/wybierz <numer_klipu>`**: Wybiera klip z listy uzyskanej przez `/szukaj` do dalszych operacji. Przykład: `/wybierz 1`.
+- **`/odcinki <sezon>`**: Wyświetla listę odcinków dla podanego sezonu. Przykład: `/odcinki 2`.
+- **`/wytnij <sezon_odcinek> <czas_start> <czas_koniec>`**: Wycina fragment klipu. Przykład: `/wytnij S02E10 20:30.11 21:32.50`.
+- **`/dostosuj <przedłużenie_przed> <przedłużenie_po>`**: Dostosowuje wybrany klip, rozszerzając czas rozpoczęcia i zakończenia. Przykład: `/dostosuj -5.5 1.2`.
+- **`/kompiluj wszystko`**: Tworzy kompilację ze wszystkich klipów.
+- **`/kompiluj <zakres>`**: Tworzy kompilację z zakresu klipów. Przykład: `/kompiluj 1-4`.
+- **`/kompiluj <numer_klipu1> <numer_klipu2> ...`**: Tworzy kompilację z wybranych klipów. Przykład: `/kompiluj 1 5 7`.
+- **`/zapisz <nazwa>`**: Zapisuje wybrany klip z podaną nazwą. Przykład: `/zapisz moj_klip`.
+- **`/mojeklipy`**: Wyświetla listę zapisanych klipów.
+- **`/wyslij <nazwa>`**: Wysyła zapisany klip o podanej nazwie. Przykład: `/wyslij moj_klip`.
+- **`/usunklip <nazwa_klipu>`**: Usuwa zapisany klip o podanej nazwie. Przykład: `/usunklip moj_klip`.
 
-## Administrative Commands
-- **`/admin`**: Displays admin commands.
-- **`/addwhitelist <id>`**: Adds a user to the whitelist. Example: `/addwhitelist 123456789`.
-- **`/removewhitelist <id>`**: Removes a user from the whitelist. Example: `/removewhitelist 123456789`.
-- **`/listwhitelist`**: Displays a list of all users in the whitelist.
-- **`/listadmins`**: Displays a list of all admins.
-- **`/listmoderators`**: Displays a list of all moderators.
-- **`/note <user_id> <note>`**: Adds or updates a note for a user. Example: `/note 123456789 This is a note`.
-- **`/key <key_content>`**: Saves a new key for the user. Example: `/key some_secret_key`.
-- **`/listkey`**: Displays a list of all user keys.
-- **`/report <issue_description>`**: Reports an issue to the admins.
+## Komendy Administracyjne
+- **`/admin`**: Wyświetla polecenia administratora.
+- **`/addwhitelist <id>`**: Dodaje użytkownika do listy dozwolonych. Przykład: `/addwhitelist 123456789`.
+- **`/removewhitelist <id>`**: Usuwa użytkownika z listy dozwolonych. Przykład: `/removewhitelist 123456789`.
+- **`/listwhitelist`**: Wyświetla listę wszystkich użytkowników na liście dozwolonych.
+- **`/listadmins`**: Wyświetla listę wszystkich administratorów.
+- **`/listmoderators`**: Wyświetla listę wszystkich moderatorów.
+- **`/note <user_id> <note>`**: Dodaje lub aktualizuje notatkę dla użytkownika. Przykład: `/note 123456789 To jest notatka`.
+- **`/klucz <key_content>`**: Zapisuje nowy klucz dla użytkownika. Przykład: `/klucz some_secret_key`.
+- **`/listkey`**: Wyświetla listę wszystkich kluczy użytkowników.
+- **`/report <issue_description>`**: Zgłasza problem do administratorów.
