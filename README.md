@@ -5,15 +5,16 @@ RanczoKlipy Bot is a highly customizable Telegram bot designed to manage and pro
 ## Features
 
 ### 1. Video Clip Management
-- **Search for Quotes:** Users can search for specific quotes within the series using commands like `/klip <quote>` and `/szukaj <quote>`. The bot will return matching video segments.
-- **Clip Compilation:** Users can compile multiple clips into a single video file with commands like `/kompiluj <clip_numbers>` or `/kompiluj wszystko`.
-- **Clip Adjustment:** The bot allows for fine-tuning of clips by adjusting start and end times using `/dostosuj <clip_number> <adjust_before> <adjust_after>`.
-- **Saved Clips Management:** Users can save, list, and delete their clips with commands like `/zapisz`, `/mojeklipy`, and `/usunklip`.
+- **Search for Quotes:** Users can search for specific quotes within the series using commands like `/clip <quote>` and `/search <quote>`. The bot will return matching video segments.
+- **Clip Compilation:** Users can compile multiple clips into a single video file with commands like `/compile <clip_numbers>` or `/compile all`.
+- **Clip Adjustment:** The bot allows for fine-tuning of clips by adjusting start and end times using `/adjust <clip_number> <adjust_before> <adjust_after>`.
+- **Saved Clips Management:** Users can save, list, and delete their clips with commands like `/save`, `/myclips`, and `/deleteclip`.
 
 ### 2. User and Role Management
 - **Admin and Moderator Roles:** Admins and moderators have access to specific functionalities. Commands like `/listadmins` and `/listmoderators` help view these roles.
 - **Whitelist Management:** Users can be added to or removed from the whitelist, allowing them access to certain features. Use `/addwhitelist <user_id>` or `/removewhitelist <user_id>` for this.
 - **Notes on Users:** Admins can add notes to user profiles using the `/note <user_id> <note>` command.
+
 ### 3. Content Moderation
 - **Report Issues:** Users can report issues directly to admins using the `/report <issue_description>` command.
 - **Cooldown and Limits:** To prevent spamming, cooldown periods and limits are enforced for non-admin users, ensuring a balanced usage experience.
@@ -23,6 +24,9 @@ RanczoKlipy Bot is a highly customizable Telegram bot designed to manage and pro
 
 ### 5. Database Management
 - The bot uses PostgreSQL for storing user data, video clips, search history, and logs. Database operations like initializing the schema and managing user data are handled through a set of robust asynchronous functions.
+
+### 6. Dockerized for Easy Deployment
+- The bot is fully containerized using Docker, making it easy to deploy and run on any system. The Docker setup ensures all dependencies and configurations are handled seamlessly.
 
 ## Key Commands
 
@@ -62,7 +66,6 @@ For a full list of commands, refer to the [Commands Documentation](./COMMANDS.md
 - **pydantic-settings**
 - **pydantic**
 
-
 ## Contributing
 
 Contributions are always welcome! If you'd like to help improve the project, feel free to collaborate by submitting pull requests or suggesting changes.
@@ -71,3 +74,21 @@ Contributions are always welcome! If you'd like to help improve the project, fee
 
 This project is licensed under the MIT License. You are free to use and modify the software for personal or internal purposes. However, distribution or public sharing of modified versions should be done through contributions to this project. If you wish to use this software in a significant or commercial capacity, please contact the project maintainers for further discussion.
 
+
+## Get Access to the Bot
+
+If you're interested in accessing the RanczoKlipy Bot, please reach out to me on Telegram: [@dam2452](https://t.me/dam2452).
+
+## Support the Project
+
+If you like this project and would like to support its development, consider buying me a coffee:
+
+[![Buy Me a Coffee](https://www.buymeacoffee.com/assets/img/custom_images/yellow_img.png)](https://www.buymeacoffee.com/yourprofile)
+
+## Video Demo
+
+Check out the video demo to see how the RanczoKlipy Bot works in action:
+
+[![Watch the video](https://img.youtube.com/vi/YOUR_VIDEO_ID/maxresdefault.jpg)](https://www.youtube.com/watch?v=YOUR_VIDEO_ID)
+
+---
