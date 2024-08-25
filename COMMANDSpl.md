@@ -1,4 +1,4 @@
-Oto przetłumaczone nazwy komend:
+# Pełna Lista Komend
 
 ## Podstawowe Komendy Użytkownika
 - **`/start`**: Wyświetla wiadomość powitalną z podstawowymi komendami.

@@ -44,6 +44,7 @@ Zobacz demo wideo, aby zobaczyć, jak działa RanczoKlipy Bot w akcji:
 - **`/compile <clip_numbers>`**: Kompiluje wybrane klipy w jedno wideo.
 
 ### Komendy Administracyjne
+- **`/admin`**: Wyświetla komendy administratora.
 - **`/listadmins`**: Wyświetla listę wszystkich administratorów.
 - **`/listmoderators`**: Wyświetla listę wszystkich moderatorów.
 - **`/addwhitelist <user_id>`**: Dodaje użytkownika do listy dozwolonych.

@@ -44,6 +44,7 @@ Check out the video demo to see how the RanczoKlipy Bot works in action:
 - **`/compile <clip_numbers>`**: Compiles selected clips into one video.
 
 ### Administrative Commands
+- **`/admin`**: Displays admin commands.
 - **`/listadmins`**: Lists all admins.
 - **`/listmoderators`**: Lists all moderators.
 - **`/addwhitelist <user_id>`**: Adds a user to the whitelist.
