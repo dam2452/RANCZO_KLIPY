@@ -164,3 +164,25 @@ BEGIN
     END IF;
 END $$;
 
+CREATE OR REPLACE FUNCTION clean_old_last_clips() RETURNS trigger AS $$
+BEGIN
+    DELETE FROM last_clips WHERE timestamp < NOW() - INTERVAL '24 hours';
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_clean_last_clips
+AFTER INSERT ON last_clips
+FOR EACH ROW EXECUTE FUNCTION clean_old_last_clips();
+
+CREATE OR REPLACE FUNCTION clean_old_search_history() RETURNS trigger AS $$
+BEGIN
+    DELETE FROM search_history WHERE timestamp < NOW() - INTERVAL '24 hours';
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_clean_search_history
+AFTER INSERT ON search_history
+FOR EACH ROW EXECUTE FUNCTION clean_old_search_history();
+
