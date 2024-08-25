@@ -18,6 +18,7 @@
 - **`/deleteclip <clip_name>`**: Deletes a saved clip with the given name. Example: `/deleteclip my_clip`.
 
 ## Administrative Commands
+- **`/admin`**: Displays admin commands.
 - **`/addwhitelist <id>`**: Adds a user to the whitelist. Example: `/addwhitelist 123456789`.
 - **`/removewhitelist <id>`**: Removes a user from the whitelist. Example: `/removewhitelist 123456789`.
 - **`/listwhitelist`**: Displays a list of all users in the whitelist.
@@ -27,6 +28,3 @@
 - **`/key <key_content>`**: Saves a new key for the user. Example: `/key some_secret_key`.
 - **`/listkey`**: Displays a list of all user keys.
 - **`/report <issue_description>`**: Reports an issue to the admins.
-
-## Miscellaneous Commands
-- **`/help`**: Displays a list of supported commands based on user permissions.

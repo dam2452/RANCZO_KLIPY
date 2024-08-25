@@ -39,7 +39,7 @@ class StartHandler(BotMessageHandler):
         super().__init__(bot, logger)
 
     def get_commands(self) -> List[str]:
-        return ["start", "s", "help", "h"]
+        return ["start", "s", "help", "h", "pomoc"]
 
     async def _do_handle(self, message: Message) -> None:
         content = message.text.split()
