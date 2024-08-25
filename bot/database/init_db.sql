@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS user_profiles (
     subscription_end DATE DEFAULT NULL,
     note TEXT DEFAULT NULL
 );
-CREATE INDEX IF NOT EXISTS idx_user_profiles_username ON user_profiles (user_id);
+CREATE INDEX IF NOT EXISTS idx_user_profiles_user_id ON user_profiles (user_id);
 CREATE INDEX IF NOT EXISTS idx_user_profiles_username ON user_profiles (username);
 
 CREATE TABLE IF NOT EXISTS user_roles (
@@ -98,8 +98,9 @@ CREATE TABLE IF NOT EXISTS last_clips (
     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX IF NOT EXISTS idx_last_clips_timestamp ON last_clips(id);
-CREATE INDEX IF NOT EXISTS idx_last_clips_timestamp ON last_clips(chat_id);
+CREATE INDEX IF NOT EXISTS idx_last_clips_timestamp ON last_clips(timestamp);
+CREATE INDEX IF NOT EXISTS idx_last_clips_id ON last_clips(id);
+CREATE INDEX IF NOT EXISTS idx_last_clips_chat_id ON last_clips(chat_id);
 
 CREATE TABLE IF NOT EXISTS user_keys (
     id SERIAL PRIMARY KEY,
@@ -108,11 +109,11 @@ CREATE TABLE IF NOT EXISTS user_keys (
     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX IF NOT EXISTS idx_user_messages_user_id ON user_keys (user_id);
+CREATE INDEX IF NOT EXISTS idx_user_keys_user_id ON user_keys(user_id);
 
 CREATE OR REPLACE FUNCTION clean_old_last_clips() RETURNS trigger AS $$
 BEGIN
-    DELETE FROM last_clips WHERE timestamp < NOW() - INTERVAL '365 days';
+    DELETE FROM last_clips WHERE timestamp < NOW() - INTERVAL '24 hours';
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -130,7 +131,7 @@ END $$;
 
 CREATE OR REPLACE FUNCTION clean_old_search_history() RETURNS trigger AS $$
 BEGIN
-    DELETE FROM search_history WHERE timestamp < NOW() - INTERVAL '365 days';
+    DELETE FROM search_history WHERE timestamp < NOW() - INTERVAL '24 hours';
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -143,6 +144,42 @@ BEGIN
         CREATE TRIGGER trigger_clean_search_history
         AFTER INSERT ON search_history
         FOR EACH ROW EXECUTE FUNCTION clean_old_search_history();
+    END IF;
+END $$;
+
+CREATE OR REPLACE FUNCTION clean_old_system_logs() RETURNS trigger AS $$
+BEGIN
+    DELETE FROM system_logs WHERE timestamp < NOW() - INTERVAL '365 days';
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_trigger WHERE tgname = 'trigger_clean_system_logs'
+    ) THEN
+        CREATE TRIGGER trigger_clean_system_logs
+        AFTER INSERT ON system_logs
+        FOR EACH ROW EXECUTE FUNCTION clean_old_system_logs();
+    END IF;
+END $$;
+
+CREATE OR REPLACE FUNCTION clean_old_user_logs() RETURNS trigger AS $$
+BEGIN
+    DELETE FROM user_logs WHERE timestamp < NOW() - INTERVAL '365 days';
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_trigger WHERE tgname = 'trigger_clean_user_logs'
+    ) THEN
+        CREATE TRIGGER trigger_clean_user_logs
+        AFTER INSERT ON user_logs
+        FOR EACH ROW EXECUTE FUNCTION clean_old_user_logs();
     END IF;
 END $$;
 
@@ -163,26 +200,3 @@ BEGIN
         FOR EACH ROW EXECUTE FUNCTION clean_old_user_keys();
     END IF;
 END $$;
-
-CREATE OR REPLACE FUNCTION clean_old_last_clips() RETURNS trigger AS $$
-BEGIN
-    DELETE FROM last_clips WHERE timestamp < NOW() - INTERVAL '24 hours';
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER trigger_clean_last_clips
-AFTER INSERT ON last_clips
-FOR EACH ROW EXECUTE FUNCTION clean_old_last_clips();
-
-CREATE OR REPLACE FUNCTION clean_old_search_history() RETURNS trigger AS $$
-BEGIN
-    DELETE FROM search_history WHERE timestamp < NOW() - INTERVAL '24 hours';
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER trigger_clean_search_history
-AFTER INSERT ON search_history
-FOR EACH ROW EXECUTE FUNCTION clean_old_search_history();
-

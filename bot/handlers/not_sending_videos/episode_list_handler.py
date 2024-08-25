@@ -13,6 +13,7 @@ from bot.responses.not_sending_videos.episode_list_handler_responses import (
     get_log_episode_list_sent_message,
     get_log_no_episodes_found_message,
     get_no_episodes_found_message,
+    get_season_11_petition_message,
 )
 from bot.search.transcription_finder import TranscriptionFinder
 
@@ -27,6 +28,11 @@ class EpisodeListHandler(BotMessageHandler):
             return await self._reply_invalid_args_count(message, get_invalid_args_count_message())
 
         season = int(content[1])
+
+        if season == 11:
+            await message.answer(get_season_11_petition_message(), parse_mode="Markdown")
+            return
+
         episodes = await TranscriptionFinder.find_episodes_by_season(season, self._logger)
         if not episodes:
             return await self.__reply_no_episodes_found(message, season)
