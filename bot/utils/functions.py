@@ -10,7 +10,7 @@ from bot.database.models import FormattedSegmentInfo
 
 class InvalidTimeStringException(Exception):
     def __init__(self, time: str) -> None:
-        self.message = f"Invalid time string: '{time}'"
+        self.message = f"Invalid time string: '{time}'. Upewnij się, że używasz formatu MM:SS\u200B.ms, np. 20:30.11"
         super().__init__(self.message)
 
 
@@ -21,7 +21,7 @@ def minutes_str_to_seconds(time_str: str) -> float:
         total_seconds = int(minutes) * 60 + int(seconds) + int(milliseconds) / 1000
         return total_seconds
     except (TypeError, ValueError) as e:
-        raise InvalidTimeStringException from e
+        raise InvalidTimeStringException(time_str) from e
 
 
 def convert_seconds_to_time_str(seconds: int) -> str:

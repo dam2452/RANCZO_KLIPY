@@ -1,5 +1,6 @@
 import json
 import os
+
 folder_path = 'JSONTEST'
 
 keys_to_remove = ["tokens", "no_speech_prob", "compression_ratio", "avg_logprob", "temperature", "language", "seek"]
@@ -11,7 +12,7 @@ def replace_unicode_chars(text):
         '\\u0144': 'ń', '\\u00F3': 'ó', '\\u015B': 'ś', '\\u017A': 'ź',
         '\\u017C': 'ż', '\\u0104': 'Ą', '\\u0106': 'Ć', '\\u0118': 'Ę',
         '\\u0141': 'Ł', '\\u0143': 'Ń', '\\u00D3': 'Ó', '\\u015A': 'Ś',
-        '\\u0179': 'Ź', '\\u017B': 'Ż'
+        '\\u0179': 'Ź', '\\u017B': 'Ż',
     }
     for unicode_char, char in unicode_map_reversed.items():
         text = text.replace(unicode_char, char)
@@ -24,7 +25,7 @@ def process_json_files(folder):
             file_path = os.path.join(folder, filename)
             with open(file_path, 'r', encoding='utf-8') as file:
                 data = json.load(file)
-            
+
             if 'segments' in data:
                 for segment in data['segments']:
                     for key in keys_to_remove:

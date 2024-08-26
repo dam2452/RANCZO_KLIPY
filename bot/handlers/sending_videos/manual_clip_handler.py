@@ -90,17 +90,17 @@ class ManualClipHandler(BotMessageHandler):
         return Episode(episode), minutes_str_to_seconds(start_time), minutes_str_to_seconds(end_time)
 
     async def __reply_incorrect_season_episode_format(self, message: Message) -> None:
-        await message.answer(get_incorrect_season_episode_format_message())
+        await message.answer(get_incorrect_season_episode_format_message(), parse_mode="Markdown")
         await self._log_system_message(logging.INFO, get_log_incorrect_season_episode_format_message())
 
     async def __reply_video_file_not_exist(self, message: Message, video_path: str) -> None:
-        await message.answer(get_video_file_not_exist_message())
+        await message.answer(get_video_file_not_exist_message(), parse_mode="Markdown")
         await self._log_system_message(logging.INFO, get_log_video_file_not_exist_message(video_path))
 
     async def __reply_incorrect_time_format(self, message: Message) -> None:
-        await message.answer(get_incorrect_time_format_message())
+        await message.answer(get_incorrect_time_format_message(), parse_mode="Markdown")
         await self._log_system_message(logging.INFO, get_log_incorrect_time_format_message())
 
     async def __reply_end_time_earlier_than_start(self, message: Message) -> None:
-        await message.answer(get_end_time_earlier_than_start_message())
+        await message.answer(get_end_time_earlier_than_start_message(), parse_mode="Markdown")
         await self._log_system_message(logging.INFO, get_log_end_time_earlier_than_start_message())
