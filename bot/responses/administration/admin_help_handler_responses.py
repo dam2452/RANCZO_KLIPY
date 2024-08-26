@@ -23,8 +23,30 @@ def get_admin_help_message() -> str:
 ══════════════════════════════════
 🔍 /transkrypcja <cytat> - Wyszukuje cytat w transkrypcjach i zwraca kontekst. Przykład: /transkrypcja Nie szkoda panu tego pięknego gabinetu?
 
+══════════════════════════
+🔎 Dodatkowe komendy: 🔎
+══════════════════════════
+🛠 /admin skroty - Wyświetla skróty komend admina.
 ```"""
 
 
 def get_message_sent_log_message(username: str) -> str:
     return f"Admin help message sent to user '{username}'."
+
+
+def get_admin_shortcuts_message() -> str:
+    return """```🛠Skróty_Komend_Admina🛠
+═════════════════════
+📋 Skróty admin 📋
+═════════════════════
+➕ /addw, /addwhitelist <id> - Dodaje użytkownika do whitelisty.\n
+➖ /rmw, /removewhitelist <id> - Usuwa użytkownika z whitelisty.\n
+📃 /lw, /listwhitelist - Wyświetla listę użytkowników w whiteliście.\n
+📃 /la, /listadmins - Wyświetla listę adminów.\n
+📃 /lm, /listmoderators - Wyświetla listę moderatorów.\n
+🔑 /klucz, /key <key_content> - Zapisuje nowy klucz dla użytkownika.\n
+🔑 /lk, /listkey - Wyświetla listę kluczy użytkowników.\n
+➕ /addsub, /addsubscription <id> <days> - Dodaje subskrypcję użytkownikowi.\n
+🚫 /rmsub, /removesubscription <id> - Usuwa subskrypcję użytkownika.\n
+🔍 /t, /transkrypcja <cytat> - Wyszukuje cytat w transkrypcjach.\n
+```"""

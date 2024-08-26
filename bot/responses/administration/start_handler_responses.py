@@ -10,26 +10,29 @@ def get_basic_message() -> str:
 
 
 def get_lista_message() -> str:
-    return """```🐐RanczoKlipy-Działy_Komend🐐
-═══════════════════════════════════════
-🔍 Wyszukiwanie i przeglądanie klipów
-👉 /start wyszukiwanie
-═══════════════════════════════════════
-✂️ Edycja klipów
-👉 /start edycja
-═══════════════════════════════════════
-📁 Zarządzanie zapisanymi klipami
-👉 /start zarzadzanie
-═══════════════════════════════════════
-🛠️ Raportowanie błędów
-👉 /start raportowanie
-═══════════════════════════════════════
-🔔 Subskrypcje
-👉 /start subskrypcje
-═══════════════════════════════════════
-📜 Wszystkie komendy
-👉 /start wszystko
-═══════════════════════════════════════
+    return """```🐐 RanczoKlipy - Działy Komend 🐐
+══════════════════════════
+🔍 Wyszukiwanie:
+   👉 /start wyszukiwanie
+
+✂️ Edycja:
+   👉 /start edycja
+
+📁 Zarządzanie:
+   👉 /start zarzadzanie
+
+🛠️ Raporty:
+   👉 /start raportowanie
+
+🔔 Subskrypcje:
+   👉 /start subskrypcje
+
+📜 Wszystkie:
+   👉 /start wszystko
+
+📋 Skróty:
+   👉 /start skroty
+══════════════════════════
 ```"""
 
 
@@ -77,13 +80,16 @@ def get_full_message() -> str:
 
 def get_wyszukiwanie_message() -> str:
     return """```🐐RanczoKlipy-Wyszukiwanie_klipów🐐
-═════════════════════════════════════════
-🔎 /klip <cytat> - Wyszukuje klip na podstawie cytatu. Przykład: /klip geniusz.
-🔍 /szukaj <cytat> - Znajduje klipy pasujące do cytatu (pierwsze 5 wyników). Przykład: /szukaj kozioł.
-📋 /lista - Wyświetla wszystkie klipy znalezione przez /szukaj.
-✅ /wybierz <numer_klipu> - Wybiera klip z listy uzyskanej przez /szukaj do dalszych operacji. Przykład: /wybierz 1.
-📺 /odcinki <sezon> - Wyświetla listę odcinków dla podanego sezonu. Przykład: /odcinki 2.
-✂️ /wytnij <sezon_odcinek> <czas_start> <czas_koniec> - Wytnij fragment klipu. Przykład: /wytnij S02E10 20:30.11 21:32.50.
+════════════════════
+🔍 Wyszukiwanie 🔍
+════════════════════
+
+🔎 /klip <cytat> - Wyszukuje klip na podstawie cytatu. Przykład: /klip geniusz.\n
+🔍 /szukaj <cytat> - Znajduje klipy pasujące do cytatu (pierwsze 5 wyników). Przykład: /szukaj kozioł.\n
+📋 /lista - Wyświetla wszystkie klipy znalezione przez /szukaj.\n
+✅ /wybierz <numer_klipu> - Wybiera klip z listy uzyskanej przez /szukaj do dalszych operacji. Przykład: /wybierz 1.\n
+📺 /odcinki <sezon> - Wyświetla listę odcinków dla podanego sezonu. Przykład: /odcinki 2.\n
+✂️ /wytnij <sezon_odcinek> <czas_start> <czas_koniec> - Wytnij fragment klipu. Przykład: /wytnij S02E10 20:30.11 21:32.50.\n
 ```"""
 
 
@@ -92,11 +98,11 @@ def get_edycja_message() -> str:
 ════════════════════
 ✂️ Edycja klipów ✂️
 ════════════════════
-📏 /dostosuj <przedłużenie_przed> <przedłużenie_po> - Dostosowuje wybrany klip. Przykład: /dostosuj -5.5 1.2.
-📏 /dostosuj <numer_klipu> <przedłużenie_przed> <przedłużenie_po> - Dostosowuje klip z wybranego zakresu. Przykład: /dostosuj 1 10.0 -3.
-🎞️ /kompiluj wszystko - Tworzy kompilację ze wszystkich klipów.
-🎞️ /kompiluj <zakres> - Tworzy kompilację z zakresu klipów. Przykład: /kompiluj 1-4.
-🎞️ /kompiluj <numer_klipu1> <numer_klipu2> ... - Tworzy kompilację z wybranych klipów. Przykład: /kompiluj 1 5 7.
+📏 /dostosuj <przedłużenie_przed> <przedłużenie_po> - Dostosowuje wybrany klip. Przykład: /dostosuj -5.5 1.2.\n
+📏 /dostosuj <numer_klipu> <przedłużenie_przed> <przedłużenie_po> - Dostosowuje klip z wybranego zakresu. Przykład: /dostosuj 1 10.0 -3.\n
+🎞️ /kompiluj wszystko - Tworzy kompilację ze wszystkich klipów.\n
+🎞️ /kompiluj <zakres> - Tworzy kompilację z zakresu klipów. Przykład: /kompiluj 1-4.\n
+🎞️ /kompiluj <numer_klipu1> <numer_klipu2> ... - Tworzy kompilację z wybranych klipów. Przykład: /kompiluj 1 5 7.\n
 ```"""
 
 
@@ -105,11 +111,11 @@ def get_zarzadzanie_message() -> str:
 ═════════════════════════════════════
 📁 Zarządzanie zapisanymi klipami 📁
 ═════════════════════════════════════
-💾 /zapisz <nazwa> - Zapisuje wybrany klip z podaną nazwą. Przykład: /zapisz moj_klip.
-📂 /mojeklipy - Wyświetla listę zapisanych klipów.
-📤 /wyslij <nazwa> - Wysyła zapisany klip o podanej nazwie. Przykład: /wyslij moj_klip.
-🔗 /polaczklipy <numer_klipu1> <numer_klipu2> ... - Łączy zapisane klipy w jeden. Numery klipów można znaleźć używając komendy /mojeklipy. Przykład: /polaczklipy 1 2 3.
-🗑️ /usunklip <nazwa_klipu> - Usuwa zapisany klip o podanej nazwie. Przykład: /usunklip moj_klip.
+💾 /zapisz <nazwa> - Zapisuje wybrany klip z podaną nazwą. Przykład: /zapisz moj_klip.\n
+📂 /mojeklipy - Wyświetla listę zapisanych klipów.\n
+📤 /wyslij <nazwa> - Wysyła zapisany klip o podanej nazwie. Przykład: /wyslij moj_klip.\n
+🔗 /polaczklipy <numer_klipu1> <numer_klipu2> ... - Łączy zapisane klipy w jeden. Numery klipów można znaleźć używając komendy /mojeklipy. Przykład: /polaczklipy 1 2 3.\n
+🗑️ /usunklip <nazwa_klipu> - Usuwa zapisany klip o podanej nazwie. Przykład: /usunklip moj_klip.\n
 ```"""
 
 
@@ -118,7 +124,7 @@ def get_raportowanie_message() -> str:
 ════════════════════════
 🛠️ Raportowanie błędów ️
 ════════════════════════
-🐛 /report - Raportuje błąd do administratora.
+🐛 /report - Raportuje błąd do administratora.\n
 ```"""
 
 
@@ -127,12 +133,34 @@ def get_subskrypcje_message() -> str:
 ══════════════════
 🔔 Subskrypcje 🔔
 ══════════════════
-📊 /subskrypcja - Sprawdza stan Twojej subskrypcji.
+📊 /subskrypcja - Sprawdza stan Twojej subskrypcji.\n
+```"""
+
+
+def get_shortcuts_message() -> str:
+    return """```🐐RanczoKlipy-Skróty_komend🐐
+═════════════════════
+📋 Skróty komend 📋
+═════════════════════
+🐐 /s, /start - Uruchamia główne menu.\n
+🔎 /sz, /szukaj - Wyszukuje klip na podstawie cytatu.\n
+📋 /l, /lista - Wyświetla wszystkie klipy znalezione przez /szukaj.\n
+✅ /w, /wybierz - Wybiera klip z listy uzyskanej przez /szukaj.\n
+📺 /o, /odcinki - Wyświetla listę odcinków dla podanego sezonu.\n
+✂️ /d, /dostosuj - Dostosowuje wybrany klip.\n
+🎞️ /kom, /kompiluj - Tworzy kompilację klipów.\n
+🔗 /pk, /polaczklipy - Łączy zapisane klipy w jeden.\n
+🗑️ /uk, /usunklip - Usuwa zapisany klip.\n
+📂 /mk, /mojeklipy - Wyświetla listę zapisanych klipów.\n
+💾 /z, /zapisz - Zapisuje wybrany klip.\n
+📤 /wys, /wyślij - Wysyła zapisany klip.\n
+🐛 /r, /report - Raportuje błąd do administratora.\n
+🔔 /sub, /subskrypcja - Sprawdza stan Twojej subskrypcji.\n
 ```"""
 
 
 def get_invalid_command_message() -> str:
-    return "Niepoprawna komenda"
+    return "❌ Niepoprawna komenda w menu startowym. Użyj /start, aby zobaczyć dostępne opcje. ❌"
 
 
 def get_log_message_sent(username: str, text: str) -> str:
