@@ -9,8 +9,8 @@ def get_admin_help_message() -> str:
 📃 /listwhitelist - Wyświetla listę wszystkich użytkowników w whiteliście.
 📃 /listadmins - Wyświetla listę wszystkich adminów.
 📃 /listmoderators - Wyświetla listę wszystkich moderatorów.
-🔑 /klucz <key_content> - Zapisuje nowy klucz dla użytkownika. Przykład: /klucz some_secret_key
-🔑 /listkey - Wyświetla listę wszystkich kluczy użytkowników.
+🔑 /klucz <key_content> - Używa klucz dla użytkownika. Przykład: /klucz some_secret_key
+🔑 /listkey - Wyświetla listę wszystkich kluczy.
 🔑 /addkey <days> <note> - Tworzy nowy klucz subskrypcji na X dni. Przykład: /addkey 30 "Promocja"
 🚫 /removekey <key> - Usuwa istniejący klucz subskrypcji. Przykład: /removekey some_secret_key
 
@@ -47,7 +47,7 @@ def get_admin_shortcuts_message() -> str:
 📃 /la, /listadmins - Wyświetla listę adminów.\n
 📃 /lm, /listmoderators - Wyświetla listę moderatorów.\n
 🔑 /klucz, /key <key_content> - Zapisuje nowy klucz dla użytkownika.\n
-🔑 /lk, /listkey - Wyświetla listę kluczy użytkowników.\n
+🔑 /lk, /listkey - Wyświetla listę kluczy.\n
 🔑 /addk, /addkey <days> <note> - Tworzy nowy klucz subskrypcji.\n
 🚫 /rmk, /removekey <key> - Usuwa istniejący klucz subskrypcji.\n
 ➕ /addsub, /addsubscription <id> <days> - Dodaje subskrypcję użytkownikowi.\n
