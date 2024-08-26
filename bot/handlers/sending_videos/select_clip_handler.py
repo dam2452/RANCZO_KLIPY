@@ -14,6 +14,7 @@ from bot.responses.bot_message_handler_responses import (
 from bot.responses.sending_videos.select_clip_handler_responses import (
     get_invalid_args_count_message,
     get_invalid_segment_number_message,
+    get_limit_exceeded_clip_duration_message,
     get_log_invalid_segment_number_message,
     get_log_no_previous_search_message,
     get_log_segment_selected_message,
@@ -47,6 +48,11 @@ class SelectClipHandler(BotMessageHandler):
         segment = segments[index - 1]
         start_time = max(0, segment["start"] - settings.EXTEND_BEFORE)
         end_time = segment["end"] + settings.EXTEND_AFTER
+
+        clip_duration = end_time - start_time
+        if not await DatabaseManager.is_admin_or_moderator(message.from_user.id) and clip_duration > settings.MAX_CLIP_DURATION:
+            await message.answer(get_limit_exceeded_clip_duration_message())
+            return
 
         try:
             await ClipsExtractor.extract_and_send_clip(segment["video_path"], message, self._bot, self._logger, start_time, end_time)

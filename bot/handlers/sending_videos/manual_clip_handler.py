@@ -15,6 +15,7 @@ from bot.responses.sending_videos.manual_clip_handler_responses import (
     get_incorrect_season_episode_format_message,
     get_incorrect_time_format_message,
     get_invalid_args_count_message,
+    get_limit_exceeded_clip_duration_message,
     get_log_clip_extracted_message,
     get_log_end_time_earlier_than_start_message,
     get_log_incorrect_season_episode_format_message,
@@ -23,6 +24,7 @@ from bot.responses.sending_videos.manual_clip_handler_responses import (
     get_video_file_not_exist_message,
 )
 from bot.search.transcription_finder import TranscriptionFinder
+from bot.settings import settings
 from bot.utils.functions import (
     InvalidTimeStringException,
     minutes_str_to_seconds,
@@ -53,6 +55,11 @@ class ManualClipHandler(BotMessageHandler):
 
         if end_seconds <= start_seconds:
             return await self.__reply_end_time_earlier_than_start(message)
+
+        clip_duration = end_seconds - start_seconds
+        if not await DatabaseManager.is_admin_or_moderator(message.from_user.id) and clip_duration > settings.MAX_CLIP_DURATION:
+            await message.answer(get_limit_exceeded_clip_duration_message())
+            return
 
         video_path = await TranscriptionFinder.find_video_path_by_episode(episode.season, episode.get_absolute_episode_number(), self._logger)
         if not video_path or not os.path.exists(video_path):

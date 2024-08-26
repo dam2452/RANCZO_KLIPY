@@ -32,3 +32,7 @@ def get_log_clip_saved_successfully_message(clip_name: str, username: str) -> st
 
 def get_clip_name_not_provided_message():
     return "📝 Podaj nazwę klipu. Przykład: /zapisz nazwa_klipu"
+
+
+def get_clip_name_length_exceeded_message():
+    return "❌ Przekroczono limit długości nazwy klipu.❌"

@@ -22,6 +22,7 @@ from bot.database.models import (
 from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.responses.not_sending_videos.save_clip_handler_responses import (
     get_clip_name_exists_message,
+    get_clip_name_length_exceeded_message,
     get_clip_name_not_provided_message,
     get_clip_saved_successfully_message,
     get_log_clip_name_exists_message,
@@ -47,6 +48,11 @@ class SaveClipHandler(BotMessageHandler):
 
     async def _do_handle(self, message: Message) -> None:
         clip_name = self.__parse_clip_name(message)
+
+        if len(clip_name) > settings.MAX_CLIP_NAME_LENGTH:
+            await message.answer(get_clip_name_length_exceeded_message())
+            return
+
         if not clip_name:
             return await self._reply_invalid_args_count(message, get_clip_name_not_provided_message())
         if not await self.__is_clip_name_unique(message, clip_name):

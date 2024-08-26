@@ -7,11 +7,13 @@ from bot.database.database_manager import DatabaseManager
 from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.responses.not_sending_videos.delete_clip_handler_responses import (
     get_clip_deleted_message,
+    get_clip_name_length_exceeded_message,
     get_clip_not_exist_message,
     get_invalid_args_count_message,
     get_log_clip_deleted_message,
     get_log_clip_not_exist_message,
 )
+from bot.settings import settings
 
 
 class DeleteClipHandler(BotMessageHandler):
@@ -24,6 +26,10 @@ class DeleteClipHandler(BotMessageHandler):
             return await self._reply_invalid_args_count(message, get_invalid_args_count_message())
 
         clip_name = command_parts[1]
+
+        if len(clip_name) > settings.MAX_CLIP_NAME_LENGTH:
+            await message.answer(get_clip_name_length_exceeded_message())
+            return
 
         result = await DatabaseManager.delete_clip(message.from_user.id, clip_name)
 

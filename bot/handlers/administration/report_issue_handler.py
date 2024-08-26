@@ -6,11 +6,13 @@ from aiogram.types import Message
 from bot.database.database_manager import DatabaseManager
 from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.responses.administration.report_issue_handler_responses import (
+    get_limit_exceeded_report_length_message,
     get_log_no_report_content_message,
     get_log_report_received_message,
     get_no_report_content_message,
     get_report_received_message,
 )
+from bot.settings import settings
 
 
 class ReportIssueHandler(BotMessageHandler):
@@ -19,6 +21,11 @@ class ReportIssueHandler(BotMessageHandler):
 
     async def _do_handle(self, message: Message) -> None:
         report_content = message.text.split(maxsplit=1)
+
+        if len(report_content) > settings.MAX_REPORT_LENGTH:
+            await message.answer(get_limit_exceeded_report_length_message())
+            return
+
         if len(report_content) < 2:
             return await self.__reply_no_report_content(message)
 

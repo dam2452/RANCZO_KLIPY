@@ -20,3 +20,7 @@ def get_log_invalid_segment_number_message(segment_number: int) -> str:
 
 def get_log_segment_selected_message(segment_id: str, username: str) -> str:
     return f"Segment {segment_id} selected by user '{username}'."
+
+
+def get_limit_exceeded_clip_duration_message() -> str:
+    return "❌ Przekroczono limit długości klipu.❌"

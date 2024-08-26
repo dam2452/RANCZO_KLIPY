@@ -35,6 +35,10 @@ class Settings(BaseSettings):
     LIMIT_DURATION: int = Field(10)
     CLIP_COMPILATION_LIMIT: int = Field(30)
     MAX_ADJUSTMENT_DURATION: int = Field(100)
+    MAX_SEARCH_QUERY_LENGTH: int = Field(300)
+    MAX_CLIP_DURATION: int = Field(120)
+    MAX_CLIP_NAME_LENGTH: int = Field(50)
+    MAX_REPORT_LENGTH: int = Field(1000)
 
     class Config:
         env_file = env_path

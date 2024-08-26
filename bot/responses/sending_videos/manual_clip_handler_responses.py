@@ -58,3 +58,7 @@ def get_end_time_earlier_than_start_message() -> str:
         "Upewnij się, że **czas_start** jest wcześniejszy niż **czas_koniec**.\n"
         "Przykład: **20:30.11** (czas_start) powinno być wcześniejsze niż **21:32.50** (czas_koniec)."
     )
+
+
+def get_limit_exceeded_clip_duration_message() -> str:
+    return "❌ Przekroczono limit długości klipu!\n"
