@@ -5,6 +5,7 @@ folder_path = 'JSONTEST'
 
 keys_to_remove = ["tokens", "no_speech_prob", "compression_ratio", "avg_logprob", "temperature", "language", "seek"]
 
+
 def replace_unicode_chars(text):
     """Zamienia kody Unicode na polskie znaki w tekście."""
     unicode_map_reversed = {
@@ -17,6 +18,7 @@ def replace_unicode_chars(text):
     for unicode_char, char in unicode_map_reversed.items():
         text = text.replace(unicode_char, char)
     return text
+
 
 def process_json_files(folder):
     """Przetwarza wszystkie pliki JSON w folderze, usuwając niechciane klucze i dodając 'author', 'Comment', 'tags', 'location', 'actors'."""
@@ -44,5 +46,6 @@ def process_json_files(folder):
             with open(file_path, 'w', encoding='utf-8') as file:
                 json.dump(organized_data, file, ensure_ascii=False, indent=4)
             print(f'Przetworzono plik: {filename}')
+
 
 process_json_files(folder_path)

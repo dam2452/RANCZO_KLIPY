@@ -4,7 +4,10 @@ from typing import (
     Optional,
 )
 
-from aiogram.types import Message
+from aiogram.types import (
+    BufferedInputFile,
+    Message,
+)
 
 from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.responses.not_sending_videos.episode_list_handler_responses import (
@@ -30,7 +33,13 @@ class EpisodeListHandler(BotMessageHandler):
         season = int(content[1])
 
         if season == 11:
-            await message.answer(get_season_11_petition_message(), parse_mode="Markdown")
+            image_path = "Ranczo_Sezon11.png"
+            with open(image_path, "rb") as image_file:
+                image_bytes = image_file.read()
+                await message.answer_photo(
+                    photo=BufferedInputFile(image_bytes, image_path), caption=get_season_11_petition_message(),
+                    show_caption_above_media=True, parse_mode="Markdown",
+                )
             return
 
         episodes = await TranscriptionFinder.find_episodes_by_season(season, self._logger)
