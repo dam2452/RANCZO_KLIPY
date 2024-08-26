@@ -33,7 +33,7 @@ def get_log_episode_list_sent_message(season: int, username: str) -> str:
 
 
 def get_invalid_args_count_message() -> str:
-    return "📋 Podaj poprawną komendę w formacie: /listaodcinków <sezon>. Przykład: /listaodcinków 2"
+    return "📋 Podaj poprawną komendę w formacie: /odcinki <sezon>. Przykład: /odcinki 2"
 
 
 def get_season_11_petition_message() -> str:
