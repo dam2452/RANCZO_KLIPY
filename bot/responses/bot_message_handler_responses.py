@@ -39,3 +39,7 @@ def get_extraction_failure_message() -> str:
 
 def get_log_extraction_failure_message(exception: Exception) -> str:
     return f"Failed to extract video clip: {exception}"
+
+
+def get_limit_exceeded_message() -> str:
+    return "❌ Przekroczono limit wiadomości. Spróbuj ponownie później.❌"

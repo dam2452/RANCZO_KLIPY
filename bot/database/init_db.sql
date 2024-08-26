@@ -111,6 +111,16 @@ CREATE TABLE IF NOT EXISTS user_keys (
 
 CREATE INDEX IF NOT EXISTS idx_user_keys_user_id ON user_keys(user_id);
 
+CREATE TABLE IF NOT EXISTS user_command_limits (
+    id SERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_command_limits_user_id ON user_command_limits(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_command_limits_timestamp ON user_command_limits(timestamp);
+
+
 CREATE OR REPLACE FUNCTION clean_old_last_clips() RETURNS trigger AS $$
 BEGIN
     DELETE FROM last_clips WHERE timestamp < NOW() - INTERVAL '24 hours';

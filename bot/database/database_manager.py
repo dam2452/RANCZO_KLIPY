@@ -1,5 +1,6 @@
 from datetime import (
     date,
+    datetime,
     timedelta,
 )
 import json
@@ -582,3 +583,43 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
             note, user_id,
         )
         await conn.close()
+
+    @staticmethod
+    async def log_command_usage(user_id: int) -> None:
+        conn = await DatabaseManager.get_db_connection()
+        await conn.execute(
+            "INSERT INTO user_command_limits (user_id, timestamp) VALUES ($1, NOW())",
+            user_id,
+        )
+        await conn.close()
+
+    @staticmethod
+    async def is_command_limited(user_id: int, limit: int, duration_seconds: int) -> bool:
+        usage_count = await DatabaseManager.get_command_usage_count(user_id, duration_seconds)
+        return usage_count >= limit
+
+    @staticmethod
+    async def get_command_usage_count(user_id: int, duration_seconds: int) -> int:
+        conn = await DatabaseManager.get_db_connection()
+        time_threshold = datetime.now() - timedelta(seconds=duration_seconds)
+        count = await conn.fetchval(
+            "SELECT COUNT(*) FROM user_command_limits WHERE user_id = $1 AND timestamp >= $2",
+            user_id, time_threshold,
+        )
+        await conn.close()
+        return count
+
+    @staticmethod
+    async def is_admin_or_moderator(user_id: int) -> bool:
+        conn = await DatabaseManager.get_db_connection()
+        result = await conn.fetchrow(
+            "SELECT is_admin, is_moderator "
+            "FROM user_roles "
+            "WHERE user_id = $1",
+            user_id,
+        )
+        await conn.close()
+
+        if result:
+            return result["is_admin"] or result["is_moderator"]
+        return False

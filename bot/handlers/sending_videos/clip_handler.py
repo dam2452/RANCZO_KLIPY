@@ -26,7 +26,7 @@ from bot.video.utils import FFMpegException
 class ClipHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ["klip", "clip", "k"]
-###
+
     async def _do_handle(self, message: Message) -> None:
         content = message.text.split()
         if len(content) < 2:

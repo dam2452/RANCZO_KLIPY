@@ -18,9 +18,11 @@ from bot.responses.sending_videos.compile_clips_handler_responses import (
     get_invalid_range_message,
     get_log_no_matching_segments_found_message,
     get_log_no_previous_search_results_message,
+    get_max_clips_exceeded_message,
     get_no_matching_segments_found_message,
     get_no_previous_search_results_message,
 )
+from bot.settings import settings
 from bot.video.clips_compiler import (
     ClipsCompiler,
     process_compiled_clip,
@@ -52,6 +54,10 @@ class CompileClipsHandler(BotMessageHandler):
 
         if not selected_segments:
             return await self.__reply_no_matching_segments_found(message)
+
+        if not DatabaseManager.is_admin_or_moderator(message.from_user.id) and len(selected_segments) > settings.MAX_CLIPS_PER_COMPILATION:
+            await message.answer(get_max_clips_exceeded_message())
+            return
 
         compiled_output = await ClipsCompiler.compile_and_send_clips(message, selected_segments, self._bot, self._logger)
         await process_compiled_clip(message, compiled_output, ClipType.COMPILED)

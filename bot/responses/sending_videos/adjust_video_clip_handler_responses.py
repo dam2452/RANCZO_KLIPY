@@ -52,3 +52,7 @@ def get_updated_segment_info_log(chat_id: int) -> str:
 
 def get_successful_adjustment_message(username: str) -> str:
     return f"Video clip adjusted successfully for user '{username}'."
+
+
+def get_max_extension_limit_message() -> str:
+    return "❌ Przekroczono limit rozszerzenia dla komendy dostosuj. ❌"

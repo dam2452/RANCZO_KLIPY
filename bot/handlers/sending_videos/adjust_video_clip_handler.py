@@ -19,6 +19,7 @@ from bot.responses.sending_videos.adjust_video_clip_handler_responses import (
     get_invalid_interval_message,
     get_invalid_segment_index_message,
     get_invalid_segment_log,
+    get_max_extension_limit_message,
     get_no_previous_searches_log,
     get_no_previous_searches_message,
     get_no_quotes_selected_log,
@@ -70,6 +71,10 @@ class AdjustVideoClipHandler(BotMessageHandler):
             additional_end_offset = float(content[-1])
         except (ValueError, TypeError):
             return await self.__reply_invalid_args_count(message)
+
+        if abs(additional_start_offset) + abs(additional_end_offset) > 100 and not await DatabaseManager.is_admin_or_moderator(message.from_user.id):
+            await message.answer(get_max_extension_limit_message())
+            return
 
         start_time = max(0.0, original_start_time - additional_start_offset) - settings.EXTEND_BEFORE
         end_time = original_end_time + additional_end_offset + settings.EXTEND_AFTER
