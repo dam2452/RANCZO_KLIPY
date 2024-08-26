@@ -29,10 +29,11 @@ class SubscriptionStatusHandler(BotMessageHandler):
             return await self.__reply_no_subscription(message)
 
         subscription_end, days_remaining = subscription_status
-        response = format_subscription_status_response(message.from_user.username, subscription_end, days_remaining)
+        user_name = message.from_user.username or message.from_user.full_name
+        response = format_subscription_status_response(user_name, subscription_end, days_remaining)
 
         await message.answer(response, parse_mode="Markdown")
-        await self._log_system_message(logging.INFO, get_log_subscription_status_sent_message(message.from_user.username))
+        await self._log_system_message(logging.INFO, get_log_subscription_status_sent_message(user_name))
 
     @staticmethod
     async def __get_subscription_status(user_id: int) -> Optional[Tuple[date, int]]:
@@ -43,5 +44,6 @@ class SubscriptionStatusHandler(BotMessageHandler):
         return subscription_end, days_remaining
 
     async def __reply_no_subscription(self, message: Message) -> None:
+        user_name = message.from_user.username or message.from_user.full_name
         await message.answer(get_no_subscription_message())
-        await self._log_system_message(logging.INFO, get_log_no_active_subscription_message(message.from_user.username))
+        await self._log_system_message(logging.INFO, get_log_no_active_subscription_message(user_name))
