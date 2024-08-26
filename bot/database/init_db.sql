@@ -102,15 +102,6 @@ CREATE INDEX IF NOT EXISTS idx_last_clips_timestamp ON last_clips(timestamp);
 CREATE INDEX IF NOT EXISTS idx_last_clips_id ON last_clips(id);
 CREATE INDEX IF NOT EXISTS idx_last_clips_chat_id ON last_clips(chat_id);
 
-CREATE TABLE IF NOT EXISTS user_keys (
-    id SERIAL PRIMARY KEY,
-    user_id BIGINT NOT NULL,
-    key TEXT NOT NULL,
-    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE INDEX IF NOT EXISTS idx_user_keys_user_id ON user_keys(user_id);
-
 CREATE TABLE IF NOT EXISTS user_command_limits (
     id SERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL,
@@ -120,6 +111,16 @@ CREATE TABLE IF NOT EXISTS user_command_limits (
 CREATE INDEX IF NOT EXISTS idx_user_command_limits_user_id ON user_command_limits(user_id);
 CREATE INDEX IF NOT EXISTS idx_user_command_limits_timestamp ON user_command_limits(timestamp);
 
+CREATE TABLE IF NOT EXISTS subscription_keys (
+    id SERIAL PRIMARY KEY,
+    key TEXT UNIQUE NOT NULL,
+    days INT NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_subscription_keys_key ON subscription_keys(key);
+CREATE INDEX IF NOT EXISTS idx_subscription_keys_is_active ON subscription_keys(is_active);
 
 CREATE OR REPLACE FUNCTION clean_old_last_clips() RETURNS trigger AS $$
 BEGIN

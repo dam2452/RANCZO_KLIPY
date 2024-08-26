@@ -16,6 +16,7 @@ from bot.database.models import (
     ClipType,
     LastClip,
     SearchHistory,
+    SubscriptionKey,
     UserMessage,
     UserProfile,
     VideoClip,
@@ -550,16 +551,6 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         await conn.close()
 
     @staticmethod
-    async def save_user_key(user_id: int, key: str) -> None:
-        conn = await DatabaseManager.get_db_connection()
-        await conn.execute(
-            "INSERT INTO user_keys (user_id, key) "
-            "VALUES ($1, $2)",
-            user_id, key,
-        )
-        await conn.close()
-
-    @staticmethod
     async def get_all_user_keys() -> Optional[List[UserMessage]]:
         conn = await DatabaseManager.get_db_connection()
         rows = await conn.fetch(
@@ -623,3 +614,48 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         if result:
             return result["is_admin"] or result["is_moderator"]
         return False
+
+    @staticmethod
+    async def get_subscription_days_by_key(key: str) -> Optional[int]:
+        conn = await DatabaseManager.get_db_connection()
+        result = await conn.fetchrow(
+            "SELECT days FROM subscription_keys WHERE key = $1 AND is_active = TRUE",
+            key,
+        )
+        await conn.close()
+        return result['days'] if result else None
+
+    @staticmethod
+    async def deactivate_subscription_key(key: str) -> None:
+        conn = await DatabaseManager.get_db_connection()
+        await conn.execute(
+            "UPDATE subscription_keys SET is_active = FALSE WHERE key = $1",
+            key,
+        )
+        await conn.close()
+
+    @staticmethod
+    async def create_subscription_key(days: int, key: str) -> None:
+        conn = await DatabaseManager.get_db_connection()
+        await conn.execute(
+            "INSERT INTO subscription_keys (key, days, is_active) VALUES ($1, $2, TRUE)",
+            key, days,
+        )
+        await conn.close()
+
+    @staticmethod
+    async def remove_subscription_key(key: str) -> bool:
+        conn = await DatabaseManager.get_db_connection()
+        result = await conn.execute(
+            "DELETE FROM subscription_keys WHERE key = $1",
+            key,
+        )
+        await conn.close()
+        return result == "DELETE 1"
+
+    @staticmethod
+    async def get_all_subscription_keys() -> List[SubscriptionKey]:
+        conn = await DatabaseManager.get_db_connection()
+        rows = await conn.fetch("SELECT * FROM subscription_keys")
+        await conn.close()
+        return [SubscriptionKey(**row) for row in rows]

@@ -105,3 +105,12 @@ class UserMessage:
     user_id: int
     key: str
     timestamp: Optional[datetime] = None
+
+
+@dataclass
+class SubscriptionKey:
+    id: int
+    key: str
+    days: int
+    is_active: bool
+    timestamp: Optional[datetime] = None

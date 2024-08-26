@@ -11,6 +11,8 @@ def get_admin_help_message() -> str:
 📃 /listmoderators - Wyświetla listę wszystkich moderatorów.
 🔑 /klucz <key_content> - Zapisuje nowy klucz dla użytkownika. Przykład: /klucz some_secret_key
 🔑 /listkey - Wyświetla listę wszystkich kluczy użytkowników.
+🔑 /addkey <days> <note> - Tworzy nowy klucz subskrypcji na X dni. Przykład: /addkey 30 "Promocja"
+🚫 /removekey <key> - Usuwa istniejący klucz subskrypcji. Przykład: /removekey some_secret_key
 
 ═════════════════════════════════
 💳 Zarządzanie subskrypcjami: 💳
@@ -23,9 +25,9 @@ def get_admin_help_message() -> str:
 ══════════════════════════════════
 🔍 /transkrypcja <cytat> - Wyszukuje cytat w transkrypcjach i zwraca kontekst. Przykład: /transkrypcja Nie szkoda panu tego pięknego gabinetu?
 
-══════════════════════════
+════════════════════
 🔎 Dodatkowe komendy: 🔎
-══════════════════════════
+════════════════════
 🛠 /admin skroty - Wyświetla skróty komend admina.
 ```"""
 
@@ -46,6 +48,8 @@ def get_admin_shortcuts_message() -> str:
 📃 /lm, /listmoderators - Wyświetla listę moderatorów.\n
 🔑 /klucz, /key <key_content> - Zapisuje nowy klucz dla użytkownika.\n
 🔑 /lk, /listkey - Wyświetla listę kluczy użytkowników.\n
+🔑 /addk, /addkey <days> <note> - Tworzy nowy klucz subskrypcji.\n
+🚫 /rmk, /removekey <key> - Usuwa istniejący klucz subskrypcji.\n
 ➕ /addsub, /addsubscription <id> <days> - Dodaje subskrypcję użytkownikowi.\n
 🚫 /rmsub, /removesubscription <id> - Usuwa subskrypcję użytkownika.\n
 🔍 /t, /transkrypcja <cytat> - Wyszukuje cytat w transkrypcjach.\n
