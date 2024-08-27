@@ -24,3 +24,7 @@ def get_log_empty_file_error_message(clip_name: str, username: str) -> str:
 
 def get_log_clip_sent_message(clip_name: str, username: str) -> str:
     return f"Clip '{clip_name}' sent to user '{username}' and temporary file removed."
+
+
+def get_limit_exceeded_clip_duration_message() -> str:
+    return "❌ Przekroczono limit długości klipu! ❌\n"

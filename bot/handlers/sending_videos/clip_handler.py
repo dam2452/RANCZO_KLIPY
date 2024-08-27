@@ -36,7 +36,7 @@ class ClipHandler(BotMessageHandler):
 
         quote = " ".join(content[1:])
 
-        if not DatabaseManager.is_admin_or_moderator(message.from_user.id) and len(quote) > settings.MAX_SEARCH_QUERY_LENGTH:
+        if not await DatabaseManager.is_admin_or_moderator(message.from_user.id) and len(quote) > settings.MAX_SEARCH_QUERY_LENGTH:
             await message.answer(get_message_too_long_message())
             return
 

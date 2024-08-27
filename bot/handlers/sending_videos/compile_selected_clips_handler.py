@@ -12,6 +12,7 @@ from bot.database.models import ClipType
 from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.responses.sending_videos.compile_selected_clips_handler_responses import (
     get_clip_not_found_message,
+    get_clip_time_message,
     get_compiled_clip_sent_message,
     get_invalid_args_count_message,
     get_log_clip_not_found_message,
@@ -57,6 +58,20 @@ class CompileSelectedClipsHandler(BotMessageHandler):
                 "start": 0,
                 "end": duration,
             })
+
+        total_duration = 0
+        for segment in selected_segments:
+            segment_duration = segment["end"] - segment["start"]
+            total_duration += segment_duration
+            await self._log_system_message(
+                logging.INFO, f"Selected clip: {segment['video_path']} "
+                              f"from {segment['start']} to {segment['end']} with duration {segment_duration}",
+            )
+            await self._log_system_message(logging.INFO, f"Total duration: {total_duration}")
+
+        if not await DatabaseManager.is_admin_or_moderator(message.from_user.id) and total_duration > settings.MAX_CLIP_DURATION:
+            await message.answer(get_clip_time_message())
+            return
 
         if not await DatabaseManager.is_admin_or_moderator(message.from_user.id) and len(selected_segments) > settings.MAX_CLIPS_PER_COMPILATION:
             await message.answer(get_max_clips_exceeded_message())

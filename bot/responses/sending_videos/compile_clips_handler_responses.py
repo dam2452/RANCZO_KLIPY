@@ -32,3 +32,7 @@ def get_log_no_matching_segments_found_message() -> str:
 
 def get_max_clips_exceeded_message() -> str:
     return "❌ Przekroczono maksymalną liczbę klipów do skompilowania.❌"
+
+
+def get_clip_time_message() -> str:
+    return "❌ Przekroczono maksymalny czas trwania kompilacji.❌"

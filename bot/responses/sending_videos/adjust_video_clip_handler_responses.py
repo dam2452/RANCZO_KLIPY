@@ -56,3 +56,7 @@ def get_successful_adjustment_message(username: str) -> str:
 
 def get_max_extension_limit_message() -> str:
     return "❌ Przekroczono limit rozszerzenia dla komendy dostosuj. ❌"
+
+
+def get_max_clip_duration_message() -> str:
+    return "❌ Przekroczono maksymalny czas trwania klipu.❌"

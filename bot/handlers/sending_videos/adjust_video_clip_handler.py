@@ -19,6 +19,7 @@ from bot.responses.sending_videos.adjust_video_clip_handler_responses import (
     get_invalid_interval_message,
     get_invalid_segment_index_message,
     get_invalid_segment_log,
+    get_max_clip_duration_message,
     get_max_extension_limit_message,
     get_no_previous_searches_log,
     get_no_previous_searches_message,
@@ -72,7 +73,13 @@ class AdjustVideoClipHandler(BotMessageHandler):
         except (ValueError, TypeError):
             return await self.__reply_invalid_args_count(message)
 
-        if abs(additional_start_offset) + abs(additional_end_offset) > 100 and not await DatabaseManager.is_admin_or_moderator(message.from_user.id):
+        await self._log_system_message(logging.INFO, f"Additional_start_offset: {abs(additional_start_offset)}")
+        await self._log_system_message(logging.INFO, f"Additional_end_offset: {abs(additional_end_offset)}")
+
+        if (
+            not await DatabaseManager.is_admin_or_moderator(message.from_user.id) and
+            abs(additional_start_offset) + abs(additional_end_offset) > settings.MAX_ADJUSTMENT_DURATION
+        ):
             await message.answer(get_max_extension_limit_message())
             return
 
@@ -81,6 +88,10 @@ class AdjustVideoClipHandler(BotMessageHandler):
 
         if end_time <= start_time:
             return await self.__reply_invalid_interval(message)
+
+        if not await DatabaseManager.is_admin_or_moderator(message.from_user.id) and end_time - start_time > settings.MAX_CLIP_DURATION:
+            await message.answer(get_max_clip_duration_message())
+            return
 
         try:
             await ClipsExtractor.extract_and_send_clip(

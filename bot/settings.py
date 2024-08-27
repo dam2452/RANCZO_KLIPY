@@ -32,12 +32,12 @@ class Settings(BaseSettings):
     EXTEND_AFTER_COMPILE: float = Field(1)
 
     MESSAGE_LIMIT: int = Field(5)
-    LIMIT_DURATION: int = Field(20)
-    CLIP_COMPILATION_LIMIT: int = Field(30)
-    MAX_ADJUSTMENT_DURATION: int = Field(100)
-    MAX_SEARCH_QUERY_LENGTH: int = Field(300)
-    MAX_CLIP_DURATION: int = Field(120)
-    MAX_CLIP_NAME_LENGTH: int = Field(50)
+    LIMIT_DURATION: int = Field(30)
+    MAX_CLIPS_PER_COMPILATION: int = Field(30)
+    MAX_ADJUSTMENT_DURATION: int = Field(20)
+    MAX_SEARCH_QUERY_LENGTH: int = Field(200)
+    MAX_CLIP_DURATION: int = Field(60)
+    MAX_CLIP_NAME_LENGTH: int = Field(30)
     MAX_REPORT_LENGTH: int = Field(1000)
 
     class Config:

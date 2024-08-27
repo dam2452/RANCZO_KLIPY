@@ -11,11 +11,13 @@ from bot.responses.sending_videos.send_clip_handler_responses import (
     get_clip_not_found_message,
     get_empty_clip_file_message,
     get_empty_file_error_message,
+    get_limit_exceeded_clip_duration_message,
     get_log_clip_not_found_message,
     get_log_clip_sent_message,
     get_log_empty_clip_file_message,
     get_log_empty_file_error_message,
 )
+from bot.settings import settings
 from bot.video.utils import send_video
 
 
@@ -33,6 +35,10 @@ class SendClipHandler(BotMessageHandler):
         clip = await DatabaseManager.get_clip_by_name(message.from_user.id, clip_name)
         if not clip:
             return await self.__reply_clip_not_found(message, clip_name)
+
+        if not await DatabaseManager.is_admin_or_moderator(message.from_user.id) and clip.duration > settings.MAX_CLIP_DURATION:
+            await message.answer(get_limit_exceeded_clip_duration_message())
+            return
 
         video_data = clip.video_data
         if not video_data:

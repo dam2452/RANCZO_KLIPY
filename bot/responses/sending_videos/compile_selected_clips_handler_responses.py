@@ -24,3 +24,7 @@ def get_compiled_clip_sent_message(username: str) -> str:
 
 def get_max_clips_exceeded_message() -> str:
     return "❌ Przekroczono maksymalną liczbę klipów do skompilowania.❌"
+
+
+def get_clip_time_message() -> str:
+    return "❌ Przekroczono maksymalny czas trwania kompilacji.❌"

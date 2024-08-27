@@ -61,4 +61,4 @@ def get_end_time_earlier_than_start_message() -> str:
 
 
 def get_limit_exceeded_clip_duration_message() -> str:
-    return "❌ Przekroczono limit długości klipu!\n"
+    return "❌ Przekroczono limit długości klipu! ❌ \n"
