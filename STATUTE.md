@@ -14,6 +14,7 @@
 #### 2. **Cel korzystania**
 
 2.1. Bot „RanczoKlipyBot” jest narzędziem edukacyjnym, przeznaczonym wyłącznie do użytku w ramach celów:
+
    a) **Edukacyjnych** – wspieranie procesu nauczania, w tym analizy literackiej, kulturowej, językowej oraz innych form naukowych badań i szkoleń.
 
    b) **Naukowych** – prowadzenie badań, analiz i krytyki w ramach nauk humanistycznych i społecznych.
