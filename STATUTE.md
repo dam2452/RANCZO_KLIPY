@@ -15,8 +15,11 @@
 
 2.1. Bot „RanczoKlipyBot” jest narzędziem edukacyjnym, przeznaczonym wyłącznie do użytku w ramach celów:
    a) **Edukacyjnych** – wspieranie procesu nauczania, w tym analizy literackiej, kulturowej, językowej oraz innych form naukowych badań i szkoleń.
+
    b) **Naukowych** – prowadzenie badań, analiz i krytyki w ramach nauk humanistycznych i społecznych.
+
    c) **Krytyki artystycznej lub literackiej** – analiza, interpretacja i ocena utworów audiowizualnych w ramach recenzji lub innych form krytyki.
+
    d) **Parodii, pastiszu lub karykatury** – wykorzystanie fragmentów w celu tworzenia twórczości humorystycznej zgodnej z prawami gatunku.
 
 2.2. Wszelkie inne formy wykorzystywania materiałów udostępnianych przez bota, w tym, lecz nie wyłącznie, **użytki komercyjne**, **rozrywkowe**, **promocyjne** lub **reklamowe**, są **surowo zabronione**.
