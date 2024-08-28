@@ -143,6 +143,7 @@ def get_shortcuts_message() -> str:
 📋 Skróty komend 📋
 ═════════════════════
 🐐 /s, /start - Uruchamia główne menu.\n
+🔎 /k, /klip - Wyszukuje klip na podstawie cytatu.\n
 🔎 /sz, /szukaj - Wyszukuje klip na podstawie cytatu.\n
 📋 /l, /lista - Wyświetla wszystkie klipy znalezione przez /szukaj.\n
 ✅ /w, /wybierz - Wybiera klip z listy uzyskanej przez /szukaj.\n
