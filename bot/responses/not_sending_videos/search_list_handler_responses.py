@@ -10,7 +10,7 @@ from bot.utils.functions import format_segment
 
 
 def get_no_previous_search_results_message() -> str:
-    return "🔍 Nie znaleziono wcześniejszych wyników wyszukiwania."
+    return "🔍 Nie znaleziono wcześniejszych wyników wyszukiwania.🔍"
 
 
 def get_log_no_previous_search_results_message(chat_id: int) -> str:
