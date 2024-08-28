@@ -1,65 +1,70 @@
 
 ---
-
 # 📝 Pełna Lista Komend
 
 ## 🚀 Skróty Komend
 
-- **`/start`**: 👋 Wprowadzenie do bota.
-- **`/klip <cytat>`**: 🎥 Wyszukiwanie klipu.
-- **`/szukaj <cytat>`**: 🔍 Znalezienie klipów.
-- **`/lista`**: 📋 Lista klipów.
-- **`/wybierz <numer_klipu>`**: 🎯 Wybór klipu.
-- **`/odcinki <sezon>`**: 🎞️ Lista odcinków.
-- **`/wytnij <sezon_odcinek> <czas_start> <czas_koniec>`**: ✂️ Wycinanie klipu.
-- **`/dostosuj <przedłużenie_przed> <przedłużenie_po>`**: ⏳ Dostosowanie klipu.
-- **`/kompiluj wszystko`**: 🎬 Kompilacja wszystkich klipów.
-- **`/kompiluj <zakres>`**: 🎬 Kompilacja z zakresu klipów.
-- **`/kompiluj <numer_klipu1> <numer_klipu2> ...`**: 🎬 Kompilacja z wybranych klipów.
-- **`/zapisz <nazwa>`**: 💾 Zapisanie klipu.
-- **`/mojeklipy`**: 📂 Twoje klipy.
-- **`/wyslij <nazwa>`**: 📤 Wysyłanie klipu.
-- **`/usunklip <nazwa_klipu>`**: 🗑️ Usunięcie klipu.
-- **`/admin`**: 🔧 Polecenia administracyjne.
-- **`/addwhitelist <id>`**: 📝 Dodanie do listy dozwolonych.
-- **`/removewhitelist <id>`**: 🚫 Usunięcie z listy dozwolonych.
-- **`/listwhitelist`**: 📄 Lista dozwolonych.
-- **`/listadmins`**: 🛡️ Lista administratorów.
-- **`/listmoderators`**: 🛡️ Lista moderatorów.
-- **`/note <user_id> <note>`**: 🗒️ Dodanie notatki do użytkownika.
-- **`/klucz <key_content>`**: 🔑 Zapisanie klucza użytkownika.
-- **`/listkey`**: 🔑 Lista kluczy użytkowników.
-- **`/report <issue_description>`**: ⚠️ Zgłaszanie problemu.
+- *`/start`*: 👋 Uruchamia główne menu.
+- *`/klip <cytat>`* / *`/k <cytat>`*: 🎥 Wyszukiwanie klipu.
+- *`/szukaj <cytat>`* / *`/sz <cytat>`*: 🔍 Znalezienie klipów.
+- *`/lista`* / *`/l`*: 📋 Lista klipów.
+- *`/wybierz <numer_klipu>`* / *`/w <numer_klipu>`*: 🎯 Wybór klipu.
+- *`/odcinki <sezon>`* / *`/o <sezon>`*: 🎞️ Lista odcinków.
+- *`/wytnij <sezon_odcinek> <czas_start> <czas_koniec>`*: ✂️ Wycinanie klipu.
+- *`/dostosuj <przedłużenie_przed> <przedłużenie_po>`* / *`/d <przedłużenie_przed> <przedłużenie_po>`*: ⏳ Dostosowanie klipu.
+- *`/kompiluj wszystko`* / *`/kom wszystko`*: 🎬 Kompilacja wszystkich klipów.
+- *`/kompiluj <zakres>`* / *`/kom <zakres>`*: 🎬 Kompilacja z zakresu klipów.
+- *`/kompiluj <numer_klipu1> <numer_klipu2> ...`* / *`/kom <numer_klipu1> <numer_klipu2> ...`*: 🎬 Kompilacja z wybranych klipów.
+- *`/zapisz <nazwa>`* / *`/z <nazwa>`*: 💾 Zapisanie klipu.
+- *`/mojeklipy`* / *`/mk`*: 📂 Twoje klipy.
+- *`/wyslij <nazwa>`*/ *`/wys <nazwa>`*: 📤 Wysyłanie klipu.
+- *`/usunklip <nazwa_klipu>`*/ *`/uk <nazwa_klipu>`*: 🗑️ Usunięcie klipu.
+- *`/admin`*: 🔧 Polecenia administracyjne.
+- *`/addwhitelist <id>`*/ *`/addw <id>`*: 📝 Dodanie do listy dozwolonych.
+- *`/removewhitelist <id>`*/ *`/rmw <id>`*: 🚫 Usunięcie z listy dozwolonych.
+- *`/listwhitelist`*/ *`/lw`*: 📄 Lista dozwolonych.
+- *`/listadmins`*/ *`/la`*: 🛡️ Lista administratorów.
+- *`/listmoderators`*/ *`/lm`*: 🛡️ Lista moderatorów.
+- *`/note <user_id> <note>`*: 🗒️ Dodanie notatki do użytkownika.
+- *`/klucz <key_content>`*/ *`/klucz <key_content>`*: 🔑 Użycie klucza subskrypcyjnego.
+- *`/listkey`*/ *`/lk`*: 🔑 Lista kluczy subskrypcyjnych.
+- *`/addkey <days> <note>`*/ *`/addk <days> <note>`*: 🔑 Tworzenie nowego klucza subskrypcyjnego.
+- *`/removekey <key>`* / *`/rmk <key>`*: 🚫 Usuwanie klucza subskrypcyjnego.
+- *`/report <issue_description>`* / *`/r <issue_description>`*: ⚠️ Zgłaszanie problemu.
 
 ## 👥 Podstawowe Komendy Użytkownika
 
-- **`/start`**: 👋 Wyświetla wiadomość powitalną z podstawowymi komendami.
-- **`/klip <cytat>`**: 🎥 Wyszukuje klip na podstawie cytatu. Przykład: `/klip geniusz`.
-- **`/szukaj <cytat>`**: 🔍 Znajduje klipy pasujące do cytatu (pierwsze 5 wyników). Przykład: `/szukaj kozioł`.
-- **`/lista`**: 📋 Wyświetla wszystkie klipy znalezione przez `/szukaj`.
-- **`/wybierz <numer_klipu>`**: 🎯 Wybiera klip z listy uzyskanej przez `/szukaj` do dalszych operacji. Przykład: `/wybierz 1`.
-- **`/odcinki <sezon>`**: 🎞️ Wyświetla listę odcinków dla podanego sezonu. Przykład: `/odcinki 2`.
-- **`/wytnij <sezon_odcinek> <czas_start> <czas_koniec>`**: ✂️ Wycina fragment klipu. Przykład: `/wytnij S02E10 20:30.11 21:32.50`.
-- **`/dostosuj <przedłużenie_przed> <przedłużenie_po>`**: ⏳ Dostosowuje wybrany klip, rozszerzając czas rozpoczęcia i zakończenia. Przykład: `/dostosuj -5.5 1.2`.
-- **`/kompiluj wszystko`**: 🎬 Tworzy kompilację ze wszystkich klipów.
-- **`/kompiluj <zakres>`**: 🎬 Tworzy kompilację z zakresu klipów. Przykład: `/kompiluj 1-4`.
-- **`/kompiluj <numer_klipu1> <numer_klipu2> ...`**: 🎬 Tworzy kompilację z wybranych klipów. Przykład: `/kompiluj 1 5 7`.
-- **`/zapisz <nazwa>`**: 💾 Zapisuje wybrany klip z podaną nazwą. Przykład: `/zapisz moj_klip`.
-- **`/mojeklipy`**: 📂 Wyświetla listę zapisanych klipów.
-- **`/wyslij <nazwa>`**: 📤 Wysyła zapisany klip o podanej nazwie. Przykład: `/wyslij moj_klip`.
-- **`/usunklip <nazwa_klipu>`**: 🗑️ Usuwa zapisany klip o podanej nazwie. Przykład: `/usunklip moj_klip`.
+- *`/start`*/ *`/s`*: 👋 Wyświetla wiadomość powitalną z podstawowymi komendami.
+- *`/klip <cytat>`*/ *`/k <cytat>`*: 🎥 Wyszukuje klip na podstawie cytatu. Przykład: `/klip geniusz`.
+- *`/szukaj <cytat>`*/ *`/sz <cytat>`*: 🔍 Znajduje klipy pasujące do cytatu (pierwsze 5 wyników). Przykład: `/szukaj kozioł`.
+- *`/lista`*/ *`/l`*: 📋 Wyświetla wszystkie klipy znalezione przez `/szukaj`.
+- *`/wybierz <numer_klipu>`*/ *`/w <numer_klipu>`*: 🎯 Wybiera klip z listy uzyskanej przez `/szukaj`*do dalszych operacji. Przykład: `/wybierz 1`.
+- *`/odcinki <sezon>`*/ *`/o <sezon>`*: 🎞️ Wyświetla listę odcinków dla podanego sezonu. Przykład: `/odcinki 2`.
+- *`/wytnij <sezon_odcinek> <czas_start> <czas_koniec>`*: ✂️ Wycina fragment klipu. Przykład: `/wytnij S02E10 20:30.11 21:32.50`.
+- *`/dostosuj <przedłużenie_przed> <przedłużenie_po>`*/ *`/d <przedłużenie_przed> <przedłużenie_po>`*: ⏳ Dostosowuje wybrany klip, rozszerzając czas rozpoczęcia i zakończenia. Przykład: `/dostosuj -5.5 1.2`.
+- *`/kompiluj wszystko`*/ *`/kom wszystko`*: 🎬 Tworzy kompilację ze wszystkich klipów.
+- *`/kompiluj <zakres>`*/ *`/kom <zakres>`*: 🎬 Tworzy kompilację z zakresu klipów. Przykład: `/kompiluj 1-4`.
+- *`/kompiluj <numer_klipu1> <numer_klipu2> ...`*/ *`/kom <numer_klipu1> <numer_klipu2> ...`*: 🎬 Tworzy kompilację z wybranych klipów. Przykład: `/kompiluj 1 5 7`.
+- *`/zapisz <nazwa>`*/ *`/z <nazwa>`*: 💾 Zapisuje wybrany klip z podaną nazwą. Przykład: `/zapisz moj_klip`.
+- *`/mojeklipy`*/ *`/mk`*: 📂 Wyświetla listę zapisanych klipów.
+- *`/wyslij <nazwa>`*/ *`/wys <nazwa>`*: 📤 Wysyła zapisany klip o podanej nazwie. Przykład: `/wyslij moj_klip`.
+- *`/usunklip <nazwa_klipu>`*/ *`/uk <nazwa_klipu>`*: 🗑️ Usuwa zapisany klip o podanej nazwie. Przykład: `/uk moj_klip`.
 
 ## 🔧 Komendy Administracyjne
 
-- **`/admin`**: 🔧 Wyświetla polecenia administratora.
-- **`/addwhitelist <id>`**: 📝 Dodaje użytkownika do listy dozwolonych. Przykład: `/addwhitelist 123456789`.
-- **`/removewhitelist <id>`**: 🚫 Usuwa użytkownika z listy dozwolonych. Przykład: `/removewhitelist 123456789`.
-- **`/listwhitelist`**: 📄 Wyświetla listę wszystkich użytkowników na liście dozwolonych.
-- **`/listadmins`**: 🛡️ Wyświetla listę wszystkich administratorów.
-- **`/listmoderators`**: 🛡️ Wyświetla listę wszystkich moderatorów.
-- **`/note <user_id> <note>`**: 🗒️ Dodaje lub aktualizuje notatkę dla użytkownika. Przykład: `/note 123456789 To jest notatka`.
-- **`/klucz <key_content>`**: 🔑 Zapisuje nowy klucz dla użytkownika. Przykład: `/klucz some_secret_key`.
-- **`/listkey`**: 🔑 Wyświetla listę wszystkich kluczy użytkowników.
-- **`/report <issue_description>`**: ⚠️ Zgłasza problem do administratorów.
+- *`/admin`*: 🔧 Wyświetla polecenia administratora.
+- *`/addwhitelist <id>`*/ *`/addw <id>`*: 📝 Dodaje użytkownika do whitelisty. Przykład: `/addwhitelist 123456789`.
+- *`/removewhitelist <id>`*/ *`/rmw <id>`*: 🚫 Usuwa użytkownika z whitelisty. Przykład: `/removewhitelist 123456789`.
+- *`/listwhitelist`*/ *`/lw`*: 📄 Wyświetla listę wszystkich użytkowników na whiteliście.
+- *`/listadmins`*/ *`/la`*: 🛡️ Wyświetla listę wszystkich administratorów.
+- *`/listmoderators`*/ *`/lm`*: 🛡️ Wyświetla listę wszystkich moderatorów.
+- *`/note <user_id> <note>`*: 🗒️ Dodaje lub aktualizuje notatkę dla użytkownika. Przykład: `/note 123456789 To jest notatka`.
+- *`/klucz <key_content>`*/ *`/klucz <key_content>`*: 🔑 Używa klucza subskrypcyjnego. Przykład: `/klucz some
+
+_secret_key`.
+- *`/listkey`*/ *`/lk`*: 🔑 Wyświetla listę wszystkich kluczy subskrypcyjnych.
+- *`/addkey <days> <note>`*/ *`/addk <days> <note>`*: 🔑 Tworzy nowy klucz subskrypcji na określoną liczbę dni. Przykład: `/addkey 30 "Promocja"`.
+- *`/removekey <key>`*/ *`/rmk <key>`*: 🚫 Usuwa istniejący klucz subskrypcji. Przykład: `/removekey some_secret_key`.
+- *`/report <issue_description>`*/ *`/r <issue_description>`*: ⚠️ Zgłasza problem do administratorów.
 
 ---
