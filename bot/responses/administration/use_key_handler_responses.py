@@ -1,5 +1,5 @@
 def get_no_message_provided_message() -> str:
-    return "⚠️ Nie podano wiadomości.⚠️"
+    return "⚠️ Nie podano klucza.⚠️ Przykład: /klucz tajny_klucz"
 
 
 def get_message_saved_confirmation() -> str:
