@@ -11,7 +11,7 @@ def get_admin_help_message() -> str:
 📃 /listmoderators - Wyświetla listę wszystkich moderatorów.
 🔑 /klucz <key_content> - Używa klucz dla użytkownika. Przykład: /klucz some_secret_key
 🔑 /listkey - Wyświetla listę wszystkich kluczy.
-🔑 /addkey <days> <note> - Tworzy nowy klucz subskrypcji na X dni. Przykład: /addkey 30 "Promocja"
+🔑 /addkey <days> <note> - Tworzy nowy klucz subskrypcji na X dni. Przykład: /addkey 30 "tajny_klucz"
 🚫 /removekey <key> - Usuwa istniejący klucz subskrypcji. Przykład: /removekey some_secret_key
 
 ═════════════════════════════════

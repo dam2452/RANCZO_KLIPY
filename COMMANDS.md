@@ -63,7 +63,7 @@
 
 _secret_key`.
 - **`/listkey`**/ **`/lk`**: 🔑 Wyświetla listę wszystkich kluczy subskrypcyjnych.
-- **`/addkey <days> <note>`**/ **`/addk <days> <note>`**: 🔑 Tworzy nowy klucz subskrypcji na określoną liczbę dni. Przykład: `/addkey 30 "Promocja"`.
+- **`/addkey <days> <note>`**/ **`/addk <days> <note>`**: 🔑 Tworzy nowy klucz subskrypcji na określoną liczbę dni. Przykład: `/addkey 30 "tajny_klucz"`.
 - **`/removekey <key>`**/ **`/rmk <key>`**: 🚫 Usuwa istniejący klucz subskrypcji. Przykład: `/removekey some_secret_key`.
 - **`/report <issue_description>`**/ **`/r <issue_description>`**: ⚠️ Zgłasza problem do administratorów.
 

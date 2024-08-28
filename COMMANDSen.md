@@ -62,7 +62,7 @@
 - **`/note <user_id> <note>`**: 🗒️ Adds or updates a note for a user. Example: `/note 123456789 This is a note`.
 - **`/key <key_content>`**/ **`/klucz <key_content>`**: 🔑 Uses a new subscription key for a user. Example: `/key some_secret_key`.
 - **`/listkeys`**/ **`/lk`**: 🔑 Displays a list of all subscription keys.
-- **`/addkey <days> <note>`**/ **`/addk <days> <note>`**: 🔑 Creates a new subscription key for a specified number of days. Example: `/addkey 30 "Promotion"`.
+- **`/addkey <days> <note>`**/ **`/addk <days> <note>`**: 🔑 Creates a new subscription key for a specified number of days. Example: `/addkey 30 "secret_key"`.
 - **`/removekey <key>`**/ **`/rmk <key>`**: 🚫 Removes an existing subscription key. Example: `/removekey some_secret_key`.
 - **`/report <issue_description>`**/ **`/r <issue_description>`**: ⚠️ Reports an issue to the administrators.
 
