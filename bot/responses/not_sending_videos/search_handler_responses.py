@@ -1,4 +1,7 @@
-from bot.utils.functions import format_segment
+from bot.utils.functions import (
+    convert_number_to_emoji,
+    format_segment,
+)
 
 
 def get_invalid_args_count_message() -> str:
@@ -6,13 +9,14 @@ def get_invalid_args_count_message() -> str:
 
 
 def format_search_response(unique_segments_count: int, segments, quote: str) -> str:
-    response = f"🔍 Znaleziono {unique_segments_count} pasujących cytatów 🔍\n"
+    emoji_count = convert_number_to_emoji(unique_segments_count)
+    response = f"🔍 Znaleziono {emoji_count} pasujących cytatów 🔍\n"
     segment_lines = []
 
     for i, segment in enumerate(segments[:5], start=1):
         segment_info = format_segment(segment)
         line = (
-            f"{i}️⃣ | 📺 {segment_info.episode_formatted} | 🕒 {segment_info.time_formatted}\n"
+            f"{convert_number_to_emoji(i)}️⃣ | 📺 {segment_info.episode_formatted} | 🕒 {segment_info.time_formatted}\n"
             f"   👉  {segment_info.episode_title}"
         )
         segment_lines.append(line)
