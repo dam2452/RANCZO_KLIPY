@@ -16,7 +16,7 @@ def format_search_response(unique_segments_count: int, segments, quote: str) -> 
     for i, segment in enumerate(segments[:5], start=1):
         segment_info = format_segment(segment)
         line = (
-            f"{convert_number_to_emoji(i)}️⃣ | 📺 {segment_info.episode_formatted} | 🕒 {segment_info.time_formatted}\n"
+            f"{convert_number_to_emoji(i)}  | 📺 {segment_info.episode_formatted} | 🕒 {segment_info.time_formatted}\n"
             f"   👉  {segment_info.episode_title}"
         )
         segment_lines.append(line)
