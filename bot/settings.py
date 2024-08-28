@@ -37,7 +37,7 @@ class Settings(BaseSettings):
     MAX_ADJUSTMENT_DURATION: int = Field(20)
     MAX_SEARCH_QUERY_LENGTH: int = Field(200)
     MAX_CLIP_DURATION: int = Field(60)
-    MAX_CLIP_NAME_LENGTH: int = Field(30)
+    MAX_CLIP_NAME_LENGTH: int = Field(40)
     MAX_REPORT_LENGTH: int = Field(1000)
 
     class Config:
