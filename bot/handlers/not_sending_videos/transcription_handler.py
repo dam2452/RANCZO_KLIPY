@@ -31,12 +31,11 @@ class TranscriptionHandler(BotMessageHandler):
         if not result:
             return await self.__reply_no_segments_found(message, quote)
 
-        context_segments = result["context"]
-        response = get_transcription_response(quote, context_segments)
+        response = get_transcription_response(quote, result)
         await self.__reply_transcription_response(message, response, quote)
 
     async def __reply_no_segments_found(self, message: Message, quote: str) -> None:
-        await message.answer(get_no_segments_found_message(quote))
+        await message.answer(get_no_segments_found_message(quote), parse_mode="Markdown")
         await self._log_system_message(logging.INFO, get_log_no_segments_found_message(quote))
 
     async def __reply_transcription_response(self, message: Message, response: str, quote: str) -> None:
