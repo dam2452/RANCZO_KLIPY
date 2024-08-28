@@ -25,9 +25,9 @@ def get_admin_help_message() -> str:
 ══════════════════════════════════
 🔍 /transkrypcja <cytat> - Wyszukuje cytat w transkrypcjach i zwraca kontekst. Przykład: /transkrypcja Nie szkoda panu tego pięknego gabinetu?
 
-════════════════════
+═════════════════════════
 🔎 Dodatkowe komendy: 🔎
-════════════════════
+═════════════════════════
 🛠 /admin skroty - Wyświetla skróty komend admina.
 ```"""
 
