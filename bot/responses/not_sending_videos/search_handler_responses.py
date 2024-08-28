@@ -5,8 +5,8 @@ def get_invalid_args_count_message() -> str:
     return "🔍 Podaj cytat, który chcesz znaleźć. Przykład: /szukaj geniusz"
 
 
-def format_search_response(unique_segments_count: int, segments) -> str:
-    response = f"🔍 Znaleziono {unique_segments_count} pasujących segmentów:\n"
+def format_search_response(unique_segments_count: int, segments, quote: str) -> str:
+    response = f"🔍 Znaleziono {unique_segments_count} pasujących cytatów 🔍\n"
     segment_lines = []
 
     for i, segment in enumerate(segments[:5], start=1):
@@ -17,7 +17,7 @@ def format_search_response(unique_segments_count: int, segments) -> str:
         )
         segment_lines.append(line)
 
-    response += "```\n" + "\n\n".join(segment_lines) + "\n```"
+    response += f"```Cytat: \"{quote}\" \n".replace(" ", "\u00A0") + "\n\n".join(segment_lines) + "\n```"
     return response
 
 

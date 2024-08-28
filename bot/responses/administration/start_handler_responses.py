@@ -1,5 +1,5 @@
 def get_basic_message() -> str:
-    return """```🐐Witaj_w_RanczoKlipy!🐐
+    return """```🐐\u00A0Witaj\u00A0w\u00A0RanczoKlipy!\u00A0🐐
 ════════════════════════
 🔍 Podstawowe komendy 🔍
 ════════════════════════
@@ -10,7 +10,7 @@ def get_basic_message() -> str:
 
 
 def get_lista_message() -> str:
-    return """```🐐 RanczoKlipy - Działy Komend 🐐
+    return """```🐐\u00A0RanczoKlipy\u00A0-\u00A0Działy\u00A0Komend\u00A0🐐
 ══════════════════════════
 🔍 Wyszukiwanie:
    👉 /start wyszukiwanie
@@ -37,7 +37,7 @@ def get_lista_message() -> str:
 
 
 def get_full_message() -> str:
-    return """```🐐Witaj_w_RanczoKlipy!🐐
+    return """```🐐\u00A0Witaj\u00A0w\u00A0RanczoKlipy!\u00A0🐐
 ═════════════════════════════════════════
 🔍 Wyszukiwanie i przeglądanie klipów 🔍
 ═════════════════════════════════════════
@@ -79,7 +79,7 @@ def get_full_message() -> str:
 
 
 def get_wyszukiwanie_message() -> str:
-    return """```🐐RanczoKlipy-Wyszukiwanie_klipów🐐
+    return """```🐐\u00A0RanczoKlipy\u00A0Wyszukiwanie\u00A0klipów\u00A0🐐
 ════════════════════
 🔍 Wyszukiwanie 🔍
 ════════════════════
@@ -94,7 +94,7 @@ def get_wyszukiwanie_message() -> str:
 
 
 def get_edycja_message() -> str:
-    return """```🐐RanczoKlipy-Edycja_klipów🐐
+    return """```🐐\u00A0RanczoKlipy\u00A0Edycja\u00A0klipów\u00A0🐐
 ════════════════════
 ✂️ Edycja klipów ✂️
 ════════════════════
@@ -107,7 +107,7 @@ def get_edycja_message() -> str:
 
 
 def get_zarzadzanie_message() -> str:
-    return """```🐐RanczoKlipy-Zarządzanie_zapisanymi_klipami🐐
+    return """```🐐\u00A0RanczoKlipy\u00A0Zarządzanie\u00A0zapisanymi\u00A0klipami\u00A0🐐
 ═════════════════════════════════════
 📁 Zarządzanie zapisanymi klipami 📁
 ═════════════════════════════════════
@@ -120,7 +120,7 @@ def get_zarzadzanie_message() -> str:
 
 
 def get_raportowanie_message() -> str:
-    return """```🐐RanczoKlipy-Raportowanie_błędów🐐
+    return """```🐐\u00A0RanczoKlipy\u00A0Raportowanie\u00A0błędów\u00A0🐐
 ════════════════════════
 🛠️ Raportowanie błędów ️
 ════════════════════════
@@ -129,7 +129,7 @@ def get_raportowanie_message() -> str:
 
 
 def get_subskrypcje_message() -> str:
-    return """```🐐RanczoKlipy-Subskrypcje🐐
+    return """```🐐\u00A0RanczoKlipy\u00A0Subskrypcje\u00A0🐐
 ══════════════════
 🔔 Subskrypcje 🔔
 ══════════════════
@@ -138,7 +138,7 @@ def get_subskrypcje_message() -> str:
 
 
 def get_shortcuts_message() -> str:
-    return """```🐐RanczoKlipy-Skróty_komend🐐
+    return """```🐐\u00A0RanczoKlipy\u00A0Skróty\u00A0komend\u00A0🐐
 ═════════════════════
 📋 Skróty komend 📋
 ═════════════════════

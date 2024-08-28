@@ -1,5 +1,5 @@
 def get_admin_help_message() -> str:
-    return """```🛠Instrukcje_dla_admina🛠
+    return """```🛠\u00A0Instrukcje\u00A0dla\u00A0admina\u00A0🛠
 
 ═════════════════════════════════
 🔐 Zarządzanie użytkownikami: 🔐
@@ -37,7 +37,7 @@ def get_message_sent_log_message(username: str) -> str:
 
 
 def get_admin_shortcuts_message() -> str:
-    return """```🛠Skróty_Komend_Admina🛠
+    return """```🛠\u00A0Skróty\u00A0Komend\u00A0Admina\u00A0🛠
 ═════════════════════
 📋 Skróty admin 📋
 ═════════════════════

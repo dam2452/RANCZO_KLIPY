@@ -47,7 +47,7 @@ class SearchHandler(BotMessageHandler):
             segments=segments_json,
         )
 
-        response = format_search_response(len(segments), segments)
+        response = format_search_response(len(segments), segments, quote)
 
         await self.__send_search_results(message, response, quote)
 
