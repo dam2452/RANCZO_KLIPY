@@ -18,7 +18,7 @@ def get_log_no_previous_search_results_message(chat_id: int) -> str:
 
 
 def format_search_list_response(search_term: str, segments: List[Dict[str, Union[str, int]]]) -> str:
-    response = f"🔍 Znaleziono {len(segments)} pasujących segmentów dla zapytania '{search_term}':\n"
+    response = f"🔍 Znaleziono {len(segments)} pasujących cytatów dla zapytania '{search_term}':\n"
     segment_lines = []
 
     for i, segment in enumerate(segments, start=1):

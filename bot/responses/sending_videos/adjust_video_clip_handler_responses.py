@@ -31,7 +31,7 @@ def get_invalid_interval_log() -> str:
 
 
 def get_invalid_segment_index_message() -> str:
-    return "⚠️ Podano nieprawidłowy indeks segmentu.⚠️"
+    return "⚠️ Podano nieprawidłowy indeks cytatu.⚠️"
 
 
 def get_invalid_segment_log() -> str:

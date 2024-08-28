@@ -41,13 +41,13 @@ class SearchListHandler(BotMessageHandler):
         response = format_search_list_response(search_term, segments)
         temp_dir = tempfile.gettempdir()
         sanitized_search_term = "".join([c for c in search_term if c.isalpha() or c.isdigit() or c == " "]).rstrip().replace(" ", "_")
-        file_name = os.path.join(temp_dir, f"Ranczo_Klipy_Wyniki_{sanitized_search_term}.txt")
+        file_name = os.path.join(temp_dir, f"RanczoKlipy_Lista_{sanitized_search_term}.txt")
 
         with open(file_name, "w", encoding="utf-8") as file:
             file.write(response)
 
         input_file = FSInputFile(file_name)
-        await self._bot.send_document(message.chat.id, input_file, caption="📄 Znalezione cytaty")
+        await self._bot.send_document(message.chat.id, input_file, caption="📄 Wszystkie znalezione cytaty 📄")
         os.remove(file_name)
 
         await self._log_system_message(
