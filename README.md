@@ -91,7 +91,9 @@ Jeśli jesteś zainteresowany dostępem do RanczoKlipy Bot, proszę skontaktuj s
 ## ☕ Wesprzyj Projekt
 Jeśli podoba Ci się ten projekt i chciałbyś wesprzeć jego rozwój, rozważ postawienie mi kawy:
 
-[![☕ Buy Me a Coffee](https://www.buymeacoffee.com/assets/img/custom_images/yellow_img.png)](https://www.buymeacoffee.com/yourprofile)
+<a href="https://buymeacoffee.com/dam2452">
+    <img src="https://github.com/user-attachments/assets/8bcfd2e3-fb0e-4a96-b8ac-16b0736ddda7" alt="Kup mi Mamrota" style="width: 33%;">
+</a>
 
 ---
 

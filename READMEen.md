@@ -93,6 +93,9 @@ If you're interested in accessing the RanczoKlipy Bot, please reach out to me on
 
 If you like this project and would like to support its development, consider buying me a coffee:
 
-[![☕ Buy Me a Coffee](https://www.buymeacoffee.com/assets/img/custom_images/yellow_img.png)](https://www.buymeacoffee.com/yourprofile)
+<a href="https://buymeacoffee.com/dam2452">
+    <img src="https://github.com/user-attachments/assets/b8df6e9a-5b79-4b85-8cb8-3bc96dee2c4b" alt="Get me a Mamrot" style="width: 33%;">
+</a>
 
 ---
+
