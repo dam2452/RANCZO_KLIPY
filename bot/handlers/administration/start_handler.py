@@ -15,8 +15,8 @@ from bot.responses.administration.start_handler_responses import (
     get_full_message,
     get_invalid_command_message,
     get_lista_message,
-    get_log_message_sent,
     get_log_received_start_command,
+    get_log_start_message_sent,
     get_raportowanie_message,
     get_shortcuts_message,
     get_subskrypcje_message,
@@ -66,4 +66,4 @@ class StartHandler(BotMessageHandler):
 
     async def __send_message(self, message: Message, text: str) -> None:
         await message.answer(text, parse_mode="Markdown")
-        await self._log_system_message(logging.INFO, get_log_message_sent(message.from_user.username, text))
+        await self._log_system_message(logging.INFO, get_log_start_message_sent(message.from_user.username))

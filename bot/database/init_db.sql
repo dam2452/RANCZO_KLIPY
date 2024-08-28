@@ -211,3 +211,21 @@ BEGIN
         FOR EACH ROW EXECUTE FUNCTION clean_old_user_keys();
     END IF;
 END $$;
+
+CREATE OR REPLACE FUNCTION clean_old_user_command_limits() RETURNS trigger AS $$
+BEGIN
+    DELETE FROM user_command_limits WHERE timestamp < NOW() - INTERVAL '24 hours';
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_trigger WHERE tgname = 'trigger_clean_user_command_limits'
+    ) THEN
+        CREATE TRIGGER trigger_clean_user_command_limits
+        AFTER INSERT ON user_command_limits
+        FOR EACH ROW EXECUTE FUNCTION clean_old_user_command_limits();
+    END IF;
+END $$;

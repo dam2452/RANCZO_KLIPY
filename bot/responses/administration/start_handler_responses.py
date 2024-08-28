@@ -163,8 +163,8 @@ def get_invalid_command_message() -> str:
     return "❌ Niepoprawna komenda w menu startowym. Użyj /start, aby zobaczyć dostępne opcje. ❌"
 
 
-def get_log_message_sent(username: str, text: str) -> str:
-    return f"Message sent to user '{username}': {text}"
+def get_log_start_message_sent(username: str) -> str:
+    return f"Start message sent to user '{username}'"
 
 
 def get_log_received_start_command(username: str, content: str) -> str:
