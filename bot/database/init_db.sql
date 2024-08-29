@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS user_profiles (
     subscription_end DATE DEFAULT NULL,
     note TEXT DEFAULT NULL
 );
+
 CREATE INDEX IF NOT EXISTS idx_user_profiles_user_id ON user_profiles (user_id);
 CREATE INDEX IF NOT EXISTS idx_user_profiles_username ON user_profiles (username);
 
@@ -23,22 +24,20 @@ CREATE INDEX IF NOT EXISTS idx_user_roles_admin ON user_roles (is_admin);
 CREATE INDEX IF NOT EXISTS idx_user_roles_moderator ON user_roles (is_moderator);
 
 CREATE TABLE IF NOT EXISTS user_logs (
-    id SERIAL PRIMARY KEY,
+    id SERIAL,
     user_id BIGINT,
     command TEXT NOT NULL,
-    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    PRIMARY KEY (id, timestamp)
 ) PARTITION BY RANGE (timestamp);
 
+CREATE TABLE IF NOT EXISTS user_logs_2023 PARTITION OF user_logs
+    FOR VALUES FROM ('2023-01-01') TO ('2024-01-01');
+
+CREATE TABLE IF NOT EXISTS user_logs_2024 PARTITION OF user_logs
+    FOR VALUES FROM ('2024-01-01') TO ('2025-01-01');
+
 CREATE INDEX IF NOT EXISTS idx_user_logs_user_id ON user_logs(user_id);
-
-CREATE TABLE IF NOT EXISTS user_logs_y2023 PARTITION OF user_logs
-FOR VALUES FROM ('2023-01-01') TO ('2024-01-01');
-
-CREATE TABLE IF NOT EXISTS user_logs_y2024 PARTITION OF user_logs
-FOR VALUES FROM ('2024-01-01') TO ('2025-01-01');
-
-CREATE TABLE IF NOT EXISTS user_logs_y2025 PARTITION OF user_logs
-FOR VALUES FROM ('2025-01-01') TO ('2026-01-01');
 
 CREATE TABLE IF NOT EXISTS system_logs (
     id SERIAL PRIMARY KEY,
@@ -122,6 +121,7 @@ CREATE TABLE IF NOT EXISTS subscription_keys (
 CREATE INDEX IF NOT EXISTS idx_subscription_keys_key ON subscription_keys(key);
 CREATE INDEX IF NOT EXISTS idx_subscription_keys_is_active ON subscription_keys(is_active);
 
+
 CREATE OR REPLACE FUNCTION clean_old_last_clips() RETURNS trigger AS $$
 BEGIN
     DELETE FROM last_clips WHERE timestamp < NOW() - INTERVAL '24 hours';
@@ -191,24 +191,6 @@ BEGIN
         CREATE TRIGGER trigger_clean_user_logs
         AFTER INSERT ON user_logs
         FOR EACH ROW EXECUTE FUNCTION clean_old_user_logs();
-    END IF;
-END $$;
-
-CREATE OR REPLACE FUNCTION clean_old_user_keys() RETURNS trigger AS $$
-BEGIN
-    DELETE FROM user_keys WHERE timestamp < NOW() - INTERVAL '7 days';
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-DO $$
-BEGIN
-    IF NOT EXISTS (
-        SELECT 1 FROM pg_trigger WHERE tgname = 'trigger_clean_user_keys'
-    ) THEN
-        CREATE TRIGGER trigger_clean_user_keys
-        AFTER INSERT ON user_keys
-        FOR EACH ROW EXECUTE FUNCTION clean_old_user_keys();
     END IF;
 END $$;
 

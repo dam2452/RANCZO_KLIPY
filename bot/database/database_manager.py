@@ -551,22 +551,6 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         await conn.close()
 
     @staticmethod
-    async def get_all_user_keys() -> Optional[List[UserMessage]]:
-        conn = await DatabaseManager.get_db_connection()
-        rows = await conn.fetch(
-            "SELECT user_id, key, timestamp FROM user_keys",
-        )
-        await conn.close()
-
-        return [
-            UserMessage(
-                user_id=row["user_id"],
-                key=row["key"],
-                timestamp=row["timestamp"],
-            ) for row in rows
-        ] if rows else None
-
-    @staticmethod
     async def update_user_note(user_id: int, note: str) -> None:
         conn = await DatabaseManager.get_db_connection()
         await conn.execute(
