@@ -34,7 +34,7 @@ class CompileSelectedClipsHandler(BotMessageHandler):
             super().__init__(self.message)
 
     def get_commands(self) -> List[str]:
-        return ["polaczklipy", "concatclips", "pk"]
+        return ["połączklipy", "polaczklipy", "concatclips", "pk"]
 
     async def _do_handle(self, message: Message) -> None:
         content = message.text.split()

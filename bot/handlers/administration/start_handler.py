@@ -37,12 +37,16 @@ class StartHandler(BotMessageHandler):
             "edycja": get_edycja_message,
             "edit": get_edycja_message,
             "zarzadzanie": get_zarzadzanie_message,
+            "zarządzanie": get_zarzadzanie_message,
             "management": get_zarzadzanie_message,
             "raportowanie": get_raportowanie_message,
             "reporting": get_raportowanie_message,
             "subskrypcje": get_subskrypcje_message,
             "subscriptions": get_subskrypcje_message,
             "skroty": get_shortcuts_message,
+            "skróty": get_shortcuts_message,
+            "skrot": get_shortcuts_message,
+            "skrót": get_shortcuts_message,
             "shortcuts": get_shortcuts_message,
         }
         super().__init__(bot, logger)
