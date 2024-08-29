@@ -18,7 +18,7 @@ from bot.settings import settings
 
 class DeleteClipHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
-        return ["usunklip", "deleteclip", "uk"]
+        return ["usuńklip", "usunklip", "deleteclip", "uk"]
 
     async def _do_handle(self, message: Message) -> None:
         command_parts = message.text.split(maxsplit=1)
