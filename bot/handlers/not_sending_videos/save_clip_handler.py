@@ -103,30 +103,28 @@ class SaveClipHandler(BotMessageHandler):
             output_filename = tmp_file.name
 
         if last_clip.clip_type == ClipType.COMPILED:
-            print("jestem w compiled")
-            output_filename = self.__bytes_to_filepath(last_clip.compiled_clip)  # wyciągneicie z bytes i zapisanie do pliku
+            output_filename = self.__bytes_to_filepath(last_clip.compiled_clip)
             is_compilation = True
             return output_filename.replace(" ", "_"), 0.0, 0.0, is_compilation, None, None
 
         if last_clip.clip_type == ClipType.ADJUSTED:
-            print("jestem w adjusted")
-            print(segment_dict.get("video_path"))
-            print(segment_dict.get("start"))
-            print(segment_dict.get("end"))
-            print(segment_dict.get("season"))
-            print(segment_dict.get("episode"))
-            print(output_filename)
-            print("------------------")
-            print(last_clip)
+
             await ClipsExtractor.extract_clip(segment_dict.get("video_path"), last_clip.adjusted_start_time, last_clip.adjusted_end_time,
                                               output_filename, self._logger)
             return output_filename, last_clip.adjusted_start_time, last_clip.adjusted_end_time, False, season, episode_number
 
-        if last_clip.clip_type == ClipType.SELECTED or last_clip.clip_type == ClipType.SINGLE or last_clip.clip_type == ClipType.MANUAL:
-            print("jestem w selected, single, manual")
+        if last_clip.clip_type == ClipType.MANUAL:
+
             await ClipsExtractor.extract_clip(segment_dict.get("video_path"), segment_dict.get("start"), segment_dict.get("end"), output_filename,
                                               self._logger)
             return output_filename.replace(" ", "_"), segment_dict.get("start"), segment_dict.get("end"), False, season, episode_number
+
+        if last_clip.clip_type == ClipType.SELECTED or last_clip.clip_type == ClipType.SINGLE:
+
+            await ClipsExtractor.extract_clip(segment_dict.get("video_path"), last_clip.adjusted_start_time, last_clip.adjusted_end_time, output_filename,
+                                              self._logger)
+            return output_filename.replace(" ", "_"), last_clip.adjusted_start_time, last_clip.adjusted_end_time, False, season, episode_number
+
 
     @staticmethod
     def __bytes_to_filepath(clip_data: bytes) -> str:
