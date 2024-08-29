@@ -4,8 +4,6 @@ from typing import (
     Union,
 )
 
-from tabulate import tabulate
-
 from bot.utils.functions import format_segment
 
 
@@ -18,17 +16,13 @@ def get_log_no_previous_search_results_message(chat_id: int) -> str:
 
 
 def format_search_list_response(search_term: str, segments: List[Dict[str, Union[str, int]]]) -> str:
-    response = f"🔍 Znaleziono {len(segments)} pasujących cytatów dla zapytania '{search_term}':\n"
-    segment_lines = []
+    response = f"🔍 Wyniki dla wyszukiwania: '{search_term}' 🔍\n\n"
+    response += f"{'Nr':<4} {'Odcinek':<9} {'Czas':<9} {'Tytuł':<9}\n"
+    response += "-" * 50 + "\n"
 
     for i, segment in enumerate(segments, start=1):
         segment_info = format_segment(segment)
-        segment_lines.append([i, segment_info.episode_formatted, segment_info.episode_title, segment_info.time_formatted])
-
-    table = tabulate(
-        segment_lines, headers=["#", "Odcinek", "Tytuł", "Czas"], tablefmt="pipe", colalign=("left", "center", "left", "right"),
-    )
-    response += f"{table}\n"
+        response += f"{i:<4} {segment_info.episode_formatted:<9} {segment_info.time_formatted:<9} {segment_info.episode_title:<9}\n"
 
     return response
 
