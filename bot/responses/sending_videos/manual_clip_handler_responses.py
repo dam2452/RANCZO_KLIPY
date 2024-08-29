@@ -24,7 +24,7 @@ def get_log_clip_extracted_message(episode: Episode, start_seconds: float, end_s
 def get_invalid_args_count_message() -> str:
     return (
         "📋 **Poprawne użycie komendy**: /wytnij `<sezon_odcinek>` `<czas_start>` `<czas_koniec>`.\n"
-        "Przykład: /wytnij **S02E10** **20:30.11** **21:32.50**\n"
+        "Przykład: /wytnij S07E06 36:47.50 36:49.00\n"
         "Upewnij się, że podałeś poprawnie wszystkie trzy elementy: sezon_odcinek, czas_start i czas_koniec."
     )
 
