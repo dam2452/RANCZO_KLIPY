@@ -10,7 +10,10 @@ def get_invalid_args_count_message() -> str:
 
 def format_search_response(unique_segments_count: int, segments, quote: str) -> str:
     emoji_count = convert_number_to_emoji(unique_segments_count)
-    response = f"🔍 Znaleziono {emoji_count} pasujących cytatów 🔍\n"
+    response = (
+        f"🔍 *Wyniki wyszukiwania* 🔍\n"
+        f"👁️ *Znaleziono:* {emoji_count} pasujących cytatów 👁️\n\n"
+    )
     segment_lines = []
 
     for i, segment in enumerate(segments[:5], start=1):
