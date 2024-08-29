@@ -60,12 +60,9 @@ class SaveClipHandler(BotMessageHandler):
             return
 
         last_clip = await DatabaseManager.get_last_clip_by_chat_id(message.chat.id)
-        segment_dict = json.loads(last_clip.segment)
         if not last_clip:
             return await self.__reply_no_segment_selected(message)
         output_filename, start_time, end_time, is_compilation, season, episode_number = await self.__prepare_clip(last_clip)
-        if not last_clip.clip_type == ClipType.COMPILED:
-            await ClipsExtractor.extract_clip(segment_dict.get("video_path"), start_time, end_time, output_filename, self._logger)
 
         with open(output_filename, "rb") as f:
             video_data = f.read()
