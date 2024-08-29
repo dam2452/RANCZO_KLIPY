@@ -37,7 +37,8 @@ class BotMessageHandler(ABC):
 
         await self._log_user_activity(message.from_user.id, message.text)
 
-        if await DatabaseManager.is_command_limited(message.from_user.id, settings.MESSAGE_LIMIT, settings.LIMIT_DURATION):
+        if (not await DatabaseManager.is_admin_or_moderator(message.from_user.id)
+                and await DatabaseManager.is_command_limited(message.from_user.id, settings.MESSAGE_LIMIT, settings.LIMIT_DURATION)):
             await message.answer(get_limit_exceeded_message())
             return
 
