@@ -28,3 +28,7 @@ def get_log_clip_sent_message(clip_name: str, username: str) -> str:
 
 def get_limit_exceeded_clip_duration_message() -> str:
     return "❌ Przekroczono limit długości klipu! ❌\n"
+
+
+def get_give_clip_name_message() -> str:
+    return "📄 Podaj nazwę klipu. Przykład: /wyślij nazwa_klipu"

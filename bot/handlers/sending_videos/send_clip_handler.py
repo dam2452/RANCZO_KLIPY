@@ -11,6 +11,7 @@ from bot.responses.sending_videos.send_clip_handler_responses import (
     get_clip_not_found_message,
     get_empty_clip_file_message,
     get_empty_file_error_message,
+    get_give_clip_name_message,
     get_limit_exceeded_clip_duration_message,
     get_log_clip_not_found_message,
     get_log_clip_sent_message,
@@ -28,9 +29,9 @@ class SendClipHandler(BotMessageHandler):
     async def _do_handle(self, message: Message) -> None:
         content = message.text.split()
         if len(content) < 2:
-            return await self._reply_invalid_args_count(message, "📄 Podaj nazwę klipu. Przykład: /wyślij nazwa_klipu")
-
-        clip_name = content[1]
+            await self._reply_invalid_args_count(message, get_give_clip_name_message())
+            return
+        clip_name = " ".join(content[1:])
 
         clip = await DatabaseManager.get_clip_by_name(message.from_user.id, clip_name)
         if not clip:

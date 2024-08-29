@@ -21,11 +21,11 @@ class DeleteClipHandler(BotMessageHandler):
         return ["usuńklip", "usunklip", "deleteclip", "uk"]
 
     async def _do_handle(self, message: Message) -> None:
-        command_parts = message.text.split(maxsplit=1)
-        if len(command_parts) < 2:
-            return await self._reply_invalid_args_count(message, get_invalid_args_count_message())
-
-        clip_name = command_parts[1]
+        content = message.text.split()
+        if len(content) < 2:
+            await self._reply_invalid_args_count(message, get_invalid_args_count_message())
+            return
+        clip_name = " ".join(content[1:])
 
         if len(clip_name) > settings.MAX_CLIP_NAME_LENGTH:
             await message.answer(get_clip_name_length_exceeded_message())
