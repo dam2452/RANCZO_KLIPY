@@ -1,24 +1,18 @@
 import json
 import logging
-import os
 import tempfile
 from typing import (
-    Callable,
-    Dict,
     List,
     Optional,
     Tuple,
-    Union, Any, Coroutine,
 )
 
 from aiogram.types import Message
 
 from bot.database.database_manager import DatabaseManager
 from bot.database.models import (
-    EpisodeInfo,
-    LastClip,
-    SegmentInfo,
     ClipType,
+    LastClip,
 )
 from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.responses.not_sending_videos.save_clip_handler_responses import (
@@ -93,7 +87,7 @@ class SaveClipHandler(BotMessageHandler):
 
         await self.__reply_clip_saved_successfully(message, clip_name)
 
-    async def __prepare_clip(self, last_clip: LastClip):  #fixme to do type hinting:
+    async def __prepare_clip(self, last_clip: LastClip) -> Tuple[str, float, float, bool, Optional[int], Optional[int]]:
         segment_dict = json.loads(last_clip.segment)
         episode_info = segment_dict.get("episode_info", {})
         season = episode_info.get("season")
@@ -108,23 +102,25 @@ class SaveClipHandler(BotMessageHandler):
             return output_filename.replace(" ", "_"), 0.0, 0.0, is_compilation, None, None
 
         if last_clip.clip_type == ClipType.ADJUSTED:
-
-            await ClipsExtractor.extract_clip(segment_dict.get("video_path"), last_clip.adjusted_start_time, last_clip.adjusted_end_time,
-                                              output_filename, self._logger)
+            await ClipsExtractor.extract_clip(
+                segment_dict.get("video_path"), last_clip.adjusted_start_time, last_clip.adjusted_end_time,
+                output_filename, self._logger,
+            )
             return output_filename, last_clip.adjusted_start_time, last_clip.adjusted_end_time, False, season, episode_number
 
         if last_clip.clip_type == ClipType.MANUAL:
-
-            await ClipsExtractor.extract_clip(segment_dict.get("video_path"), segment_dict.get("start"), segment_dict.get("end"), output_filename,
-                                              self._logger)
+            await ClipsExtractor.extract_clip(
+                segment_dict.get("video_path"), segment_dict.get("start"), segment_dict.get("end"), output_filename,
+                self._logger,
+            )
             return output_filename.replace(" ", "_"), segment_dict.get("start"), segment_dict.get("end"), False, season, episode_number
 
-        if last_clip.clip_type == ClipType.SELECTED or last_clip.clip_type == ClipType.SINGLE:
-
-            await ClipsExtractor.extract_clip(segment_dict.get("video_path"), last_clip.adjusted_start_time, last_clip.adjusted_end_time, output_filename,
-                                              self._logger)
+        if last_clip.clip_type in {ClipType.SELECTED, ClipType.SINGLE}:
+            await ClipsExtractor.extract_clip(
+                segment_dict.get("video_path"), last_clip.adjusted_start_time, last_clip.adjusted_end_time, output_filename,
+                self._logger,
+            )
             return output_filename.replace(" ", "_"), last_clip.adjusted_start_time, last_clip.adjusted_end_time, False, season, episode_number
-
 
     @staticmethod
     def __bytes_to_filepath(clip_data: bytes) -> str:
