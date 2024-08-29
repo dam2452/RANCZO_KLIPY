@@ -53,7 +53,7 @@ class ClipType(Enum):
 class LastClip:
     id: int
     chat_id: int
-    segment: dict
+    segment: str
     compiled_clip: Optional[bytes]
     clip_type: Optional[ClipType]
     adjusted_start_time: Optional[float]
