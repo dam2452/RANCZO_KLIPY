@@ -21,6 +21,7 @@ from bot.database.models import (
 )
 from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.responses.not_sending_videos.save_clip_handler_responses import (
+    get_clip_limit_exceeded_message,
     get_clip_name_exists_message,
     get_clip_name_length_exceeded_message,
     get_clip_name_not_provided_message,
@@ -57,6 +58,14 @@ class SaveClipHandler(BotMessageHandler):
             return await self._reply_invalid_args_count(message, get_clip_name_not_provided_message())
         if not await self.__is_clip_name_unique(message, clip_name):
             return await self.__reply_clip_name_exists(message, clip_name)
+
+        if (
+            not await DatabaseManager.is_admin_or_moderator(message.from_user.id) and
+            await DatabaseManager.get_user_clip_count(message.chat.id) >= settings.MAX_CLIPS_PER_USER
+        ):
+            await message.answer(get_clip_limit_exceeded_message())
+            return
+
         segment_info = await self.__get_segment_info(message)
         if not segment_info:
             return await self.__reply_no_segment_selected(message)

@@ -39,6 +39,7 @@ class Settings(BaseSettings):
     MAX_CLIP_DURATION: int = Field(60)
     MAX_CLIP_NAME_LENGTH: int = Field(40)
     MAX_REPORT_LENGTH: int = Field(1000)
+    MAX_CLIPS_PER_USER: int = Field(100)
 
     class Config:
         env_file = env_path

@@ -659,3 +659,13 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         rows = await conn.fetch("SELECT * FROM subscription_keys")
         await conn.close()
         return [SubscriptionKey(**row) for row in rows]
+
+    @staticmethod
+    async def get_user_clip_count(chat_id: int) -> int:
+        conn = await DatabaseManager.get_db_connection()
+        result = await conn.fetchval(
+            "SELECT COUNT(*) FROM video_clips WHERE chat_id = $1",
+            chat_id,
+        )
+        await conn.close()
+        return result
