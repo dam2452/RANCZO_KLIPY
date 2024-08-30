@@ -10,7 +10,7 @@
 
 Check out the video demo to see how the RanczoKlipy Bot works in action:
 
-[![📺 Watch the video](https://img.youtube.com/vi/YOUR_VIDEO_ID/maxresdefault.jpg)](https://www.youtube.com/watch?v=YOUR_VIDEO_ID)
+[![📺 Watch the video](https://img.youtube.com/vi/3Tp3qJHLFPI/maxresdefault.jpg)](https://www.youtube.com/watch?v=3Tp3qJHLFPI)
 
 ## 🌟 Features
 
