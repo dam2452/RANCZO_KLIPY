@@ -31,11 +31,19 @@ class SendClipHandler(BotMessageHandler):
         if len(content) < 2:
             await self._reply_invalid_args_count(message, get_give_clip_name_message())
             return
-        clip_name = " ".join(content[1:])
+        clip_identifier = " ".join(content[1:])
 
-        clip = await DatabaseManager.get_clip_by_name(message.from_user.id, clip_name)
+        if clip_identifier.isdigit():
+            clip_number = int(clip_identifier)
+            clips = await DatabaseManager.get_saved_clips(message.from_user.id)
+            if clip_number < 1 or clip_number > len(clips):
+                return await self.__reply_clip_not_found(message, clip_identifier)
+            clip = clips[clip_number - 1]
+        else:
+            clip = await DatabaseManager.get_clip_by_name(message.from_user.id, clip_identifier)
+
         if not clip:
-            return await self.__reply_clip_not_found(message, clip_name)
+            return await self.__reply_clip_not_found(message, clip_identifier)
 
         if not await DatabaseManager.is_admin_or_moderator(message.from_user.id) and clip.duration > settings.MAX_CLIP_DURATION:
             await message.answer(get_limit_exceeded_clip_duration_message())
@@ -43,20 +51,20 @@ class SendClipHandler(BotMessageHandler):
 
         video_data = clip.video_data
         if not video_data:
-            return await self.__reply_empty_clip_file(message, clip_name)
+            return await self.__reply_empty_clip_file(message, clip_identifier)
 
-        temp_file_path = os.path.join(tempfile.gettempdir(), f"{clip_name}.mp4")
+        temp_file_path = os.path.join(tempfile.gettempdir(), f"{clip.clip_name}.mp4")
 
         with open(temp_file_path, "wb") as temp_file:
             temp_file.write(video_data)
 
         if os.path.getsize(temp_file_path) == 0:
-            return await self.__reply_empty_file_error(message, clip_name)
+            return await self.__reply_empty_file_error(message, clip_identifier)
 
         await send_video(message, temp_file_path, self._bot, self._logger)
 
         os.remove(temp_file_path)
-        await self._log_system_message(logging.INFO, get_log_clip_sent_message(clip_name, message.from_user.username))
+        await self._log_system_message(logging.INFO, get_log_clip_sent_message(clip.clip_name, message.from_user.username))
 
     async def __reply_clip_not_found(self, message: Message, clip_name: str) -> None:
         await message.answer(get_clip_not_found_message(clip_name))
