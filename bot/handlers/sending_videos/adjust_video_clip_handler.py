@@ -30,7 +30,10 @@ from bot.responses.sending_videos.adjust_video_clip_handler_responses import (
 )
 from bot.settings import settings
 from bot.video.clips_extractor import ClipsExtractor
-from bot.video.utils import FFMpegException
+from bot.video.utils import (
+    FFMpegException,
+    get_video_duration,
+)
 
 
 class AdjustVideoClipHandler(BotMessageHandler):
@@ -77,17 +80,20 @@ class AdjustVideoClipHandler(BotMessageHandler):
         await self._log_system_message(logging.INFO, f"Additional_end_offset: {abs(additional_end_offset)}")
 
         if (
-            not await DatabaseManager.is_admin_or_moderator(message.from_user.id) and
-            abs(additional_start_offset) + abs(additional_end_offset) > settings.MAX_ADJUSTMENT_DURATION
+                not await DatabaseManager.is_admin_or_moderator(message.from_user.id) and
+                abs(additional_start_offset) + abs(additional_end_offset) > settings.MAX_ADJUSTMENT_DURATION
         ):
             await message.answer(get_max_extension_limit_message())
             return
 
-        start_time = max(0.0, original_start_time - additional_start_offset) - settings.EXTEND_BEFORE
-        end_time = original_end_time + additional_end_offset + settings.EXTEND_AFTER
-
-        if end_time <= start_time:
-            return await self.__reply_invalid_interval(message)
+        start_time = max(0.0, original_start_time - additional_start_offset - settings.EXTEND_BEFORE)
+        # print(f"start_time = {original_start_time} - {additional_start_offset} - {settings.EXTEND_BEFORE} = {start_time}")
+        end_time = min(original_end_time + additional_end_offset + settings.EXTEND_AFTER, await get_video_duration(segment_info.get("video_path")))
+        # print(f"end_time = {original_end_time} + {additional_end_offset} + {settings.EXTEND_AFTER} = {end_time}")
+        # print(f"end_time = {end_time}, start_time = {start_time}")
+        # if end_time <= start_time:
+        #
+        #     return await self.__reply_invalid_interval(message) #fixme naprawiłem ale kurwa nie rozumim dlaczego
 
         if not await DatabaseManager.is_admin_or_moderator(message.from_user.id) and end_time - start_time > settings.MAX_CLIP_DURATION:
             await message.answer(get_max_clip_duration_message())
@@ -98,6 +104,7 @@ class AdjustVideoClipHandler(BotMessageHandler):
                 segment_info.get("video_path"), message, self._bot, self._logger, start_time,
                 end_time,
             )
+            # print(f"export start_time = {start_time}, end_time = {end_time}")
 
             await DatabaseManager.insert_last_clip(
                 chat_id=message.chat.id,
@@ -108,6 +115,8 @@ class AdjustVideoClipHandler(BotMessageHandler):
                 adjusted_end_time=end_time,
                 is_adjusted=True,
             )
+        except ValueError:
+            return await self.__reply_invalid_interval(message)  #fixme naprawiłem ale kurwa nie rozumim dlaczego
 
         except FFMpegException as e:
             return await self.__reply_extraction_failure(message, e)

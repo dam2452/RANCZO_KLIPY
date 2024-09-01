@@ -17,7 +17,6 @@ from bot.database.models import (
     LastClip,
     SearchHistory,
     SubscriptionKey,
-    UserMessage,
     UserProfile,
     VideoClip,
 )
