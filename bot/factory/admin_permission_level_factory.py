@@ -10,6 +10,7 @@ class AdminPermissionLevelFactory(PermissionLevelFactory):
             RemoveWhitelistHandler(self._bot, self._logger),
             CreateKeyHandler(self._bot, self._logger),
             RemoveKeyHandler(self._bot, self._logger),
+            ListKeysHandler(self._bot, self._logger),
         ]
 
     def create_middlewares(self, commands: List[str]) -> List[BotMiddleware]:

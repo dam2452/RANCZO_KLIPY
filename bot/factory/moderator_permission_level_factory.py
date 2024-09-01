@@ -9,7 +9,6 @@ class ModeratorPermissionLevelFactory(PermissionLevelFactory):
             ListModeratorsHandler(self._bot, self._logger),
             ListWhitelistHandler(self._bot, self._logger),
             TranscriptionHandler(self._bot, self._logger),
-            ListKeysHandler(self._bot, self._logger),
             UpdateUserNoteHandler(self._bot, self._logger),
         ]
 
