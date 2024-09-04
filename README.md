@@ -7,6 +7,9 @@
 
 **RanczoKlipy Bot** to wysoce konfigurowalny bot Telegram, stworzony do zarządzania i przetwarzania klipów wideo z popularnego serialu "Ranczo". 🎬 Bot umożliwia użytkownikom wyszukiwanie konkretnych cytatów, zarządzanie własnymi klipami wideo oraz wykonywanie różnych zadań administracyjnych związanych z zarządzaniem użytkownikami i moderacją treści.
 
+## 🇬🇧 English Version
+For the English version of this README, please refer to [README.md](./READMEen.md).
+
 ## 🌟 Najnowsze Zmiany
 
 Jeśli chcesz zobaczyć najnowsze aktualizacje i zmiany, zapraszam do sprawdzenia brancha `cooldown-system`. W tym branchu znajdziesz najbardziej aktualne funkcjonalności i nowości, nad którymi obecnie pracuję!
