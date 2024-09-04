@@ -43,7 +43,7 @@ Jeśli chcesz zobaczyć najnowsze aktualizacje i zmiany, zapraszam do sprawdzeni
 - **`/start`**: Wyświetla wiadomość powitalną z podstawowymi komendami.
 - **`/klip <quote>`**: Wyszukuje konkretny cytat i zwraca pasujący klip wideo.
 - **`/mojeklipy`**: Wyświetla listę wszystkich klipów zapisanych przez użytkownika.
-- **`/kompiluj <clip_numbers>`**: Kompiluje wybrane klipy w jedno wideo.
+- **`/kompiluj <numery_klipów>`**: Kompiluje wybrane klipy w jedno wideo.
 
 ### Komendy Administracyjne
 - **`/admin`**: Wyświetla komendy administratora.
