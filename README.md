@@ -9,7 +9,7 @@
 
 ## 🌟 Najnowsze Zmiany
 
-Jeśli chcesz zobaczyć najnowsze aktualizacje i zmiany, zapraszam do sprawdzenia brancha cooldown-system. W tym branchu znajdziesz najbardziej aktualne funkcjonalności i nowości, nad którymi obecnie pracuję!
+Jeśli chcesz zobaczyć najnowsze aktualizacje i zmiany, zapraszam do sprawdzenia brancha `cooldown-system`. W tym branchu znajdziesz najbardziej aktualne funkcjonalności i nowości, nad którymi obecnie pracuję!
 
 ## 🌟 Funkcje
 
