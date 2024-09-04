@@ -41,9 +41,9 @@ Jeśli chcesz zobaczyć najnowsze aktualizacje i zmiany, zapraszam do sprawdzeni
 
 ### Podstawowe Komendy Użytkownika
 - **`/start`**: Wyświetla wiadomość powitalną z podstawowymi komendami.
-- **`/clip <quote>`**: Wyszukuje konkretny cytat i zwraca pasujący klip wideo.
-- **`/myclips`**: Wyświetla listę wszystkich klipów zapisanych przez użytkownika.
-- **`/compile <clip_numbers>`**: Kompiluje wybrane klipy w jedno wideo.
+- **`/klip <quote>`**: Wyszukuje konkretny cytat i zwraca pasujący klip wideo.
+- **`/mojeklipy`**: Wyświetla listę wszystkich klipów zapisanych przez użytkownika.
+- **`/kompiluj <clip_numbers>`**: Kompiluje wybrane klipy w jedno wideo.
 
 ### Komendy Administracyjne
 - **`/admin`**: Wyświetla komendy administratora.
