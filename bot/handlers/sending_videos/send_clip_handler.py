@@ -28,6 +28,7 @@ class SendClipHandler(BotMessageHandler):
 
     async def _do_handle(self, message: Message) -> None:
         content = message.text.split()
+        clip_number = None
         if len(content) < 2:
             await self._reply_invalid_args_count(message, get_give_clip_name_message())
             return
@@ -37,13 +38,13 @@ class SendClipHandler(BotMessageHandler):
             clip_number = int(clip_identifier)
             clips = await DatabaseManager.get_saved_clips(message.from_user.id)
             if clip_number < 1 or clip_number > len(clips):
-                return await self.__reply_clip_not_found(message, clip_identifier)
+                return await self.__reply_clip_not_found(message, clip_number)
             clip = clips[clip_number - 1]
         else:
             clip = await DatabaseManager.get_clip_by_name(message.from_user.id, clip_identifier)
 
         if not clip:
-            return await self.__reply_clip_not_found(message, clip_identifier)
+            return await self.__reply_clip_not_found(message, clip_number)
 
         if not await DatabaseManager.is_admin_or_moderator(message.from_user.id) and clip.duration > settings.MAX_CLIP_DURATION:
             await message.answer(get_limit_exceeded_clip_duration_message())
@@ -66,11 +67,11 @@ class SendClipHandler(BotMessageHandler):
         os.remove(temp_file_path)
         await self._log_system_message(logging.INFO, get_log_clip_sent_message(clip.clip_name, message.from_user.username))
 
-    async def __reply_clip_not_found(self, message: Message, clip_name: str) -> None:
-        await message.answer(get_clip_not_found_message(clip_name))
+    async def __reply_clip_not_found(self, message: Message, clip_number: int) -> None:
+        await message.answer(get_clip_not_found_message(clip_number))
         await self._log_system_message(
             logging.INFO,
-            get_log_clip_not_found_message(clip_name, message.from_user.username),
+            get_log_clip_not_found_message(clip_number, message.from_user.username),
         )
 
     async def __reply_empty_clip_file(self, message: Message, clip_name: str) -> None:

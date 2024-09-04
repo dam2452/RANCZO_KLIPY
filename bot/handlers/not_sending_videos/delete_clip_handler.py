@@ -1,5 +1,4 @@
 import logging
-from typing import List
 
 from aiogram.types import Message
 
@@ -7,44 +6,36 @@ from bot.database.database_manager import DatabaseManager
 from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.responses.not_sending_videos.delete_clip_handler_responses import (
     get_clip_deleted_message,
-    get_clip_name_length_exceeded_message,
     get_clip_not_exist_message,
     get_invalid_args_count_message,
     get_log_clip_deleted_message,
     get_log_clip_not_exist_message,
 )
-from bot.settings import settings
 
 
 class DeleteClipHandler(BotMessageHandler):
-    def get_commands(self) -> List[str]:
-        return ["usuńklip", "usunklip", "deleteclip", "uk"]
+
+    def get_commands(self) -> list[str]:
+        return ["usunklip", "deleteclip", "uk"]
 
     async def _do_handle(self, message: Message) -> None:
         content = message.text.split()
-        if len(content) < 2:
-            await self._reply_invalid_args_count(message, get_invalid_args_count_message())
-            return
-        clip_name = " ".join(content[1:])
 
-        if len(clip_name) > settings.MAX_CLIP_NAME_LENGTH:
-            await message.answer(get_clip_name_length_exceeded_message())
+        if len(content) < 2 or not content[1].isdigit():
+            await message.answer(get_invalid_args_count_message())
             return
 
-        result = await DatabaseManager.delete_clip(message.from_user.id, clip_name)
+        clip_number = int(content[1])
 
-        if result == "DELETE 0":
-            await self.__reply_clip_not_exist(message, clip_name, message.from_user.username)
-        else:
-            await self.__reply_clip_deleted(message, clip_name, message.from_user.username)
+        user_clips = await DatabaseManager.get_saved_clips(message.chat.id)
+        if clip_number < 1 or clip_number > len(user_clips):
+            await message.answer(get_clip_not_exist_message(clip_number))
+            await self._log_system_message(logging.INFO, get_log_clip_not_exist_message(clip_number, message.from_user.username))
+            return
 
-    async def __reply_clip_not_exist(self, message: Message, clip_name: str, username: str) -> None:
-        await message.answer(get_clip_not_exist_message(clip_name))
-        await self._log_system_message(logging.INFO, get_log_clip_not_exist_message(clip_name, username))
+        clip_to_delete = user_clips[clip_number - 1]
 
-    async def __reply_clip_deleted(self, message: Message, clip_name: str, username: str) -> None:
-        await message.answer(get_clip_deleted_message(clip_name))
-        await self._log_system_message(
-            logging.INFO,
-            get_log_clip_deleted_message(clip_name, username),
-        )
+        await DatabaseManager.delete_clip(message.chat.id, clip_to_delete.clip_name)
+
+        await message.answer(get_clip_deleted_message(clip_to_delete.clip_name))
+        await self._log_system_message(logging.INFO, get_log_clip_deleted_message(clip_to_delete.clip_name, message.from_user.username))
