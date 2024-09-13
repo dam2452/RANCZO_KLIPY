@@ -8,7 +8,6 @@ class AdminPermissionLevelFactory(PermissionLevelFactory):
             AddWhitelistHandler(self._bot, self._logger),
             RemoveSubscriptionHandler(self._bot, self._logger),
             RemoveWhitelistHandler(self._bot, self._logger),
-            UpdateWhitelistHandler(self._bot, self._logger),
         ]
 
     def create_middlewares(self, commands: List[str]) -> List[BotMiddleware]:

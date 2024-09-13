@@ -8,7 +8,7 @@ from typing import (
 from aiogram.types import Message
 
 from bot.database.database_manager import DatabaseManager
-from bot.database.global_dicts import last_clip
+from bot.database.models import ClipType
 from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.responses.sending_videos.compile_selected_clips_handler_responses import (
     get_clip_not_found_message,
@@ -18,7 +18,10 @@ from bot.responses.sending_videos.compile_selected_clips_handler_responses impor
     get_log_no_matching_clips_found_message,
     get_no_matching_clips_found_message,
 )
-from bot.video.clips_compiler import ClipsCompiler
+from bot.video.clips_compiler import (
+    ClipsCompiler,
+    process_compiled_clip,
+)
 
 
 class CompileSelectedClipsHandler(BotMessageHandler):
@@ -28,7 +31,7 @@ class CompileSelectedClipsHandler(BotMessageHandler):
             super().__init__(self.message)
 
     def get_commands(self) -> List[str]:
-        return ['polaczklipy', 'concatclips', 'pk']
+        return ["polaczklipy", "concatclips", "pk"]
 
     async def _do_handle(self, message: Message) -> None:
         content = message.text.split()
@@ -48,25 +51,24 @@ class CompileSelectedClipsHandler(BotMessageHandler):
             temp_file.write(clip_data)
             temp_file.close()
             selected_segments.append({
-                'video_path': temp_file.name,
-                'start': 0,
-                'end': duration,
+                "video_path": temp_file.name,
+                "start": 0,
+                "end": duration,
             })
 
         compiled_output = await ClipsCompiler.compile_and_send_clips(message, selected_segments, self._bot, self._logger)
-
-        last_clip[message.chat.id] = {'compiled_clip': compiled_output, 'type': 'compiled'}
+        await process_compiled_clip(message, compiled_output, ClipType.COMPILED)
 
         await self._log_system_message(logging.INFO, get_compiled_clip_sent_message(message.from_user.username))
 
     async def __get_selected_clips_data(self, clip_names: List[str], username: str, message: Message) -> List[Tuple[bytes, int]]:
         selected_clips_data = []
         for clip_name in clip_names:
-            clip = await DatabaseManager.get_clip_by_name(username, clip_name)
+            clip = await DatabaseManager.get_clip_by_name(message.from_user.id, clip_name)
             if not clip:
                 await self.__reply_clip_not_found(message, clip_name, username)
             else:
-                selected_clips_data.append((clip[0], clip[1]))
+                selected_clips_data.append((clip.video_data, int(clip.duration)))
         return selected_clips_data
 
     async def __reply_clip_not_found(self, message: Message, clip_name: str, username: str) -> None:

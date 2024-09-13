@@ -39,7 +39,7 @@ dp = Dispatcher(storage=MemoryStorage())
 
 async def on_startup() -> None:
     await DatabaseManager.init_db()
-    await DatabaseManager.set_default_admin(os.getenv("DEFAULT_ADMIN"))
+    await DatabaseManager.set_default_admin(int(os.getenv("DEFAULT_ADMIN")), bot=bot)
     logger.info("📦 Database initialized and default admin set. 📦")
 
     factories = create_all_factories(logger, bot)
@@ -57,6 +57,10 @@ async def main() -> None:
 
 if __name__ == "__main__":
     db_log_handler = DBLogHandler()
-    db_log_handler.loop = asyncio.get_event_loop()
+    try:
+        db_log_handler.loop = asyncio.get_running_loop()
+    except RuntimeError:
+        db_log_handler.loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(db_log_handler.loop)
     logging.getLogger().addHandler(db_log_handler)
     asyncio.run(main())

@@ -1,8 +1,8 @@
 from datetime import date
 
 
-def get_no_username_provided_message() -> str:
-    return "✏️ Podaj nazwę użytkownika.✏️"
+def get_no_user_id_provided_message() -> str:
+    return "⚠️ Nie podano ID użytkownika ani ilości dni.⚠️"
 
 
 def get_subscription_extended_message(username: str, new_end_date: date) -> str:

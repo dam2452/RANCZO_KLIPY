@@ -14,7 +14,7 @@ from bot.responses.administration.remove_subscription_handler_responses import (
 
 class RemoveSubscriptionHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
-        return ['removesubscription', 'removesub']
+        return ["removesubscription", "rmsub"]
 
     async def _do_handle(self, message: Message) -> None:
         content = message.text.split()
@@ -22,7 +22,7 @@ class RemoveSubscriptionHandler(BotMessageHandler):
             return await self._reply_invalid_args_count(message, get_no_username_provided_message())
 
         username = content[1]
-        await DatabaseManager.remove_subscription(username)
+        await DatabaseManager.remove_subscription(message.from_user.id)
         await self.__reply_subscription_removed(message, username)
 
     async def __reply_subscription_removed(self, message: Message, username: str) -> None:

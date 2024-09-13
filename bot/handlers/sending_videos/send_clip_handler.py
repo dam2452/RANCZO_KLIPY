@@ -21,7 +21,7 @@ from bot.video.utils import send_video
 
 class SendClipHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
-        return ['wyślij', 'wyslij', 'send', 'wys']
+        return ["wyślij", "wyslij", "send", "wys"]
 
     async def _do_handle(self, message: Message) -> None:
         content = message.text.split()
@@ -30,17 +30,17 @@ class SendClipHandler(BotMessageHandler):
 
         clip_name = content[1]
 
-        clip = await DatabaseManager.get_clip_by_name(message.from_user.username, clip_name)
+        clip = await DatabaseManager.get_clip_by_name(message.from_user.id, clip_name)
         if not clip:
             return await self.__reply_clip_not_found(message, clip_name)
 
-        video_data = clip[0]
+        video_data = clip.video_data
         if not video_data:
             return await self.__reply_empty_clip_file(message, clip_name)
 
         temp_file_path = os.path.join(tempfile.gettempdir(), f"{clip_name}.mp4")
 
-        with open(temp_file_path, 'wb') as temp_file:
+        with open(temp_file_path, "wb") as temp_file:
             temp_file.write(video_data)
 
         if os.path.getsize(temp_file_path) == 0:

@@ -43,14 +43,14 @@ class ElasticSearchManager:
     @staticmethod
     async def print_one_transcription(es: AsyncElasticsearch, logger: logging.Logger, index: str = "ranczo-transcriptions") -> None:
         response = await es.search(index=index, size=1)
-        if response['hits']['hits']:
-            document = response['hits']['hits'][0]['_source']
-            document['video_path'] = document['video_path'].replace("\\", "/")
-            readable_output = f"Document ID: {response['hits']['hits'][0]['_id']}\n" \
-                              f"Episode Info: {document['episode_info']}\n" \
-                              f"Video Path: {document['video_path']}\n" \
-                              f"Segment Text: {document.get('text', 'No text available')}\n" \
-                              f"Timestamp: {document.get('timestamp', 'No timestamp available')}"
+        if response["hits"]["hits"]:
+            document = response["hits"]["hits"][0]["_source"]
+            document["video_path"] = document["video_path"].replace("\\", "/")
+            readable_output = f"Document ID: {response["hits"]["hits"][0]["_id"]}\n" \
+                              f"Episode Info: {document["episode_info"]}\n" \
+                              f"Video Path: {document["video_path"]}\n" \
+                              f"Segment Text: {document.get("text", "No text available")}\n" \
+                              f"Timestamp: {document.get("timestamp", "No timestamp available")}"
             await log_system_message(logging.INFO, "Retrieved document:\n" + readable_output, logger)
         else:
             await log_system_message(logging.INFO, "No documents found.", logger)
@@ -82,7 +82,7 @@ class ElasticSearchManager:
         season_actions = []
 
         for episode_file in os.listdir(season_path):
-            if not episode_file.endswith('.json'):
+            if not episode_file.endswith(".json"):
                 continue
 
             file_path = os.path.join(season_path, episode_file)
@@ -94,16 +94,16 @@ class ElasticSearchManager:
     @staticmethod
     async def __load_episode(episode_file: str, file_path: str, season_dir: str) -> List[json]:
         actions = []
-        with open(file_path, 'r', encoding='utf-8') as f:
+        with open(file_path, "r", encoding="utf-8") as f:
             data = json.load(f)
-            episode_info = data.get('episode_info', {})
+            episode_info = data.get("episode_info", {})
 
-            video_path = os.path.join("bot/RANCZO-WIDEO", season_dir, episode_file.replace('.json', '.mp4'))
+            video_path = os.path.join("bot/RANCZO-WIDEO", season_dir, episode_file.replace(".json", ".mp4"))
             video_path = video_path.replace("\\", "/")
 
-            for segment in data.get('segments', []):
-                segment['episode_info'] = episode_info
-                segment['video_path'] = video_path
+            for segment in data.get("segments", []):
+                segment["episode_info"] = episode_info
+                segment["video_path"] = video_path
 
                 actions.append({
                     "_index": "ranczo-transcriptions",

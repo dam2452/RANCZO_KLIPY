@@ -6,7 +6,7 @@ from typing import (
 
 from tabulate import tabulate
 
-from bot.video.segment_info import format_segment
+from bot.utils.functions import format_segment
 
 
 def get_no_previous_search_results_message() -> str:
@@ -29,6 +29,7 @@ def format_search_list_response(search_term: str, segments: List[Dict[str, Union
         segment_lines, headers=["#", "Odcinek", "Tytuł", "Czas"], tablefmt="pipe", colalign=("left", "center", "left", "right"),
     )
     response += f"{table}\n"
+
     return response
 
 

@@ -1,6 +1,6 @@
 from typing import List
 
-import asyncpg
+from bot.database.models import UserProfile
 
 
 def get_general_error_message() -> str:
@@ -11,14 +11,17 @@ def get_invalid_args_count_message(action_name: str) -> str:
     return f"Incorrect command ({action_name}) format provided by user."
 
 
-def format_user(user: asyncpg.Record) -> str:
+def format_user(user: UserProfile) -> str:
     return (
-        f"👤 Username: {user['username']}, 📛 Full Name: {user['full_name']}, ✉️ Email: {user['email']}, 📞 "
-        f"Phone: {user['phone']}"
+        f"👤 ID: {user.user_id}\n"
+        f"👤 Username: {user.username or 'N/A'}\n"
+        f"📛 Full Name: {user.full_name or 'N/A'}\n"
+        f"🔒 Subscription End: {user.subscription_end or 'N/A'}\n"
+        f"📝 Note: {user.note or 'N/A'}\n"
     )
 
 
-def get_users_string(users: List[asyncpg.Record]) -> str:
+def get_users_string(users: List[UserProfile]) -> str:
     return "\n".join([format_user(user) for user in users]) + "\n"
 
 

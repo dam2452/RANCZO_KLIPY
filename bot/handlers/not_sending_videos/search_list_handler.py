@@ -1,18 +1,15 @@
+import json
 import logging
 import os
 import tempfile
-from typing import (
-    Dict,
-    List,
-    Union,
-)
+from typing import List
 
 from aiogram.types import (
     FSInputFile,
     Message,
 )
 
-from bot.database.global_dicts import last_search
+from bot.database.database_manager import DatabaseManager
 from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.responses.not_sending_videos.search_list_handler_responses import (
     format_search_list_response,
@@ -24,22 +21,29 @@ from bot.responses.not_sending_videos.search_list_handler_responses import (
 
 class SearchListHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
-        return ['lista', 'list', 'l']
+        return ["lista", "list", "l"]
 
     async def _do_handle(self, message: Message) -> None:
-        if message.chat.id not in last_search:
+        last_search = await DatabaseManager.get_last_search_by_chat_id(message.chat.id)
+
+        if not last_search:
             return await self.__reply_no_previous_search_results(message)
 
-        search_data: Dict[str, Union[str, List[Dict[str, Union[str, int]]]]] = last_search[message.chat.id]
-        segments = search_data['segments']
-        search_term = search_data['quote']
+        try:
+            segments = json.loads(last_search.segments)
+        except (json.JSONDecodeError, TypeError):
+            return await self.__reply_no_previous_search_results(message)
+
+        search_term = last_search.quote
+        if not segments or not search_term:
+            return await self.__reply_no_previous_search_results(message)
 
         response = format_search_list_response(search_term, segments)
-
         temp_dir = tempfile.gettempdir()
-        sanitized_search_term = "".join([c for c in search_term if c.isalpha() or c.isdigit() or c == ' ']).rstrip().replace(" ", "_")
+        sanitized_search_term = "".join([c for c in search_term if c.isalpha() or c.isdigit() or c == " "]).rstrip().replace(" ", "_")
         file_name = os.path.join(temp_dir, f"Ranczo_Klipy_Wyniki_{sanitized_search_term}.txt")
-        with open(file_name, 'w', encoding='utf-8') as file:
+
+        with open(file_name, "w", encoding="utf-8") as file:
             file.write(response)
 
         input_file = FSInputFile(file_name)

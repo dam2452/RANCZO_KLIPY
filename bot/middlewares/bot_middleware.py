@@ -55,9 +55,9 @@ class BotMiddleware(BaseMiddleware, ABC):
         pass
 
     @staticmethod
-    async def _does_user_have_moderator_privileges(username: str) -> bool:
-        return await DatabaseManager.is_user_moderator(username) or await DatabaseManager.is_user_admin(username)
+    async def _does_user_have_moderator_privileges(user_id: int) -> bool:
+        return await DatabaseManager.is_user_moderator(user_id) or await DatabaseManager.is_user_admin(user_id)
 
     @staticmethod
-    async def _does_user_have_admin_privileges(username: str) -> bool:
-        return await DatabaseManager.is_user_admin(username)
+    async def _does_user_have_admin_privileges(user_id: int) -> bool:
+        return await DatabaseManager.is_user_admin(user_id)

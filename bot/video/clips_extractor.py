@@ -25,16 +25,16 @@ class ClipsExtractor:
         )
 
         command = [
-            'ffmpeg',
-            '-y',  # overwrite output files
-            '-ss', str(start_time),
-            '-i', video_path,
-            '-t', str(duration),
-            '-c', 'copy',
-            '-movflags', '+faststart',
-            '-fflags', '+genpts',
-            '-avoid_negative_ts', '1',
-            '-loglevel', 'error',
+            "ffmpeg",
+            "-y",  # overwrite output files
+            "-ss", str(start_time),
+            "-i", video_path,
+            "-t", str(duration),
+            "-c", "copy",
+            "-movflags", "+faststart",
+            "-fflags", "+genpts",
+            "-avoid_negative_ts", "1",
+            "-loglevel", "error",
             output_filename,
         ]
 
@@ -55,7 +55,7 @@ class ClipsExtractor:
         video_path: str, message: Message, bot: Bot, logger: logging.Logger, start_time: float,
         end_time: float,
     ) -> None:
-        output_filename = tempfile.mktemp(suffix='.mp4')
+        output_filename = tempfile.mktemp(suffix=".mp4")
         try:
             await ClipsExtractor.extract_clip(video_path, start_time, end_time, output_filename, logger)
             await send_video(message, output_filename, bot, logger)

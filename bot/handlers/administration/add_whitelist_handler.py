@@ -15,7 +15,7 @@ from bot.utils.functions import parse_whitelist_message
 
 class AddWhitelistHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
-        return ['addwhitelist', 'addw']
+        return ["addwhitelist", "addw"]
 
     async def _do_handle(self, message: Message) -> None:
         content = message.text.split()
@@ -23,9 +23,25 @@ class AddWhitelistHandler(BotMessageHandler):
         if len(content) < 2:
             return await self._reply_invalid_args_count(message, get_no_username_provided_message())
 
-        user = parse_whitelist_message(content, default_admin_status=False, default_moderator_status=False)
-        await DatabaseManager.add_user(user)
-        await self.__reply_user_added(message, user.name)
+        user = parse_whitelist_message(content[1:])
+
+        await DatabaseManager.add_user(
+            user_id=user.user_id,
+            username=user.username,
+            full_name=user.full_name,
+            note=user.note,
+            bot=self._bot,
+        )
+
+        if not user.username or not user.full_name:
+            user_data = await self._bot.get_chat(user.user_id)
+            username = user_data.username
+            full_name = user_data.full_name
+        else:
+            username = user.username
+            full_name = user.full_name
+
+        await self.__reply_user_added(message, full_name or username)
 
     async def __reply_user_added(self, message: Message, username: str) -> None:
         await message.answer(get_user_added_message(username))

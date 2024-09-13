@@ -1,6 +1,8 @@
 import json
 import logging
 from typing import (
+    Any,
+    Dict,
     List,
     Optional,
     Union,
@@ -9,14 +11,16 @@ from typing import (
 from elastic_transport import ObjectApiResponse
 
 from bot.search.elastic_search_manager import ElasticSearchManager
+from bot.settings import settings
 from bot.utils.log import log_system_message
 
 
 class TranscriptionFinder:
     @staticmethod
     async def find_segment_by_quote(
-            quote: str, logger: logging.Logger, season_filter: Optional[int] = None, episode_filter: Optional[int] = None,
-            index: str = 'ranczo-transcriptions', return_all: bool = False,
+            quote: str, logger: logging.Logger, season_filter: Optional[int] = None,
+            episode_filter: Optional[int] = None,
+            index: str = "ranczo-transcriptions", return_all: bool = False,
     ) -> Optional[Union[List[ObjectApiResponse], ObjectApiResponse]]:
         await log_system_message(
             logging.INFO,
@@ -47,38 +51,55 @@ class TranscriptionFinder:
         if episode_filter:
             query["query"]["bool"]["filter"].append({"term": {"episode_info.episode_number": episode_filter}})
 
-        hits = (await es.search(index=index, body=query, size=(10000 if return_all else 1)))['hits']['hits']
+        hits = (await es.search(index=index, body=query, size=(10000 if return_all else 1)))["hits"]["hits"]
 
         if not hits:
             await log_system_message(logging.INFO, "No segments found matching the query.", logger)
             return None
 
-        unique_segments = {}
+        unique_segments = []
+        previous_segment = {}
 
         for hit in hits:
-            segment = hit['_source']
-            episode_info = segment.get('episode_info', {})
+            segment = hit["_source"]
+            start_time = segment["start"] - settings.EXTEND_BEFORE
+            end_time = segment["end"] + settings.EXTEND_AFTER
 
-            unique_key = (
-                f"{episode_info.get('title', 'Unknown')}-{episode_info.get('season', 'Unknown')}-"
-                f"{episode_info.get('episode_number', 'Unknown')}-{segment.get('start', 'Unknown')}"
-            )
+            if TranscriptionFinder.is_segment_overlap(previous_segment, segment, start_time):
+                previous_segment["end"] = max(previous_segment["end"], end_time)
+            else:
+                unique_segments.append(segment)
+                previous_segment = segment
 
-            if unique_key not in unique_segments:
-                unique_segments[unique_key] = segment
-
-        await log_system_message(logging.INFO, f"Found {len(unique_segments)} unique segments matching the query.", logger)
+        await log_system_message(
+            logging.INFO, f"Found {len(unique_segments)} unique segments after merging.",
+            logger,
+        )
 
         if return_all:
-            return list(unique_segments.values())
+            return unique_segments
 
-        return next(iter(unique_segments.values()), None)
+        return unique_segments[0] if unique_segments else None
 
+    @staticmethod
+    def is_segment_overlap(
+            previous_segment: Dict[str, Any],
+            segment: Dict[str, Any],
+            start_time: float,
+    ) -> bool:
+        return (
+                previous_segment and
+                previous_segment.get("episode_info", {}).get("season") == segment["episode_info"]["season"] and
+                previous_segment.get("episode_info", {}).get("episode_number") == segment["episode_info"][
+                    "episode_number"
+                ] and
+                start_time <= previous_segment.get("end", 0)
+        )
     @staticmethod
     async def find_segment_with_context(
             quote: str, logger: logging.Logger, context_size: int = 30, season_filter: Optional[str] = None,
             episode_filter: Optional[str] = None,
-            index: str = 'ranczo-transcriptions',
+            index: str = "ranczo-transcriptions",
     ) -> Optional[json]:
         await log_system_message(
             logging.INFO,
@@ -98,11 +119,11 @@ class TranscriptionFinder:
             "query": {
                 "bool": {
                     "must": [
-                        {"term": {"episode_info.season": segment['episode_info']['season']}},
-                        {"term": {"episode_info.episode_number": segment['episode_info']['episode_number']}},
+                        {"term": {"episode_info.season": segment["episode_info"]["season"]}},
+                        {"term": {"episode_info.episode_number": segment["episode_info"]["episode_number"]}},
                     ],
                     "filter": [
-                        {"range": {"id": {"lt": segment['id']}}},
+                        {"range": {"id": {"lt": segment["id"]}}},
                     ],
                 },
             },
@@ -114,11 +135,11 @@ class TranscriptionFinder:
             "query": {
                 "bool": {
                     "must": [
-                        {"term": {"episode_info.season": segment['episode_info']['season']}},
-                        {"term": {"episode_info.episode_number": segment['episode_info']['episode_number']}},
+                        {"term": {"episode_info.season": segment["episode_info"]["season"]}},
+                        {"term": {"episode_info.episode_number": segment["episode_info"]["episode_number"]}},
                     ],
                     "filter": [
-                        {"range": {"id": {"gt": segment['id']}}},
+                        {"range": {"id": {"gt": segment["id"]}}},
                     ],
                 },
             },
@@ -129,21 +150,21 @@ class TranscriptionFinder:
         context_response_before = await es.search(index=index, body=context_query_before)
         context_response_after = await es.search(index=index, body=context_query_after)
 
-        context_segments_before = [{'id': hit['_source']['id'], 'text': hit['_source']['text']} for hit in
-                                   context_response_before['hits']['hits']]
-        context_segments_after = [{'id': hit['_source']['id'], 'text': hit['_source']['text']} for hit in
-                                  context_response_after['hits']['hits']]
+        context_segments_before = [{"id": hit["_source"]["id"], "text": hit["_source"]["text"]} for hit in
+                                   context_response_before["hits"]["hits"]]
+        context_segments_after = [{"id": hit["_source"]["id"], "text": hit["_source"]["text"]} for hit in
+                                  context_response_after["hits"]["hits"]]
 
         context_segments_before.reverse()
 
         unique_context_segments = []
-        for seg in context_segments_before + [{'id': segment['id'], 'text': segment['text']}] + context_segments_after:
+        for seg in context_segments_before + [{"id": segment["id"], "text": segment["text"]}] + context_segments_after:
             if seg not in unique_context_segments:
                 unique_context_segments.append(seg)
 
         await log_system_message(logging.INFO, f"Found {len(unique_context_segments)} unique segments for context.", logger)
 
-        target_index = unique_context_segments.index({'id': segment['id'], 'text': segment['text']})
+        target_index = unique_context_segments.index({"id": segment["id"], "text": segment["text"]})
         start_index = max(target_index - context_size, 0)
         end_index = min(target_index + context_size + 1, len(unique_context_segments))
 
@@ -152,7 +173,7 @@ class TranscriptionFinder:
     @staticmethod
     async def find_video_path_by_episode(
             season: int, episode_number: int, logger: logging.Logger,
-            index: str = 'ranczo-transcriptions',
+            index: str = "ranczo-transcriptions",
     ) -> Optional[str]:
         await log_system_message(
             logging.INFO,
@@ -173,14 +194,14 @@ class TranscriptionFinder:
         }
 
         response = await es.search(index=index, body=query, size=1)
-        hits = response['hits']['hits']
+        hits = response["hits"]["hits"]
 
         if not hits:
             await log_system_message(logging.INFO, "No segments found matching the query.", logger)
             return None
 
-        segment = hits[0]['_source']
-        video_path = segment.get('video_path', None)
+        segment = hits[0]["_source"]
+        video_path = segment.get("video_path", None)
 
         if video_path:
             await log_system_message(logging.INFO, f"Found video path: {video_path}", logger)
@@ -190,7 +211,7 @@ class TranscriptionFinder:
         return None
 
     @staticmethod
-    async def find_episodes_by_season(season: int, logger: logging.Logger, index: str = 'ranczo-transcriptions') -> Optional[List[json]]:
+    async def find_episodes_by_season(season: int, logger: logging.Logger, index: str = "ranczo-transcriptions") -> Optional[List[json]]:
         await log_system_message(logging.INFO, f"Searching for episodes in season {season}", logger)
         es = await ElasticSearchManager.connect_to_elasticsearch(logger)
 
@@ -228,7 +249,7 @@ class TranscriptionFinder:
         }
 
         response = await es.search(index=index, body=query)
-        buckets = response['aggregations']['unique_episodes']['buckets']
+        buckets = response["aggregations"]["unique_episodes"]["buckets"]
 
         if not buckets:
             await log_system_message(logging.INFO, f"No episodes found for season {season}.", logger)
@@ -236,12 +257,12 @@ class TranscriptionFinder:
 
         episodes = []
         for bucket in buckets:
-            episode_info = bucket['episode_info']['hits']['hits'][0]['_source']['episode_info']
+            episode_info = bucket["episode_info"]["hits"]["hits"][0]["_source"]["episode_info"]
             episode = {
-                "episode_number": episode_info.get('episode_number'),
-                "title": episode_info.get('title', 'Unknown'),
-                "premiere_date": episode_info.get('premiere_date', 'Unknown'),
-                "viewership": episode_info.get('viewership', 'Unknown'),
+                "episode_number": episode_info.get("episode_number"),
+                "title": episode_info.get("title", "Unknown"),
+                "premiere_date": episode_info.get("premiere_date", "Unknown"),
+                "viewership": episode_info.get("viewership", "Unknown"),
             }
             episodes.append(episode)
 

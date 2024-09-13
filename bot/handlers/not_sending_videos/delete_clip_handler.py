@@ -16,7 +16,7 @@ from bot.responses.not_sending_videos.delete_clip_handler_responses import (
 
 class DeleteClipHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
-        return ['usunklip', 'deleteclip', 'uk']
+        return ["usunklip", "deleteclip", "uk"]
 
     async def _do_handle(self, message: Message) -> None:
         command_parts = message.text.split(maxsplit=1)
@@ -25,7 +25,7 @@ class DeleteClipHandler(BotMessageHandler):
 
         clip_name = command_parts[1]
 
-        result = await DatabaseManager.delete_clip(message.from_user.username, clip_name)
+        result = await DatabaseManager.delete_clip(message.from_user.id, clip_name)
 
         if result == "DELETE 0":
             await self.__reply_clip_not_exist(message, clip_name, message.from_user.username)

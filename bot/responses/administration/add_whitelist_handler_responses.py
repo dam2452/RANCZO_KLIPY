@@ -1,7 +1,7 @@
 
 
 def get_no_username_provided_message() -> str:
-    return "✏️ Podaj nazwę użytkownika.✏️"
+    return "✏️ Podaj ID użytkownika.✏️"
 
 
 def get_user_added_message(username: str) -> str:

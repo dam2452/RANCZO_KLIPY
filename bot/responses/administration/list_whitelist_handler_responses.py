@@ -1,16 +1,11 @@
 from typing import List
 
-import asyncpg
-from tabulate import tabulate
+from bot.database.models import UserProfile
+from bot.utils.functions import format_user_list
 
 
-def create_whitelist_response(users: List[asyncpg.Record]) -> str:
-    table = [["Username", "Full Name", "Email", "Phone", "Subskrypcja do"]]
-    for user in users:
-        table.append([user['username'], user['full_name'], user['email'], user['phone'], user['subscription_end']])
-
-    response = f"```whitelista\n{tabulate(table, headers='firstrow', tablefmt='grid')}```"
-    return response
+def create_whitelist_response(users: List[UserProfile]) -> str:
+    return format_user_list(users, "Lista użytkowników w Whitelist")
 
 
 def get_whitelist_empty_message() -> str:

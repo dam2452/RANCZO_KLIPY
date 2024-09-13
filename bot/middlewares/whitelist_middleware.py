@@ -17,8 +17,8 @@ class WhitelistMiddleware(BotMiddleware):
             self, handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]], event: TelegramObject,
             data: Dict[str, Any],
     ) -> Optional[Awaitable]:
-        if event.from_user.username and await DatabaseManager.is_user_in_db(event.from_user.username):
+        if event.from_user and await DatabaseManager.is_user_in_db(event.from_user.id):
             return await handler(event, data)
 
         await event.answer("❌ Nie masz uprawnień do korzystania z tego bota.❌")
-        self._logger.warning(f"Unauthorized access attempt by user: {event.from_user.username}")
+        self._logger.warning(f"Unauthorized access attempt by user: {event.from_user.id}")

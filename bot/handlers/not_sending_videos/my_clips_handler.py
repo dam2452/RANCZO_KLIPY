@@ -15,14 +15,14 @@ from bot.responses.not_sending_videos.my_clips_handler_responses import (
 
 class MyClipsHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
-        return ['mojeklipy', 'myclips', 'mk']
+        return ["mojeklipy", "myclips", "mk"]
 
     async def _do_handle(self, message: Message) -> None:
-        clips = await DatabaseManager.get_saved_clips(message.from_user.username)
+        clips = await DatabaseManager.get_saved_clips(message.from_user.id)
         if not clips:
             return await self.__reply_no_saved_clips(message)
 
-        await message.answer(format_myclips_response(clips, message.from_user.username), parse_mode='Markdown')
+        await message.answer(format_myclips_response(clips, message.from_user.username, message.from_user.full_name), parse_mode="Markdown")
         await self._log_system_message(logging.INFO, get_log_saved_clips_sent_message(message.from_user.username))
 
     async def __reply_no_saved_clips(self, message: Message) -> None:

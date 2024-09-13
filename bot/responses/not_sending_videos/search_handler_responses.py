@@ -1,4 +1,4 @@
-from bot.video.segment_info import format_segment
+from bot.utils.functions import format_segment
 
 
 def get_invalid_args_count_message() -> str:
@@ -11,7 +11,10 @@ def format_search_response(unique_segments_count: int, segments) -> str:
 
     for i, segment in enumerate(segments[:5], start=1):
         segment_info = format_segment(segment)
-        line = f"{i}️⃣ | 📺{segment_info.episode_formatted} | 🕒 {segment_info.time_formatted} \n👉  {segment_info.episode_title} "
+        line = (
+            f"{i}️⃣ | 📺 {segment_info.episode_formatted} | 🕒 {segment_info.time_formatted}\n"
+            f"   👉  {segment_info.episode_title}"
+        )
         segment_lines.append(line)
 
     response += "```\n" + "\n\n".join(segment_lines) + "\n```"

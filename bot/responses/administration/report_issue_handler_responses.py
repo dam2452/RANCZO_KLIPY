@@ -3,7 +3,7 @@ def get_no_report_content_message() -> str:
 
 
 def get_report_received_message() -> str:
-    return "✅ Dziękujemy za zgłoszenie. Twój raport został zapisany. 📄"
+    return "✅ Dziękujemy za zgłoszenie.✅"
 
 
 def get_log_no_report_content_message(username: str) -> str:

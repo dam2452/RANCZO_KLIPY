@@ -7,7 +7,8 @@ from typing import (
 
 from aiogram.types import Message
 
-from bot.database.global_dicts import last_clip
+from bot.database.database_manager import DatabaseManager
+from bot.database.models import ClipType
 from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.responses.sending_videos.manual_clip_handler_responses import (
     get_end_time_earlier_than_start_message,
@@ -35,15 +36,12 @@ from bot.video.episode import (
 
 class ManualClipHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
-        return ['wytnij', 'cut', 'wyt', 'pawlos']
+        return ["wytnij", "cut", "wyt", "pawlos"]
 
     async def _do_handle(self, message: Message) -> None:
         content = message.text.split()
         if len(content) != 4:
-            await self._reply_invalid_args_count(
-                message,
-                get_invalid_args_count_message(),
-            )
+            await self.__answer_markdown(message, get_invalid_args_count_message())
             return
 
         try:
@@ -63,16 +61,25 @@ class ManualClipHandler(BotMessageHandler):
         await ClipsExtractor.extract_and_send_clip(video_path, message, self._bot, self._logger, start_seconds, end_seconds)
         await self._log_system_message(logging.INFO, get_log_clip_extracted_message(episode, start_seconds, end_seconds))
 
-        last_clip[message.chat.id] = {
-            'video_path': video_path,
-            'start': start_seconds,
-            'end': end_seconds,
-            'episode_info': {
-                'season': episode.season,
-                'episode_number': episode.number,
+        segment_data = {
+            "video_path": video_path,
+            "start": start_seconds,
+            "end": end_seconds,
+            "episode_info": {
+                "season": episode.season,
+                "episode_number": episode.number,
             },
-            'type': 'manual',
         }
+
+        await DatabaseManager.insert_last_clip(
+            chat_id=message.chat.id,
+            segment=segment_data,
+            compiled_clip=None,
+            clip_type=ClipType.MANUAL,
+            adjusted_start_time=None,
+            adjusted_end_time=None,
+            is_adjusted=False,
+        )
 
     @staticmethod
     def __parse_content(content: List[str]) -> Tuple[Episode, float, float]:
@@ -82,18 +89,22 @@ class ManualClipHandler(BotMessageHandler):
 
         return Episode(episode), minutes_str_to_seconds(start_time), minutes_str_to_seconds(end_time)
 
+    @staticmethod
+    async def __answer_markdown(message: Message, text: str) -> None:
+        await message.answer(text, parse_mode="Markdown")
+
     async def __reply_incorrect_season_episode_format(self, message: Message) -> None:
-        await message.answer(get_incorrect_season_episode_format_message())
+        await self.__answer_markdown(message, get_incorrect_season_episode_format_message())
         await self._log_system_message(logging.INFO, get_log_incorrect_season_episode_format_message())
 
     async def __reply_video_file_not_exist(self, message: Message, video_path: str) -> None:
-        await message.answer(get_video_file_not_exist_message())
+        await self.__answer_markdown(message, get_video_file_not_exist_message())
         await self._log_system_message(logging.INFO, get_log_video_file_not_exist_message(video_path))
 
     async def __reply_incorrect_time_format(self, message: Message) -> None:
-        await message.answer(get_incorrect_time_format_message())
+        await self.__answer_markdown(message, get_incorrect_time_format_message())
         await self._log_system_message(logging.INFO, get_log_incorrect_time_format_message())
 
     async def __reply_end_time_earlier_than_start(self, message: Message) -> None:
-        await message.answer(get_end_time_earlier_than_start_message())
+        await self.__answer_markdown(message, get_end_time_earlier_than_start_message())
         await self._log_system_message(logging.INFO, get_log_end_time_earlier_than_start_message())

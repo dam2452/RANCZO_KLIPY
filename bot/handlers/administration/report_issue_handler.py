@@ -15,7 +15,7 @@ from bot.responses.administration.report_issue_handler_responses import (
 
 class ReportIssueHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
-        return ['report', 'zgłoś', 'zglos', 'r']
+        return ["report", "zgłoś", "zglos", "r"]
 
     async def _do_handle(self, message: Message) -> None:
         report_content = message.text.split(maxsplit=1)
@@ -29,6 +29,6 @@ class ReportIssueHandler(BotMessageHandler):
         await self._log_system_message(logging.INFO, get_log_no_report_content_message(message.from_user.username))
 
     async def __handle_user_report_submission(self, message: Message, report: str) -> None:
-        await DatabaseManager.add_report(message.from_user.username, report)
+        await DatabaseManager.add_report(message.from_user.id, report)
         await message.answer(get_report_received_message())
         await self._log_system_message(logging.INFO, get_log_report_received_message(message.from_user.username, report))

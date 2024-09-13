@@ -31,18 +31,18 @@ class BotMessageHandler(ABC):
         dp.message.register(self.handle, Command(commands=self.get_commands()))
 
     async def handle(self, message: Message) -> None:
-        await self._log_user_activity(message.from_user.username, message.text)
+        await self._log_user_activity(message.from_user.id, message.text)
         try:
             await self._do_handle(message)
         except Exception as e:  # pylint: disable=broad-exception-caught
             await message.answer(get_general_error_message())
-            await self._log_system_message(logging.ERROR, f"{type(e)} Error in {self.get_action_name()} for user '{message.from_user.username}': {e}")
+            await self._log_system_message(logging.ERROR, f"{type(e)} Error in {self.get_action_name()} for user '{message.from_user.id}': {e}")
 
     async def _log_system_message(self, level: int, message: str) -> None:
         await log_system_message(level, message, self._logger)
 
-    async def _log_user_activity(self, username: str, message: str) -> None:
-        await log_user_activity(username, message, self._logger)
+    async def _log_user_activity(self, user_id: int, message: str) -> None:
+        await log_user_activity(user_id, message, self._logger)
 
     async def _reply_invalid_args_count(
         self,
