@@ -4,10 +4,7 @@ from datetime import (
     datetime,
 )
 from enum import Enum
-from typing import (
-    List,
-    Optional,
-)
+from typing import Optional
 
 
 @dataclass
@@ -17,13 +14,6 @@ class UserProfile:
     full_name: Optional[str]
     subscription_end: Optional[date]
     note: Optional[str]
-
-
-@dataclass
-class UserRole:
-    user_id: int
-    is_admin: bool
-    is_moderator: bool
 
 
 @dataclass
@@ -53,7 +43,7 @@ class ClipType(Enum):
 class LastClip:
     id: int
     chat_id: int
-    segment: dict
+    segment: str
     compiled_clip: Optional[bytes]
     clip_type: Optional[ClipType]
     adjusted_start_time: Optional[float]
@@ -78,30 +68,16 @@ class FormattedSegmentInfo:
 
 
 @dataclass
-class EpisodeInfo:
-    season: Optional[int] = None
-    episode_number: Optional[int] = None
-    title: Optional[str] = None
-
-
-@dataclass
-class SegmentInfo:
-    video_path: str
-    start: float
-    end: float
-    episode_info: EpisodeInfo
-    text: Optional[str] = None
-    id: Optional[int] = None
-    author: Optional[str] = None
-    comment: Optional[str] = None
-    tags: Optional[List[str]] = None
-    location: Optional[str] = None
-    actors: Optional[List[str]] = None
-    compiled_clip: Optional[bytes] = None
-
-
-@dataclass
 class UserMessage:
     user_id: int
     key: str
+    timestamp: Optional[datetime] = None
+
+
+@dataclass
+class SubscriptionKey:
+    id: int
+    key: str
+    days: int
+    is_active: bool
     timestamp: Optional[datetime] = None

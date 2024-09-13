@@ -12,8 +12,10 @@ from bot.responses.bot_message_handler_responses import (
     get_log_no_segments_found_message,
 )
 from bot.responses.sending_videos.clip_handler_responses import (
+    get_limit_exceeded_clip_duration_message,
     get_log_clip_success_message,
     get_log_segment_saved_message,
+    get_message_too_long_message,
     get_no_quote_provided_message,
     get_no_segments_found_message,
 )
@@ -34,14 +36,24 @@ class ClipHandler(BotMessageHandler):
 
         quote = " ".join(content[1:])
 
+        if not await DatabaseManager.is_admin_or_moderator(message.from_user.id) and len(quote) > settings.MAX_SEARCH_QUERY_LENGTH:
+            await message.answer(get_message_too_long_message())
+            return
+
         segments = await TranscriptionFinder.find_segment_by_quote(quote, self._logger, return_all=False)
 
         if not segments:
             return await self.__reply_no_segments_found(message, quote)
-
+        # pylint: disable=duplicate-code
         segment = segments[0] if isinstance(segments, list) else segments
         start_time = max(0, segment["start"] - settings.EXTEND_BEFORE)
         end_time = segment["end"] + settings.EXTEND_AFTER
+
+        clip_duration = end_time - start_time
+        if not await DatabaseManager.is_admin_or_moderator(message.from_user.id) and clip_duration > settings.MAX_CLIP_DURATION:
+            await message.answer(get_limit_exceeded_clip_duration_message())
+            return
+        # pylint: enable=duplicate-code
 
         try:
             await ClipsExtractor.extract_and_send_clip(segment["video_path"], message, self._bot, self._logger, start_time, end_time)

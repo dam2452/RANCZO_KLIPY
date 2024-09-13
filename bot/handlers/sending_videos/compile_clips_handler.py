@@ -12,15 +12,18 @@ from bot.database.database_manager import DatabaseManager
 from bot.database.models import ClipType
 from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.responses.sending_videos.compile_clips_handler_responses import (
+    get_clip_time_message,
     get_compilation_success_message,
     get_invalid_args_count_message,
     get_invalid_index_message,
     get_invalid_range_message,
     get_log_no_matching_segments_found_message,
     get_log_no_previous_search_results_message,
+    get_max_clips_exceeded_message,
     get_no_matching_segments_found_message,
     get_no_previous_search_results_message,
 )
+from bot.settings import settings
 from bot.video.clips_compiler import (
     ClipsCompiler,
     process_compiled_clip,
@@ -52,6 +55,24 @@ class CompileClipsHandler(BotMessageHandler):
 
         if not selected_segments:
             return await self.__reply_no_matching_segments_found(message)
+
+        if not await DatabaseManager.is_admin_or_moderator(message.from_user.id) and len(selected_segments) > settings.MAX_CLIPS_PER_COMPILATION:
+            await message.answer(get_max_clips_exceeded_message())
+            return
+
+        total_duration = 0
+        for segment in selected_segments:
+            duration = (segment["end"] + settings.EXTEND_AFTER) - (segment["start"] - settings.EXTEND_BEFORE)
+            total_duration += duration
+            await self._log_system_message(
+                logging.INFO, f"Selected clip: {segment['video_path']} "
+                f"from {segment['start']} to {segment['end']} with duration {duration}",
+            )
+            await self._log_system_message(logging.INFO, f"Total duration: {total_duration}")
+
+        if not await DatabaseManager.is_admin_or_moderator(message.from_user.id) and total_duration > settings.MAX_CLIP_DURATION:
+            await message.answer(get_clip_time_message())
+            return
 
         compiled_output = await ClipsCompiler.compile_and_send_clips(message, selected_segments, self._bot, self._logger)
         await process_compiled_clip(message, compiled_output, ClipType.COMPILED)

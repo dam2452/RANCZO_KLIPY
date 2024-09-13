@@ -15,6 +15,7 @@ from bot.responses.sending_videos.manual_clip_handler_responses import (
     get_incorrect_season_episode_format_message,
     get_incorrect_time_format_message,
     get_invalid_args_count_message,
+    get_limit_exceeded_clip_duration_message,
     get_log_clip_extracted_message,
     get_log_end_time_earlier_than_start_message,
     get_log_incorrect_season_episode_format_message,
@@ -23,6 +24,7 @@ from bot.responses.sending_videos.manual_clip_handler_responses import (
     get_video_file_not_exist_message,
 )
 from bot.search.transcription_finder import TranscriptionFinder
+from bot.settings import settings
 from bot.utils.functions import (
     InvalidTimeStringException,
     minutes_str_to_seconds,
@@ -41,7 +43,7 @@ class ManualClipHandler(BotMessageHandler):
     async def _do_handle(self, message: Message) -> None:
         content = message.text.split()
         if len(content) != 4:
-            await self.__answer_markdown(message, get_invalid_args_count_message())
+            await self._reply_invalid_args_count(message, get_invalid_args_count_message())
             return
 
         try:
@@ -53,6 +55,11 @@ class ManualClipHandler(BotMessageHandler):
 
         if end_seconds <= start_seconds:
             return await self.__reply_end_time_earlier_than_start(message)
+
+        clip_duration = end_seconds - start_seconds
+        if not await DatabaseManager.is_admin_or_moderator(message.from_user.id) and clip_duration > settings.MAX_CLIP_DURATION:
+            await message.answer(get_limit_exceeded_clip_duration_message())
+            return
 
         video_path = await TranscriptionFinder.find_video_path_by_episode(episode.season, episode.get_absolute_episode_number(), self._logger)
         if not video_path or not os.path.exists(video_path):
@@ -89,22 +96,18 @@ class ManualClipHandler(BotMessageHandler):
 
         return Episode(episode), minutes_str_to_seconds(start_time), minutes_str_to_seconds(end_time)
 
-    @staticmethod
-    async def __answer_markdown(message: Message, text: str) -> None:
-        await message.answer(text, parse_mode="Markdown")
-
     async def __reply_incorrect_season_episode_format(self, message: Message) -> None:
-        await self.__answer_markdown(message, get_incorrect_season_episode_format_message())
+        await message.answer(get_incorrect_season_episode_format_message(), parse_mode="Markdown")
         await self._log_system_message(logging.INFO, get_log_incorrect_season_episode_format_message())
 
     async def __reply_video_file_not_exist(self, message: Message, video_path: str) -> None:
-        await self.__answer_markdown(message, get_video_file_not_exist_message())
+        await message.answer(get_video_file_not_exist_message(), parse_mode="Markdown")
         await self._log_system_message(logging.INFO, get_log_video_file_not_exist_message(video_path))
 
     async def __reply_incorrect_time_format(self, message: Message) -> None:
-        await self.__answer_markdown(message, get_incorrect_time_format_message())
+        await message.answer(get_incorrect_time_format_message(), parse_mode="Markdown")
         await self._log_system_message(logging.INFO, get_log_incorrect_time_format_message())
 
     async def __reply_end_time_earlier_than_start(self, message: Message) -> None:
-        await self.__answer_markdown(message, get_end_time_earlier_than_start_message())
+        await message.answer(get_end_time_earlier_than_start_message(), parse_mode="Markdown")
         await self._log_system_message(logging.INFO, get_log_end_time_earlier_than_start_message())

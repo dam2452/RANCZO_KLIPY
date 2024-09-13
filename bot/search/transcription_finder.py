@@ -1,8 +1,6 @@
 import json
 import logging
 from typing import (
-    Any,
-    Dict,
     List,
     Optional,
     Union,
@@ -18,8 +16,7 @@ from bot.utils.log import log_system_message
 class TranscriptionFinder:
     @staticmethod
     async def find_segment_by_quote(
-            quote: str, logger: logging.Logger, season_filter: Optional[int] = None,
-            episode_filter: Optional[int] = None,
+            quote: str, logger: logging.Logger, season_filter: Optional[int] = None, episode_filter: Optional[int] = None,
             index: str = "ranczo-transcriptions", return_all: bool = False,
     ) -> Optional[Union[List[ObjectApiResponse], ObjectApiResponse]]:
         await log_system_message(
@@ -65,36 +62,24 @@ class TranscriptionFinder:
             start_time = segment["start"] - settings.EXTEND_BEFORE
             end_time = segment["end"] + settings.EXTEND_AFTER
 
-            if TranscriptionFinder.is_segment_overlap(previous_segment, segment, start_time):
+            if (
+                previous_segment and
+                previous_segment.get("episode_info", {}).get("season") == segment["episode_info"]["season"] and
+                previous_segment.get("episode_info", {}).get("episode_number") == segment["episode_info"]["episode_number"] and
+                start_time <= previous_segment.get("end", 0)
+            ):
                 previous_segment["end"] = max(previous_segment["end"], end_time)
             else:
                 unique_segments.append(segment)
                 previous_segment = segment
 
-        await log_system_message(
-            logging.INFO, f"Found {len(unique_segments)} unique segments after merging.",
-            logger,
-        )
+        await log_system_message(logging.INFO, f"Found {len(unique_segments)} unique segments after merging.", logger)
 
         if return_all:
             return unique_segments
 
         return unique_segments[0] if unique_segments else None
 
-    @staticmethod
-    def is_segment_overlap(
-            previous_segment: Dict[str, Any],
-            segment: Dict[str, Any],
-            start_time: float,
-    ) -> bool:
-        return (
-                previous_segment and
-                previous_segment.get("episode_info", {}).get("season") == segment["episode_info"]["season"] and
-                previous_segment.get("episode_info", {}).get("episode_number") == segment["episode_info"][
-                    "episode_number"
-                ] and
-                start_time <= previous_segment.get("end", 0)
-        )
     @staticmethod
     async def find_segment_with_context(
             quote: str, logger: logging.Logger, context_size: int = 30, season_filter: Optional[str] = None,
@@ -150,25 +135,38 @@ class TranscriptionFinder:
         context_response_before = await es.search(index=index, body=context_query_before)
         context_response_after = await es.search(index=index, body=context_query_after)
 
-        context_segments_before = [{"id": hit["_source"]["id"], "text": hit["_source"]["text"]} for hit in
+        context_segments_before = [{
+            "id": hit["_source"]["id"], "text": hit["_source"]["text"], "start": hit["_source"]["start"],
+            "end": hit["_source"]["end"],
+        } for hit in
                                    context_response_before["hits"]["hits"]]
-        context_segments_after = [{"id": hit["_source"]["id"], "text": hit["_source"]["text"]} for hit in
+        context_segments_after = [{
+            "id": hit["_source"]["id"], "text": hit["_source"]["text"], "start": hit["_source"]["start"],
+            "end": hit["_source"]["end"],
+        } for hit in
                                   context_response_after["hits"]["hits"]]
 
         context_segments_before.reverse()
 
         unique_context_segments = []
-        for seg in context_segments_before + [{"id": segment["id"], "text": segment["text"]}] + context_segments_after:
+        for seg in (
+            context_segments_before + [{"id": segment["id"], "text": segment["text"], "start": segment["start"], "end": segment["end"]}] +
+            context_segments_after
+        ):
             if seg not in unique_context_segments:
                 unique_context_segments.append(seg)
 
         await log_system_message(logging.INFO, f"Found {len(unique_context_segments)} unique segments for context.", logger)
 
-        target_index = unique_context_segments.index({"id": segment["id"], "text": segment["text"]})
-        start_index = max(target_index - context_size, 0)
-        end_index = min(target_index + context_size + 1, len(unique_context_segments))
+        overall_start_time = min(seg['start'] for seg in unique_context_segments)
+        overall_end_time = max(seg['end'] for seg in unique_context_segments)
 
-        return {"target": segment, "context": unique_context_segments[start_index:end_index]}
+        return {
+            "target": segment,
+            "context": unique_context_segments,
+            "overall_start_time": overall_start_time,
+            "overall_end_time": overall_end_time,
+        }
 
     @staticmethod
     async def find_video_path_by_episode(

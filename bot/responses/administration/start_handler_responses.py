@@ -1,5 +1,5 @@
 def get_basic_message() -> str:
-    return """```🐐Witaj_w_RanczoKlipy!🐐
+    return """```🐐\u00A0Witaj\u00A0w\u00A0RanczoKlipy!\u00A0🐐
 ════════════════════════
 🔍 Podstawowe komendy 🔍
 ════════════════════════
@@ -10,7 +10,7 @@ def get_basic_message() -> str:
 
 
 def get_lista_message() -> str:
-    return """```🐐 RanczoKlipy - Działy Komend 🐐
+    return """```🐐\u00A0RanczoKlipy\u00A0-\u00A0Działy\u00A0Komend\u00A0🐐
 ══════════════════════════
 🔍 Wyszukiwanie:
    👉 /start wyszukiwanie
@@ -37,7 +37,7 @@ def get_lista_message() -> str:
 
 
 def get_full_message() -> str:
-    return """```🐐Witaj_w_RanczoKlipy!🐐
+    return """```🐐\u00A0Witaj\u00A0w\u00A0RanczoKlipy!\u00A0🐐
 ═════════════════════════════════════════
 🔍 Wyszukiwanie i przeglądanie klipów 🔍
 ═════════════════════════════════════════
@@ -46,7 +46,7 @@ def get_full_message() -> str:
 📋 /lista - Wyświetla wszystkie klipy znalezione przez /szukaj.
 ✅ /wybierz <numer_klipu> - Wybiera klip z listy uzyskanej przez /szukaj do dalszych operacji. Przykład: /wybierz 1.
 📺 /odcinki <sezon> - Wyświetla listę odcinków dla podanego sezonu. Przykład: /odcinki 2.
-✂️ /wytnij <sezon_odcinek> <czas_start> <czas_koniec> - Wytnij fragment klipu. Przykład: /wytnij S02E10 20:30.11 21:32.50.
+✂️ /wytnij <sezon_odcinek> <czas_start> <czas_koniec> - Wytnij fragment klipu. Przykład: /wytnij S07E06 36:47.50 36:49.00.
 
 ════════════════════
 ✂️ Edycja klipów ✂️
@@ -60,11 +60,11 @@ def get_full_message() -> str:
 ═════════════════════════════════════
 📁 Zarządzanie zapisanymi klipami 📁
 ═════════════════════════════════════
-💾 /zapisz <nazwa> - Zapisuje wybrany klip z podaną nazwą. Przykład: /zapisz moj_klip.
-📂 /mojeklipy - Wyświetla listę zapisanych klipów.
-📤 /wyslij <nazwa> - Wysyła zapisany klip o podanej nazwie. Przykład: /wyslij moj_klip.
-🔗 /polaczklipy <numer_klipu1> <numer_klipu2> ... - Łączy zapisane klipy w jeden. Numery klipów można znaleźć używając komendy /mojeklipy. Przykład: /polaczklipy 1 2 3.
-🗑️ /usunklip <nazwa_klipu> - Usuwa zapisany klip o podanej nazwie. Przykład: /usunklip moj_klip.
+💾 /zapisz <nazwa> - Zapisuje wybrany klip z podaną nazwą. Przykład: /zapisz traktor.\n
+📂 /mojeklipy - Wyświetla listę zapisanych klipów.\n
+📤 /wyslij <numer_klipu> - Wysyła zapisany klip o podanej nazwie. Przykład: /wyslij 1.\n
+🔗 /polaczklipy <numer_klipu1> <numer_klipu2> ... - Łączy zapisane klipy w jeden. Numery klipów można znaleźć używając komendy /mojeklipy. Przykład: /polaczklipy 4 2 3.\n
+🗑️ /usunklip <numer_klipu> - Usuwa zapisany klip o podanej nazwie. Przykład: /usunklip 2.\n
 
 ════════════════════════
 🛠️ Raportowanie błędów ️
@@ -79,7 +79,7 @@ def get_full_message() -> str:
 
 
 def get_wyszukiwanie_message() -> str:
-    return """```🐐RanczoKlipy-Wyszukiwanie_klipów🐐
+    return """```🐐\u00A0RanczoKlipy\u00A0Wyszukiwanie\u00A0klipów\u00A0🐐
 ════════════════════
 🔍 Wyszukiwanie 🔍
 ════════════════════
@@ -89,12 +89,12 @@ def get_wyszukiwanie_message() -> str:
 📋 /lista - Wyświetla wszystkie klipy znalezione przez /szukaj.\n
 ✅ /wybierz <numer_klipu> - Wybiera klip z listy uzyskanej przez /szukaj do dalszych operacji. Przykład: /wybierz 1.\n
 📺 /odcinki <sezon> - Wyświetla listę odcinków dla podanego sezonu. Przykład: /odcinki 2.\n
-✂️ /wytnij <sezon_odcinek> <czas_start> <czas_koniec> - Wytnij fragment klipu. Przykład: /wytnij S02E10 20:30.11 21:32.50.\n
+✂️ /wytnij <sezon_odcinek> <czas_start> <czas_koniec> - Wytnij fragment klipu. Przykład: /wytnij S07E06 36:47.50 36:49.00.\n
 ```"""
 
 
 def get_edycja_message() -> str:
-    return """```🐐RanczoKlipy-Edycja_klipów🐐
+    return """```🐐\u00A0RanczoKlipy\u00A0Edycja\u00A0klipów\u00A0🐐
 ════════════════════
 ✂️ Edycja klipów ✂️
 ════════════════════
@@ -107,20 +107,20 @@ def get_edycja_message() -> str:
 
 
 def get_zarzadzanie_message() -> str:
-    return """```🐐RanczoKlipy-Zarządzanie_zapisanymi_klipami🐐
+    return """```🐐\u00A0RanczoKlipy\u00A0Zarządzanie\u00A0zapisanymi\u00A0klipami\u00A0🐐
 ═════════════════════════════════════
 📁 Zarządzanie zapisanymi klipami 📁
 ═════════════════════════════════════
-💾 /zapisz <nazwa> - Zapisuje wybrany klip z podaną nazwą. Przykład: /zapisz moj_klip.\n
+💾 /zapisz <nazwa> - Zapisuje wybrany klip z podaną nazwą. Przykład: /zapisz traktor.\n
 📂 /mojeklipy - Wyświetla listę zapisanych klipów.\n
-📤 /wyslij <nazwa> - Wysyła zapisany klip o podanej nazwie. Przykład: /wyslij moj_klip.\n
-🔗 /polaczklipy <numer_klipu1> <numer_klipu2> ... - Łączy zapisane klipy w jeden. Numery klipów można znaleźć używając komendy /mojeklipy. Przykład: /polaczklipy 1 2 3.\n
-🗑️ /usunklip <nazwa_klipu> - Usuwa zapisany klip o podanej nazwie. Przykład: /usunklip moj_klip.\n
+📤 /wyslij <numer_klipu> - Wysyła zapisany klip o podanej nazwie. Przykład: /wyslij 1.\n
+🔗 /polaczklipy <numer_klipu1> <numer_klipu2> ... - Łączy zapisane klipy w jeden. Numery klipów można znaleźć używając komendy /mojeklipy. Przykład: /polaczklipy 4 2 3.\n
+🗑️ /usunklip <numer_klipu> - Usuwa zapisany klip o podanej nazwie. Przykład: /usunklip 2.\n
 ```"""
 
 
 def get_raportowanie_message() -> str:
-    return """```🐐RanczoKlipy-Raportowanie_błędów🐐
+    return """```🐐\u00A0RanczoKlipy\u00A0Raportowanie\u00A0błędów\u00A0🐐
 ════════════════════════
 🛠️ Raportowanie błędów ️
 ════════════════════════
@@ -129,7 +129,7 @@ def get_raportowanie_message() -> str:
 
 
 def get_subskrypcje_message() -> str:
-    return """```🐐RanczoKlipy-Subskrypcje🐐
+    return """```🐐\u00A0RanczoKlipy\u00A0Subskrypcje\u00A0🐐
 ══════════════════
 🔔 Subskrypcje 🔔
 ══════════════════
@@ -138,11 +138,12 @@ def get_subskrypcje_message() -> str:
 
 
 def get_shortcuts_message() -> str:
-    return """```🐐RanczoKlipy-Skróty_komend🐐
+    return """```🐐\u00A0RanczoKlipy\u00A0Skróty\u00A0komend\u00A0🐐
 ═════════════════════
 📋 Skróty komend 📋
 ═════════════════════
 🐐 /s, /start - Uruchamia główne menu.\n
+🔎 /k, /klip - Wyszukuje klip na podstawie cytatu.\n
 🔎 /sz, /szukaj - Wyszukuje klip na podstawie cytatu.\n
 📋 /l, /lista - Wyświetla wszystkie klipy znalezione przez /szukaj.\n
 ✅ /w, /wybierz - Wybiera klip z listy uzyskanej przez /szukaj.\n
@@ -163,8 +164,8 @@ def get_invalid_command_message() -> str:
     return "❌ Niepoprawna komenda w menu startowym. Użyj /start, aby zobaczyć dostępne opcje. ❌"
 
 
-def get_log_message_sent(username: str, text: str) -> str:
-    return f"Message sent to user '{username}': {text}"
+def get_log_start_message_sent(username: str) -> str:
+    return f"Start message sent to user '{username}'"
 
 
 def get_log_received_start_command(username: str, content: str) -> str:

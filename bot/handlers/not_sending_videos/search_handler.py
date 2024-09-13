@@ -8,6 +8,7 @@ from bot.database.database_manager import DatabaseManager
 from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.responses.bot_message_handler_responses import (
     get_log_no_segments_found_message,
+    get_message_too_long_message,
     get_no_segments_found_message,
 )
 from bot.responses.not_sending_videos.search_handler_responses import (
@@ -16,6 +17,7 @@ from bot.responses.not_sending_videos.search_handler_responses import (
     get_log_search_results_sent_message,
 )
 from bot.search.transcription_finder import TranscriptionFinder
+from bot.settings import settings
 
 
 class SearchHandler(BotMessageHandler):
@@ -29,6 +31,10 @@ class SearchHandler(BotMessageHandler):
 
         quote = " ".join(content[1:])
 
+        if not await DatabaseManager.is_admin_or_moderator(message.from_user.id) and len(quote) > settings.MAX_SEARCH_QUERY_LENGTH:
+            await message.answer(get_message_too_long_message())
+            return
+
         segments = await TranscriptionFinder.find_segment_by_quote(quote, self._logger, return_all=True)
         if not segments:
             return await self.__reply_no_segments_found(message, quote)
@@ -41,7 +47,7 @@ class SearchHandler(BotMessageHandler):
             segments=segments_json,
         )
 
-        response = format_search_response(len(segments), segments)
+        response = format_search_response(len(segments), segments, quote)
 
         await self.__send_search_results(message, response, quote)
 
