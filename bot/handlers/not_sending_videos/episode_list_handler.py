@@ -33,14 +33,7 @@ class EpisodeListHandler(BotMessageHandler):
         season = int(content[1])
 
         if season == 11:
-            image_path = "Ranczo_Sezon11.png"
-            with open(image_path, "rb") as image_file:
-                image_bytes = image_file.read()
-                await message.answer_photo(
-                    photo=BufferedInputFile(image_bytes, image_path), caption=get_season_11_petition_message(),
-                    show_caption_above_media=True, parse_mode="Markdown",
-                )
-            return
+            return await self.__handle_season_11(message)
 
         episodes = await TranscriptionFinder.find_episodes_by_season(season, self._logger)
         if not episodes:
@@ -71,3 +64,15 @@ class EpisodeListHandler(BotMessageHandler):
     async def __reply_no_episodes_found(self, message: Message, season: int) -> None:
         await message.answer(get_no_episodes_found_message(season))
         await self._log_system_message(logging.INFO, get_log_no_episodes_found_message(season))
+
+    @staticmethod
+    async def __handle_season_11(message: Message) -> None:
+        image_path = "Ranczo_Sezon11.png"
+        with open(image_path, "rb") as image_file:
+            image_bytes = image_file.read()
+            await message.answer_photo(
+                photo=BufferedInputFile(image_bytes, image_path),
+                caption=get_season_11_petition_message(),
+                show_caption_above_media=True,
+                parse_mode="Markdown",
+            )
