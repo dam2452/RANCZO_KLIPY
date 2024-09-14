@@ -17,6 +17,9 @@ class ListKeysHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ["listkey", "lk"]
 
+    async def is_any_validation_failed(self, message: Message) -> bool:
+        return False
+
     async def _do_handle(self, message: Message) -> None:
         keys = await DatabaseManager.get_all_subscription_keys()
         if not keys:

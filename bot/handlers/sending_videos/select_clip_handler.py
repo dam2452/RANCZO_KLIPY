@@ -28,11 +28,15 @@ class SelectClipHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ["wybierz", "select", "w"]
 
+    async def is_any_validation_failed(self, message: Message) -> bool:
+        content = message.text.split()
+        if len(content) < 2:
+            await self._reply_invalid_args_count(message, get_invalid_args_count_message())
+            return True
+        return False
+
     async def _do_handle(self, message: Message) -> None:
         content = message.text.split()
-
-        if len(content) < 2:
-            return await self._reply_invalid_args_count(message, get_invalid_args_count_message())
 
         last_search = await DatabaseManager.get_last_search_by_chat_id(message.chat.id)
         if not last_search:

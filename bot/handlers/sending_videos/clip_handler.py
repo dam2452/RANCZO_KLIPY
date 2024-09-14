@@ -29,11 +29,15 @@ class ClipHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ["klip", "clip", "k"]
 
-    async def _do_handle(self, message: Message) -> None:
+    async def is_any_validation_failed(self, message: Message) -> bool:
         content = message.text.split()
         if len(content) < 2:
-            return await self._reply_invalid_args_count(message, get_no_quote_provided_message())
+            await self._reply_invalid_args_count(message, get_no_quote_provided_message())
+            return True
+        return False
 
+    async def _do_handle(self, message: Message) -> None:
+        content = message.text.split()
         quote = " ".join(content[1:])
 
         if not await DatabaseManager.is_admin_or_moderator(message.from_user.id) and len(quote) > settings.MAX_SEARCH_QUERY_LENGTH:

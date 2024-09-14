@@ -15,6 +15,9 @@ class AdminHelpHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ["admin"]
 
+    async def is_any_validation_failed(self, message: Message) -> bool:
+        return False
+
     async def _do_handle(self, message: Message) -> None:
         keywords = ["skroty", "skróty", "skrot", "skrót"]
         if any(keyword in message.text.lower() for keyword in keywords):

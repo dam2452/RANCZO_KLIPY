@@ -35,6 +35,8 @@ class BotMessageHandler(ABC):
         await self._log_user_activity(message.from_user.id, message.text)
 
         try:
+            if await self.is_any_validation_failed(message):
+                return
             await self._do_handle(message)
         except Exception as e:  # pylint: disable=broad-exception-caught
             await message.answer(get_general_error_message())

@@ -19,14 +19,16 @@ class AddSubscriptionHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ["addsubscription", "addsub"]
 
-    async def _do_handle(self, message: Message) -> None:
+    async def is_any_validation_failed(self, message: Message) -> bool:
         content = message.text.split()
-
         if len(content) < 3 or not content[1].isdigit() or not content[2].isdigit():
-            return await self._reply_invalid_args_count(message, get_no_user_id_provided_message())
+            await self._reply_invalid_args_count(message, get_no_user_id_provided_message())
+            return True
+        return False
 
-        user_id = int(content[1])
-        days = int(content[2])
+    async def _do_handle(self, message: Message) -> None:
+        user_id = int(message.text.split()[1])
+        days = int(message.text.split()[2])
 
         new_end_date = await DatabaseManager.add_subscription(user_id, days)
         if new_end_date is None:

@@ -19,19 +19,23 @@ class DeleteClipHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ["usunklip", "deleteclip", "uk"]
 
-    async def _do_handle(self, message: Message) -> None:
+    async def is_any_validation_failed(self, message: Message) -> bool:
         content = message.text.split()
-
         if len(content) < 2 or not content[1].isdigit():
             await message.answer(get_invalid_args_count_message())
-            return
+            return True
+        return False
 
-        clip_number = int(content[1])
+    async def _do_handle(self, message: Message) -> None:
+        clip_number = int(message.text.split()[1])
 
         user_clips = await DatabaseManager.get_saved_clips(message.chat.id)
         if clip_number not in range(1, len(user_clips) + 1):
             await message.answer(get_clip_not_exist_message(clip_number))
-            await self._log_system_message(logging.INFO, get_log_clip_not_exist_message(clip_number, message.from_user.username))
+            await self._log_system_message(
+                logging.INFO,
+                get_log_clip_not_exist_message(clip_number, message.from_user.username),
+            )
             return
 
         clip_to_delete = user_clips[clip_number - 1]
@@ -39,4 +43,9 @@ class DeleteClipHandler(BotMessageHandler):
         await DatabaseManager.delete_clip(message.chat.id, clip_to_delete.clip_name)
 
         await message.answer(get_clip_deleted_message(clip_to_delete.clip_name))
-        await self._log_system_message(logging.INFO, get_log_clip_deleted_message(clip_to_delete.clip_name, message.from_user.username))
+        await self._log_system_message(
+            logging.INFO, get_log_clip_deleted_message(
+                clip_to_delete.clip_name,
+                message.from_user.username,
+            ),
+        )

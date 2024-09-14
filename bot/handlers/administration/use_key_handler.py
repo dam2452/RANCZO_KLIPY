@@ -17,13 +17,15 @@ class SaveUserKeyHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ["klucz", "key"]
 
-    async def _do_handle(self, message: Message) -> None:
+    async def is_any_validation_failed(self, message: Message) -> bool:
         content = message.text.split(maxsplit=1)
         if len(content) < 2:
             await self._reply_invalid_args_count(message, get_no_message_provided_message())
-            return
+            return True
+        return False
 
-        key = content[1]
+    async def _do_handle(self, message: Message) -> None:
+        key = message.text.split(maxsplit=1)[1]
 
         subscription_days = await DatabaseManager.get_subscription_days_by_key(key)
         if subscription_days:

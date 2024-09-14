@@ -40,6 +40,13 @@ class AdjustVideoClipHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ["dostosuj", "adjust", "d"]
 
+    async def is_any_validation_failed(self, message: Message) -> bool:
+        content = message.text.split()
+        if len(content) not in [3, 4]:
+            await self._reply_invalid_args_count(message, get_invalid_args_count_message())
+            return True
+        return False
+
     async def _do_handle(self, message: Message) -> None:
         content = message.text.split()
 
@@ -62,57 +69,54 @@ class AdjustVideoClipHandler(BotMessageHandler):
             if isinstance(segment_info, str):
                 segment_info = json.loads(segment_info)
 
-        else:
-            return await self._reply_invalid_args_count(message, get_invalid_args_count_message())
+            await self._log_system_message(logging.INFO, f"Segment Info: {segment_info}")
 
-        await self._log_system_message(logging.INFO, f"Segment Info: {segment_info}")
+            try:
+                original_start_time = float(segment_info.get("start", 0))
+                original_end_time = float(segment_info.get("end", 0))
 
-        try:
-            original_start_time = float(segment_info.get("start", 0))
-            original_end_time = float(segment_info.get("end", 0))
+                additional_start_offset = float(content[-2])
+                additional_end_offset = float(content[-1])
+            except (ValueError, TypeError):
+                return await self.__reply_invalid_args_count(message)
 
-            additional_start_offset = float(content[-2])
-            additional_end_offset = float(content[-1])
-        except (ValueError, TypeError):
-            return await self.__reply_invalid_args_count(message)
+            await self._log_system_message(logging.INFO, f"Additional_start_offset: {abs(additional_start_offset)}")
+            await self._log_system_message(logging.INFO, f"Additional_end_offset: {abs(additional_end_offset)}")
 
-        await self._log_system_message(logging.INFO, f"Additional_start_offset: {abs(additional_start_offset)}")
-        await self._log_system_message(logging.INFO, f"Additional_end_offset: {abs(additional_end_offset)}")
+            if await self._is_adjustment_exceeding_limits(message.from_user.id, additional_start_offset, additional_end_offset):
+                await message.answer(get_max_extension_limit_message())
+                return
 
-        if await self._is_adjustment_exceeding_limits(message.from_user.id, additional_start_offset, additional_end_offset):
-            await message.answer(get_max_extension_limit_message())
-            return
+            start_time = max(0.0, original_start_time - additional_start_offset - settings.EXTEND_BEFORE)
+            end_time = min(original_end_time + additional_end_offset + settings.EXTEND_AFTER, await get_video_duration(segment_info.get("video_path")))
 
-        start_time = max(0.0, original_start_time - additional_start_offset - settings.EXTEND_BEFORE)
-        end_time = min(original_end_time + additional_end_offset + settings.EXTEND_AFTER, await get_video_duration(segment_info.get("video_path")))
+            if not await DatabaseManager.is_admin_or_moderator(message.from_user.id) and end_time - start_time > settings.MAX_CLIP_DURATION:
+                await message.answer(get_max_clip_duration_message())
+                return
 
-        if not await DatabaseManager.is_admin_or_moderator(message.from_user.id) and end_time - start_time > settings.MAX_CLIP_DURATION:
-            await message.answer(get_max_clip_duration_message())
-            return
+            try:
+                await ClipsExtractor.extract_and_send_clip(
+                    segment_info.get("video_path"), message, self._bot, self._logger, start_time,
+                    end_time,
+                )
 
-        try:
-            await ClipsExtractor.extract_and_send_clip(
-                segment_info.get("video_path"), message, self._bot, self._logger, start_time,
-                end_time,
-            )
+                await DatabaseManager.insert_last_clip(
+                    chat_id=message.chat.id,
+                    segment=segment_info,
+                    compiled_clip=None,
+                    clip_type=ClipType.ADJUSTED,
+                    adjusted_start_time=start_time,
+                    adjusted_end_time=end_time,
+                    is_adjusted=True,
+                )
+            except ValueError:
+                return await self.__reply_invalid_interval(message)
 
-            await DatabaseManager.insert_last_clip(
-                chat_id=message.chat.id,
-                segment=segment_info,
-                compiled_clip=None,
-                clip_type=ClipType.ADJUSTED,
-                adjusted_start_time=start_time,
-                adjusted_end_time=end_time,
-                is_adjusted=True,
-            )
-        except ValueError:
-            return await self.__reply_invalid_interval(message)
+            except FFMpegException as e:
+                return await self.__reply_extraction_failure(message, e)
 
-        except FFMpegException as e:
-            return await self.__reply_extraction_failure(message, e)
-
-        await self._log_system_message(logging.INFO, get_updated_segment_info_log(message.chat.id))
-        await self._log_system_message(logging.INFO, get_successful_adjustment_message(message.from_user.username))
+            await self._log_system_message(logging.INFO, get_updated_segment_info_log(message.chat.id))
+            await self._log_system_message(logging.INFO, get_successful_adjustment_message(message.from_user.username))
 
     async def __reply_no_previous_searches(self, message: Message) -> None:
         await message.answer(get_no_previous_searches_message())

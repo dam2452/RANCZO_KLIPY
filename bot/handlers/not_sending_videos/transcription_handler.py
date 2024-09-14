@@ -20,12 +20,15 @@ class TranscriptionHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ["transkrypcja", "transcription", "t"]
 
-    async def _do_handle(self, message: Message) -> None:
+    async def is_any_validation_failed(self, message: Message) -> bool:
         content = message.text.split()
         if len(content) < 2:
-            return await self._reply_invalid_args_count(message, get_no_quote_provided_message())
+            await self._reply_invalid_args_count(message, get_no_quote_provided_message())
+            return True
+        return False
 
-        quote = " ".join(content[1:])
+    async def _do_handle(self, message: Message) -> None:
+        quote = " ".join(message.text.split()[1:])
         result = await TranscriptionFinder.find_segment_with_context(quote, self._logger, context_size=15)
 
         if not result:

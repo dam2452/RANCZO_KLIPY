@@ -14,12 +14,15 @@ class CreateKeyHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ["addkey", "addk"]
 
-    async def _do_handle(self, message: Message) -> None:
+    async def is_any_validation_failed(self, message: Message) -> bool:
         args = message.text.split()
         if len(args) < 3:
             await message.answer(get_create_key_usage_message())
-            return
+            return True
+        return False
 
+    async def _do_handle(self, message: Message) -> None:
+        args = message.text.split()
         days = int(args[1])
         name = " ".join(args[2:])
 

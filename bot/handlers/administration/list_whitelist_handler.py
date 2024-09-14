@@ -17,6 +17,9 @@ class ListWhitelistHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ["listwhitelist", "lw"]
 
+    async def is_any_validation_failed(self, message: Message) -> bool:
+        return False
+
     async def _do_handle(self, message: Message) -> None:
         users = await DatabaseManager.get_all_users()
         if not users:

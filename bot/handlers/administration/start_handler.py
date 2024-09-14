@@ -54,6 +54,9 @@ class StartHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ["start", "s", "help", "h", "pomoc"]
 
+    async def is_any_validation_failed(self, message: Message) -> bool:
+        return False
+
     async def _do_handle(self, message: Message) -> None:
         content = message.text.split()
         await self._log_system_message(logging.INFO, get_log_received_start_command(message.from_user.username, message.text))

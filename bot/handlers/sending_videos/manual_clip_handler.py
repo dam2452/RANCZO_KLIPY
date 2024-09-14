@@ -40,11 +40,15 @@ class ManualClipHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ["wytnij", "cut", "wyt", "pawlos"]
 
-    async def _do_handle(self, message: Message) -> None:
+    async def is_any_validation_failed(self, message: Message) -> bool:
         content = message.text.split()
         if len(content) != 4:
             await self._reply_invalid_args_count(message, get_invalid_args_count_message())
-            return
+            return True
+        return False
+
+    async def _do_handle(self, message: Message) -> None:
+        content = message.text.split()
 
         try:
             episode, start_seconds, end_seconds = self.__parse_content(content)
@@ -57,16 +61,28 @@ class ManualClipHandler(BotMessageHandler):
             return await self.__reply_end_time_earlier_than_start(message)
 
         clip_duration = end_seconds - start_seconds
-        if not await DatabaseManager.is_admin_or_moderator(message.from_user.id) and clip_duration > settings.MAX_CLIP_DURATION:
+        if not await DatabaseManager.is_admin_or_moderator(
+                message.from_user.id,
+        ) and clip_duration > settings.MAX_CLIP_DURATION:
             await self.__answer_markdown(message, get_limit_exceeded_clip_duration_message())
             return
 
-        video_path = await TranscriptionFinder.find_video_path_by_episode(episode.season, episode.get_absolute_episode_number(), self._logger)
+        video_path = await TranscriptionFinder.find_video_path_by_episode(
+            episode.season,
+            episode.get_absolute_episode_number(),
+            self._logger,
+        )
         if not video_path or not os.path.exists(video_path):
             return await self.__reply_video_file_not_exist(message, video_path)
 
-        await ClipsExtractor.extract_and_send_clip(video_path, message, self._bot, self._logger, start_seconds, end_seconds)
-        await self._log_system_message(logging.INFO, get_log_clip_extracted_message(episode, start_seconds, end_seconds))
+        await ClipsExtractor.extract_and_send_clip(
+            video_path, message, self._bot, self._logger, start_seconds,
+            end_seconds,
+        )
+        await self._log_system_message(
+            logging.INFO,
+            get_log_clip_extracted_message(episode, start_seconds, end_seconds),
+        )
 
         segment_data = {
             "video_path": video_path,

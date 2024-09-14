@@ -26,12 +26,16 @@ class SendClipHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ["wyślij", "wyslij", "send", "wys"]
 
+    async def is_any_validation_failed(self, message: Message) -> bool:
+        content = message.text.split()
+        if len(content) < 2:
+            await self._reply_invalid_args_count(message, get_give_clip_name_message())
+            return True
+        return False
+
     async def _do_handle(self, message: Message) -> None:
         content = message.text.split()
         clip_number = None
-        if len(content) < 2:
-            await self._reply_invalid_args_count(message, get_give_clip_name_message())
-            return
         clip_identifier = " ".join(content[1:])
 
         if clip_identifier.isdigit():
