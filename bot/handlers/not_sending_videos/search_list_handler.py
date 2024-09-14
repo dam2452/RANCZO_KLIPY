@@ -42,10 +42,7 @@ class SearchListHandler(BotMessageHandler):
         response = format_search_list_response(search_term, segments)
         temp_dir = tempfile.gettempdir()
 
-
-        sanitized_search_term = "".join(
-            [c for c in search_term if c.isalpha() or c.isdigit() or c == " "],
-        ).rstrip().replace(" ", "_")
+        sanitized_search_term = self.__sanitize_search_term(search_term)
 
         file_name = os.path.join(temp_dir, FILE_NAME_TEMPLATE.format(sanitized_search_term=sanitized_search_term))
 
@@ -64,3 +61,7 @@ class SearchListHandler(BotMessageHandler):
     async def __reply_no_previous_search_results(self, message: Message) -> None:
         await message.answer(get_no_previous_search_results_message())
         await self._log_system_message(logging.INFO, get_log_no_previous_search_results_message(message.chat.id))
+
+    @staticmethod
+    def __sanitize_search_term(search_term: str) -> str:
+        return "".join([c for c in search_term if c.isalpha() or c.isdigit() or c == " "]).rstrip().replace(" ", "_")

@@ -66,14 +66,15 @@ class CompileSelectedClipsHandler(BotMessageHandler):
             })
 
         total_duration = sum(clip.duration for clip in selected_clips)
+        is_admin_or_moderator = await DatabaseManager.is_admin_or_moderator(message.from_user.id)
 
-        if not await DatabaseManager.is_admin_or_moderator(message.from_user.id) and total_duration > settings.MAX_CLIP_DURATION:
-            await message.answer(get_clip_time_message())
-            return
-
-        if not await DatabaseManager.is_admin_or_moderator(message.from_user.id) and len(selected_segments) > settings.MAX_CLIPS_PER_COMPILATION:
-            await message.answer(get_max_clips_exceeded_message())
-            return
+        if not is_admin_or_moderator:
+            if total_duration > settings.MAX_CLIP_DURATION:
+                await message.answer(get_clip_time_message())
+                return
+            if len(selected_segments) > settings.MAX_CLIPS_PER_COMPILATION:
+                await message.answer(get_max_clips_exceeded_message())
+                return
 
         compiled_output = await ClipsCompiler.compile_and_send_clips(message, selected_segments, self._bot, self._logger)
         await process_compiled_clip(message, compiled_output, ClipType.COMPILED)

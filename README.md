@@ -13,10 +13,10 @@ For the English version of this README, please refer to [README.md](./READMEen.m
 ## 🌟 Funkcje
 
 ### 1. 🎞️ Zarządzanie Klipami Wideo
-- **🔍 Wyszukiwanie Cytatów:** Użytkownicy mogą wyszukiwać konkretne cytaty z serialu za pomocą komend takich jak `/clip <quote>` i `/search <quote>`. Bot zwróci pasujące fragmenty wideo.
-- **🎛️ Kompilacja Klipów:** Użytkownicy mogą kompilować wiele klipów w jeden plik wideo za pomocą komend takich jak `/compile <clip_numbers>` lub `/compile all`.
-- **⏱️ Dopasowanie Klipów:** Bot umożliwia dopasowanie klipów poprzez regulację czasu rozpoczęcia i zakończenia za pomocą komendy `/adjust <clip_number> <adjust_before> <adjust_after>`.
-- **💾 Zarządzanie Zapisanymi Klipami:** Użytkownicy mogą zapisywać, wyświetlać listę i usuwać swoje klipy za pomocą komend takich jak `/save`, `/myclips` i `/deleteclip`.
+- **🔍 Wyszukiwanie Cytatów:** Użytkownicy mogą wyszukiwać konkretne cytaty z serialu za pomocą komend takich jak `/klip <cytat>` i `/szukaj <cytat>`. Bot zwróci pasujące fragmenty wideo.
+- **🎛️ Kompilacja Klipów:** Użytkownicy mogą kompilować wiele klipów w jeden plik wideo za pomocą komend takich jak `/kompiluj <numery_klipów>` lub `/kompiluj wszystko`.
+- **⏱️ Dopasowanie Klipów:** Bot umożliwia dopasowanie klipów poprzez regulację czasu rozpoczęcia i zakończenia za pomocą komendy `/dostosuj <numer_klipu> <dostosowanie_przed> <dostosowanie_po>`.
+- **💾 Zarządzanie Zapisanymi Klipami:** Użytkownicy mogą zapisywać, wyświetlać listę i usuwać swoje klipy za pomocą komend takich jak `/zapisz`, `/mojeklipy` i `/usuńklip`.
 
 ### 2. 🛠️ Zarządzanie Użytkownikami i Rolami
 - **👮‍♂️ Role Administratora i Moderatora:** Administratorzy i moderatorzy mają dostęp do specjalnych funkcji. Komendy takie jak `/listadmins` i `/listmoderators` pomagają wyświetlić te role.
@@ -40,9 +40,9 @@ For the English version of this README, please refer to [README.md](./READMEen.m
 
 ### Podstawowe Komendy Użytkownika
 - **`/start`**: Wyświetla wiadomość powitalną z podstawowymi komendami.
-- **`/clip <quote>`**: Wyszukuje konkretny cytat i zwraca pasujący klip wideo.
-- **`/myclips`**: Wyświetla listę wszystkich klipów zapisanych przez użytkownika.
-- **`/compile <clip_numbers>`**: Kompiluje wybrane klipy w jedno wideo.
+- **`/klip <cytat>`**: Wyszukuje konkretny cytat i zwraca pasujący klip wideo.
+- **`/mojeklipy`**: Wyświetla listę wszystkich klipów zapisanych przez użytkownika.
+- **`/kompiluj <numery_klipów>`**: Kompiluje wybrane klipy w jedno wideo.
 
 ### Komendy Administracyjne
 - **`/admin`**: Wyświetla komendy administratora.
@@ -51,7 +51,7 @@ For the English version of this README, please refer to [README.md](./READMEen.m
 - **`/addwhitelist <user_id>`**: Dodaje użytkownika do listy dozwolonych.
 - **`/removewhitelist <user_id>`**: Usuwa użytkownika z listy dozwolonych.
 - **`/note <user_id> <note>`**: Dodaje lub aktualizuje notatkę dla użytkownika.
-- **`/report <issue_description>`**: Zgłasza problem do administratorów.
+- **`/report <treść_zgłoszenia>`**: Zgłasza problem do administratorów.
 
 Pełna lista komend znajduje się w [📚 Dokumentacji Komend](./COMMANDS.md).
 

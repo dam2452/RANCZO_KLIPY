@@ -26,13 +26,8 @@ def get_transcription_response(
     episode_number = episode_info.get("episode_number")
     episode_title = episode_info.get("title")
 
-    if any(
-            not isinstance(value, expected_type) for value, expected_type in
-            ((season, int), (episode_number, int), (episode_title, str))
-    ):
-        raise TypeError(
-            "Invalid type detected in episode_info. Expected types: int for season and episode_number, str for title.",
-        )
+    if not isinstance(season, int) or not isinstance(episode_number, int) or not isinstance(episode_title, str):
+        raise TypeError("Invalid type detected in episode_info. Expected types: int for season and episode_number, str for title.")
 
     start_minutes, start_seconds = divmod(start_time, 60)
     end_minutes, end_seconds = divmod(end_time, 60)

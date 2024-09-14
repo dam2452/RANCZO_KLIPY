@@ -37,32 +37,14 @@ class SaveClipHandler(BotMessageHandler):
         return ["zapisz", "save", "z"]
 
     async def _do_handle(self, message: Message) -> None:
-        content = message.text.split()
-        if len(content) < 2:
-            await self._reply_invalid_args_count(message, get_clip_name_not_provided_message())
-            return
-        clip_name = " ".join(content[1:])
-
-        if len(clip_name) > settings.MAX_CLIP_NAME_LENGTH:
-            await message.answer(get_clip_name_length_exceeded_message())
+        if await self.__is_any_validation_failed(message):
             return
 
-        if not clip_name:
-            return await self._reply_invalid_args_count(message, get_clip_name_not_provided_message())
-        if not await DatabaseManager.is_clip_name_unique(message.chat.id, clip_name):
-            return await self.__reply_clip_name_exists(message, clip_name)
-
-        if (
-                not await DatabaseManager.is_admin_or_moderator(message.from_user.id) and
-                await DatabaseManager.get_user_clip_count(message.chat.id) >= settings.MAX_CLIPS_PER_USER
-        ):
-            await message.answer(get_clip_limit_exceeded_message())
-            return
-
+        clip_name = " ".join(message.text.split()[1:])
         last_clip = await DatabaseManager.get_last_clip_by_chat_id(message.chat.id)
-        if not last_clip:
-            return await self.__reply_no_segment_selected(message)
-        output_filename, start_time, end_time, is_compilation, season, episode_number = await self.__prepare_clip(last_clip)
+        output_filename, start_time, end_time, is_compilation, season, episode_number = await self.__prepare_clip(
+            last_clip,
+        )
 
         with open(output_filename, "rb") as f:
             video_data = f.read()
@@ -149,3 +131,37 @@ class SaveClipHandler(BotMessageHandler):
             logging.INFO,
             get_log_clip_saved_successfully_message(clip_name, message.from_user.username),
         )
+
+    async def __is_any_validation_failed(self, message: Message) -> bool:
+        content = message.text.split()
+        if len(content) < 2:
+            await self._reply_invalid_args_count(message, get_clip_name_not_provided_message())
+            return True
+
+        clip_name = " ".join(content[1:])
+
+        if len(clip_name) > settings.MAX_CLIP_NAME_LENGTH:
+            await message.answer(get_clip_name_length_exceeded_message())
+            return True
+
+        if not clip_name:
+            await self._reply_invalid_args_count(message, get_clip_name_not_provided_message())
+            return True
+
+        if not await DatabaseManager.is_clip_name_unique(message.chat.id, clip_name):
+            await self.__reply_clip_name_exists(message, clip_name)
+            return True
+
+        if (
+                not await DatabaseManager.is_admin_or_moderator(message.from_user.id) and
+                await DatabaseManager.get_user_clip_count(message.chat.id) >= settings.MAX_CLIPS_PER_USER
+        ):
+            await message.answer(get_clip_limit_exceeded_message())
+            return True
+
+        last_clip = await DatabaseManager.get_last_clip_by_chat_id(message.chat.id)
+        if not last_clip:
+            await self.__reply_no_segment_selected(message)
+            return True
+
+        return False

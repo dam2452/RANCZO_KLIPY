@@ -79,10 +79,7 @@ class AdjustVideoClipHandler(BotMessageHandler):
         await self._log_system_message(logging.INFO, f"Additional_start_offset: {abs(additional_start_offset)}")
         await self._log_system_message(logging.INFO, f"Additional_end_offset: {abs(additional_end_offset)}")
 
-        if (
-                not await DatabaseManager.is_admin_or_moderator(message.from_user.id) and
-                abs(additional_start_offset) + abs(additional_end_offset) > settings.MAX_ADJUSTMENT_DURATION
-        ):
+        if await self._is_adjustment_exceeding_limits(message.from_user.id, additional_start_offset, additional_end_offset):
             await message.answer(get_max_extension_limit_message())
             return
 
@@ -140,3 +137,13 @@ class AdjustVideoClipHandler(BotMessageHandler):
     async def __reply_extraction_failure(self, message: Message, exception: FFMpegException) -> None:
         await message.answer(get_extraction_failure_message(exception))
         await self._log_system_message(logging.ERROR, get_extraction_failure_log(exception))
+
+    @staticmethod
+    async def _is_adjustment_exceeding_limits(
+        user_id: int, additional_start_offset: float,
+        additional_end_offset: float,
+    ) -> bool:
+        return (
+                not await DatabaseManager.is_admin_or_moderator(user_id) and
+                abs(additional_start_offset) + abs(additional_end_offset) > settings.MAX_ADJUSTMENT_DURATION
+        )
