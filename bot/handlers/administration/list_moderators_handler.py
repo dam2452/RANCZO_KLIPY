@@ -17,6 +17,9 @@ class ListModeratorsHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ["listmoderators", "lm"]
 
+    async def is_any_validation_failed(self, message: Message) -> bool:
+        return False
+
     async def _do_handle(self, message: Message) -> None:
         users = await DatabaseManager.get_moderator_users()
         if not users:

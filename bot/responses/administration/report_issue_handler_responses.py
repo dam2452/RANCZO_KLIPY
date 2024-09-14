@@ -12,3 +12,7 @@ def get_log_no_report_content_message(username: str) -> str:
 
 def get_log_report_received_message(username: str, report: str) -> str:
     return f"Report received from user '{username}': {report}"
+
+
+def get_limit_exceeded_report_length_message() -> str:
+    return "❌ Przekroczono limit długości raportu.❌"

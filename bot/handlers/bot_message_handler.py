@@ -12,6 +12,7 @@ from aiogram import (
 from aiogram.filters import Command
 from aiogram.types import Message
 
+from bot.database.database_manager import DatabaseManager
 from bot.responses.bot_message_handler_responses import (
     get_general_error_message,
     get_invalid_args_count_message,
@@ -32,11 +33,16 @@ class BotMessageHandler(ABC):
 
     async def handle(self, message: Message) -> None:
         await self._log_user_activity(message.from_user.id, message.text)
+
         try:
+            if await self.is_any_validation_failed(message):
+                return
             await self._do_handle(message)
         except Exception as e:  # pylint: disable=broad-exception-caught
             await message.answer(get_general_error_message())
             await self._log_system_message(logging.ERROR, f"{type(e)} Error in {self.get_action_name()} for user '{message.from_user.id}': {e}")
+
+        await DatabaseManager.log_command_usage(message.from_user.id)
 
     async def _log_system_message(self, level: int, message: str) -> None:
         await log_system_message(level, message, self._logger)
@@ -61,4 +67,7 @@ class BotMessageHandler(ABC):
 
     @abstractmethod
     async def _do_handle(self, message: Message) -> None:
+        pass
+    @abstractmethod
+    async def is_any_validation_failed(self, message: Message) -> bool:
         pass

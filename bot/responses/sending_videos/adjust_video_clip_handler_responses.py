@@ -31,7 +31,7 @@ def get_invalid_interval_log() -> str:
 
 
 def get_invalid_segment_index_message() -> str:
-    return "⚠️ Podano nieprawidłowy indeks segmentu.⚠️"
+    return "⚠️ Podano nieprawidłowy indeks cytatu.⚠️"
 
 
 def get_invalid_segment_log() -> str:
@@ -52,3 +52,11 @@ def get_updated_segment_info_log(chat_id: int) -> str:
 
 def get_successful_adjustment_message(username: str) -> str:
     return f"Video clip adjusted successfully for user '{username}'."
+
+
+def get_max_extension_limit_message() -> str:
+    return "❌ Przekroczono limit rozszerzenia dla komendy dostosuj. ❌"
+
+
+def get_max_clip_duration_message() -> str:
+    return "❌ Przekroczono maksymalny czas trwania klipu.❌"

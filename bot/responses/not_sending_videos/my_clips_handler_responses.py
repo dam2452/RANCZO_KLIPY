@@ -34,9 +34,9 @@ def format_myclips_response(clips: List[VideoClip], username: Union[str, None], 
         )
 
     return (
-            f"🎬 Twoje Zapisane Klipy 🎬\n\n"
-            f"🎥 Użytkownik: {user_display_name}\n\n"
-            "```\n" + "\n\n".join(clip_lines) + "\n```"
+        f"🎬 *Twoje Zapisane Klipy* 🎬\n"
+        f"🎥 *Liczba klipów:* {convert_number_to_emoji(len(clips))} 🎥\n\n"
+        f"```Użytkownik: {user_display_name} \n".replace(" ", "\u00A0") + "\n\n".join(clip_lines) + "\n```"
     )
 
 

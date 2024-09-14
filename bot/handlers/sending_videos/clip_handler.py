@@ -14,11 +14,13 @@ from bot.responses.bot_message_handler_responses import (
 from bot.responses.sending_videos.clip_handler_responses import (
     get_log_clip_success_message,
     get_log_segment_saved_message,
+    get_message_too_long_message,
     get_no_quote_provided_message,
     get_no_segments_found_message,
 )
 from bot.search.transcription_finder import TranscriptionFinder
 from bot.settings import settings
+from bot.utils.functions import check_clip_duration_and_permissions
 from bot.video.clips_extractor import ClipsExtractor
 from bot.video.utils import FFMpegException
 
@@ -27,21 +29,31 @@ class ClipHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ["klip", "clip", "k"]
 
-    async def _do_handle(self, message: Message) -> None:
+    async def is_any_validation_failed(self, message: Message) -> bool:
         content = message.text.split()
         if len(content) < 2:
-            return await self._reply_invalid_args_count(message, get_no_quote_provided_message())
+            await self._reply_invalid_args_count(message, get_no_quote_provided_message())
+            return True
+        return False
 
+    async def _do_handle(self, message: Message) -> None:
+        content = message.text.split()
         quote = " ".join(content[1:])
+
+        if not await DatabaseManager.is_admin_or_moderator(message.from_user.id) and len(quote) > settings.MAX_SEARCH_QUERY_LENGTH:
+            await message.answer(get_message_too_long_message())
+            return
 
         segments = await TranscriptionFinder.find_segment_by_quote(quote, self._logger, return_all=False)
 
         if not segments:
             return await self.__reply_no_segments_found(message, quote)
-
         segment = segments[0] if isinstance(segments, list) else segments
-        start_time = max(0, segment["start"] - settings.EXTEND_BEFORE)
-        end_time = segment["end"] + settings.EXTEND_AFTER
+
+        result = await check_clip_duration_and_permissions(segment, message)
+        if result is None:
+            return
+        start_time, end_time = result
 
         try:
             await ClipsExtractor.extract_and_send_clip(segment["video_path"], message, self._bot, self._logger, start_time, end_time)

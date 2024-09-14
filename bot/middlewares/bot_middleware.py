@@ -19,6 +19,8 @@ from aiogram.types import (
 )
 
 from bot.database.database_manager import DatabaseManager
+from bot.responses.bot_message_handler_responses import get_limit_exceeded_message
+from bot.settings import settings
 
 
 class BotMiddleware(BaseMiddleware, ABC):
@@ -61,3 +63,14 @@ class BotMiddleware(BaseMiddleware, ABC):
     @staticmethod
     async def _does_user_have_admin_privileges(user_id: int) -> bool:
         return await DatabaseManager.is_user_admin(user_id)
+
+    @staticmethod
+    async def _check_command_limits_and_privileges(event: Message) -> bool:
+        user_id = event.from_user.id
+        is_admin_or_moderator = await DatabaseManager.is_admin_or_moderator(user_id)
+
+        if not is_admin_or_moderator and await DatabaseManager.is_command_limited(user_id, settings.MESSAGE_LIMIT, settings.LIMIT_DURATION):
+            await event.answer(get_limit_exceeded_message())
+            return False
+
+        return True

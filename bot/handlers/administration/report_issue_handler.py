@@ -6,23 +6,35 @@ from aiogram.types import Message
 from bot.database.database_manager import DatabaseManager
 from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.responses.administration.report_issue_handler_responses import (
+    get_limit_exceeded_report_length_message,
     get_log_no_report_content_message,
     get_log_report_received_message,
     get_no_report_content_message,
     get_report_received_message,
 )
+from bot.settings import settings
 
 
 class ReportIssueHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ["report", "zgłoś", "zglos", "r"]
 
-    async def _do_handle(self, message: Message) -> None:
+    async def is_any_validation_failed(self, message: Message) -> bool:
         report_content = message.text.split(maxsplit=1)
-        if len(report_content) < 2:
-            return await self.__reply_no_report_content(message)
 
-        await self.__handle_user_report_submission(message, report_content[1])
+        if len(report_content) > settings.MAX_REPORT_LENGTH:
+            await message.answer(get_limit_exceeded_report_length_message())
+            return True
+
+        if len(report_content) < 2:
+            await self.__reply_no_report_content(message)
+            return True
+
+        return False
+
+    async def _do_handle(self, message: Message) -> None:
+        report_content = message.text.split(maxsplit=1)[1]
+        await self.__handle_user_report_submission(message, report_content)
 
     async def __reply_no_report_content(self, message: Message) -> None:
         await message.answer(get_no_report_content_message())

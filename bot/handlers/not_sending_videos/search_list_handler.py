@@ -18,16 +18,21 @@ from bot.responses.not_sending_videos.search_list_handler_responses import (
     get_no_previous_search_results_message,
 )
 
+FILE_NAME_TEMPLATE = "RanczoKlipy_Lista_{sanitized_search_term}.txt"
 
 class SearchListHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ["lista", "list", "l"]
 
+    async def is_any_validation_failed(self, message: Message) -> bool:
+        last_search = await DatabaseManager.get_last_search_by_chat_id(message.chat.id)
+        if not last_search:
+            await self.__reply_no_previous_search_results(message)
+            return True
+        return False
+
     async def _do_handle(self, message: Message) -> None:
         last_search = await DatabaseManager.get_last_search_by_chat_id(message.chat.id)
-
-        if not last_search:
-            return await self.__reply_no_previous_search_results(message)
 
         try:
             segments = json.loads(last_search.segments)
@@ -40,14 +45,16 @@ class SearchListHandler(BotMessageHandler):
 
         response = format_search_list_response(search_term, segments)
         temp_dir = tempfile.gettempdir()
-        sanitized_search_term = "".join([c for c in search_term if c.isalpha() or c.isdigit() or c == " "]).rstrip().replace(" ", "_")
-        file_name = os.path.join(temp_dir, f"Ranczo_Klipy_Wyniki_{sanitized_search_term}.txt")
+
+        sanitized_search_term = self.__sanitize_search_term(search_term)
+
+        file_name = os.path.join(temp_dir, FILE_NAME_TEMPLATE.format(sanitized_search_term=sanitized_search_term))
 
         with open(file_name, "w", encoding="utf-8") as file:
             file.write(response)
 
         input_file = FSInputFile(file_name)
-        await self._bot.send_document(message.chat.id, input_file, caption="📄 Znalezione cytaty")
+        await self._bot.send_document(message.chat.id, input_file, caption="📄 Wszystkie znalezione cytaty 📄")
         os.remove(file_name)
 
         await self._log_system_message(
@@ -58,3 +65,7 @@ class SearchListHandler(BotMessageHandler):
     async def __reply_no_previous_search_results(self, message: Message) -> None:
         await message.answer(get_no_previous_search_results_message())
         await self._log_system_message(logging.INFO, get_log_no_previous_search_results_message(message.chat.id))
+
+    @staticmethod
+    def __sanitize_search_term(search_term: str) -> str:
+        return "".join([c for c in search_term if c.isalpha() or c.isdigit() or c == " "]).rstrip().replace(" ", "_")

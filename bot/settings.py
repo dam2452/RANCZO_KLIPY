@@ -31,6 +31,16 @@ class Settings(BaseSettings):
     EXTEND_BEFORE_COMPILE: float = Field(1)
     EXTEND_AFTER_COMPILE: float = Field(1)
 
+    MESSAGE_LIMIT: int = Field(5)
+    LIMIT_DURATION: int = Field(30)
+    MAX_CLIPS_PER_COMPILATION: int = Field(30)
+    MAX_ADJUSTMENT_DURATION: int = Field(20)
+    MAX_SEARCH_QUERY_LENGTH: int = Field(200)
+    MAX_CLIP_DURATION: int = Field(60)
+    MAX_CLIP_NAME_LENGTH: int = Field(40)
+    MAX_REPORT_LENGTH: int = Field(1000)
+    MAX_CLIPS_PER_USER: int = Field(100)
+
     class Config:
         env_file = env_path
         env_prefix = ""

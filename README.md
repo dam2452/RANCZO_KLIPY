@@ -10,16 +10,12 @@
 ## 🇬🇧 English Version
 For the English version of this README, please refer to [README.md](./READMEen.md).
 
-## 🌟 Najnowsze Zmiany
-
-Jeśli chcesz zobaczyć najnowsze aktualizacje i zmiany, zapraszam do sprawdzenia brancha `cooldown-system`. W tym branchu znajdziesz najbardziej aktualne funkcjonalności i nowości, nad którymi obecnie pracuję!
-
 ## 🌟 Funkcje
 
 ### 1. 🎞️ Zarządzanie Klipami Wideo
 - **🔍 Wyszukiwanie Cytatów:** Użytkownicy mogą wyszukiwać konkretne cytaty z serialu za pomocą komend takich jak `/klip <cytat>` i `/szukaj <cytat>`. Bot zwróci pasujące fragmenty wideo.
 - **🎛️ Kompilacja Klipów:** Użytkownicy mogą kompilować wiele klipów w jeden plik wideo za pomocą komend takich jak `/kompiluj <numery_klipów>` lub `/kompiluj wszystko`.
-- **⏱️ Dopasowanie Klipów:** Bot umożliwia dopasowanie klipów poprzez regulację czasu rozpoczęcia i zakończenia za pomocą komendy `/dostosuj <clip_number> <adjust_before> <adjust_after>`.
+- **⏱️ Dopasowanie Klipów:** Bot umożliwia dopasowanie klipów poprzez regulację czasu rozpoczęcia i zakończenia za pomocą komendy `/dostosuj <numer_klipu> <dostosowanie_przed> <dostosowanie_po>`.
 - **💾 Zarządzanie Zapisanymi Klipami:** Użytkownicy mogą zapisywać, wyświetlać listę i usuwać swoje klipy za pomocą komend takich jak `/zapisz`, `/mojeklipy` i `/usuńklip`.
 
 ### 2. 🛠️ Zarządzanie Użytkownikami i Rolami
@@ -44,7 +40,7 @@ Jeśli chcesz zobaczyć najnowsze aktualizacje i zmiany, zapraszam do sprawdzeni
 
 ### Podstawowe Komendy Użytkownika
 - **`/start`**: Wyświetla wiadomość powitalną z podstawowymi komendami.
-- **`/klip <quote>`**: Wyszukuje konkretny cytat i zwraca pasujący klip wideo.
+- **`/klip <cytat>`**: Wyszukuje konkretny cytat i zwraca pasujący klip wideo.
 - **`/mojeklipy`**: Wyświetla listę wszystkich klipów zapisanych przez użytkownika.
 - **`/kompiluj <numery_klipów>`**: Kompiluje wybrane klipy w jedno wideo.
 
@@ -55,7 +51,7 @@ Jeśli chcesz zobaczyć najnowsze aktualizacje i zmiany, zapraszam do sprawdzeni
 - **`/addwhitelist <user_id>`**: Dodaje użytkownika do listy dozwolonych.
 - **`/removewhitelist <user_id>`**: Usuwa użytkownika z listy dozwolonych.
 - **`/note <user_id> <note>`**: Dodaje lub aktualizuje notatkę dla użytkownika.
-- **`/report <issue_description>`**: Zgłasza problem do administratorów.
+- **`/report <treść_zgłoszenia>`**: Zgłasza problem do administratorów.
 
 Pełna lista komend znajduje się w [📚 Dokumentacji Komend](./COMMANDS.md).
 

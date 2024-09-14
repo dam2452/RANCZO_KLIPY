@@ -19,6 +19,8 @@ from bot.responses.sending_videos.adjust_video_clip_handler_responses import (
     get_invalid_interval_message,
     get_invalid_segment_index_message,
     get_invalid_segment_log,
+    get_max_clip_duration_message,
+    get_max_extension_limit_message,
     get_no_previous_searches_log,
     get_no_previous_searches_message,
     get_no_quotes_selected_log,
@@ -28,15 +30,26 @@ from bot.responses.sending_videos.adjust_video_clip_handler_responses import (
 )
 from bot.settings import settings
 from bot.video.clips_extractor import ClipsExtractor
-from bot.video.utils import FFMpegException
+from bot.video.utils import (
+    FFMpegException,
+    get_video_duration,
+)
 
 
 class AdjustVideoClipHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ["dostosuj", "adjust", "d"]
 
+    async def is_any_validation_failed(self, message: Message) -> bool:
+        content = message.text.split()
+        if len(content) not in [3, 4]:
+            await self._reply_invalid_args_count(message, get_invalid_args_count_message())
+            return True
+        return False
+
     async def _do_handle(self, message: Message) -> None:
         content = message.text.split()
+        segment_info = {}
 
         if len(content) == 4:
             last_search: SearchHistory = await DatabaseManager.get_last_search_by_chat_id(message.chat.id)
@@ -57,10 +70,7 @@ class AdjustVideoClipHandler(BotMessageHandler):
             if isinstance(segment_info, str):
                 segment_info = json.loads(segment_info)
 
-        else:
-            return await self._reply_invalid_args_count(message, get_invalid_args_count_message())
-
-        await self._log_system_message(logging.INFO, f"Segment Info: {segment_info}")
+            await self._log_system_message(logging.INFO, f"Segment Info: {segment_info}")
 
         try:
             original_start_time = float(segment_info.get("start", 0))
@@ -71,11 +81,19 @@ class AdjustVideoClipHandler(BotMessageHandler):
         except (ValueError, TypeError):
             return await self.__reply_invalid_args_count(message)
 
-        start_time = max(0.0, original_start_time - additional_start_offset) - settings.EXTEND_BEFORE
-        end_time = original_end_time + additional_end_offset + settings.EXTEND_AFTER
+        await self._log_system_message(logging.INFO, f"Additional_start_offset: {abs(additional_start_offset)}")
+        await self._log_system_message(logging.INFO, f"Additional_end_offset: {abs(additional_end_offset)}")
 
-        if end_time <= start_time:
-            return await self.__reply_invalid_interval(message)
+        if await self._is_adjustment_exceeding_limits(message.from_user.id, additional_start_offset, additional_end_offset):
+            await message.answer(get_max_extension_limit_message())
+            return
+
+        start_time = max(0.0, original_start_time - additional_start_offset - settings.EXTEND_BEFORE)
+        end_time = min(original_end_time + additional_end_offset + settings.EXTEND_AFTER, await get_video_duration(segment_info.get("video_path")))
+
+        if not await DatabaseManager.is_admin_or_moderator(message.from_user.id) and end_time - start_time > settings.MAX_CLIP_DURATION:
+            await message.answer(get_max_clip_duration_message())
+            return
 
         try:
             await ClipsExtractor.extract_and_send_clip(
@@ -92,6 +110,8 @@ class AdjustVideoClipHandler(BotMessageHandler):
                 adjusted_end_time=end_time,
                 is_adjusted=True,
             )
+        except ValueError:
+            return await self.__reply_invalid_interval(message)
 
         except FFMpegException as e:
             return await self.__reply_extraction_failure(message, e)
@@ -122,3 +142,13 @@ class AdjustVideoClipHandler(BotMessageHandler):
     async def __reply_extraction_failure(self, message: Message, exception: FFMpegException) -> None:
         await message.answer(get_extraction_failure_message(exception))
         await self._log_system_message(logging.ERROR, get_extraction_failure_log(exception))
+
+    @staticmethod
+    async def _is_adjustment_exceeding_limits(
+        user_id: int, additional_start_offset: float,
+        additional_end_offset: float,
+    ) -> bool:
+        return (
+                not await DatabaseManager.is_admin_or_moderator(user_id) and
+                abs(additional_start_offset) + abs(additional_end_offset) > settings.MAX_ADJUSTMENT_DURATION
+        )

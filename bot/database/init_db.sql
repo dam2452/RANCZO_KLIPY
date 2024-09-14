@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS user_profiles (
     subscription_end DATE DEFAULT NULL,
     note TEXT DEFAULT NULL
 );
+
 CREATE INDEX IF NOT EXISTS idx_user_profiles_user_id ON user_profiles (user_id);
 CREATE INDEX IF NOT EXISTS idx_user_profiles_username ON user_profiles (username);
 
@@ -23,22 +24,19 @@ CREATE INDEX IF NOT EXISTS idx_user_roles_admin ON user_roles (is_admin);
 CREATE INDEX IF NOT EXISTS idx_user_roles_moderator ON user_roles (is_moderator);
 
 CREATE TABLE IF NOT EXISTS user_logs (
-    id SERIAL PRIMARY KEY,
+    id SERIAL,
     user_id BIGINT,
     command TEXT NOT NULL,
-    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    PRIMARY KEY (id, timestamp)
 ) PARTITION BY RANGE (timestamp);
 
+CREATE TABLE IF NOT EXISTS user_logs_2023 PARTITION OF user_logs
+    FOR VALUES FROM ('2023-01-01') TO ('2023-12-31');
+
+CREATE TABLE IF NOT EXISTS user_logs_2024 PARTITION OF user_logs
+    FOR VALUES FROM ('2024-01-01') TO ('2024-12-31');
 CREATE INDEX IF NOT EXISTS idx_user_logs_user_id ON user_logs(user_id);
-
-CREATE TABLE IF NOT EXISTS user_logs_y2023 PARTITION OF user_logs
-FOR VALUES FROM ('2023-01-01') TO ('2024-01-01');
-
-CREATE TABLE IF NOT EXISTS user_logs_y2024 PARTITION OF user_logs
-FOR VALUES FROM ('2024-01-01') TO ('2025-01-01');
-
-CREATE TABLE IF NOT EXISTS user_logs_y2025 PARTITION OF user_logs
-FOR VALUES FROM ('2025-01-01') TO ('2026-01-01');
 
 CREATE TABLE IF NOT EXISTS system_logs (
     id SERIAL PRIMARY KEY,
@@ -102,14 +100,26 @@ CREATE INDEX IF NOT EXISTS idx_last_clips_timestamp ON last_clips(timestamp);
 CREATE INDEX IF NOT EXISTS idx_last_clips_id ON last_clips(id);
 CREATE INDEX IF NOT EXISTS idx_last_clips_chat_id ON last_clips(chat_id);
 
-CREATE TABLE IF NOT EXISTS user_keys (
+CREATE TABLE IF NOT EXISTS user_command_limits (
     id SERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL,
-    key TEXT NOT NULL,
     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX IF NOT EXISTS idx_user_keys_user_id ON user_keys(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_command_limits_user_id ON user_command_limits(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_command_limits_timestamp ON user_command_limits(timestamp);
+
+CREATE TABLE IF NOT EXISTS subscription_keys (
+    id SERIAL PRIMARY KEY,
+    key TEXT UNIQUE NOT NULL,
+    days INT NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_subscription_keys_key ON subscription_keys(key);
+CREATE INDEX IF NOT EXISTS idx_subscription_keys_is_active ON subscription_keys(is_active);
+
 
 CREATE OR REPLACE FUNCTION clean_old_last_clips() RETURNS trigger AS $$
 BEGIN
@@ -183,9 +193,9 @@ BEGIN
     END IF;
 END $$;
 
-CREATE OR REPLACE FUNCTION clean_old_user_keys() RETURNS trigger AS $$
+CREATE OR REPLACE FUNCTION clean_old_user_command_limits() RETURNS trigger AS $$
 BEGIN
-    DELETE FROM user_keys WHERE timestamp < NOW() - INTERVAL '7 days';
+    DELETE FROM user_command_limits WHERE timestamp < NOW() - INTERVAL '24 hours';
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -193,10 +203,10 @@ $$ LANGUAGE plpgsql;
 DO $$
 BEGIN
     IF NOT EXISTS (
-        SELECT 1 FROM pg_trigger WHERE tgname = 'trigger_clean_user_keys'
+        SELECT 1 FROM pg_trigger WHERE tgname = 'trigger_clean_user_command_limits'
     ) THEN
-        CREATE TRIGGER trigger_clean_user_keys
-        AFTER INSERT ON user_keys
-        FOR EACH ROW EXECUTE FUNCTION clean_old_user_keys();
+        CREATE TRIGGER trigger_clean_user_command_limits
+        AFTER INSERT ON user_command_limits
+        FOR EACH ROW EXECUTE FUNCTION clean_old_user_command_limits();
     END IF;
 END $$;

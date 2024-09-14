@@ -22,6 +22,9 @@ class SubscriptionStatusHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ["subskrypcja", "subscription", "sub"]
 
+    async def is_any_validation_failed(self, message: Message) -> bool:
+        return False
+
     async def _do_handle(self, message: Message) -> None:
         subscription_status = await self.__get_subscription_status(message.from_user.id)
 
@@ -34,6 +37,7 @@ class SubscriptionStatusHandler(BotMessageHandler):
 
         await message.answer(response, parse_mode="Markdown")
         await self._log_system_message(logging.INFO, get_log_subscription_status_sent_message(user_name))
+
 
     @staticmethod
     async def __get_subscription_status(user_id: int) -> Optional[Tuple[date, int]]:
