@@ -14,13 +14,12 @@ from bot.responses.bot_message_handler_responses import (
 from bot.responses.sending_videos.select_clip_handler_responses import (
     get_invalid_args_count_message,
     get_invalid_segment_number_message,
-    get_limit_exceeded_clip_duration_message,
     get_log_invalid_segment_number_message,
     get_log_no_previous_search_message,
     get_log_segment_selected_message,
     get_no_previous_search_message,
 )
-from bot.settings import settings
+from bot.utils.functions import check_clip_duration_and_permissions
 from bot.video.clips_extractor import ClipsExtractor
 from bot.video.utils import FFMpegException
 
@@ -46,16 +45,17 @@ class SelectClipHandler(BotMessageHandler):
             return await self.__reply_invalid_segment_number(message, index)
 
         segment = segments[index - 1]
-        start_time = max(0, segment["start"] - settings.EXTEND_BEFORE)
-        end_time = segment["end"] + settings.EXTEND_AFTER
 
-        clip_duration = end_time - start_time
-        if not await DatabaseManager.is_admin_or_moderator(message.from_user.id) and clip_duration > settings.MAX_CLIP_DURATION:
-            await message.answer(get_limit_exceeded_clip_duration_message())
+        result = await check_clip_duration_and_permissions(segment, message)
+        if result is None:
             return
+        start_time, end_time = result
 
         try:
-            await ClipsExtractor.extract_and_send_clip(segment["video_path"], message, self._bot, self._logger, start_time, end_time)
+            await ClipsExtractor.extract_and_send_clip(
+                segment["video_path"], message, self._bot, self._logger,
+                start_time, end_time,
+            )
         except FFMpegException as e:
             return await self.__reply_extraction_failure(message, e)
 
@@ -69,7 +69,10 @@ class SelectClipHandler(BotMessageHandler):
             is_adjusted=False,
         )
 
-        await self._log_system_message(logging.INFO, get_log_segment_selected_message(segment["id"], message.from_user.username))
+        await self._log_system_message(
+            logging.INFO,
+            get_log_segment_selected_message(segment["id"], message.from_user.username),
+        )
 
     async def __reply_no_previous_search(self, message: Message) -> None:
         await message.answer(get_no_previous_search_message())

@@ -1,4 +1,3 @@
-import json
 from typing import (
     Dict,
     List,
@@ -10,10 +9,14 @@ def get_no_quote_provided_message() -> str:
     return "🔎 Podaj cytat, który chcesz znaleźć. Przykład: /transkrypcja Nie szkoda panu tego pięknego gabinetu?"
 
 
-def get_transcription_response(quote: str, result: Dict[str, Union[str, List[Dict[str, str]]]]) -> str:
-    result_json = json.dumps(result)
-    result = json.loads(result_json)
-
+def get_transcription_response(
+    quote: str, result: Dict[
+        str, Union[
+            float,
+            Dict[str, Union[int, Dict[str, Union[int, str]], str]], List[Dict[str, Union[int, str]]],
+        ],
+    ],
+) -> str:
     start_time = float(result["overall_start_time"])
     end_time = float(result["overall_end_time"])
 
@@ -23,8 +26,13 @@ def get_transcription_response(quote: str, result: Dict[str, Union[str, List[Dic
     episode_number = episode_info.get("episode_number")
     episode_title = episode_info.get("title")
 
-    if not isinstance(season, int) or not isinstance(episode_number, int) or not isinstance(episode_title, str):
-        raise TypeError("Invalid type detected in episode_info. Expected types: int for season and episode_number, str for title.")
+    if any(
+            not isinstance(value, expected_type) for value, expected_type in
+            ((season, int), (episode_number, int), (episode_title, str))
+    ):
+        raise TypeError(
+            "Invalid type detected in episode_info. Expected types: int for season and episode_number, str for title.",
+        )
 
     start_minutes, start_seconds = divmod(start_time, 60)
     end_minutes, end_seconds = divmod(end_time, 60)
@@ -41,8 +49,7 @@ def get_transcription_response(quote: str, result: Dict[str, Union[str, List[Dic
 
     response += f"Cytat: \"{quote}\" \n".replace(" ", "\u00A0")
 
-    target_id = int(result['target']['id'])
-
+    target_id = result['target']['id']
     for segment in result["context"]:
         segment_id = int(segment['id'])
         if segment_id == target_id:

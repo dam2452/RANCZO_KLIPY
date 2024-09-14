@@ -1,4 +1,5 @@
 import logging
+from typing import List
 
 from aiogram.types import Message
 
@@ -15,7 +16,7 @@ from bot.responses.not_sending_videos.delete_clip_handler_responses import (
 
 class DeleteClipHandler(BotMessageHandler):
 
-    def get_commands(self) -> list[str]:
+    def get_commands(self) -> List[str]:
         return ["usunklip", "deleteclip", "uk"]
 
     async def _do_handle(self, message: Message) -> None:
@@ -28,7 +29,7 @@ class DeleteClipHandler(BotMessageHandler):
         clip_number = int(content[1])
 
         user_clips = await DatabaseManager.get_saved_clips(message.chat.id)
-        if clip_number < 1 or clip_number > len(user_clips):
+        if clip_number not in range(1, len(user_clips) + 1):
             await message.answer(get_clip_not_exist_message(clip_number))
             await self._log_system_message(logging.INFO, get_log_clip_not_exist_message(clip_number, message.from_user.username))
             return

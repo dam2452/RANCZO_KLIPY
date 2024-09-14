@@ -66,14 +66,6 @@ class FormattedSegmentInfo:
     time_formatted: str
     episode_title: str
 
-
-@dataclass
-class UserMessage:
-    user_id: int
-    key: str
-    timestamp: Optional[datetime] = None
-
-
 @dataclass
 class SubscriptionKey:
     id: int

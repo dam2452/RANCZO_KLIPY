@@ -18,6 +18,7 @@ from bot.responses.not_sending_videos.search_list_handler_responses import (
     get_no_previous_search_results_message,
 )
 
+FILE_NAME_TEMPLATE = "RanczoKlipy_Lista_{sanitized_search_term}.txt"
 
 class SearchListHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
@@ -40,8 +41,13 @@ class SearchListHandler(BotMessageHandler):
 
         response = format_search_list_response(search_term, segments)
         temp_dir = tempfile.gettempdir()
-        sanitized_search_term = "".join([c for c in search_term if c.isalpha() or c.isdigit() or c == " "]).rstrip().replace(" ", "_")
-        file_name = os.path.join(temp_dir, f"RanczoKlipy_Lista_{sanitized_search_term}.txt")
+
+
+        sanitized_search_term = "".join(
+            [c for c in search_term if c.isalpha() or c.isdigit() or c == " "],
+        ).rstrip().replace(" ", "_")
+
+        file_name = os.path.join(temp_dir, FILE_NAME_TEMPLATE.format(sanitized_search_term=sanitized_search_term))
 
         with open(file_name, "w", encoding="utf-8") as file:
             file.write(response)

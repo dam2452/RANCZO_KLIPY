@@ -16,9 +16,7 @@ from bot.database.database_manager import DatabaseManager
 from bot.responses.bot_message_handler_responses import (
     get_general_error_message,
     get_invalid_args_count_message,
-    get_limit_exceeded_message,
 )
-from bot.settings import settings
 from bot.utils.log import (
     log_system_message,
     log_user_activity,
@@ -34,15 +32,7 @@ class BotMessageHandler(ABC):
         dp.message.register(self.handle, Command(commands=self.get_commands()))
 
     async def handle(self, message: Message) -> None:
-
         await self._log_user_activity(message.from_user.id, message.text)
-
-        if (
-            not await DatabaseManager.is_admin_or_moderator(message.from_user.id)
-            and await DatabaseManager.is_command_limited(message.from_user.id, settings.MESSAGE_LIMIT, settings.LIMIT_DURATION)
-        ):
-            await message.answer(get_limit_exceeded_message())
-            return
 
         try:
             await self._do_handle(message)

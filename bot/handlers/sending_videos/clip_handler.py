@@ -12,7 +12,6 @@ from bot.responses.bot_message_handler_responses import (
     get_log_no_segments_found_message,
 )
 from bot.responses.sending_videos.clip_handler_responses import (
-    get_limit_exceeded_clip_duration_message,
     get_log_clip_success_message,
     get_log_segment_saved_message,
     get_message_too_long_message,
@@ -21,6 +20,7 @@ from bot.responses.sending_videos.clip_handler_responses import (
 )
 from bot.search.transcription_finder import TranscriptionFinder
 from bot.settings import settings
+from bot.utils.functions import check_clip_duration_and_permissions
 from bot.video.clips_extractor import ClipsExtractor
 from bot.video.utils import FFMpegException
 
@@ -44,16 +44,12 @@ class ClipHandler(BotMessageHandler):
 
         if not segments:
             return await self.__reply_no_segments_found(message, quote)
-        # pylint: disable=duplicate-code
         segment = segments[0] if isinstance(segments, list) else segments
-        start_time = max(0, segment["start"] - settings.EXTEND_BEFORE)
-        end_time = segment["end"] + settings.EXTEND_AFTER
 
-        clip_duration = end_time - start_time
-        if not await DatabaseManager.is_admin_or_moderator(message.from_user.id) and clip_duration > settings.MAX_CLIP_DURATION:
-            await message.answer(get_limit_exceeded_clip_duration_message())
+        result = await check_clip_duration_and_permissions(segment, message)
+        if result is None:
             return
-        # pylint: enable=duplicate-code
+        start_time, end_time = result
 
         try:
             await ClipsExtractor.extract_and_send_clip(segment["video_path"], message, self._bot, self._logger, start_time, end_time)
