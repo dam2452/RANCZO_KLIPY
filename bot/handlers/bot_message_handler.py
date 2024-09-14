@@ -66,3 +66,6 @@ class BotMessageHandler(ABC):
     @abstractmethod
     async def _do_handle(self, message: Message) -> None:
         pass
+    @abstractmethod
+    async def is_any_validation_failed(self, message: Message) -> bool:
+        pass

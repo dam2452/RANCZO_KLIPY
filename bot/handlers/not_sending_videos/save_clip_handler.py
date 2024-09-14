@@ -2,6 +2,9 @@ import json
 import logging
 import tempfile
 from typing import (
+    Awaitable,
+    Callable,
+    Dict,
     List,
     Optional,
     Tuple,
@@ -37,7 +40,7 @@ class SaveClipHandler(BotMessageHandler):
         return ["zapisz", "save", "z"]
 
     async def _do_handle(self, message: Message) -> None:
-        if await self.__is_any_validation_failed(message):
+        if await self.is_any_validation_failed(message):
             return
 
         clip_name = " ".join(message.text.split()[1:])
@@ -67,39 +70,98 @@ class SaveClipHandler(BotMessageHandler):
         await self.__reply_clip_saved_successfully(message, clip_name)
 
     async def __prepare_clip(self, last_clip: LastClip) -> Tuple[str, float, float, bool, Optional[int], Optional[int]]:
-        segment_dict = json.loads(last_clip.segment)
-        episode_info = segment_dict.get("episode_info", {})
-        season = episode_info.get("season")
-        episode_number = episode_info.get("episode_number")
+        segment_dict: Dict[str, any] = json.loads(last_clip.segment)
+        episode_info: Dict[str, Optional[int]] = segment_dict.get("episode_info", {})
+        season: Optional[int] = episode_info.get("season")
+        episode_number: Optional[int] = episode_info.get("episode_number")
 
         with tempfile.NamedTemporaryFile(delete=False, delete_on_close=False, suffix=".mp4") as tmp_file:
-            output_filename = tmp_file.name
+            output_filename: str = tmp_file.name
 
-        if last_clip.clip_type == ClipType.COMPILED:
-            output_filename = self.__bytes_to_filepath(last_clip.compiled_clip)
-            is_compilation = True
-            return output_filename.replace(" ", "_"), 0.0, 0.0, is_compilation, None, None
+        clip_handlers: Dict[
+            ClipType, Callable[[], Awaitable[Tuple[str, float, float, bool, Optional[int], Optional[int]]]],
+        ] = {
+            ClipType.COMPILED: lambda: self.__handle_compiled_clip(last_clip),
+            ClipType.ADJUSTED: lambda: self.__handle_adjusted_clip(
+                last_clip, segment_dict, output_filename, season,
+                episode_number,
+            ),
+            ClipType.MANUAL: lambda: self.__handle_manual_clip(
+                segment_dict, output_filename, season,
+                episode_number,
+            ),
+            ClipType.SELECTED: lambda: self.__handle_selected_clip(
+                last_clip, segment_dict, output_filename, season,
+                episode_number,
+            ),
+            ClipType.SINGLE: lambda: self.__handle_single_clip(
+                last_clip, segment_dict, output_filename, season,
+                episode_number,
+            ),
+        }
 
-        if last_clip.clip_type == ClipType.ADJUSTED:
-            await ClipsExtractor.extract_clip(
-                segment_dict.get("video_path"), last_clip.adjusted_start_time, last_clip.adjusted_end_time,
-                output_filename, self._logger,
-            )
-            return output_filename, last_clip.adjusted_start_time, last_clip.adjusted_end_time, False, season, episode_number
+        if last_clip.clip_type in clip_handlers:
+            return await clip_handlers[last_clip.clip_type]()
+        raise ValueError(f"Unsupported clip type: {last_clip.clip_type}")
+    async def __handle_compiled_clip(self, last_clip: LastClip) -> Tuple[str, float, float, bool, None, None]:
+        output_filename: str = self.__bytes_to_filepath(last_clip.compiled_clip)
+        return output_filename.replace(" ", "_"), 0.0, 0.0, True, None, None
 
-        if last_clip.clip_type == ClipType.MANUAL:
-            await ClipsExtractor.extract_clip(
-                segment_dict.get("video_path"), segment_dict.get("start"), segment_dict.get("end"), output_filename,
-                self._logger,
-            )
-            return output_filename.replace(" ", "_"), segment_dict.get("start"), segment_dict.get("end"), False, season, episode_number
+    async def __handle_adjusted_clip(
+        self, last_clip: LastClip, segment_dict: Dict[str, any], output_filename: str,
+        season: Optional[int], episode_number: Optional[int],
+    ) -> Tuple[
+        str, float, float, bool, Optional[int], Optional[int],
+    ]:
+        await ClipsExtractor.extract_clip(
+            segment_dict.get("video_path"), last_clip.adjusted_start_time, last_clip.adjusted_end_time,
+            output_filename, self._logger,
+        )
+        return output_filename, last_clip.adjusted_start_time, last_clip.adjusted_end_time, False, season, episode_number
 
-        if last_clip.clip_type in {ClipType.SELECTED, ClipType.SINGLE}:
-            await ClipsExtractor.extract_clip(
-                segment_dict.get("video_path"), last_clip.adjusted_start_time, last_clip.adjusted_end_time, output_filename,
-                self._logger,
-            )
-            return output_filename.replace(" ", "_"), last_clip.adjusted_start_time, last_clip.adjusted_end_time, False, season, episode_number
+    async def __handle_manual_clip(
+        self, segment_dict: Dict[str, any], output_filename: str,
+        season: Optional[int], episode_number: Optional[int],
+    ) -> Tuple[
+        str, float, float, bool, Optional[int], Optional[int],
+    ]:
+        await ClipsExtractor.extract_clip(
+            segment_dict.get("video_path"), segment_dict.get("start"), segment_dict.get("end"), output_filename,
+            self._logger,
+        )
+        return output_filename.replace(" ", "_"), segment_dict.get("start"), segment_dict.get(
+            "end",
+        ), False, season, episode_number
+
+    async def __handle_selected_clip(
+        self, last_clip: LastClip, segment_dict: Dict[str, any], output_filename: str,
+        season: Optional[int], episode_number: Optional[int],
+    ) -> Tuple[
+        str, float, float, bool, Optional[int], Optional[int],
+    ]:
+        await ClipsExtractor.extract_clip(
+            segment_dict.get("video_path"), last_clip.adjusted_start_time, last_clip.adjusted_end_time, output_filename,
+            self._logger,
+        )
+        return output_filename.replace(
+            " ",
+            "_",
+        ), last_clip.adjusted_start_time, last_clip.adjusted_end_time, False, season, episode_number
+
+    async def __handle_single_clip(
+        self, last_clip: LastClip, segment_dict: Dict[str, any], output_filename: str,
+        season: Optional[int], episode_number: Optional[int],
+    ) -> Tuple[
+        str, float, float, bool, Optional[int], Optional[int],
+    ]:
+        await ClipsExtractor.extract_clip(
+            segment_dict.get("video_path"), last_clip.adjusted_start_time, last_clip.adjusted_end_time, output_filename,
+            self._logger,
+        )
+        return output_filename.replace(
+            " ",
+            "_",
+        ), last_clip.adjusted_start_time, last_clip.adjusted_end_time, False, season, episode_number
 
     @staticmethod
     def __bytes_to_filepath(clip_data: bytes) -> str:
@@ -132,7 +194,7 @@ class SaveClipHandler(BotMessageHandler):
             get_log_clip_saved_successfully_message(clip_name, message.from_user.username),
         )
 
-    async def __is_any_validation_failed(self, message: Message) -> bool:
+    async def is_any_validation_failed(self, message: Message) -> bool:
         content = message.text.split()
         if len(content) < 2:
             await self._reply_invalid_args_count(message, get_clip_name_not_provided_message())
