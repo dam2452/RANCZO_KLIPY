@@ -68,4 +68,9 @@ class SearchListHandler(BotMessageHandler):
 
     @staticmethod
     def __sanitize_search_term(search_term: str) -> str:
-        return "".join([c for c in search_term if c.isalpha() or c.isdigit() or c == " "]).rstrip().replace(" ", "_")
+        allowed_characters = [c.isalpha() or c.isdigit() or c == " " for c in search_term]
+        filtered_chars = [c for c, allowed in zip(search_term, allowed_characters) if allowed]
+        filtered_string = "".join(filtered_chars)
+        stripped_string = filtered_string.rstrip()
+        sanitized_string = stripped_string.replace(" ", "_")
+        return sanitized_string
