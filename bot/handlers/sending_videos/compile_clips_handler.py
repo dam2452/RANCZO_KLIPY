@@ -14,7 +14,6 @@ from bot.database.database_manager import DatabaseManager
 from bot.database.models import ClipType
 from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.responses.sending_videos.compile_clips_handler_responses import (
-    get_clip_time_message,
     get_compilation_success_message,
     get_invalid_args_count_message,
     get_invalid_index_message,
@@ -42,7 +41,7 @@ class CompileClipsHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ["kompiluj", "compile", "kom"]
 
-    #pylint: disable=R0801
+    # pylint: disable=duplicate-code
     def _get_validator_functions(self) -> List[Callable[[Message], Awaitable[bool]]]:
         return [
             self._validate_argument_count,
@@ -53,7 +52,7 @@ class CompileClipsHandler(BotMessageHandler):
             message, 2, self._reply_invalid_args_count,
             get_invalid_args_count_message(),
         )
-    #pylint: enable=R0801
+    # pylint: enable=duplicate-code
 
     async def _do_handle(self, message: Message) -> None:
         content = message.text.split()
@@ -83,8 +82,7 @@ class CompileClipsHandler(BotMessageHandler):
             )
             await self._log_system_message(logging.INFO, f"Total duration: {total_duration}")
 
-        if not await DatabaseManager.is_admin_or_moderator(message.from_user.id) and total_duration > settings.MAX_CLIP_DURATION:
-            await message.answer(get_clip_time_message())
+        if await self.handle_clip_duration_limit_exceeded(message, total_duration):
             return
 
         compiled_output = await ClipsCompiler.compile_and_send_clips(message, selected_segments, self._bot, self._logger)

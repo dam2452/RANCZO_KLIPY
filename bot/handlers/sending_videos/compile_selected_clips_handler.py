@@ -12,14 +12,11 @@ from bot.database.database_manager import DatabaseManager
 from bot.database.models import ClipType
 from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.responses.sending_videos.compile_selected_clips_handler_responses import (
-    get_clip_time_message,
     get_compiled_clip_sent_message,
     get_invalid_args_count_message,
     get_log_no_matching_clips_found_message,
-    get_max_clips_exceeded_message,
     get_no_matching_clips_found_message,
 )
-from bot.settings import settings
 from bot.utils.functions import validate_argument_count
 from bot.video.clips_compiler import (
     ClipsCompiler,
@@ -78,7 +75,7 @@ class CompileSelectedClipsHandler(BotMessageHandler):
 
         total_duration = sum(clip.duration for clip in selected_clips)
 
-        if not await self._check_clip_limits(message, total_duration, selected_segments):
+        if await self.handle_clip_duration_limit_exceeded(message, total_duration):
             return
 
         compiled_output = await ClipsCompiler.compile_and_send_clips(message, selected_segments, self._bot, self._logger)
@@ -89,16 +86,3 @@ class CompileSelectedClipsHandler(BotMessageHandler):
     async def __reply_no_matching_clips_found(self, message: Message) -> None:
         await message.answer(get_no_matching_clips_found_message())
         await self._log_system_message(logging.INFO, get_log_no_matching_clips_found_message())
-    @staticmethod
-    async def _check_clip_limits(message: Message, total_duration: float, selected_segments: List[dict]) -> bool:
-        is_admin_or_moderator = await DatabaseManager.is_admin_or_moderator(message.from_user.id)
-
-        if not is_admin_or_moderator:
-            if total_duration > settings.MAX_CLIP_DURATION:
-                await message.answer(get_clip_time_message())
-                return False
-            if len(selected_segments) > settings.MAX_CLIPS_PER_COMPILATION:
-                await message.answer(get_max_clips_exceeded_message())
-                return False
-
-        return True

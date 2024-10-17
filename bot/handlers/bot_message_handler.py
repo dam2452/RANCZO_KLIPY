@@ -21,6 +21,8 @@ from bot.responses.bot_message_handler_responses import (
     get_general_error_message,
     get_invalid_args_count_message,
 )
+from bot.responses.sending_videos.manual_clip_handler_responses import get_limit_exceeded_clip_duration_message
+from bot.settings import settings
 from bot.utils.log import (
     log_system_message,
     log_user_activity,
@@ -81,3 +83,8 @@ class BotMessageHandler(ABC):
     @abstractmethod
     def _get_validator_functions(self) -> List[Callable[[Message], Awaitable[bool]]]:
         return []
+    async def handle_clip_duration_limit_exceeded(self, message: Message, clip_duration: float) -> bool:
+        if not await DatabaseManager.is_admin_or_moderator(message.from_user.id) and clip_duration > settings.MAX_CLIP_DURATION:
+            await self._answer_markdown(message, get_limit_exceeded_clip_duration_message())
+            return True
+        return False

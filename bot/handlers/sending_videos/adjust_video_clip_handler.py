@@ -23,7 +23,6 @@ from bot.responses.sending_videos.adjust_video_clip_handler_responses import (
     get_invalid_interval_message,
     get_invalid_segment_index_message,
     get_invalid_segment_log,
-    get_max_clip_duration_message,
     get_max_extension_limit_message,
     get_no_previous_searches_log,
     get_no_previous_searches_message,
@@ -100,8 +99,7 @@ class AdjustVideoClipHandler(BotMessageHandler):
         start_time = max(0.0, original_start_time - additional_start_offset - settings.EXTEND_BEFORE)
         end_time = min(original_end_time + additional_end_offset + settings.EXTEND_AFTER, await get_video_duration(segment_info.get("video_path")))
 
-        if not await DatabaseManager.is_admin_or_moderator(message.from_user.id) and end_time - start_time > settings.MAX_CLIP_DURATION:
-            await message.answer(get_max_clip_duration_message())
+        if await self.handle_clip_duration_limit_exceeded(message, end_time - start_time):
             return
 
         try:

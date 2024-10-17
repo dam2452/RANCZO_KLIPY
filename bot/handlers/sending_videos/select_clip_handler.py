@@ -23,10 +23,8 @@ from bot.responses.sending_videos.select_clip_handler_responses import (
     get_log_segment_selected_message,
     get_no_previous_search_message,
 )
-from bot.utils.functions import (
-    check_clip_duration_and_permissions,
-    validate_argument_count,
-)
+from bot.settings import settings
+from bot.utils.functions import validate_argument_count
 from bot.video.clips_extractor import ClipsExtractor
 from bot.video.utils import FFMpegException
 
@@ -35,7 +33,7 @@ class SelectClipHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ["wybierz", "select", "w"]
 
-    # pylint: disable=R0801
+    # pylint: disable=duplicate-code
     def _get_validator_functions(self) -> List[Callable[[Message], Awaitable[bool]]]:
         return [
             self._validate_argument_count,
@@ -47,7 +45,7 @@ class SelectClipHandler(BotMessageHandler):
             get_invalid_args_count_message(),
         )
 
-    # pylint: enable=R0801
+    # pylint: enable=duplicate-code
     async def _do_handle(self, message: Message) -> None:
         content = message.text.split()
 
@@ -63,10 +61,11 @@ class SelectClipHandler(BotMessageHandler):
 
         segment = segments[index - 1]
 
-        result = await check_clip_duration_and_permissions(segment, message)
-        if result is None:
+        start_time = max(0, segment["start"] - settings.EXTEND_BEFORE)
+        end_time = segment["end"] + settings.EXTEND_AFTER
+
+        if await self.handle_clip_duration_limit_exceeded(message, end_time - start_time):
             return
-        start_time, end_time = result
 
         try:
             await ClipsExtractor.extract_and_send_clip(
