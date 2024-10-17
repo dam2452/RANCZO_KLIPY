@@ -73,3 +73,21 @@ class SubscriptionKey:
     days: int
     is_active: bool
     timestamp: Optional[datetime] = None
+
+@dataclass
+class ClipInfo:
+    output_filename: str
+    start_time: float
+    end_time: float
+    is_compilation: bool
+    season: Optional[int]
+    episode_number: Optional[int]
+
+@dataclass
+class ClipPreparationResult:
+    output_filename: str
+    start_time: float
+    end_time: float
+    is_compilation: bool
+    season: Optional[int]
+    episode_number: Optional[int]
