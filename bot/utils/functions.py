@@ -110,17 +110,6 @@ def format_user_list(users: List[UserProfile], title: str) -> str:
     response += "```\n" + "\n\n".join(user_lines) + "\n```"
     return response
 
-# async def check_clip_duration_and_permissions(segment: dict, message: Message) -> Optional[tuple]:
-#     start_time = max(0, segment["start"] - settings.EXTEND_BEFORE)
-#     end_time = segment["end"] + settings.EXTEND_AFTER
-#
-#     clip_duration = end_time - start_time
-#     if not await DatabaseManager.is_admin_or_moderator(message.from_user.id) and clip_duration > settings.MAX_CLIP_DURATION:
-#         await message.answer(get_limit_exceeded_clip_duration_message())
-#         return None
-#
-#     return start_time, end_time
-
 async def validate_argument_count(
     message: Message, min_args: int, reply_invalid_args: Callable[[Message, str], Awaitable[None]], error_message: str,
 ) -> bool:
