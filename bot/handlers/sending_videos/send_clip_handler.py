@@ -1,7 +1,11 @@
 import logging
 import os
 import tempfile
-from typing import List
+from typing import (
+    Awaitable,
+    Callable,
+    List,
+)
 
 from aiogram.types import Message
 
@@ -26,12 +30,17 @@ class SendClipHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ["wyślij", "wyslij", "send", "wys"]
 
-    async def is_any_validation_failed(self, message: Message) -> bool:
+    def _get_validator_functions(self) -> List[Callable[[Message], Awaitable[bool]]]:
+        return [
+            self._validate_argument_count,
+        ]
+
+    async def _validate_argument_count(self, message: Message) -> bool:
         content = message.text.split()
         if len(content) < 2:
             await self._reply_invalid_args_count(message, get_give_clip_name_message())
-            return True
-        return False
+            return False
+        return True
 
     async def _do_handle(self, message: Message) -> None:
         content = message.text.split()

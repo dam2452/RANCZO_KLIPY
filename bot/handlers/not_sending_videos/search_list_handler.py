@@ -2,7 +2,11 @@ import json
 import logging
 import os
 import tempfile
-from typing import List
+from typing import (
+    Awaitable,
+    Callable,
+    List,
+)
 
 from aiogram.types import (
     FSInputFile,
@@ -24,12 +28,17 @@ class SearchListHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ["lista", "list", "l"]
 
-    async def is_any_validation_failed(self, message: Message) -> bool:
+    def _get_validator_functions(self) -> List[Callable[[Message], Awaitable[bool]]]:
+        return [
+            self._validate_last_search_exists,
+        ]
+
+    async def _validate_last_search_exists(self, message: Message) -> bool:
         last_search = await DatabaseManager.get_last_search_by_chat_id(message.chat.id)
         if not last_search:
             await self.__reply_no_previous_search_results(message)
-            return True
-        return False
+            return False
+        return True
 
     async def _do_handle(self, message: Message) -> None:
         last_search = await DatabaseManager.get_last_search_by_chat_id(message.chat.id)

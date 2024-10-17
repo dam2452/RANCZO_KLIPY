@@ -1,6 +1,10 @@
 import logging
 import tempfile
-from typing import List
+from typing import (
+    Awaitable,
+    Callable,
+    List,
+)
 
 from aiogram.types import Message
 
@@ -16,6 +20,7 @@ from bot.responses.sending_videos.compile_selected_clips_handler_responses impor
     get_no_matching_clips_found_message,
 )
 from bot.settings import settings
+from bot.utils.functions import validate_argument_count
 from bot.video.clips_compiler import (
     ClipsCompiler,
     process_compiled_clip,
@@ -31,12 +36,14 @@ class CompileSelectedClipsHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ["połączklipy", "polaczklipy", "concatclips", "pk"]
 
-    async def is_any_validation_failed(self, message: Message) -> bool:
-        content = message.text.split()
-        if len(content) < 2:
-            await self._reply_invalid_args_count(message, get_invalid_args_count_message())
-            return True
-        return False
+    def _get_validator_functions(self) -> List[Callable[[Message], Awaitable[bool]]]:
+        return [
+            self._validate_argument_count,
+        ]
+
+    async def _validate_argument_count(self, message: Message) -> bool:
+        return await validate_argument_count(message, 2, self._reply_invalid_args_count, get_invalid_args_count_message())
+
 
     async def _do_handle(self, message: Message) -> None:
         content = message.text.split()
@@ -70,15 +77,9 @@ class CompileSelectedClipsHandler(BotMessageHandler):
             })
 
         total_duration = sum(clip.duration for clip in selected_clips)
-        is_admin_or_moderator = await DatabaseManager.is_admin_or_moderator(message.from_user.id)
 
-        if not is_admin_or_moderator:
-            if total_duration > settings.MAX_CLIP_DURATION:
-                await message.answer(get_clip_time_message())
-                return
-            if len(selected_segments) > settings.MAX_CLIPS_PER_COMPILATION:
-                await message.answer(get_max_clips_exceeded_message())
-                return
+        if not await self._check_clip_limits(message, total_duration, selected_segments):
+            return
 
         compiled_output = await ClipsCompiler.compile_and_send_clips(message, selected_segments, self._bot, self._logger)
         await process_compiled_clip(message, compiled_output, ClipType.COMPILED)
@@ -88,3 +89,16 @@ class CompileSelectedClipsHandler(BotMessageHandler):
     async def __reply_no_matching_clips_found(self, message: Message) -> None:
         await message.answer(get_no_matching_clips_found_message())
         await self._log_system_message(logging.INFO, get_log_no_matching_clips_found_message())
+    @staticmethod
+    async def _check_clip_limits(message: Message, total_duration: float, selected_segments: List[dict]) -> bool:
+        is_admin_or_moderator = await DatabaseManager.is_admin_or_moderator(message.from_user.id)
+
+        if not is_admin_or_moderator:
+            if total_duration > settings.MAX_CLIP_DURATION:
+                await message.answer(get_clip_time_message())
+                return False
+            if len(selected_segments) > settings.MAX_CLIPS_PER_COMPILATION:
+                await message.answer(get_max_clips_exceeded_message())
+                return False
+
+        return True

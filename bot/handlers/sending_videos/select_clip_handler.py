@@ -1,6 +1,10 @@
 import json
 import logging
-from typing import List
+from typing import (
+    Awaitable,
+    Callable,
+    List,
+)
 
 from aiogram.types import Message
 
@@ -19,7 +23,10 @@ from bot.responses.sending_videos.select_clip_handler_responses import (
     get_log_segment_selected_message,
     get_no_previous_search_message,
 )
-from bot.utils.functions import check_clip_duration_and_permissions
+from bot.utils.functions import (
+    check_clip_duration_and_permissions,
+    validate_argument_count,
+)
 from bot.video.clips_extractor import ClipsExtractor
 from bot.video.utils import FFMpegException
 
@@ -28,13 +35,19 @@ class SelectClipHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ["wybierz", "select", "w"]
 
-    async def is_any_validation_failed(self, message: Message) -> bool:
-        content = message.text.split()
-        if len(content) < 2:
-            await self._reply_invalid_args_count(message, get_invalid_args_count_message())
-            return True
-        return False
+    # pylint: disable=R0801
+    def _get_validator_functions(self) -> List[Callable[[Message], Awaitable[bool]]]:
+        return [
+            self._validate_argument_count,
+        ]
 
+    async def _validate_argument_count(self, message: Message) -> bool:
+        return await validate_argument_count(
+            message, 2, self._reply_invalid_args_count,
+            get_invalid_args_count_message(),
+        )
+
+    # pylint: enable=R0801
     async def _do_handle(self, message: Message) -> None:
         content = message.text.split()
 

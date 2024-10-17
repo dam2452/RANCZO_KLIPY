@@ -1,5 +1,9 @@
 import logging
-from typing import List
+from typing import (
+    Awaitable,
+    Callable,
+    List,
+)
 
 from aiogram.types import Message
 
@@ -19,12 +23,18 @@ class DeleteClipHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ["usunklip", "deleteclip", "uk"]
 
-    async def is_any_validation_failed(self, message: Message) -> bool:
+    def _get_validator_functions(self) -> List[Callable[[Message], Awaitable[bool]]]:
+        return [
+            self._validate_argument_count_and_format,
+        ]
+
+    @staticmethod
+    async def _validate_argument_count_and_format(message: Message) -> bool:
         content = message.text.split()
         if len(content) < 2 or not content[1].isdigit():
             await message.answer(get_invalid_args_count_message())
-            return True
-        return False
+            return False
+        return True
 
     async def _do_handle(self, message: Message) -> None:
         clip_number = int(message.text.split()[1])

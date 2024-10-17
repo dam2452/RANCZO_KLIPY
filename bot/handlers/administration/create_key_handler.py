@@ -1,4 +1,8 @@
-from typing import List
+from typing import (
+    Awaitable,
+    Callable,
+    List,
+)
 
 from aiogram.types import Message
 
@@ -14,12 +18,18 @@ class CreateKeyHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ["addkey", "addk"]
 
-    async def is_any_validation_failed(self, message: Message) -> bool:
+    def _get_validator_functions(self) -> List[Callable[[Message], Awaitable[bool]]]:
+        return [
+            self._validate_argument_count,
+        ]
+
+    @staticmethod
+    async def _validate_argument_count(message: Message) -> bool:
         args = message.text.split()
         if len(args) < 3:
             await message.answer(get_create_key_usage_message())
-            return True
-        return False
+            return False
+        return True
 
     async def _do_handle(self, message: Message) -> None:
         args = message.text.split()

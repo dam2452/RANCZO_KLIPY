@@ -1,6 +1,10 @@
 import json
 import logging
-from typing import List
+from typing import (
+    Awaitable,
+    Callable,
+    List,
+)
 
 from aiogram.types import Message
 
@@ -18,24 +22,32 @@ from bot.responses.not_sending_videos.search_handler_responses import (
 )
 from bot.search.transcription_finder import TranscriptionFinder
 from bot.settings import settings
+from bot.utils.functions import validate_argument_count
 
 
 class SearchHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ["szukaj", "search", "sz"]
 
-    async def is_any_validation_failed(self, message: Message) -> bool:
-        content = message.text.split()
-        if len(content) < 2:
-            await self._reply_invalid_args_count(message, get_invalid_args_count_message())
-            return True
+    def _get_validator_functions(self) -> List[Callable[[Message], Awaitable[bool]]]:
+        return [
+            self._validate_argument_count,
+            self._validate_quote_length,
+        ]
 
-        quote = " ".join(content[1:])
+    async def _validate_argument_count(self, message: Message) -> bool:
+        return await validate_argument_count(
+            message, 2, self._reply_invalid_args_count,
+            get_invalid_args_count_message(),
+        )
+
+    @staticmethod
+    async def _validate_quote_length(message: Message) -> bool:
+        quote = " ".join(message.text.split()[1:])
         if not await DatabaseManager.is_admin_or_moderator(message.from_user.id) and len(quote) > settings.MAX_SEARCH_QUERY_LENGTH:
             await message.answer(get_message_too_long_message())
-            return True
-
-        return False
+            return False
+        return True
 
     async def _do_handle(self, message: Message) -> None:
         quote = " ".join(message.text.split()[1:])

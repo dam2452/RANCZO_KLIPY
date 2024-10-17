@@ -1,5 +1,9 @@
 import logging
-from typing import List
+from typing import (
+    Awaitable,
+    Callable,
+    List,
+)
 
 from aiogram.types import Message
 
@@ -10,18 +14,23 @@ from bot.responses.administration.remove_subscription_handler_responses import (
     get_no_username_provided_message,
     get_subscription_removed_message,
 )
+from bot.utils.functions import validate_argument_count
 
 
 class RemoveSubscriptionHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ["removesubscription", "rmsub"]
 
-    async def is_any_validation_failed(self, message: Message) -> bool:
-        content = message.text.split()
-        if len(content) < 2:
-            await self._reply_invalid_args_count(message, get_no_username_provided_message())
-            return True
-        return False
+    def _get_validator_functions(self) -> List[Callable[[Message], Awaitable[bool]]]:
+        return [
+            self._validate_argument_count,
+        ]
+
+    async def _validate_argument_count(self, message: Message) -> bool:
+        return await validate_argument_count(
+            message, 2, self._reply_invalid_args_count,
+            get_no_username_provided_message(),
+        )
 
     async def _do_handle(self, message: Message) -> None:
         username = message.text.split()[1]

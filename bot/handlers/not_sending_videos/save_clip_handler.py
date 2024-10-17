@@ -41,10 +41,53 @@ class SaveClipHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ["zapisz", "save", "z"]
 
-    async def _do_handle(self, message: Message) -> None:
-        if await self.is_any_validation_failed(message):
-            return
+    def _get_validator_functions(self) -> List[Callable[[Message], Awaitable[bool]]]:
+        return [
+            self._validate_clip_name_provided,
+            self._validate_clip_name_length,
+            self._validate_clip_name_unique,
+            self._validate_clip_limit_not_exceeded,
+            self._validate_last_clip_exists,
+        ]
 
+    async def _validate_clip_name_provided(self, message: Message) -> bool:
+        content = message.text.split()
+        if len(content) < 2:
+            await self._reply_invalid_args_count(message, get_clip_name_not_provided_message())
+            return False
+        return True
+    @staticmethod
+    async def _validate_clip_name_length(message: Message) -> bool:
+        clip_name = " ".join(message.text.split()[1:])
+        if len(clip_name) > settings.MAX_CLIP_NAME_LENGTH:
+            await message.answer(get_clip_name_length_exceeded_message())
+            return False
+        return True
+
+    async def _validate_clip_name_unique(self, message: Message) -> bool:
+        clip_name = " ".join(message.text.split()[1:])
+        if not await DatabaseManager.is_clip_name_unique(message.chat.id, clip_name):
+            await self.__reply_clip_name_exists(message, clip_name)
+            return False
+        return True
+
+    @staticmethod
+    async def _validate_clip_limit_not_exceeded(message: Message) -> bool:
+        if (
+            not await DatabaseManager.is_admin_or_moderator(message.from_user.id) and
+            await DatabaseManager.get_user_clip_count(message.chat.id) >= settings.MAX_CLIPS_PER_USER
+        ):
+            await message.answer(get_clip_limit_exceeded_message())
+            return False
+        return True
+
+    async def _validate_last_clip_exists(self, message: Message) -> bool:
+        last_clip = await DatabaseManager.get_last_clip_by_chat_id(message.chat.id)
+        if not last_clip:
+            await self.__reply_no_segment_selected(message)
+            return False
+        return True
+    async def _do_handle(self, message: Message) -> None:
         clip_name = " ".join(message.text.split()[1:])
         last_clip = await DatabaseManager.get_last_clip_by_chat_id(message.chat.id)
         output_filename, start_time, end_time, is_compilation, season, episode_number = await self.__prepare_clip(
@@ -204,37 +247,3 @@ class SaveClipHandler(BotMessageHandler):
             logging.INFO,
             get_log_clip_saved_successfully_message(clip_name, message.from_user.username),
         )
-
-    async def is_any_validation_failed(self, message: Message) -> bool:
-        content = message.text.split()
-        if len(content) < 2:
-            await self._reply_invalid_args_count(message, get_clip_name_not_provided_message())
-            return True
-
-        clip_name = " ".join(content[1:])
-
-        if len(clip_name) > settings.MAX_CLIP_NAME_LENGTH:
-            await message.answer(get_clip_name_length_exceeded_message())
-            return True
-
-        if not clip_name:
-            await self._reply_invalid_args_count(message, get_clip_name_not_provided_message())
-            return True
-
-        if not await DatabaseManager.is_clip_name_unique(message.chat.id, clip_name):
-            await self.__reply_clip_name_exists(message, clip_name)
-            return True
-
-        if (
-                not await DatabaseManager.is_admin_or_moderator(message.from_user.id) and
-                await DatabaseManager.get_user_clip_count(message.chat.id) >= settings.MAX_CLIPS_PER_USER
-        ):
-            await message.answer(get_clip_limit_exceeded_message())
-            return True
-
-        last_clip = await DatabaseManager.get_last_clip_by_chat_id(message.chat.id)
-        if not last_clip:
-            await self.__reply_no_segment_selected(message)
-            return True
-
-        return False

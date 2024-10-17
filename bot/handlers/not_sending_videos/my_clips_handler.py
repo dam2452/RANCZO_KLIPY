@@ -1,5 +1,9 @@
 import logging
-from typing import List
+from typing import (
+    Awaitable,
+    Callable,
+    List,
+)
 
 from aiogram.types import Message
 
@@ -17,8 +21,8 @@ class MyClipsHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ["mojeklipy", "myclips", "mk"]
 
-    async def is_any_validation_failed(self, message: Message) -> bool:
-        return False
+    def _get_validator_functions(self) -> List[Callable[[Message], Awaitable[bool]]]:
+        return []
     async def _do_handle(self, message: Message) -> None:
         clips = await DatabaseManager.get_saved_clips(message.from_user.id)
         if not clips:

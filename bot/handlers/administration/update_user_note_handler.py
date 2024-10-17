@@ -1,5 +1,9 @@
 import logging
-from typing import List
+from typing import (
+    Awaitable,
+    Callable,
+    List,
+)
 
 from aiogram.types import Message
 
@@ -19,18 +23,26 @@ class UpdateUserNoteHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ["note"]
 
-    async def is_any_validation_failed(self, message: Message) -> bool:
+    def _get_validator_functions(self) -> List[Callable[[Message], Awaitable[bool]]]:
+        return [
+            self._validate_note_content,
+            self._validate_user_id,
+        ]
+
+
+    async def _validate_note_content(self, message: Message) -> bool:
         note_content = message.text.split(maxsplit=2)
         if len(note_content) < 3:
             await self.__reply_no_note_provided(message)
-            return True
+            return False
+        return True
 
-        user_id_str = note_content[1]
+    async def _validate_user_id(self, message: Message) -> bool:
+        user_id_str = message.text.split(maxsplit=2)[1]
         if not user_id_str.isdigit():
             await self.__reply_invalid_user_id(message, user_id_str)
-            return True
-
-        return False
+            return False
+        return True
 
     async def _do_handle(self, message: Message) -> None:
         note_content = message.text.split(maxsplit=2)

@@ -1,6 +1,8 @@
 import json
 import logging
 from typing import (
+    Awaitable,
+    Callable,
     Dict,
     List,
     Union,
@@ -24,6 +26,7 @@ from bot.responses.sending_videos.compile_clips_handler_responses import (
     get_no_previous_search_results_message,
 )
 from bot.settings import settings
+from bot.utils.functions import validate_argument_count
 from bot.video.clips_compiler import (
     ClipsCompiler,
     process_compiled_clip,
@@ -39,12 +42,18 @@ class CompileClipsHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ["kompiluj", "compile", "kom"]
 
-    async def is_any_validation_failed(self, message: Message) -> bool:
-        content = message.text.split()
-        if len(content) < 2:
-            await self._reply_invalid_args_count(message, get_invalid_args_count_message())
-            return True
-        return False
+    #pylint: disable=R0801
+    def _get_validator_functions(self) -> List[Callable[[Message], Awaitable[bool]]]:
+        return [
+            self._validate_argument_count,
+        ]
+
+    async def _validate_argument_count(self, message: Message) -> bool:
+        return await validate_argument_count(
+            message, 2, self._reply_invalid_args_count,
+            get_invalid_args_count_message(),
+        )
+    #pylint: enable=R0801
 
     async def _do_handle(self, message: Message) -> None:
         content = message.text.split()

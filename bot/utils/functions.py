@@ -1,5 +1,7 @@
 import json
 from typing import (
+    Awaitable,
+    Callable,
     Dict,
     List,
     Optional,
@@ -124,3 +126,12 @@ async def check_clip_duration_and_permissions(segment: dict, message: Message) -
         return None
 
     return start_time, end_time
+
+async def validate_argument_count(
+    message: Message, min_args: int, reply_invalid_args: Callable[[Message, str], Awaitable[None]], error_message: str,
+) -> bool:
+    content = message.text.split()
+    if len(content) < min_args:
+        await reply_invalid_args(message, error_message)
+        return False
+    return True

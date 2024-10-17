@@ -1,6 +1,10 @@
 from datetime import date
 import logging
-from typing import List
+from typing import (
+    Awaitable,
+    Callable,
+    List,
+)
 
 from aiogram.types import Message
 
@@ -19,12 +23,25 @@ class AddSubscriptionHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ["addsubscription", "addsub"]
 
-    async def is_any_validation_failed(self, message: Message) -> bool:
+    def _get_validator_functions(self) -> List[Callable[[Message], Awaitable[bool]]]:
+        return [
+            self._validate_argument_count,
+            self._validate_user_id_and_days,
+        ]
+
+    async def _validate_argument_count(self, message: Message) -> bool:
         content = message.text.split()
-        if len(content) < 3 or not content[1].isdigit() or not content[2].isdigit():
+        if len(content) < 3:
             await self._reply_invalid_args_count(message, get_no_user_id_provided_message())
-            return True
-        return False
+            return False
+        return True
+
+    async def _validate_user_id_and_days(self, message: Message) -> bool:
+        content = message.text.split()
+        if not content[1].isdigit() or not content[2].isdigit():
+            await self._reply_invalid_args_count(message, get_no_user_id_provided_message())
+            return False
+        return True
 
     async def _do_handle(self, message: Message) -> None:
         user_id = int(message.text.split()[1])

@@ -1,5 +1,9 @@
 import logging
-from typing import List
+from typing import (
+    Awaitable,
+    Callable,
+    List,
+)
 
 from aiogram.types import Message
 
@@ -19,19 +23,25 @@ class ReportIssueHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ["report", "zgłoś", "zglos", "r"]
 
-    async def is_any_validation_failed(self, message: Message) -> bool:
+    def _get_validator_functions(self) -> List[Callable[[Message], Awaitable[bool]]]:
+        return [
+            self._validate_report_length,
+            self._validate_report_content,
+        ]
+    @staticmethod
+    async def _validate_report_length(message: Message) -> bool:
         report_content = message.text.split(maxsplit=1)
-
         if len(report_content) > settings.MAX_REPORT_LENGTH:
             await message.answer(get_limit_exceeded_report_length_message())
-            return True
+            return False
+        return True
 
+    async def _validate_report_content(self, message: Message) -> bool:
+        report_content = message.text.split(maxsplit=1)
         if len(report_content) < 2:
             await self.__reply_no_report_content(message)
-            return True
-
-        return False
-
+            return False
+        return True
     async def _do_handle(self, message: Message) -> None:
         report_content = message.text.split(maxsplit=1)[1]
         await self.__handle_user_report_submission(message, report_content)

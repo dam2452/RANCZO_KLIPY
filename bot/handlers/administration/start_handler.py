@@ -1,5 +1,6 @@
 import logging
 from typing import (
+    Awaitable,
     Callable,
     Dict,
     List,
@@ -54,8 +55,8 @@ class StartHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ["start", "s", "help", "h", "pomoc"]
 
-    async def is_any_validation_failed(self, message: Message) -> bool:
-        return False
+    def _get_validator_functions(self) -> List[Callable[[Message], Awaitable[bool]]]:
+        return []
 
     async def _do_handle(self, message: Message) -> None:
         content = message.text.split()

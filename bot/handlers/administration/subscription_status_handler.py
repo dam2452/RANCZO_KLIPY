@@ -1,6 +1,8 @@
 from datetime import date
 import logging
 from typing import (
+    Awaitable,
+    Callable,
     List,
     Optional,
     Tuple,
@@ -22,8 +24,8 @@ class SubscriptionStatusHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ["subskrypcja", "subscription", "sub"]
 
-    async def is_any_validation_failed(self, message: Message) -> bool:
-        return False
+    def _get_validator_functions(self) -> List[Callable[[Message], Awaitable[bool]]]:
+        return []
 
     async def _do_handle(self, message: Message) -> None:
         subscription_status = await self.__get_subscription_status(message.from_user.id)

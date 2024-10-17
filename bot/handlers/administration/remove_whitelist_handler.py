@@ -1,5 +1,9 @@
 import logging
-from typing import List
+from typing import (
+    Awaitable,
+    Callable,
+    List,
+)
 
 from aiogram.types import Message
 
@@ -16,12 +20,17 @@ class RemoveWhitelistHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ["removewhitelist", "rmw"]
 
-    async def is_any_validation_failed(self, message: Message) -> bool:
+    def _get_validator_functions(self) -> List[Callable[[Message], Awaitable[bool]]]:
+        return [
+            self._validate_argument_count_and_digit,
+        ]
+
+    async def _validate_argument_count_and_digit(self, message: Message) -> bool:
         content = message.text.split()
         if len(content) < 2 or not content[1].isdigit():
             await self._reply_invalid_args_count(message, get_no_user_id_provided_message())
-            return True
-        return False
+            return False
+        return True
 
     async def _do_handle(self, message: Message) -> None:
         user_id = int(message.text.split()[1])

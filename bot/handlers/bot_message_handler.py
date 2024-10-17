@@ -3,7 +3,11 @@ from abc import (
     abstractmethod,
 )
 import logging
-from typing import List
+from typing import (
+    Awaitable,
+    Callable,
+    List,
+)
 
 from aiogram import (
     Bot,
@@ -35,8 +39,9 @@ class BotMessageHandler(ABC):
         await self._log_user_activity(message.from_user.id, message.text)
 
         try:
-            if await self.is_any_validation_failed(message):
-                return
+            for validator in self._get_validator_functions():
+                if not await validator(message):
+                    return
             await self._do_handle(message)
         except Exception as e:  # pylint: disable=broad-exception-caught
             await message.answer(get_general_error_message())
@@ -68,9 +73,11 @@ class BotMessageHandler(ABC):
     @abstractmethod
     async def _do_handle(self, message: Message) -> None:
         pass
-    @abstractmethod
-    async def is_any_validation_failed(self, message: Message) -> bool:
-        pass
+
     @staticmethod
     async def _answer_markdown(message: Message, text: str) -> None:
         await message.answer(text, parse_mode="Markdown")
+
+    @abstractmethod
+    def _get_validator_functions(self) -> List[Callable[[Message], Awaitable[bool]]]:
+        return []

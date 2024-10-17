@@ -1,5 +1,9 @@
 import logging
-from typing import List
+from typing import (
+    Awaitable,
+    Callable,
+    List,
+)
 
 from aiogram.types import Message
 
@@ -29,20 +33,28 @@ class ClipHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ["klip", "clip", "k"]
 
-    async def is_any_validation_failed(self, message: Message) -> bool:
+    def _get_validator_functions(self) -> List[Callable[[Message], Awaitable[bool]]]:
+        return [
+            self._validate_message_length,
+            self._validate_user_permissions,
+        ]
+
+    async def _validate_message_length(self, message: Message) -> bool:
         content = message.text.split()
         if len(content) < 2:
             await self._reply_invalid_args_count(message, get_no_quote_provided_message())
-            return True
-        return False
+            return False
+        return True
+    @staticmethod
+    async def _validate_user_permissions(message: Message) -> bool:
+        if not await DatabaseManager.is_admin_or_moderator(message.from_user.id) and len(message.text) > settings.MAX_SEARCH_QUERY_LENGTH:
+            await message.answer(get_message_too_long_message())
+            return False
+        return True
 
     async def _do_handle(self, message: Message) -> None:
         content = message.text.split()
         quote = " ".join(content[1:])
-
-        if not await DatabaseManager.is_admin_or_moderator(message.from_user.id) and len(quote) > settings.MAX_SEARCH_QUERY_LENGTH:
-            await message.answer(get_message_too_long_message())
-            return
 
         segments = await TranscriptionFinder.find_segment_by_quote(quote, self._logger, return_all=False)
 
