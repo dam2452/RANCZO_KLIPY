@@ -72,5 +72,5 @@ class StartHandler(BotMessageHandler):
                 await self.__send_message(message, get_invalid_command_message())
 
     async def __send_message(self, message: Message, text: str) -> None:
-        await message.answer(text, parse_mode="Markdown")
+        await self._answer_markdown(message , text)
         await self._log_system_message(logging.INFO, get_log_start_message_sent(message.from_user.username))

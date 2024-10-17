@@ -33,5 +33,5 @@ class ListModeratorsHandler(BotMessageHandler):
         await self._log_system_message(logging.INFO, get_log_no_moderators_found_message())
 
     async def __reply_moderators_list(self, message: Message, response: str) -> None:
-        await message.answer(response, parse_mode="Markdown")
+        await self._answer_markdown(message , response)
         await self._log_system_message(logging.INFO, get_log_moderators_list_sent_message())

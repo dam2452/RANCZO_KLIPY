@@ -61,5 +61,5 @@ class SearchHandler(BotMessageHandler):
         await self._log_system_message(logging.INFO, get_log_no_segments_found_message(quote))
 
     async def __send_search_results(self, message: Message, response: str, quote: str) -> None:
-        await message.answer(response, parse_mode="Markdown")
+        await self._answer_markdown(message , response)
         await self._log_system_message(logging.INFO, get_log_search_results_sent_message(quote, message.from_user.username))

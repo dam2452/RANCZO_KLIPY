@@ -33,5 +33,5 @@ class ListWhitelistHandler(BotMessageHandler):
         await self._log_system_message(logging.INFO, get_log_whitelist_empty_message())
 
     async def __reply_whitelist(self, message: Message, response: str) -> None:
-        await message.answer(response, parse_mode="Markdown")
+        await self._answer_markdown(message , response)
         await self._log_system_message(logging.INFO, get_log_whitelist_sent_message())

@@ -64,7 +64,7 @@ class ManualClipHandler(BotMessageHandler):
         if not await DatabaseManager.is_admin_or_moderator(
                 message.from_user.id,
         ) and clip_duration > settings.MAX_CLIP_DURATION:
-            await self.__answer_markdown(message, get_limit_exceeded_clip_duration_message())
+            await self._answer_markdown(message, get_limit_exceeded_clip_duration_message())
             return
 
         video_path = await TranscriptionFinder.find_video_path_by_episode(
@@ -112,22 +112,18 @@ class ManualClipHandler(BotMessageHandler):
 
         return Episode(episode), minutes_str_to_seconds(start_time), minutes_str_to_seconds(end_time)
 
-    @staticmethod
-    async def __answer_markdown(message: Message, text: str) -> None:
-        await message.answer(text, parse_mode="Markdown")
-
     async def __reply_incorrect_season_episode_format(self, message: Message) -> None:
-        await self.__answer_markdown(message, get_incorrect_season_episode_format_message())
+        await self._answer_markdown(message, get_incorrect_season_episode_format_message())
         await self._log_system_message(logging.INFO, get_log_incorrect_season_episode_format_message())
 
     async def __reply_video_file_not_exist(self, message: Message, video_path: str) -> None:
-        await self.__answer_markdown(message, get_video_file_not_exist_message())
+        await self._answer_markdown(message, get_video_file_not_exist_message())
         await self._log_system_message(logging.INFO, get_log_video_file_not_exist_message(video_path))
 
     async def __reply_incorrect_time_format(self, message: Message) -> None:
-        await self.__answer_markdown(message, get_incorrect_time_format_message())
+        await self._answer_markdown(message, get_incorrect_time_format_message())
         await self._log_system_message(logging.INFO, get_log_incorrect_time_format_message())
 
     async def __reply_end_time_earlier_than_start(self, message: Message) -> None:
-        await self.__answer_markdown(message, get_end_time_earlier_than_start_message())
+        await self._answer_markdown(message, get_end_time_earlier_than_start_message())
         await self._log_system_message(logging.INFO, get_log_end_time_earlier_than_start_message())

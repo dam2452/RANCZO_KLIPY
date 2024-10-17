@@ -33,5 +33,5 @@ class ListKeysHandler(BotMessageHandler):
         await self._log_system_message(logging.INFO, get_log_subscription_keys_empty_message())
 
     async def __reply_subscription_keys(self, message: Message, response: str) -> None:
-        await message.answer(response, parse_mode="Markdown")
+        await self._answer_markdown(message , response)
         await self._log_system_message(logging.INFO, get_log_subscription_keys_sent_message())

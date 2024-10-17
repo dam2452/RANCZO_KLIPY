@@ -45,7 +45,7 @@ class EpisodeListHandler(BotMessageHandler):
         response_parts = self.__split_message(format_episode_list_response(season, episodes))
 
         for part in response_parts:
-            await message.answer(part, parse_mode="Markdown")
+            await self._answer_markdown(message , part)
 
         await self._log_system_message(
             logging.INFO,

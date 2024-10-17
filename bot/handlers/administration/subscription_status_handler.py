@@ -35,7 +35,7 @@ class SubscriptionStatusHandler(BotMessageHandler):
         user_name = message.from_user.username or message.from_user.full_name
         response = format_subscription_status_response(user_name, subscription_end, days_remaining)
 
-        await message.answer(response, parse_mode="Markdown")
+        await self._answer_markdown(message , response)
         await self._log_system_message(logging.INFO, get_log_subscription_status_sent_message(user_name))
 
 

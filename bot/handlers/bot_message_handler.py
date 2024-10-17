@@ -71,3 +71,6 @@ class BotMessageHandler(ABC):
     @abstractmethod
     async def is_any_validation_failed(self, message: Message) -> bool:
         pass
+    @staticmethod
+    async def _answer_markdown(message: Message, text: str) -> None:
+        await message.answer(text, parse_mode="Markdown")

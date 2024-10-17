@@ -38,9 +38,9 @@ class TranscriptionHandler(BotMessageHandler):
         await self.__reply_transcription_response(message, response, quote)
 
     async def __reply_no_segments_found(self, message: Message, quote: str) -> None:
-        await message.answer(get_no_segments_found_message(quote), parse_mode="Markdown")
+        await self._answer_markdown(message, get_no_segments_found_message(quote))
         await self._log_system_message(logging.INFO, get_log_no_segments_found_message(quote))
 
     async def __reply_transcription_response(self, message: Message, response: str, quote: str) -> None:
-        await message.answer(response, parse_mode="Markdown")
+        await self._answer_markdown(message, response)
         await self._log_system_message(logging.INFO, get_log_transcription_response_sent_message(quote, message.from_user.username))
