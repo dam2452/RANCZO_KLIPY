@@ -24,18 +24,18 @@ class ReportIssueHandler(BotMessageHandler):
 
     def _get_validator_functions(self) -> ValidatorFunctions:
         return [
-            self._validate_report_length,
-            self._validate_report_content,
+            self.__validate_report_length,
+            self.__validate_report_content,
         ]
     @staticmethod
-    async def _validate_report_length(message: Message) -> bool:
+    async def __validate_report_length(message: Message) -> bool:
         report_content = message.text.split(maxsplit=1)
         if len(report_content) > settings.MAX_REPORT_LENGTH:
             await message.answer(get_limit_exceeded_report_length_message())
             return False
         return True
 
-    async def _validate_report_content(self, message: Message) -> bool:
+    async def __validate_report_content(self, message: Message) -> bool:
         report_content = message.text.split(maxsplit=1)
         if len(report_content) < 2:
             await self.__reply_no_report_content(message)

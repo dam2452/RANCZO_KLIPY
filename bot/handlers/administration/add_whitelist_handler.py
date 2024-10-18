@@ -25,10 +25,10 @@ class AddWhitelistHandler(BotMessageHandler):
 
     def _get_validator_functions(self) -> ValidatorFunctions:
         return [
-            self._validate_argument_count,
+            self.__validate_argument_count,
         ]
 
-    async def _validate_argument_count(self, message: Message) -> bool:
+    async def __validate_argument_count(self, message: Message) -> bool:
         return await validate_argument_count(
             message, 2, self._reply_invalid_args_count,
             get_no_username_provided_message(),

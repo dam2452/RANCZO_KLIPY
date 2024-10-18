@@ -30,18 +30,18 @@ class SearchHandler(BotMessageHandler):
 
     def _get_validator_functions(self) -> ValidatorFunctions:
         return [
-            self._validate_argument_count,
-            self._validate_quote_length,
+            self.__validate_argument_count,
+            self.__validate_quote_length,
         ]
 
-    async def _validate_argument_count(self, message: Message) -> bool:
+    async def __validate_argument_count(self, message: Message) -> bool:
         return await validate_argument_count(
             message, 2, self._reply_invalid_args_count,
             get_invalid_args_count_message(),
         )
 
     @staticmethod
-    async def _validate_quote_length(message: Message) -> bool:
+    async def __validate_quote_length(message: Message) -> bool:
         quote = " ".join(message.text.split()[1:])
         if not await DatabaseManager.is_admin_or_moderator(message.from_user.id) and len(quote) > settings.MAX_SEARCH_QUERY_LENGTH:
             await message.answer(get_message_too_long_message())

@@ -44,10 +44,10 @@ class AdjustVideoClipHandler(BotMessageHandler):
 
     def _get_validator_functions(self) -> ValidatorFunctions:
         return [
-            self._validate_argument_count,
+            self.__validate_argument_count,
         ]
 
-    async def _validate_argument_count(self, message: Message) -> bool:
+    async def __validate_argument_count(self, message: Message) -> bool:
         content = message.text.split()
         if len(content) not in [3, 4]:
             await self._reply_invalid_args_count(message, get_invalid_args_count_message())

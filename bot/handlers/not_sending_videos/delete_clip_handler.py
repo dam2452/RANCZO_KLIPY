@@ -24,11 +24,11 @@ class DeleteClipHandler(BotMessageHandler):
 
     def _get_validator_functions(self) -> ValidatorFunctions:
         return [
-            self._validate_argument_count_and_format,
+            self.__validate_argument_count_and_format,
         ]
 
     @staticmethod
-    async def _validate_argument_count_and_format(message: Message) -> bool:
+    async def __validate_argument_count_and_format(message: Message) -> bool:
         content = message.text.split()
         if len(content) < 2 or not content[1].isdigit():
             await message.answer(get_invalid_args_count_message())

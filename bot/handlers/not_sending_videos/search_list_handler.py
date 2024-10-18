@@ -31,10 +31,10 @@ class SearchListHandler(BotMessageHandler):
 
     def _get_validator_functions(self) -> ValidatorFunctions:
         return [
-            self._validate_last_search_exists,
+            self.__validate_last_search_exists,
         ]
 
-    async def _validate_last_search_exists(self, message: Message) -> bool:
+    async def __validate_last_search_exists(self, message: Message) -> bool:
         last_search = await DatabaseManager.get_last_search_by_chat_id(message.chat.id)
         if not last_search:
             await self.__reply_no_previous_search_results(message)

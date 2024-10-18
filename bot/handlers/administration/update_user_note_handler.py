@@ -24,19 +24,19 @@ class UpdateUserNoteHandler(BotMessageHandler):
 
     def _get_validator_functions(self) -> ValidatorFunctions:
         return [
-            self._validate_note_content,
-            self._validate_user_id,
+            self.__validate_note_content,
+            self.__validate_user_id,
         ]
 
 
-    async def _validate_note_content(self, message: Message) -> bool:
+    async def __validate_note_content(self, message: Message) -> bool:
         note_content = message.text.split(maxsplit=2)
         if len(note_content) < 3:
             await self.__reply_no_note_provided(message)
             return False
         return True
 
-    async def _validate_user_id(self, message: Message) -> bool:
+    async def __validate_user_id(self, message: Message) -> bool:
         user_id_str = message.text.split(maxsplit=2)[1]
         if not user_id_str.isdigit():
             await self.__reply_invalid_user_id(message, user_id_str)

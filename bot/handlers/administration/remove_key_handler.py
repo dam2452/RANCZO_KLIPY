@@ -20,10 +20,10 @@ class RemoveKeyHandler(BotMessageHandler):
 
     def _get_validator_functions(self) -> ValidatorFunctions:
         return [
-            self._validate_argument_count,
+            self.__validate_argument_count,
         ]
     @staticmethod
-    async def _validate_argument_count(message: Message) -> bool:
+    async def __validate_argument_count(message: Message) -> bool:
         args = message.text.split()
         if len(args) < 2:
             await message.answer(get_remove_key_usage_message())
