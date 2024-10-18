@@ -5,6 +5,7 @@ from typing import (
     Dict,
     List,
 )
+import unicodedata
 
 from aiogram.types import Message
 
@@ -118,3 +119,8 @@ async def validate_argument_count(
         await reply_invalid_args(message, error_message)
         return False
     return True
+
+def remove_diacritics_and_lowercase(text):
+    normalized_text = unicodedata.normalize('NFKD', text)
+    cleaned_text = ''.join([char for char in normalized_text if not unicodedata.combining(char)])
+    return cleaned_text.lower()
