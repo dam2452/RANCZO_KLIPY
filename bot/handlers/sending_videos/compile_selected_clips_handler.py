@@ -75,7 +75,7 @@ class CompileSelectedClipsHandler(BotMessageHandler):
 
         total_duration = sum(clip.duration for clip in selected_clips)
 
-        if await self.handle_clip_duration_limit_exceeded(message, total_duration):
+        if await self._handle_clip_duration_limit_exceeded(message, total_duration):
             return
 
         compiled_output = await ClipsCompiler.compile_and_send_clips(message, selected_segments, self._bot, self._logger)

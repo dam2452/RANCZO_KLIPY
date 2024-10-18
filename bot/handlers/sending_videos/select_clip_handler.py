@@ -64,7 +64,7 @@ class SelectClipHandler(BotMessageHandler):
         start_time = max(0, segment["start"] - settings.EXTEND_BEFORE)
         end_time = segment["end"] + settings.EXTEND_AFTER
 
-        if await self.handle_clip_duration_limit_exceeded(message, end_time - start_time):
+        if await self._handle_clip_duration_limit_exceeded(message, end_time - start_time):
             return
 
         try:

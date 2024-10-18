@@ -67,7 +67,7 @@ class ManualClipHandler(BotMessageHandler):
             return await self.__reply_end_time_earlier_than_start(message)
 
         clip_duration = end_seconds - start_seconds
-        if await self.handle_clip_duration_limit_exceeded(message, clip_duration):
+        if await self._handle_clip_duration_limit_exceeded(message, clip_duration):
             return
 
         video_path = await TranscriptionFinder.find_video_path_by_episode(

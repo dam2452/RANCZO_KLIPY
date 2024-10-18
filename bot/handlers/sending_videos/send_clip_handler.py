@@ -57,7 +57,7 @@ class SendClipHandler(BotMessageHandler):
         if not clip:
             return await self.__reply_clip_not_found(message, clip_number)
 
-        if await self.handle_clip_duration_limit_exceeded(message, clip.duration):
+        if await self._handle_clip_duration_limit_exceeded(message, clip.duration):
             return
 
         video_data = clip.video_data

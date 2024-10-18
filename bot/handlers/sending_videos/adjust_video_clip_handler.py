@@ -99,7 +99,7 @@ class AdjustVideoClipHandler(BotMessageHandler):
         start_time = max(0.0, original_start_time - additional_start_offset - settings.EXTEND_BEFORE)
         end_time = min(original_end_time + additional_end_offset + settings.EXTEND_AFTER, await get_video_duration(segment_info.get("video_path")))
 
-        if await self.handle_clip_duration_limit_exceeded(message, end_time - start_time):
+        if await self._handle_clip_duration_limit_exceeded(message, end_time - start_time):
             return
 
         try:
