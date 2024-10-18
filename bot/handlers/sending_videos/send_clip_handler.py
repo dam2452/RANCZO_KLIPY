@@ -63,7 +63,7 @@ class SendClipHandler(BotMessageHandler):
         if not video_data:
             return await self.__reply_empty_clip_file(message, clip_identifier)
 
-        temp_file_path = os.path.join(tempfile.gettempdir(), f"{clip.clip_name}.mp4")
+        temp_file_path = os.path.join(tempfile.gettempdir(), f"{clip.name}.mp4")
 
         with open(temp_file_path, "wb") as temp_file:
             temp_file.write(video_data)
@@ -74,7 +74,7 @@ class SendClipHandler(BotMessageHandler):
         await send_video(message, temp_file_path, self._bot, self._logger)
 
         os.remove(temp_file_path)
-        await self._log_system_message(logging.INFO, get_log_clip_sent_message(clip.clip_name, message.from_user.username))
+        await self._log_system_message(logging.INFO, get_log_clip_sent_message(clip.name, message.from_user.username))
 
     async def __reply_clip_not_found(self, message: Message, clip_number: int) -> None:
         await message.answer(get_clip_not_found_message(clip_number))

@@ -49,12 +49,12 @@ class DeleteClipHandler(BotMessageHandler):
 
         clip_to_delete = user_clips[clip_number - 1]
 
-        await DatabaseManager.delete_clip(message.chat.id, clip_to_delete.clip_name)
+        await DatabaseManager.delete_clip(message.chat.id, clip_to_delete.name)
 
-        await message.answer(get_clip_deleted_message(clip_to_delete.clip_name))
+        await message.answer(get_clip_deleted_message(clip_to_delete.name))
         await self._log_system_message(
             logging.INFO, get_log_clip_deleted_message(
-                clip_to_delete.clip_name,
+                clip_to_delete.name,
                 message.from_user.username,
             ),
         )

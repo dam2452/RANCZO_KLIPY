@@ -30,7 +30,7 @@ def format_myclips_response(clips: List[VideoClip], username: Union[str, None], 
 
         clip_lines.append(
             f"{convert_number_to_emoji(idx)} | 📺 {season_episode} | 🕒 {length_str}\n"
-            f"   👉 {clip.clip_name}",
+            f"   👉 {clip.name}",
         )
 
     return (

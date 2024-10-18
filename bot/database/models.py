@@ -21,7 +21,7 @@ class VideoClip:
     id: int
     chat_id: int
     user_id: int
-    clip_name: str
+    name: str
     video_data: bytes
     start_time: float
     end_time: float
