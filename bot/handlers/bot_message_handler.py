@@ -83,8 +83,9 @@ class BotMessageHandler(ABC):
     @abstractmethod
     def _get_validator_functions(self) -> List[Callable[[Message], Awaitable[bool]]]:
         return []
-    async def handle_clip_duration_limit_exceeded(self, message: Message, clip_duration: float) -> bool:
+    async def _handle_clip_duration_limit_exceeded(self, message: Message, clip_duration: float) -> bool:
         if not await DatabaseManager.is_admin_or_moderator(message.from_user.id) and clip_duration > settings.MAX_CLIP_DURATION:
             await self._answer_markdown(message, get_limit_exceeded_clip_duration_message())
             return True
+
         return False
