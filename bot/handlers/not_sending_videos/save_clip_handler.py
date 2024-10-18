@@ -88,12 +88,19 @@ class SaveClipHandler(BotMessageHandler):
             await self.__reply_no_segment_selected(message)
             return False
         return True
+
     async def _do_handle(self, message: Message) -> None:
         clip_name = " ".join(message.text.split()[1:])
         last_clip = await DatabaseManager.get_last_clip_by_chat_id(message.chat.id)
-        output_filename, start_time, end_time, is_compilation, season, episode_number = await self.__prepare_clip(
-            last_clip,
-        )
+
+        clip_info = await self.__prepare_clip(last_clip)
+
+        output_filename = clip_info.output_filename
+        start_time = clip_info.start_time
+        end_time = clip_info.end_time
+        is_compilation = clip_info.is_compilation
+        season = clip_info.season
+        episode_number = clip_info.episode_number
 
         with open(output_filename, "rb") as f:
             video_data = f.read()
