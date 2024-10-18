@@ -29,15 +29,11 @@ class SendClipHandler(BotMessageHandler):
 
     def _get_validator_functions(self) -> ValidatorFunctions:
         return [
-            self.__validate_argument_count,
+            self.__check_argument_count,
         ]
 
-    async def __validate_argument_count(self, message: Message) -> bool:
-        content = message.text.split()
-        if len(content) < 2:
-            await self._reply_invalid_args_count(message, get_give_clip_name_message())
-            return False
-        return True
+    async def __check_argument_count(self, message: Message) -> bool:
+        return await self._validate_argument_count(message, 2, get_give_clip_name_message())
 
     async def _do_handle(self, message: Message) -> None:
         content = message.text.split()

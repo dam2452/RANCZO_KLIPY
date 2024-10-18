@@ -16,7 +16,6 @@ from bot.responses.sending_videos.compile_selected_clips_handler_responses impor
     get_log_no_matching_clips_found_message,
     get_no_matching_clips_found_message,
 )
-from bot.utils.functions import validate_argument_count
 from bot.video.clips_compiler import (
     ClipsCompiler,
     process_compiled_clip,
@@ -34,11 +33,11 @@ class CompileSelectedClipsHandler(BotMessageHandler):
 
     def _get_validator_functions(self) -> ValidatorFunctions:
         return [
-            self.__validate_argument_count,
+            self.__check_argument_count,
         ]
 
-    async def __validate_argument_count(self, message: Message) -> bool:
-        return await validate_argument_count(message, 2, self._reply_invalid_args_count, get_invalid_args_count_message())
+    async def __check_argument_count(self, message: Message) -> bool:
+        return await self._validate_argument_count(message, 2, get_invalid_args_count_message())
 
 
     async def _do_handle(self, message: Message) -> None:

@@ -24,16 +24,12 @@ class AddSubscriptionHandler(BotMessageHandler):
 
     def _get_validator_functions(self) -> ValidatorFunctions:
         return [
-            self.__validate_argument_count,
+            self.__check_argument_count,
             self.__validate_user_id_and_days,
         ]
 
-    async def __validate_argument_count(self, message: Message) -> bool:
-        content = message.text.split()
-        if len(content) < 3:
-            await self._reply_invalid_args_count(message, get_no_user_id_provided_message())
-            return False
-        return True
+    async def __check_argument_count(self, message: Message) -> bool:
+        return await self._validate_argument_count(message, 3, get_no_user_id_provided_message())
 
     async def __validate_user_id_and_days(self, message: Message) -> bool:
         content = message.text.split()

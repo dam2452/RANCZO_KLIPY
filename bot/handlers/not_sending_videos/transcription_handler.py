@@ -25,15 +25,12 @@ class TranscriptionHandler(BotMessageHandler):
 
     def _get_validator_functions(self) -> ValidatorFunctions:
         return [
-            self.__validate_quote_provided,
+            self.__check_argument_count,
         ]
 
-    async def __validate_quote_provided(self, message: Message) -> bool:
-        content = message.text.split()
-        if len(content) < 2:
-            await self._reply_invalid_args_count(message, get_no_quote_provided_message())
-            return False
-        return True
+    async def __check_argument_count(self, message: Message) -> bool:
+        return await self._validate_argument_count(message, 2, get_no_quote_provided_message())
+
 
     async def _do_handle(self, message: Message) -> None:
         quote = " ".join(message.text.split()[1:])

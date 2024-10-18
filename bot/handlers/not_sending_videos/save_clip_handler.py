@@ -46,28 +46,26 @@ class SaveClipHandler(BotMessageHandler):
 
     def _get_validator_functions(self) -> ValidatorFunctions:
         return [
-            self.__validate_clip_name_provided,
-            self.__validate_clip_name_length,
-            self.__validate_clip_name_unique,
-            self.__validate_clip_limit_not_exceeded,
-            self.__validate_last_clip_exists,
+            self.__check_argument_count,
+            self.__check_clip_name_length,
+            self.__check_clip_name_unique,
+            self.__check_clip_limit_not_exceeded,
+            self.__check_last_clip_exists,
         ]
 
-    async def __validate_clip_name_provided(self, message: Message) -> bool:
-        content = message.text.split()
-        if len(content) < 2:
-            await self._reply_invalid_args_count(message, get_clip_name_not_provided_message())
-            return False
-        return True
+    async def __check_argument_count(self, message: Message) -> bool:
+        return await self._validate_argument_count(
+            message, 2, get_clip_name_not_provided_message(),
+        )
     @staticmethod
-    async def __validate_clip_name_length(message: Message) -> bool:
+    async def __check_clip_name_length(message: Message) -> bool:
         clip_name = " ".join(message.text.split()[1:])
         if len(clip_name) > settings.MAX_CLIP_NAME_LENGTH:
             await message.answer(get_clip_name_length_exceeded_message())
             return False
         return True
 
-    async def __validate_clip_name_unique(self, message: Message) -> bool:
+    async def __check_clip_name_unique(self, message: Message) -> bool:
         clip_name = " ".join(message.text.split()[1:])
         if not await DatabaseManager.is_clip_name_unique(message.chat.id, clip_name):
             await self.__reply_clip_name_exists(message, clip_name)
@@ -75,16 +73,16 @@ class SaveClipHandler(BotMessageHandler):
         return True
 
     @staticmethod
-    async def __validate_clip_limit_not_exceeded(message: Message) -> bool:
+    async def __check_clip_limit_not_exceeded(message: Message) -> bool:
         if (
-            not await DatabaseManager.is_admin_or_moderator(message.from_user.id) and
-            await DatabaseManager.get_user_clip_count(message.chat.id) >= settings.MAX_CLIPS_PER_USER
+            not await DatabaseManager.is_admin_or_moderator(message.from_user.id)
+            and await DatabaseManager.get_user_clip_count(message.chat.id) >= settings.MAX_CLIPS_PER_USER
         ):
             await message.answer(get_clip_limit_exceeded_message())
             return False
         return True
 
-    async def __validate_last_clip_exists(self, message: Message) -> bool:
+    async def __check_last_clip_exists(self, message: Message) -> bool:
         last_clip = await DatabaseManager.get_last_clip_by_chat_id(message.chat.id)
         if not last_clip:
             await self.__reply_no_segment_selected(message)

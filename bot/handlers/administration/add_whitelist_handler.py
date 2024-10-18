@@ -13,10 +13,7 @@ from bot.responses.administration.add_whitelist_handler_responses import (
     get_no_username_provided_message,
     get_user_added_message,
 )
-from bot.utils.functions import (
-    parse_whitelist_message,
-    validate_argument_count,
-)
+from bot.utils.functions import parse_whitelist_message
 
 
 class AddWhitelistHandler(BotMessageHandler):
@@ -25,13 +22,12 @@ class AddWhitelistHandler(BotMessageHandler):
 
     def _get_validator_functions(self) -> ValidatorFunctions:
         return [
-            self.__validate_argument_count,
+            self.__check_argument_count,
         ]
 
-    async def __validate_argument_count(self, message: Message) -> bool:
-        return await validate_argument_count(
-            message, 2, self._reply_invalid_args_count,
-            get_no_username_provided_message(),
+    async def __check_argument_count(self, message: Message) -> bool:
+        return await self._validate_argument_count(
+            message, 2, get_no_username_provided_message(),
         )
 
     async def _do_handle(self, message: Message) -> None:

@@ -43,15 +43,12 @@ class ManualClipHandler(BotMessageHandler):
 
     def _get_validator_functions(self) -> ValidatorFunctions:
         return [
-            self.__validate_argument_count,
+            self.__check_argument_count,
         ]
 
-    async def __validate_argument_count(self, message: Message) -> bool:
-        content = message.text.split()
-        if len(content) != 4:
-            await self._reply_invalid_args_count(message, get_invalid_args_count_message())
-            return False
-        return True
+    async def __check_argument_count(self, message: Message) -> bool:
+        return await self._validate_argument_count(message, 4, get_invalid_args_count_message())
+
 
 
     async def _do_handle(self, message: Message) -> None:

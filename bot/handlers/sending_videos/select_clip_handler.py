@@ -23,7 +23,6 @@ from bot.responses.sending_videos.select_clip_handler_responses import (
     get_no_previous_search_message,
 )
 from bot.settings import settings
-from bot.utils.functions import validate_argument_count
 from bot.video.clips_extractor import ClipsExtractor
 from bot.video.utils import FFMpegException
 
@@ -35,14 +34,12 @@ class SelectClipHandler(BotMessageHandler):
     # pylint: disable=duplicate-code
     def _get_validator_functions(self) -> ValidatorFunctions:
         return [
-            self.__validate_argument_count,
+            self.__check_argument_count,
         ]
 
-    async def __validate_argument_count(self, message: Message) -> bool:
-        return await validate_argument_count(
-            message, 2, self._reply_invalid_args_count,
-            get_invalid_args_count_message(),
-        )
+    async def __check_argument_count(self, message: Message) -> bool:
+        return await self._validate_argument_count(message, 2, get_invalid_args_count_message())
+
 
     # pylint: enable=duplicate-code
     async def _do_handle(self, message: Message) -> None:

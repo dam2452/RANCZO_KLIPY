@@ -33,16 +33,16 @@ class ClipHandler(BotMessageHandler):
 
     def _get_validator_functions(self) -> ValidatorFunctions:
         return [
-            self.__validate_message_length,
-            self.__validate_user_permissions,
+            self.__check_argument_count,
+            self.__check_message_length,
         ]
 
-    async def __validate_message_length(self, message: Message) -> bool:
-        content = message.text.split()
-        if len(content) < 2:
-            await self._reply_invalid_args_count(message, get_no_quote_provided_message())
-            return False
-        return True
+    async def __check_argument_count(self, message: Message) -> bool:
+        return await self._validate_argument_count(message, 2, get_no_quote_provided_message())
+
+    async def __check_message_length(self, message: Message) -> bool:
+        return await self.__validate_user_permissions(message)
+
     @staticmethod
     async def __validate_user_permissions(message: Message) -> bool:
         if not await DatabaseManager.is_admin_or_moderator(message.from_user.id) and len(message.text) > settings.MAX_SEARCH_QUERY_LENGTH:

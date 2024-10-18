@@ -13,7 +13,6 @@ from bot.responses.administration.remove_subscription_handler_responses import (
     get_no_username_provided_message,
     get_subscription_removed_message,
 )
-from bot.utils.functions import validate_argument_count
 
 
 class RemoveSubscriptionHandler(BotMessageHandler):
@@ -22,13 +21,12 @@ class RemoveSubscriptionHandler(BotMessageHandler):
 
     def _get_validator_functions(self) -> ValidatorFunctions:
         return [
-            self.__validate_argument_count,
+            self.__check_argument_count,
         ]
 
-    async def __validate_argument_count(self, message: Message) -> bool:
-        return await validate_argument_count(
-            message, 2, self._reply_invalid_args_count,
-            get_no_username_provided_message(),
+    async def __check_argument_count(self, message: Message) -> bool:
+        return await self._validate_argument_count(
+            message, 2, get_no_username_provided_message(),
         )
 
     async def _do_handle(self, message: Message) -> None:

@@ -20,6 +20,7 @@ from bot.database.database_manager import DatabaseManager
 from bot.responses.bot_message_handler_responses import (
     get_general_error_message,
     get_invalid_args_count_message,
+    get_log_clip_duration_exceeded_message,
 )
 from bot.responses.sending_videos.manual_clip_handler_responses import get_limit_exceeded_clip_duration_message
 from bot.settings import settings
@@ -63,7 +64,7 @@ class BotMessageHandler(ABC):
         response: str,
     ) -> None:
         await message.answer(response)
-        await self._log_system_message(logging.INFO, get_invalid_args_count_message(self.get_action_name()))
+        await self._log_system_message(logging.INFO, get_invalid_args_count_message(self.get_action_name(), message.from_user.id))
 
     def get_action_name(self) -> str:
         return self.__class__.__name__
@@ -86,6 +87,15 @@ class BotMessageHandler(ABC):
     async def _handle_clip_duration_limit_exceeded(self, message: Message, clip_duration: float) -> bool:
         if not await DatabaseManager.is_admin_or_moderator(message.from_user.id) and clip_duration > settings.MAX_CLIP_DURATION:
             await self._answer_markdown(message, get_limit_exceeded_clip_duration_message())
+            await self._log_system_message(logging.INFO, get_log_clip_duration_exceeded_message(message.from_user.id))
             return True
 
         return False
+
+    async def _validate_argument_count(self, message: Message, min_args: int, error_message: str) -> bool:
+        content = message.text.split()
+        if len(content) < min_args:
+            await self._reply_invalid_args_count(message, error_message)
+            await self._log_system_message(logging.INFO, get_invalid_args_count_message(self.get_action_name(),message.from_user.id))
+            return False
+        return True

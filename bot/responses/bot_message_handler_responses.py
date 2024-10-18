@@ -7,8 +7,8 @@ def get_general_error_message() -> str:
     return "⚠️ Wystąpił błąd podczas przetwarzania żądania. Prosimy spróbować ponownie później.⚠️"
 
 
-def get_invalid_args_count_message(action_name: str) -> str:
-    return f"Incorrect command ({action_name}) format provided by user."
+def get_invalid_args_count_message(action_name: str, user_id: int) -> str:
+    return f"Incorrect command ({action_name}) format provided by user '{user_id}'."
 
 
 def format_user(user: UserProfile) -> str:
@@ -47,3 +47,6 @@ def get_limit_exceeded_message() -> str:
 
 def get_message_too_long_message() -> str:
     return "❌ Wiadomość jest zbyt długa.❌"
+
+def get_log_clip_duration_exceeded_message(user_id: int) -> str:
+    return f"Clip duration limit exceeded for user '{user_id}'"

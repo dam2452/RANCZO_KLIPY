@@ -19,17 +19,13 @@ class CreateKeyHandler(BotMessageHandler):
 
     def _get_validator_functions(self) -> ValidatorFunctions:
         return [
-            self.__validate_argument_count,
+            self.__check_argument_count,
         ]
 
-    @staticmethod
-    async def __validate_argument_count(message: Message) -> bool:
-        args = message.text.split()
-        if len(args) < 3:
-            await message.answer(get_create_key_usage_message())
-            return False
-        return True
-
+    async def __check_argument_count(self, message: Message) -> bool:
+        return await self._validate_argument_count(
+            message, 3, get_create_key_usage_message(),
+        )
     async def _do_handle(self, message: Message) -> None:
         args = message.text.split()
         days = int(args[1])

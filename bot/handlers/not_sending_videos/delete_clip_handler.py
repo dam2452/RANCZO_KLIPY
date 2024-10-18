@@ -24,14 +24,17 @@ class DeleteClipHandler(BotMessageHandler):
 
     def _get_validator_functions(self) -> ValidatorFunctions:
         return [
-            self.__validate_argument_count_and_format,
+            self.__check_argument_count,
+            self.__check_clip_number_format,
         ]
 
-    @staticmethod
-    async def __validate_argument_count_and_format(message: Message) -> bool:
+    async def __check_argument_count(self, message: Message) -> bool:
+        return await self._validate_argument_count(message, 2, get_invalid_args_count_message())
+
+    async def __check_clip_number_format(self, message: Message) -> bool:
         content = message.text.split()
-        if len(content) < 2 or not content[1].isdigit():
-            await message.answer(get_invalid_args_count_message())
+        if not content[1].isdigit():
+            await self._reply_invalid_args_count(message, get_invalid_args_count_message())
             return False
         return True
 
