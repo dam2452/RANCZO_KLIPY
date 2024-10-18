@@ -1,6 +1,5 @@
 import logging
 from typing import (
-    Awaitable,
     Callable,
     Dict,
     List,
@@ -9,7 +8,10 @@ from typing import (
 from aiogram import Bot
 from aiogram.types import Message
 
-from bot.handlers.bot_message_handler import BotMessageHandler
+from bot.handlers.bot_message_handler import (
+    BotMessageHandler,
+    ValidatorFunctions,
+)
 from bot.responses.administration.start_handler_responses import (
     get_basic_message,
     get_edycja_message,
@@ -66,7 +68,7 @@ class StartHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ["start", "s", "help", "h", "pomoc"]
 
-    def _get_validator_functions(self) -> List[Callable[[Message], Awaitable[bool]]]:
+    def _get_validator_functions(self) -> ValidatorFunctions:
         return []
 
     async def _do_handle(self, message: Message) -> None:

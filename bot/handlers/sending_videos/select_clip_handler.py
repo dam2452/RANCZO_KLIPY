@@ -1,16 +1,15 @@
 import json
 import logging
-from typing import (
-    Awaitable,
-    Callable,
-    List,
-)
+from typing import List
 
 from aiogram.types import Message
 
 from bot.database.database_manager import DatabaseManager
 from bot.database.models import ClipType
-from bot.handlers.bot_message_handler import BotMessageHandler
+from bot.handlers.bot_message_handler import (
+    BotMessageHandler,
+    ValidatorFunctions,
+)
 from bot.responses.bot_message_handler_responses import (
     get_extraction_failure_message,
     get_log_extraction_failure_message,
@@ -34,7 +33,7 @@ class SelectClipHandler(BotMessageHandler):
         return ["wybierz", "select", "w"]
 
     # pylint: disable=duplicate-code
-    def _get_validator_functions(self) -> List[Callable[[Message], Awaitable[bool]]]:
+    def _get_validator_functions(self) -> ValidatorFunctions:
         return [
             self._validate_argument_count,
         ]

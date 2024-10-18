@@ -1,14 +1,13 @@
 import logging
-from typing import (
-    Awaitable,
-    Callable,
-    List,
-)
+from typing import List
 
 from aiogram.types import Message
 
 from bot.database.database_manager import DatabaseManager
-from bot.handlers.bot_message_handler import BotMessageHandler
+from bot.handlers.bot_message_handler import (
+    BotMessageHandler,
+    ValidatorFunctions,
+)
 from bot.responses.administration.report_issue_handler_responses import (
     get_limit_exceeded_report_length_message,
     get_log_no_report_content_message,
@@ -23,7 +22,7 @@ class ReportIssueHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ["report", "zgłoś", "zglos", "r"]
 
-    def _get_validator_functions(self) -> List[Callable[[Message], Awaitable[bool]]]:
+    def _get_validator_functions(self) -> ValidatorFunctions:
         return [
             self._validate_report_length,
             self._validate_report_content,

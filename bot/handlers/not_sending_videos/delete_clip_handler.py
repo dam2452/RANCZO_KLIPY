@@ -1,14 +1,13 @@
 import logging
-from typing import (
-    Awaitable,
-    Callable,
-    List,
-)
+from typing import List
 
 from aiogram.types import Message
 
 from bot.database.database_manager import DatabaseManager
-from bot.handlers.bot_message_handler import BotMessageHandler
+from bot.handlers.bot_message_handler import (
+    BotMessageHandler,
+    ValidatorFunctions,
+)
 from bot.responses.not_sending_videos.delete_clip_handler_responses import (
     get_clip_deleted_message,
     get_clip_not_exist_message,
@@ -23,7 +22,7 @@ class DeleteClipHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ["usunklip", "deleteclip", "uk"]
 
-    def _get_validator_functions(self) -> List[Callable[[Message], Awaitable[bool]]]:
+    def _get_validator_functions(self) -> ValidatorFunctions:
         return [
             self._validate_argument_count_and_format,
         ]

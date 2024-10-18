@@ -1,13 +1,12 @@
 import logging
-from typing import (
-    Awaitable,
-    Callable,
-    List,
-)
+from typing import List
 
 from aiogram.types import Message
 
-from bot.handlers.bot_message_handler import BotMessageHandler
+from bot.handlers.bot_message_handler import (
+    BotMessageHandler,
+    ValidatorFunctions,
+)
 from bot.responses.bot_message_handler_responses import (
     get_log_no_segments_found_message,
     get_no_segments_found_message,
@@ -24,7 +23,7 @@ class TranscriptionHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ["transkrypcja", "transcription", "t"]
 
-    def _get_validator_functions(self) -> List[Callable[[Message], Awaitable[bool]]]:
+    def _get_validator_functions(self) -> ValidatorFunctions:
         return [
             self._validate_quote_provided,
         ]

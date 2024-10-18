@@ -28,7 +28,7 @@ from bot.utils.log import (
     log_user_activity,
 )
 
-
+ValidatorFunctions = List[Callable[[Message], Awaitable[bool]]]
 class BotMessageHandler(ABC):
     def __init__(self, bot: Bot, logger: logging.Logger):
         self._bot: Bot = bot
@@ -81,7 +81,7 @@ class BotMessageHandler(ABC):
         await message.answer(text, parse_mode="Markdown")
 
     @abstractmethod
-    def _get_validator_functions(self) -> List[Callable[[Message], Awaitable[bool]]]:
+    def _get_validator_functions(self) -> ValidatorFunctions:
         return []
     async def _handle_clip_duration_limit_exceeded(self, message: Message, clip_duration: float) -> bool:
         if not await DatabaseManager.is_admin_or_moderator(message.from_user.id) and clip_duration > settings.MAX_CLIP_DURATION:

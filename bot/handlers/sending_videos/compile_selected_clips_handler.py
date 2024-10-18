@@ -1,16 +1,15 @@
 import logging
 import tempfile
-from typing import (
-    Awaitable,
-    Callable,
-    List,
-)
+from typing import List
 
 from aiogram.types import Message
 
 from bot.database.database_manager import DatabaseManager
 from bot.database.models import ClipType
-from bot.handlers.bot_message_handler import BotMessageHandler
+from bot.handlers.bot_message_handler import (
+    BotMessageHandler,
+    ValidatorFunctions,
+)
 from bot.responses.sending_videos.compile_selected_clips_handler_responses import (
     get_compiled_clip_sent_message,
     get_invalid_args_count_message,
@@ -33,7 +32,7 @@ class CompileSelectedClipsHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ["połączklipy", "polaczklipy", "concatclips", "pk"]
 
-    def _get_validator_functions(self) -> List[Callable[[Message], Awaitable[bool]]]:
+    def _get_validator_functions(self) -> ValidatorFunctions:
         return [
             self._validate_argument_count,
         ]

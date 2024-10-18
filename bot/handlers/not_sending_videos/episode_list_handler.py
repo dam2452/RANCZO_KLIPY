@@ -1,7 +1,5 @@
 import logging
 from typing import (
-    Awaitable,
-    Callable,
     List,
     Optional,
 )
@@ -11,7 +9,10 @@ from aiogram.types import (
     Message,
 )
 
-from bot.handlers.bot_message_handler import BotMessageHandler
+from bot.handlers.bot_message_handler import (
+    BotMessageHandler,
+    ValidatorFunctions,
+)
 from bot.responses.not_sending_videos.episode_list_handler_responses import (
     format_episode_list_response,
     get_invalid_args_count_message,
@@ -27,7 +28,7 @@ class EpisodeListHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ["odcinki", "episodes", "o"]
 
-    def _get_validator_functions(self) -> List[Callable[[Message], Awaitable[bool]]]:
+    def _get_validator_functions(self) -> ValidatorFunctions:
         return [
             self._validate_argument_count,
         ]

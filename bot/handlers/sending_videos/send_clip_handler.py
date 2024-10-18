@@ -1,16 +1,15 @@
 import logging
 import os
 import tempfile
-from typing import (
-    Awaitable,
-    Callable,
-    List,
-)
+from typing import List
 
 from aiogram.types import Message
 
 from bot.database.database_manager import DatabaseManager
-from bot.handlers.bot_message_handler import BotMessageHandler
+from bot.handlers.bot_message_handler import (
+    BotMessageHandler,
+    ValidatorFunctions,
+)
 from bot.responses.sending_videos.send_clip_handler_responses import (
     get_clip_not_found_message,
     get_empty_clip_file_message,
@@ -28,7 +27,7 @@ class SendClipHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ["wyślij", "wyslij", "send", "wys"]
 
-    def _get_validator_functions(self) -> List[Callable[[Message], Awaitable[bool]]]:
+    def _get_validator_functions(self) -> ValidatorFunctions:
         return [
             self._validate_argument_count,
         ]

@@ -19,7 +19,10 @@ from bot.database.models import (
     ClipType,
     LastClip,
 )
-from bot.handlers.bot_message_handler import BotMessageHandler
+from bot.handlers.bot_message_handler import (
+    BotMessageHandler,
+    ValidatorFunctions,
+)
 from bot.responses.not_sending_videos.save_clip_handler_responses import (
     get_clip_limit_exceeded_message,
     get_clip_name_exists_message,
@@ -41,7 +44,7 @@ class SaveClipHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ["zapisz", "save", "z"]
 
-    def _get_validator_functions(self) -> List[Callable[[Message], Awaitable[bool]]]:
+    def _get_validator_functions(self) -> ValidatorFunctions:
         return [
             self._validate_clip_name_provided,
             self._validate_clip_name_length,

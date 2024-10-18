@@ -1,15 +1,14 @@
 from datetime import date
 import logging
-from typing import (
-    Awaitable,
-    Callable,
-    List,
-)
+from typing import List
 
 from aiogram.types import Message
 
 from bot.database.database_manager import DatabaseManager
-from bot.handlers.bot_message_handler import BotMessageHandler
+from bot.handlers.bot_message_handler import (
+    BotMessageHandler,
+    ValidatorFunctions,
+)
 from bot.responses.administration.add_subscription_handler_responses import (
     get_no_user_id_provided_message,
     get_subscription_error_log_message,
@@ -23,7 +22,7 @@ class AddSubscriptionHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ["addsubscription", "addsub"]
 
-    def _get_validator_functions(self) -> List[Callable[[Message], Awaitable[bool]]]:
+    def _get_validator_functions(self) -> ValidatorFunctions:
         return [
             self._validate_argument_count,
             self._validate_user_id_and_days,

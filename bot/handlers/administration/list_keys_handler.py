@@ -1,14 +1,13 @@
 import logging
-from typing import (
-    Awaitable,
-    Callable,
-    List,
-)
+from typing import List
 
 from aiogram.types import Message
 
 from bot.database.database_manager import DatabaseManager
-from bot.handlers.bot_message_handler import BotMessageHandler
+from bot.handlers.bot_message_handler import (
+    BotMessageHandler,
+    ValidatorFunctions,
+)
 from bot.responses.administration.list_keys_handler_responses import (
     create_subscription_keys_response,
     get_log_subscription_keys_empty_message,
@@ -21,7 +20,7 @@ class ListKeysHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ["listkey", "lk"]
 
-    def _get_validator_functions(self) -> List[Callable[[Message], Awaitable[bool]]]:
+    def _get_validator_functions(self) -> ValidatorFunctions:
         return []
 
     async def _do_handle(self, message: Message) -> None:

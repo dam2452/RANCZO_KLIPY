@@ -1,14 +1,13 @@
 import logging
-from typing import (
-    Awaitable,
-    Callable,
-    List,
-)
+from typing import List
 
 from aiogram.types import Message
 
 from bot.database.database_manager import DatabaseManager
-from bot.handlers.bot_message_handler import BotMessageHandler
+from bot.handlers.bot_message_handler import (
+    BotMessageHandler,
+    ValidatorFunctions,
+)
 from bot.responses.administration.remove_whitelist_handler_responses import (
     get_log_user_removed_message,
     get_no_user_id_provided_message,
@@ -20,7 +19,7 @@ class RemoveWhitelistHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ["removewhitelist", "rmw"]
 
-    def _get_validator_functions(self) -> List[Callable[[Message], Awaitable[bool]]]:
+    def _get_validator_functions(self) -> ValidatorFunctions:
         return [
             self._validate_argument_count_and_digit,
         ]

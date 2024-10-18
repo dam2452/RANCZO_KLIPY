@@ -1,10 +1,6 @@
 import json
 import logging
-from typing import (
-    Awaitable,
-    Callable,
-    List,
-)
+from typing import List
 
 from aiogram.types import Message
 
@@ -13,7 +9,10 @@ from bot.database.models import (
     ClipType,
     SearchHistory,
 )
-from bot.handlers.bot_message_handler import BotMessageHandler
+from bot.handlers.bot_message_handler import (
+    BotMessageHandler,
+    ValidatorFunctions,
+)
 from bot.responses.sending_videos.adjust_video_clip_handler_responses import (
     get_extraction_failure_log,
     get_extraction_failure_message,
@@ -43,7 +42,7 @@ class AdjustVideoClipHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ["dostosuj", "adjust", "d"]
 
-    def _get_validator_functions(self) -> List[Callable[[Message], Awaitable[bool]]]:
+    def _get_validator_functions(self) -> ValidatorFunctions:
         return [
             self._validate_argument_count,
         ]

@@ -1,13 +1,12 @@
-from typing import (
-    Awaitable,
-    Callable,
-    List,
-)
+from typing import List
 
 from aiogram.types import Message
 
 from bot.database.database_manager import DatabaseManager
-from bot.handlers.bot_message_handler import BotMessageHandler
+from bot.handlers.bot_message_handler import (
+    BotMessageHandler,
+    ValidatorFunctions,
+)
 from bot.responses.administration.remove_key_handler_responses import (
     get_remove_key_failure_message,
     get_remove_key_success_message,
@@ -19,7 +18,7 @@ class RemoveKeyHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ["removekey", "rmk"]
 
-    def _get_validator_functions(self) -> List[Callable[[Message], Awaitable[bool]]]:
+    def _get_validator_functions(self) -> ValidatorFunctions:
         return [
             self._validate_argument_count,
         ]
