@@ -43,7 +43,7 @@ class SendClipHandler(BotMessageHandler):
         if clip_identifier.isdigit():
             clip_number = int(clip_identifier)
             clips = await DatabaseManager.get_saved_clips(message.from_user.id)
-            if clip_number < 1 or clip_number > len(clips):
+            if clip_number not in range(1, len(clips)):
                 return await self.__reply_clip_not_found(message, clip_number)
             clip = clips[clip_number - 1]
         else:
