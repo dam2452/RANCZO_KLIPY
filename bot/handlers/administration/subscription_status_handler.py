@@ -9,7 +9,10 @@ from typing import (
 from aiogram.types import Message
 
 from bot.database.database_manager import DatabaseManager
-from bot.handlers.bot_message_handler import BotMessageHandler
+from bot.handlers.bot_message_handler import (
+    BotMessageHandler,
+    ValidatorFunctions,
+)
 from bot.responses.administration.subscription_status_handler_responses import (
     format_subscription_status_response,
     get_log_no_active_subscription_message,
@@ -22,6 +25,9 @@ class SubscriptionStatusHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ["subskrypcja", "subscription", "sub"]
 
+    def _get_validator_functions(self) -> ValidatorFunctions:
+        return []
+
     async def _do_handle(self, message: Message) -> None:
         subscription_status = await self.__get_subscription_status(message.from_user.id)
 
@@ -32,8 +38,9 @@ class SubscriptionStatusHandler(BotMessageHandler):
         user_name = message.from_user.username or message.from_user.full_name
         response = format_subscription_status_response(user_name, subscription_end, days_remaining)
 
-        await message.answer(response, parse_mode="Markdown")
+        await self._answer_markdown(message , response)
         await self._log_system_message(logging.INFO, get_log_subscription_status_sent_message(user_name))
+
 
     @staticmethod
     async def __get_subscription_status(user_id: int) -> Optional[Tuple[date, int]]:

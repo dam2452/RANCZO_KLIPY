@@ -5,9 +5,13 @@ from typing import List
 from aiogram.types import Message
 
 from bot.database.database_manager import DatabaseManager
-from bot.handlers.bot_message_handler import BotMessageHandler
+from bot.handlers.bot_message_handler import (
+    BotMessageHandler,
+    ValidatorFunctions,
+)
 from bot.responses.bot_message_handler_responses import (
     get_log_no_segments_found_message,
+    get_message_too_long_message,
     get_no_segments_found_message,
 )
 from bot.responses.not_sending_videos.search_handler_responses import (
@@ -16,18 +20,32 @@ from bot.responses.not_sending_videos.search_handler_responses import (
     get_log_search_results_sent_message,
 )
 from bot.search.transcription_finder import TranscriptionFinder
+from bot.settings import settings
 
 
 class SearchHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ["szukaj", "search", "sz"]
 
-    async def _do_handle(self, message: Message) -> None:
-        content = message.text.split()
-        if len(content) < 2:
-            return await self._reply_invalid_args_count(message, get_invalid_args_count_message())
+    def _get_validator_functions(self) -> ValidatorFunctions:
+        return [
+            self.__check_argument_count,
+            self.__check_quote_length,
+        ]
 
-        quote = " ".join(content[1:])
+    async def __check_argument_count(self, message: Message) -> bool:
+        return await self._validate_argument_count(message, 2, get_invalid_args_count_message())
+
+    @staticmethod
+    async def __check_quote_length(message: Message) -> bool:
+        quote = " ".join(message.text.split()[1:])
+        if not await DatabaseManager.is_admin_or_moderator(message.from_user.id) and len(quote) > settings.MAX_SEARCH_QUERY_LENGTH:
+            await message.answer(get_message_too_long_message())
+            return False
+        return True
+
+    async def _do_handle(self, message: Message) -> None:
+        quote = " ".join(message.text.split()[1:])
 
         segments = await TranscriptionFinder.find_segment_by_quote(quote, self._logger, return_all=True)
         if not segments:
@@ -41,7 +59,7 @@ class SearchHandler(BotMessageHandler):
             segments=segments_json,
         )
 
-        response = format_search_response(len(segments), segments)
+        response = format_search_response(len(segments), segments, quote)
 
         await self.__send_search_results(message, response, quote)
 
@@ -50,5 +68,5 @@ class SearchHandler(BotMessageHandler):
         await self._log_system_message(logging.INFO, get_log_no_segments_found_message(quote))
 
     async def __send_search_results(self, message: Message, response: str, quote: str) -> None:
-        await message.answer(response, parse_mode="Markdown")
+        await self._answer_markdown(message , response)
         await self._log_system_message(logging.INFO, get_log_search_results_sent_message(quote, message.from_user.username))

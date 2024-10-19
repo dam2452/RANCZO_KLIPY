@@ -4,7 +4,10 @@ from typing import List
 from aiogram.types import Message
 
 from bot.database.database_manager import DatabaseManager
-from bot.handlers.bot_message_handler import BotMessageHandler
+from bot.handlers.bot_message_handler import (
+    BotMessageHandler,
+    ValidatorFunctions,
+)
 from bot.responses.administration.list_whitelist_handler_responses import (
     create_whitelist_response,
     get_log_whitelist_empty_message,
@@ -16,6 +19,9 @@ from bot.responses.administration.list_whitelist_handler_responses import (
 class ListWhitelistHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ["listwhitelist", "lw"]
+
+    def _get_validator_functions(self) -> ValidatorFunctions:
+        return []
 
     async def _do_handle(self, message: Message) -> None:
         users = await DatabaseManager.get_all_users()
@@ -30,5 +36,5 @@ class ListWhitelistHandler(BotMessageHandler):
         await self._log_system_message(logging.INFO, get_log_whitelist_empty_message())
 
     async def __reply_whitelist(self, message: Message, response: str) -> None:
-        await message.answer(response, parse_mode="Markdown")
+        await self._answer_markdown(message , response)
         await self._log_system_message(logging.INFO, get_log_whitelist_sent_message())

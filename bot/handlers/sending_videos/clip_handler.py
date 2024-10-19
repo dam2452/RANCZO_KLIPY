@@ -5,7 +5,10 @@ from aiogram.types import Message
 
 from bot.database.database_manager import DatabaseManager
 from bot.database.models import ClipType
-from bot.handlers.bot_message_handler import BotMessageHandler
+from bot.handlers.bot_message_handler import (
+    BotMessageHandler,
+    ValidatorFunctions,
+)
 from bot.responses.bot_message_handler_responses import (
     get_extraction_failure_message,
     get_log_extraction_failure_message,
@@ -14,6 +17,7 @@ from bot.responses.bot_message_handler_responses import (
 from bot.responses.sending_videos.clip_handler_responses import (
     get_log_clip_success_message,
     get_log_segment_saved_message,
+    get_message_too_long_message,
     get_no_quote_provided_message,
     get_no_segments_found_message,
 )
@@ -27,21 +31,40 @@ class ClipHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ["klip", "clip", "k"]
 
+    def _get_validator_functions(self) -> ValidatorFunctions:
+        return [
+            self.__check_argument_count,
+            self.__check_message_length,
+        ]
+
+    async def __check_argument_count(self, message: Message) -> bool:
+        return await self._validate_argument_count(message, 2, get_no_quote_provided_message())
+
+    async def __check_message_length(self, message: Message) -> bool:
+        return await self.__validate_user_permissions(message)
+
+    @staticmethod
+    async def __validate_user_permissions(message: Message) -> bool:
+        if not await DatabaseManager.is_admin_or_moderator(message.from_user.id) and len(message.text) > settings.MAX_SEARCH_QUERY_LENGTH:
+            await message.answer(get_message_too_long_message())
+            return False
+        return True
+
     async def _do_handle(self, message: Message) -> None:
         content = message.text.split()
-        if len(content) < 2:
-            return await self._reply_invalid_args_count(message, get_no_quote_provided_message())
-
         quote = " ".join(content[1:])
 
         segments = await TranscriptionFinder.find_segment_by_quote(quote, self._logger, return_all=False)
 
         if not segments:
             return await self.__reply_no_segments_found(message, quote)
-
         segment = segments[0] if isinstance(segments, list) else segments
+
         start_time = max(0, segment["start"] - settings.EXTEND_BEFORE)
         end_time = segment["end"] + settings.EXTEND_AFTER
+
+        if await self._handle_clip_duration_limit_exceeded(message, end_time - start_time):
+            return
 
         try:
             await ClipsExtractor.extract_and_send_clip(segment["video_path"], message, self._bot, self._logger, start_time, end_time)

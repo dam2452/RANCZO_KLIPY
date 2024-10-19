@@ -38,6 +38,7 @@ dp = Dispatcher(storage=MemoryStorage())
 
 
 async def on_startup() -> None:
+    await DatabaseManager.init_pool()
     await DatabaseManager.init_db()
     await DatabaseManager.set_default_admin(int(os.getenv("DEFAULT_ADMIN")), bot=bot)
     logger.info("📦 Database initialized and default admin set. 📦")

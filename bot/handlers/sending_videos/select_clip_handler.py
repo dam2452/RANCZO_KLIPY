@@ -6,7 +6,10 @@ from aiogram.types import Message
 
 from bot.database.database_manager import DatabaseManager
 from bot.database.models import ClipType
-from bot.handlers.bot_message_handler import BotMessageHandler
+from bot.handlers.bot_message_handler import (
+    BotMessageHandler,
+    ValidatorFunctions,
+)
 from bot.responses.bot_message_handler_responses import (
     get_extraction_failure_message,
     get_log_extraction_failure_message,
@@ -28,11 +31,19 @@ class SelectClipHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ["wybierz", "select", "w"]
 
+    # pylint: disable=duplicate-code
+    def _get_validator_functions(self) -> ValidatorFunctions:
+        return [
+            self.__check_argument_count,
+        ]
+
+    async def __check_argument_count(self, message: Message) -> bool:
+        return await self._validate_argument_count(message, 2, get_invalid_args_count_message())
+
+
+    # pylint: enable=duplicate-code
     async def _do_handle(self, message: Message) -> None:
         content = message.text.split()
-
-        if len(content) < 2:
-            return await self._reply_invalid_args_count(message, get_invalid_args_count_message())
 
         last_search = await DatabaseManager.get_last_search_by_chat_id(message.chat.id)
         if not last_search:
@@ -45,11 +56,18 @@ class SelectClipHandler(BotMessageHandler):
             return await self.__reply_invalid_segment_number(message, index)
 
         segment = segments[index - 1]
+
         start_time = max(0, segment["start"] - settings.EXTEND_BEFORE)
         end_time = segment["end"] + settings.EXTEND_AFTER
 
+        if await self._handle_clip_duration_limit_exceeded(message, end_time - start_time):
+            return
+
         try:
-            await ClipsExtractor.extract_and_send_clip(segment["video_path"], message, self._bot, self._logger, start_time, end_time)
+            await ClipsExtractor.extract_and_send_clip(
+                segment["video_path"], message, self._bot, self._logger,
+                start_time, end_time,
+            )
         except FFMpegException as e:
             return await self.__reply_extraction_failure(message, e)
 
@@ -63,7 +81,10 @@ class SelectClipHandler(BotMessageHandler):
             is_adjusted=False,
         )
 
-        await self._log_system_message(logging.INFO, get_log_segment_selected_message(segment["id"], message.from_user.username))
+        await self._log_system_message(
+            logging.INFO,
+            get_log_segment_selected_message(segment["id"], message.from_user.username),
+        )
 
     async def __reply_no_previous_search(self, message: Message) -> None:
         await message.answer(get_no_previous_search_message())

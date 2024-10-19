@@ -4,7 +4,10 @@ from typing import List
 from aiogram.types import Message
 
 from bot.database.database_manager import DatabaseManager
-from bot.handlers.bot_message_handler import BotMessageHandler
+from bot.handlers.bot_message_handler import (
+    BotMessageHandler,
+    ValidatorFunctions,
+)
 from bot.responses.administration.list_admins_handler_responses import (
     format_admins_list,
     get_log_admins_list_sent_message,
@@ -16,6 +19,9 @@ from bot.responses.administration.list_admins_handler_responses import (
 class ListAdminsHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
         return ["listadmins", "la"]
+
+    def _get_validator_functions(self) -> ValidatorFunctions:
+        return []
 
     async def _do_handle(self, message: Message) -> None:
         users = await DatabaseManager.get_admin_users()
@@ -30,5 +36,5 @@ class ListAdminsHandler(BotMessageHandler):
         await self._log_system_message(logging.INFO, get_log_no_admins_found_message())
 
     async def __reply_admins_list(self, message: Message, response: str) -> None:
-        await message.answer(response, parse_mode="Markdown")
+        await self._answer_markdown(message , response)
         await self._log_system_message(logging.INFO, get_log_admins_list_sent_message())

@@ -3,6 +3,7 @@ from typing import (
     Dict,
     List,
 )
+import unicodedata
 
 from bot.database.database_manager import UserProfile
 from bot.database.models import FormattedSegmentInfo
@@ -105,3 +106,8 @@ def format_user_list(users: List[UserProfile], title: str) -> str:
     response = f"📃 {title}:\n"
     response += "```\n" + "\n\n".join(user_lines) + "\n```"
     return response
+
+def remove_diacritics_and_lowercase(text):
+    normalized_text = unicodedata.normalize('NFKD', text)
+    cleaned_text = ''.join([char for char in normalized_text if not unicodedata.combining(char)])
+    return cleaned_text.lower()
