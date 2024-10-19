@@ -1,13 +1,9 @@
 import json
 from typing import (
-    Awaitable,
-    Callable,
     Dict,
     List,
 )
 import unicodedata
-
-from aiogram.types import Message
 
 from bot.database.database_manager import UserProfile
 from bot.database.models import FormattedSegmentInfo
@@ -110,15 +106,6 @@ def format_user_list(users: List[UserProfile], title: str) -> str:
     response = f"📃 {title}:\n"
     response += "```\n" + "\n\n".join(user_lines) + "\n```"
     return response
-
-async def validate_argument_count(
-    message: Message, min_args: int, reply_invalid_args: Callable[[Message, str], Awaitable[None]], error_message: str,
-) -> bool:
-    content = message.text.split()
-    if len(content) < min_args:
-        await reply_invalid_args(message, error_message)
-        return False
-    return True
 
 def remove_diacritics_and_lowercase(text):
     normalized_text = unicodedata.normalize('NFKD', text)
