@@ -9,7 +9,7 @@ def get_basic_message() -> str:
 ```"""
 
 
-def get_lista_message() -> str:
+def get_list_message() -> str:
     return """```🐐\u00A0RanczoKlipy\u00A0-\u00A0Działy\u00A0Komend\u00A0🐐
 ══════════════════════════
 🔍 Wyszukiwanie:
@@ -36,7 +36,7 @@ def get_lista_message() -> str:
 ```"""
 
 
-def get_full_message() -> str:
+def get_all_message() -> str:
     return """```🐐\u00A0Witaj\u00A0w\u00A0RanczoKlipy!\u00A0🐐
 ═════════════════════════════════════════
 🔍 Wyszukiwanie i przeglądanie klipów 🔍
@@ -78,7 +78,7 @@ def get_full_message() -> str:
 ```"""
 
 
-def get_wyszukiwanie_message() -> str:
+def get_search_message() -> str:
     return """```🐐\u00A0RanczoKlipy\u00A0Wyszukiwanie\u00A0klipów\u00A0🐐
 ════════════════════
 🔍 Wyszukiwanie 🔍
@@ -93,7 +93,7 @@ def get_wyszukiwanie_message() -> str:
 ```"""
 
 
-def get_edycja_message() -> str:
+def get_edit_message() -> str:
     return """```🐐\u00A0RanczoKlipy\u00A0Edycja\u00A0klipów\u00A0🐐
 ════════════════════
 ✂️ Edycja klipów ✂️
@@ -106,7 +106,7 @@ def get_edycja_message() -> str:
 ```"""
 
 
-def get_zarzadzanie_message() -> str:
+def get_menagement_message() -> str:
     return """```🐐\u00A0RanczoKlipy\u00A0Zarządzanie\u00A0zapisanymi\u00A0klipami\u00A0🐐
 ═════════════════════════════════════
 📁 Zarządzanie zapisanymi klipami 📁
@@ -119,7 +119,7 @@ def get_zarzadzanie_message() -> str:
 ```"""
 
 
-def get_raportowanie_message() -> str:
+def get_reporting_message() -> str:
     return """```🐐\u00A0RanczoKlipy\u00A0Raportowanie\u00A0błędów\u00A0🐐
 ════════════════════════
 🛠️ Raportowanie błędów ️
@@ -128,7 +128,7 @@ def get_raportowanie_message() -> str:
 ```"""
 
 
-def get_subskrypcje_message() -> str:
+def get_subscriptions_message() -> str:
     return """```🐐\u00A0RanczoKlipy\u00A0Subskrypcje\u00A0🐐
 ══════════════════
 🔔 Subskrypcje 🔔

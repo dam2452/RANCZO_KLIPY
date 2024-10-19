@@ -13,18 +13,18 @@ from bot.handlers.bot_message_handler import (
     ValidatorFunctions,
 )
 from bot.responses.administration.start_handler_responses import (
+    get_all_message,
     get_basic_message,
-    get_edycja_message,
-    get_full_message,
+    get_edit_message,
     get_invalid_command_message,
-    get_lista_message,
+    get_list_message,
     get_log_received_start_command,
     get_log_start_message_sent,
-    get_raportowanie_message,
+    get_menagement_message,
+    get_reporting_message,
+    get_search_message,
     get_shortcuts_message,
-    get_subskrypcje_message,
-    get_wyszukiwanie_message,
-    get_zarzadzanie_message,
+    get_subscriptions_message,
 )
 from bot.utils.functions import remove_diacritics_and_lowercase
 
@@ -32,32 +32,33 @@ from bot.utils.functions import remove_diacritics_and_lowercase
 class StartHandler(BotMessageHandler):
     def __init__(self, bot: Bot, logger: logging.Logger):
         self.__RESPONSES: Dict[str, Callable[[], str]] = {
-            "lista": get_lista_message,
-            "list": get_lista_message,
-            "l": get_lista_message,
+            "lista": get_list_message,
+            "list": get_list_message,
+            "l": get_list_message,
 
-            "wszystko": get_full_message,
-            "all": get_full_message,
-            "a": get_full_message,
+            "wszystko": get_all_message,
+            "all": get_all_message,
+            "a": get_all_message,
 
-            "wyszukiwanie": get_wyszukiwanie_message,
-            "search": get_wyszukiwanie_message,
-            "s": get_wyszukiwanie_message,
+            "wyszukiwanie": get_search_message,
+            "search": get_search_message,
+            "s": get_search_message,
 
-            "edycja": get_edycja_message,
-            "edit": get_edycja_message,
+            "edycja": get_edit_message,
+            "edit": get_edit_message,
+            "e": get_edit_message,
 
-            "zarzadzanie": get_zarzadzanie_message,
-            "management": get_zarzadzanie_message,
-            "zarządzanie": get_zarzadzanie_message,
+            "zarzadzanie": get_menagement_message,
+            "management": get_menagement_message,
+            "m": get_menagement_message,
 
-            "raportowanie": get_raportowanie_message,
-            "reporting": get_raportowanie_message,
-            "r": get_raportowanie_message,
+            "raportowanie": get_reporting_message,
+            "reporting": get_reporting_message,
+            "r": get_reporting_message,
 
-            "subskrypcje": get_subskrypcje_message,
-            "subscriptions": get_subskrypcje_message,
-            "sub": get_subskrypcje_message,
+            "subskrypcje": get_subscriptions_message,
+            "subscriptions": get_subscriptions_message,
+            "sub": get_subscriptions_message,
 
             "skroty": get_shortcuts_message,
             "shortcuts": get_shortcuts_message,
