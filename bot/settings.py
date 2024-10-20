@@ -41,6 +41,8 @@ class Settings(BaseSettings):
     MAX_REPORT_LENGTH: int = Field(1000)
     MAX_CLIPS_PER_USER: int = Field(100)
 
+    LOG_LEVEL: str = Field("INFO")
+
     class Config:
         env_file = env_path
         env_prefix = ""
