@@ -81,7 +81,7 @@ class ElasticSearchManager:
     @staticmethod
     async def __load_all_seasons_actions(
         base_path: Path, logger: logging.Logger,
-    ) -> List[dict]:
+    ) -> List[json]:
         actions = []
         for season_path in base_path.iterdir():
             if not season_path.is_dir():
@@ -93,7 +93,7 @@ class ElasticSearchManager:
     @staticmethod
     async def __load_season(
         logger: logging.Logger, season_path: Path,
-    ) -> List[dict]:
+    ) -> List[json]:
         season_actions = []
         season_dir = season_path.name
 
@@ -113,7 +113,7 @@ class ElasticSearchManager:
     @staticmethod
     async def __load_episode(
         episode_file: Path, season_dir: str,
-    ) -> List[dict]:
+    ) -> List[json]:
         actions = []
         with episode_file.open("r", encoding="utf-8") as f:
             data = json.load(f)
