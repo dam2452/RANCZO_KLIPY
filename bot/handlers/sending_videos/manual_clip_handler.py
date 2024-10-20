@@ -76,10 +76,9 @@ class ManualClipHandler(BotMessageHandler):
         if not video_path or not os.path.exists(video_path):
             return await self.__reply_video_file_not_exist(message, video_path)
 
-        await ClipsExtractor.extract_and_send_clip(
-            video_path, message, self._bot, self._logger, start_seconds,
-            end_seconds,
-        )
+        output_filename = await ClipsExtractor.extract_clip(video_path, start_seconds, end_seconds, self._logger)
+        await self._answer_video(message, output_filename)
+
         await self._log_system_message(
             logging.INFO,
             get_log_clip_extracted_message(episode, start_seconds, end_seconds),

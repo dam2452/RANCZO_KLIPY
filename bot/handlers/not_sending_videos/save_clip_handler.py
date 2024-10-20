@@ -57,11 +57,11 @@ class SaveClipHandler(BotMessageHandler):
         return await self._validate_argument_count(
             message, 2, get_clip_name_not_provided_message(),
         )
-    @staticmethod
-    async def __check_clip_name_length(message: Message) -> bool:
+
+    async def __check_clip_name_length(self, message: Message) -> bool:
         clip_name = " ".join(message.text.split()[1:])
         if len(clip_name) > settings.MAX_CLIP_NAME_LENGTH:
-            await message.answer(get_clip_name_length_exceeded_message())
+            await self._answer(message,get_clip_name_length_exceeded_message())
             return False
         return True
 
@@ -72,13 +72,12 @@ class SaveClipHandler(BotMessageHandler):
             return False
         return True
 
-    @staticmethod
-    async def __check_clip_limit_not_exceeded(message: Message) -> bool:
+    async def __check_clip_limit_not_exceeded(self ,message: Message) -> bool:
         if (
             not await DatabaseManager.is_admin_or_moderator(message.from_user.id)
             and await DatabaseManager.get_user_clip_count(message.chat.id) >= settings.MAX_CLIPS_PER_USER
         ):
-            await message.answer(get_clip_limit_exceeded_message())
+            await self._answer(message,get_clip_limit_exceeded_message())
             return False
         return True
 
@@ -148,7 +147,7 @@ class SaveClipHandler(BotMessageHandler):
                 episode_number,
             ),
             ClipType.SINGLE: lambda: self.__handle_single_clip(
-                last_clip, segment_json, output_filename, season,
+                last_clip, segment_json, season,
                 episode_number,
             ),
         }
@@ -176,7 +175,7 @@ class SaveClipHandler(BotMessageHandler):
     ]:
         await ClipsExtractor.extract_clip(
             segment_json.get("video_path"), last_clip.adjusted_start_time, last_clip.adjusted_end_time,
-            output_filename, self._logger,
+             self._logger,
         )
         return output_filename, last_clip.adjusted_start_time, last_clip.adjusted_end_time, False, season, episode_number
 
@@ -187,7 +186,7 @@ class SaveClipHandler(BotMessageHandler):
         str, float, float, bool, Optional[int], Optional[int],
     ]:
         await ClipsExtractor.extract_clip(
-            segment_json.get("video_path"), segment_json.get("start"), segment_json.get("end"), output_filename,
+            segment_json.get("video_path"), segment_json.get("start"), segment_json.get("end"),
             self._logger,
         )
         return output_filename.replace(" ", "_"), segment_json.get("start"), segment_json.get(
@@ -201,7 +200,7 @@ class SaveClipHandler(BotMessageHandler):
         str, float, float, bool, Optional[int], Optional[int],
     ]:
         await ClipsExtractor.extract_clip(
-            segment_json.get("video_path"), last_clip.adjusted_start_time, last_clip.adjusted_end_time, output_filename,
+            segment_json.get("video_path"), last_clip.adjusted_start_time, last_clip.adjusted_end_time,
             self._logger,
         )
         return output_filename.replace(
@@ -210,15 +209,16 @@ class SaveClipHandler(BotMessageHandler):
         ), last_clip.adjusted_start_time, last_clip.adjusted_end_time, False, season, episode_number
 
     async def __handle_single_clip(
-            self, last_clip: LastClip, segment_json: Dict[str, any], output_filename: str,
+            self, last_clip: LastClip, segment_json: Dict[str, any],
             season: Optional[int], episode_number: Optional[int],
     ) -> ClipInfo:
-        await ClipsExtractor.extract_clip(
-            segment_json.get("video_path"), last_clip.adjusted_start_time, last_clip.adjusted_end_time, output_filename,
+        extracted_clip_path = await ClipsExtractor.extract_clip(
+            segment_json.get("video_path"), last_clip.adjusted_start_time, last_clip.adjusted_end_time,
             self._logger,
         )
+
         return ClipInfo(
-            output_filename=output_filename.replace(" ", "_"),
+            output_filename=str(extracted_clip_path),
             start_time=last_clip.adjusted_start_time,
             end_time=last_clip.adjusted_end_time,
             is_compilation=False,
@@ -236,21 +236,21 @@ class SaveClipHandler(BotMessageHandler):
         return output_filename
 
     async def __reply_clip_name_exists(self, message: Message, clip_name: str) -> None:
-        await message.answer(get_clip_name_exists_message(clip_name))
+        await self._answer(message,get_clip_name_exists_message(clip_name))
         await self._log_system_message(
             logging.INFO,
             get_log_clip_name_exists_message(clip_name, message.from_user.username),
         )
 
     async def __reply_no_segment_selected(self, message: Message) -> None:
-        await message.answer(get_no_segment_selected_message())
+        await self._answer(message,get_no_segment_selected_message())
         await self._log_system_message(
             logging.INFO,
             get_log_no_segment_selected_message(),
         )
 
     async def __reply_clip_saved_successfully(self, message: Message, clip_name: str) -> None:
-        await message.answer(get_clip_saved_successfully_message(clip_name))
+        await self._answer(message,get_clip_saved_successfully_message(clip_name))
         await self._log_system_message(
             logging.INFO,
             get_log_clip_saved_successfully_message(clip_name, message.from_user.username),

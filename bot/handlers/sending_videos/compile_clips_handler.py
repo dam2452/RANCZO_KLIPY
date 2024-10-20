@@ -67,7 +67,7 @@ class CompileClipsHandler(BotMessageHandler):
             return await self.__reply_no_matching_segments_found(message)
 
         if not await DatabaseManager.is_admin_or_moderator(message.from_user.id) and len(selected_segments) > settings.MAX_CLIPS_PER_COMPILATION:
-            await message.answer(get_max_clips_exceeded_message())
+            await self._answer(message,get_max_clips_exceeded_message())
             return
 
         total_duration = 0
@@ -82,8 +82,9 @@ class CompileClipsHandler(BotMessageHandler):
 
         if await self._handle_clip_duration_limit_exceeded(message, total_duration):
             return
+        compiled_output = await ClipsCompiler.compile(message, selected_segments, self._logger)
 
-        compiled_output = await ClipsCompiler.compile_and_send_clips(message, selected_segments, self._bot, self._logger)
+        await self._answer_video(message, compiled_output)
         await process_compiled_clip(message, compiled_output, ClipType.COMPILED)
 
         await self._log_system_message(logging.INFO, get_compilation_success_message(message.from_user.username))
@@ -129,9 +130,9 @@ class CompileClipsHandler(BotMessageHandler):
             raise CompileClipsHandler.ParseSegmentsException(get_invalid_index_message(index)) from e
 
     async def __reply_no_previous_search_results(self, message: Message) -> None:
-        await message.answer(get_no_previous_search_results_message())
+        await self._answer(message,get_no_previous_search_results_message())
         await self._log_system_message(logging.INFO, get_log_no_previous_search_results_message())
 
     async def __reply_no_matching_segments_found(self, message: Message) -> None:
-        await message.answer(get_no_matching_segments_found_message())
+        await self._answer(message,get_no_matching_segments_found_message())
         await self._log_system_message(logging.INFO, get_log_no_matching_segments_found_message())

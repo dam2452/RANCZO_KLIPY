@@ -3,6 +3,7 @@ from abc import (
     abstractmethod,
 )
 import logging
+from pathlib import Path
 from typing import (
     Awaitable,
     Callable,
@@ -14,13 +15,21 @@ from aiogram import (
     Dispatcher,
 )
 from aiogram.filters import Command
-from aiogram.types import Message
+from aiogram.types import (
+    BufferedInputFile,
+    FSInputFile,
+    Message,
+)
 
 from bot.database.database_manager import DatabaseManager
 from bot.responses.bot_message_handler_responses import (
+    get_clip_size_exceed_log_message,
+    get_clip_size_exceed_message,
+    get_clip_size_log_message,
     get_general_error_message,
     get_invalid_args_count_message,
     get_log_clip_duration_exceeded_message,
+    get_video_sent_log_message,
 )
 from bot.responses.sending_videos.manual_clip_handler_responses import get_limit_exceeded_clip_duration_message
 from bot.settings import settings
@@ -47,7 +56,7 @@ class BotMessageHandler(ABC):
                     return
             await self._do_handle(message)
         except Exception as e:  # pylint: disable=broad-exception-caught
-            await message.answer(get_general_error_message())
+            await self._answer(message,get_general_error_message())
             await self._log_system_message(logging.ERROR, f"{type(e)} Error in {self.get_action_name()} for user '{message.from_user.id}': {e}")
 
         await DatabaseManager.log_command_usage(message.from_user.id)
@@ -63,7 +72,7 @@ class BotMessageHandler(ABC):
         message: Message,
         response: str,
     ) -> None:
-        await message.answer(response)
+        await self._answer(message,response)
         await self._log_system_message(logging.INFO, get_invalid_args_count_message(self.get_action_name(), message.from_user.id))
 
     def get_action_name(self) -> str:
@@ -81,6 +90,46 @@ class BotMessageHandler(ABC):
     async def _answer_markdown(message: Message, text: str) -> None:
         await message.answer(text, parse_mode="Markdown", reply_to_message_id=message.message_id)
 
+    @staticmethod
+    async def _answer(message: Message, text: str) -> None:
+        await message.answer(text, reply_to_message_id=message.message_id)
+
+    @staticmethod
+    async def _answer_photo(message: Message, image_bytes: bytes, image_path: Path, caption: str) -> None:
+        await message.answer_photo(
+            photo=BufferedInputFile(image_bytes, str(image_path)),
+            caption=caption,
+            show_caption_above_media=True,
+            parse_mode="Markdown",
+            reply_to_message_id=message.message_id,
+        )
+    async def _answer_video(self, message: Message, file_path: Path) -> None:
+        file_size = file_path.stat().st_size / (1024 * 1024)  # size in MB
+        await self._log_system_message(logging.INFO, get_clip_size_log_message(file_path, file_size))
+
+        if file_size > settings.TELEGRAM_FILE_SIZE_LIMIT_MB:
+            await self._log_system_message(
+                logging.WARNING,
+                get_clip_size_exceed_log_message(file_size, settings.TELEGRAM_FILE_SIZE_LIMIT_MB),
+            )
+            await self._answer(message, get_clip_size_exceed_message())
+        else:
+            await message.answer_video(
+                FSInputFile(file_path),
+                supports_streaming=True,
+                width=1920,
+                height=1080,
+                reply_to_message_id=message.message_id,
+            )
+            await self._log_system_message(logging.INFO, get_video_sent_log_message(file_path))
+
+    async def _answer_document(self, message: Message, file_path: Path, caption: str) -> None:
+        await message.answer_document(
+            FSInputFile(file_path),
+            caption=caption,
+            reply_to_message_id=message.message_id,
+        )
+        await self._log_system_message(logging.INFO, get_video_sent_log_message(file_path))
     @abstractmethod
     def _get_validator_functions(self) -> ValidatorFunctions:
         return []

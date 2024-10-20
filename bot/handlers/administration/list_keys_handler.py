@@ -32,7 +32,7 @@ class ListKeysHandler(BotMessageHandler):
         await self.__reply_subscription_keys(message, response)
 
     async def __reply_subscription_keys_empty(self, message: Message) -> None:
-        await message.answer(get_subscription_keys_empty_message())
+        await self._answer(message,get_subscription_keys_empty_message())
         await self._log_system_message(logging.INFO, get_log_subscription_keys_empty_message())
 
     async def __reply_subscription_keys(self, message: Message, response: str) -> None:

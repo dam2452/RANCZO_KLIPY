@@ -89,7 +89,7 @@ class AdjustVideoClipHandler(BotMessageHandler):
         await self._log_system_message(logging.INFO, f"Additional_end_offset: {abs(additional_end_offset)}")
 
         if await self._is_adjustment_exceeding_limits(message.from_user.id, additional_start_offset, additional_end_offset):
-            await message.answer(get_max_extension_limit_message())
+            await self._answer(message,get_max_extension_limit_message())
             return
 
         start_time = max(0.0, original_start_time - additional_start_offset - settings.EXTEND_BEFORE)
@@ -99,10 +99,8 @@ class AdjustVideoClipHandler(BotMessageHandler):
             return
 
         try:
-            await ClipsExtractor.extract_and_send_clip(
-                segment_info.get("video_path"), message, self._bot, self._logger, start_time,
-                end_time,
-            )
+            output_filename = await ClipsExtractor.extract_clip(segment_info.get("video_path"), start_time, end_time, self._logger)
+            await self._answer_video(message, output_filename)
 
             await DatabaseManager.insert_last_clip(
                 chat_id=message.chat.id,
@@ -123,27 +121,27 @@ class AdjustVideoClipHandler(BotMessageHandler):
         await self._log_system_message(logging.INFO, get_successful_adjustment_message(message.from_user.username))
 
     async def __reply_no_previous_searches(self, message: Message) -> None:
-        await message.answer(get_no_previous_searches_message())
+        await self._answer(message,get_no_previous_searches_message())
         await self._log_system_message(logging.INFO, get_no_previous_searches_log())
 
     async def __reply_no_quotes_selected(self, message: Message) -> None:
-        await message.answer(get_no_quotes_selected_message())
+        await self._answer(message,get_no_quotes_selected_message())
         await self._log_system_message(logging.INFO, get_no_quotes_selected_log())
 
     async def __reply_invalid_args_count(self, message: Message) -> None:
-        await message.answer(get_invalid_args_count_message())
+        await self._answer(message,get_invalid_args_count_message())
         await self._log_system_message(logging.INFO, get_invalid_args_count_log())
 
     async def __reply_invalid_interval(self, message: Message) -> None:
-        await message.answer(get_invalid_interval_message())
+        await self._answer(message,get_invalid_interval_message())
         await self._log_system_message(logging.INFO, get_invalid_interval_log())
 
     async def __reply_invalid_segment_index(self, message: Message) -> None:
-        await message.answer(get_invalid_segment_index_message())
+        await self._answer(message,get_invalid_segment_index_message())
         await self._log_system_message(logging.INFO, get_invalid_segment_log())
 
     async def __reply_extraction_failure(self, message: Message, exception: FFMpegException) -> None:
-        await message.answer(get_extraction_failure_message(exception))
+        await self._answer(message,get_extraction_failure_message(exception))
         await self._log_system_message(logging.ERROR, get_extraction_failure_log(exception))
 
     @staticmethod

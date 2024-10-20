@@ -43,7 +43,7 @@ class DeleteClipHandler(BotMessageHandler):
 
         user_clips = await DatabaseManager.get_saved_clips(message.chat.id)
         if clip_number not in range(1, len(user_clips) + 1):
-            await message.answer(get_clip_not_exist_message(clip_number))
+            await self._answer(message,get_clip_not_exist_message(clip_number))
             await self._log_system_message(
                 logging.INFO,
                 get_log_clip_not_exist_message(clip_number, message.from_user.username),
@@ -54,7 +54,7 @@ class DeleteClipHandler(BotMessageHandler):
 
         await DatabaseManager.delete_clip(message.chat.id, clip_to_delete.name)
 
-        await message.answer(get_clip_deleted_message(clip_to_delete.name))
+        await self._answer(message,get_clip_deleted_message(clip_to_delete.name))
         await self._log_system_message(
             logging.INFO, get_log_clip_deleted_message(
                 clip_to_delete.name,

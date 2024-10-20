@@ -64,10 +64,8 @@ class SelectClipHandler(BotMessageHandler):
             return
 
         try:
-            await ClipsExtractor.extract_and_send_clip(
-                segment["video_path"], message, self._bot, self._logger,
-                start_time, end_time,
-            )
+            output_filename = await ClipsExtractor.extract_clip(segment["video_path"], start_time, end_time, self._logger)
+            await self._answer_video(message, output_filename)
         except FFMpegException as e:
             return await self.__reply_extraction_failure(message, e)
 
@@ -87,13 +85,13 @@ class SelectClipHandler(BotMessageHandler):
         )
 
     async def __reply_no_previous_search(self, message: Message) -> None:
-        await message.answer(get_no_previous_search_message())
+        await self._answer(message,get_no_previous_search_message())
         await self._log_system_message(logging.INFO, get_log_no_previous_search_message())
 
     async def __reply_extraction_failure(self, message: Message, exception: FFMpegException) -> None:
-        await message.answer(get_extraction_failure_message())
+        await self._answer(message,get_extraction_failure_message())
         await self._log_system_message(logging.ERROR, get_log_extraction_failure_message(exception))
 
     async def __reply_invalid_segment_number(self, message: Message, segment_number: int) -> None:
-        await message.answer(get_invalid_segment_number_message())
+        await self._answer(message,get_invalid_segment_number_message())
         await self._log_system_message(logging.WARNING, get_log_invalid_segment_number_message(segment_number))

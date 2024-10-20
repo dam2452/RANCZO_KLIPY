@@ -4,10 +4,7 @@ import os
 import tempfile
 from typing import List
 
-from aiogram.types import (
-    FSInputFile,
-    Message,
-)
+from aiogram.types import Message
 
 from bot.database.database_manager import DatabaseManager
 from bot.handlers.bot_message_handler import (
@@ -63,8 +60,7 @@ class SearchListHandler(BotMessageHandler):
         with open(file_name, "w", encoding="utf-8") as file:
             file.write(response)
 
-        input_file = FSInputFile(file_name)
-        await self._bot.send_document(message.chat.id, input_file, caption="📄 Wszystkie znalezione cytaty 📄")
+        await self._answer_document(message, file_name, caption="📄 Wszystkie znalezione cytaty 📄")
         os.remove(file_name)
 
         await self._log_system_message(
@@ -73,7 +69,7 @@ class SearchListHandler(BotMessageHandler):
         )
 
     async def __reply_no_previous_search_results(self, message: Message) -> None:
-        await message.answer(get_no_previous_search_results_message())
+        await self._answer(message,get_no_previous_search_results_message())
         await self._log_system_message(logging.INFO, get_log_no_previous_search_results_message(message.chat.id))
 
     @staticmethod
