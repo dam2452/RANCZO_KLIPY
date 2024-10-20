@@ -46,6 +46,6 @@ class Settings(BaseSettings):
     class Config:
         env_file = env_path
         env_prefix = ""
-
+        extra = "ignore"
 
 settings = Settings()
