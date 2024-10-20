@@ -159,7 +159,6 @@ class SaveClipHandler(BotMessageHandler):
 
     async def __handle_compiled_clip(self, last_clip: LastClip) -> ClipPreparationResult:
         output_filename: Path = self.__bytes_to_filepath(last_clip.compiled_clip)
-        # Replace spaces in filename
         output_filename = output_filename.with_name(output_filename.name.replace(" ", "_"))
         return ClipPreparationResult(
             output_filename=output_filename,
