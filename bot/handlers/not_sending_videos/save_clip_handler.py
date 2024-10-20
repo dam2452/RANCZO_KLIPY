@@ -158,7 +158,7 @@ class SaveClipHandler(BotMessageHandler):
         raise ValueError(f"Unsupported clip type: {last_clip.clip_type}")
 
     async def __handle_compiled_clip(self, last_clip: LastClip) -> ClipInfo:
-        output_filename: Path = self.__bytes_to_filepath(last_clip.compiled_clip)
+        output_filename = self.__bytes_to_filepath(last_clip.compiled_clip)
         output_filename = output_filename.with_name(output_filename.name.replace(" ", "_"))
         return ClipInfo(
             output_filename=output_filename,
