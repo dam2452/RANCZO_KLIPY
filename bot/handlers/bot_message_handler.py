@@ -79,7 +79,7 @@ class BotMessageHandler(ABC):
 
     @staticmethod
     async def _answer_markdown(message: Message, text: str) -> None:
-        await message.answer(text, parse_mode="Markdown")
+        await message.answer(text, parse_mode="Markdown",reply_to_message_id = message.message_id)
 
     @abstractmethod
     def _get_validator_functions(self) -> ValidatorFunctions:

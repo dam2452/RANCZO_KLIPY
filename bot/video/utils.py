@@ -55,7 +55,8 @@ async def send_video(message: Message, file_path: str, bot: Bot, logger: logging
         await bot.send_message(
             message.chat.id,
             "❌ Wyodrębniony klip jest za duży, aby go wysłać przez Telegram. Maksymalny rozmiar pliku to 50 MB.❌",
+            reply_to_message_id = message.message_id,
         )
     else:
-        await bot.send_video(message.chat.id, input_file, supports_streaming=True, width=1920, height=1080)
+        await bot.send_video(message.chat.id, input_file, supports_streaming=True, width=1920, height=1080, reply_to_message_id=message.message_id)
         await log_system_message(logging.INFO, f"Sent video file: {file_path}", logger)
