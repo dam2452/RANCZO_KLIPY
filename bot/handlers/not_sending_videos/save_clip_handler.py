@@ -14,7 +14,7 @@ from aiogram.types import Message
 
 from bot.database.database_manager import DatabaseManager
 from bot.database.models import (
-    ClipPreparationResult,
+    ClipInfo,
     ClipType,
     LastClip,
 )
@@ -122,7 +122,7 @@ class SaveClipHandler(BotMessageHandler):
 
         await self.__reply_clip_saved_successfully(message, clip_name)
 
-    async def __prepare_clip(self, last_clip: LastClip) -> ClipPreparationResult:
+    async def __prepare_clip(self, last_clip: LastClip) -> ClipInfo:
         segment_json: Dict[str, any] = json.loads(last_clip.segment)
         episode_info: Dict[str, Optional[int]] = segment_json.get("episode_info", {})
         season: Optional[int] = episode_info.get("season")
@@ -132,7 +132,7 @@ class SaveClipHandler(BotMessageHandler):
             output_filename: Path = Path(tmp_file.name)
 
         clip_handlers: Dict[
-            ClipType, Callable[[], Awaitable[ClipPreparationResult]],
+            ClipType, Callable[[], Awaitable[ClipInfo]],
         ] = {
             ClipType.COMPILED: lambda: self.__handle_compiled_clip(last_clip),
             ClipType.ADJUSTED: lambda: self.__handle_adjusted_clip(
@@ -157,10 +157,10 @@ class SaveClipHandler(BotMessageHandler):
             return await clip_handlers[last_clip.clip_type]()
         raise ValueError(f"Unsupported clip type: {last_clip.clip_type}")
 
-    async def __handle_compiled_clip(self, last_clip: LastClip) -> ClipPreparationResult:
+    async def __handle_compiled_clip(self, last_clip: LastClip) -> ClipInfo:
         output_filename: Path = self.__bytes_to_filepath(last_clip.compiled_clip)
         output_filename = output_filename.with_name(output_filename.name.replace(" ", "_"))
-        return ClipPreparationResult(
+        return ClipInfo(
             output_filename=output_filename,
             start_time=0.0,
             end_time=0.0,
@@ -172,13 +172,13 @@ class SaveClipHandler(BotMessageHandler):
     async def __handle_adjusted_clip(
         self, last_clip: LastClip, segment_json: Dict[str, any], output_filename: Path,
         season: Optional[int], episode_number: Optional[int],
-    ) -> ClipPreparationResult:
+    ) -> ClipInfo:
         video_path = Path(segment_json.get("video_path"))
         await ClipsExtractor.extract_clip(
             video_path, last_clip.adjusted_start_time, last_clip.adjusted_end_time,
             output_filename, self._logger,
         )
-        return ClipPreparationResult(
+        return ClipInfo(
             output_filename=output_filename,
             start_time=last_clip.adjusted_start_time,
             end_time=last_clip.adjusted_end_time,
@@ -190,7 +190,7 @@ class SaveClipHandler(BotMessageHandler):
     async def __handle_manual_clip(
         self, segment_json: Dict[str, any], output_filename: Path,
         season: Optional[int], episode_number: Optional[int],
-    ) -> ClipPreparationResult:
+    ) -> ClipInfo:
         video_path = Path(segment_json.get("video_path"))
         start_time = segment_json.get("start")
         end_time = segment_json.get("end")
@@ -199,7 +199,7 @@ class SaveClipHandler(BotMessageHandler):
             self._logger,
         )
         output_filename = output_filename.with_name(output_filename.name.replace(" ", "_"))
-        return ClipPreparationResult(
+        return ClipInfo(
             output_filename=output_filename,
             start_time=start_time,
             end_time=end_time,
@@ -211,14 +211,14 @@ class SaveClipHandler(BotMessageHandler):
     async def __handle_selected_clip(
         self, last_clip: LastClip, segment_json: Dict[str, any], output_filename: Path,
         season: Optional[int], episode_number: Optional[int],
-    ) -> ClipPreparationResult:
+    ) -> ClipInfo:
         video_path = Path(segment_json.get("video_path"))
         await ClipsExtractor.extract_clip(
             video_path, last_clip.adjusted_start_time, last_clip.adjusted_end_time, output_filename,
             self._logger,
         )
         output_filename = output_filename.with_name(output_filename.name.replace(" ", "_"))
-        return ClipPreparationResult(
+        return ClipInfo(
             output_filename=output_filename,
             start_time=last_clip.adjusted_start_time,
             end_time=last_clip.adjusted_end_time,
@@ -230,7 +230,7 @@ class SaveClipHandler(BotMessageHandler):
     async def __handle_single_clip(
             self, last_clip: LastClip, segment_json: Dict[str, any], output_filename: Path,
             season: Optional[int], episode_number: Optional[int],
-    ) -> ClipPreparationResult:
+    ) -> ClipInfo:
         video_path = Path(segment_json.get("video_path"))
         await ClipsExtractor.extract_clip(
             video_path, last_clip.adjusted_start_time, last_clip.adjusted_end_time, output_filename,
@@ -238,7 +238,7 @@ class SaveClipHandler(BotMessageHandler):
         )
         # Replace spaces in filename
         output_filename = output_filename.with_name(output_filename.name.replace(" ", "_"))
-        return ClipPreparationResult(
+        return ClipInfo(
             output_filename=output_filename,
             start_time=last_clip.adjusted_start_time,
             end_time=last_clip.adjusted_end_time,
