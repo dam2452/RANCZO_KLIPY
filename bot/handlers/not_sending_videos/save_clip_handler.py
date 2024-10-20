@@ -129,7 +129,7 @@ class SaveClipHandler(BotMessageHandler):
         episode_number: Optional[int] = episode_info.get("episode_number")
 
         with tempfile.NamedTemporaryFile(delete=False, delete_on_close=False, suffix=".mp4") as tmp_file:
-            output_filename: Path = Path(tmp_file.name)
+            output_filename = Path(tmp_file.name)
 
         clip_handlers: Dict[
             ClipType, Callable[[], Awaitable[ClipInfo]],
