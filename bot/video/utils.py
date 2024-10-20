@@ -1,5 +1,6 @@
 import logging
 import os
+from pathlib import Path
 import subprocess
 
 from aiogram import Bot
@@ -18,7 +19,7 @@ class FFMpegException(Exception):
         super().__init__(self.message)
 
 
-async def get_video_duration(file_path: str) -> float:
+async def get_video_duration(file_path: Path) -> float:
     if not os.path.exists(file_path):
         raise FileNotFoundError(f"File not found: {file_path}")
 
@@ -41,7 +42,7 @@ async def get_video_duration(file_path: str) -> float:
     return duration
 
 
-async def send_video(message: Message, file_path: str, bot: Bot, logger: logging.Logger) -> None:
+async def send_video(message: Message, file_path: Path, bot: Bot, logger: logging.Logger) -> None:
     input_file = FSInputFile(file_path)
     file_size = os.path.getsize(file_path) / (1024 * 1024)
     await log_system_message(logging.INFO, f"{file_path} Clip size: {file_size:.2f} MB", logger)
