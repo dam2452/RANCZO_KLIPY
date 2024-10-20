@@ -103,6 +103,7 @@ class BotMessageHandler(ABC):
             parse_mode="Markdown",
             reply_to_message_id=message.message_id,
         )
+        
     async def _answer_video(self, message: Message, file_path: Path) -> None:
         file_size = file_path.stat().st_size / (1024 * 1024)  # size in MB
         await self._log_system_message(logging.INFO, get_clip_size_log_message(file_path, file_size))
