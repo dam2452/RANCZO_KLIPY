@@ -1,13 +1,12 @@
-import os
+from pathlib import Path
 
 from dotenv import load_dotenv
 from pydantic import Field
 from pydantic_settings import BaseSettings
 
-env_path: str = os.path.join(os.path.dirname(__file__), "..", ".env")
-if os.path.exists(env_path):
+env_path: Path = Path(__file__).parent.parent / ".env"
+if env_path.exists():
     load_dotenv(env_path)
-
 
 class Settings(BaseSettings):
     TELEGRAM_FILE_SIZE_LIMIT_MB: int = Field(50)
@@ -42,7 +41,7 @@ class Settings(BaseSettings):
     MAX_CLIPS_PER_USER: int = Field(100)
 
     class Config:
-        env_file = env_path
+        env_file = str(env_path)
         env_prefix = ""
 
 
