@@ -1,13 +1,11 @@
 import logging
+from pathlib import Path
 from typing import (
     List,
     Optional,
 )
 
-from aiogram.types import (
-    BufferedInputFile,
-    Message,
-)
+from aiogram.types import Message
 
 from bot.handlers.bot_message_handler import (
     BotMessageHandler,
@@ -56,17 +54,12 @@ class EpisodeListHandler(BotMessageHandler):
             logging.INFO,
             get_log_episode_list_sent_message(season, message.from_user.username),
         )
-    @staticmethod
-    async def __handle_season_11(message: Message) -> None:
-        image_path = "Ranczo_Sezon11.png"
-        with open(image_path, "rb") as image_file:
+
+    async def __handle_season_11(self, message: Message) -> None:
+        image_path = Path("Ranczo_Sezon11.png")
+        with image_path.open("rb") as image_file:
             image_bytes = image_file.read()
-            await message.answer_photo(
-                photo=BufferedInputFile(image_bytes, image_path),
-                caption=get_season_11_petition_message(),
-                show_caption_above_media=True,
-                parse_mode="Markdown",
-            )
+        await self._answer_photo(message, image_bytes, image_path, caption=get_season_11_petition_message())
 
     @staticmethod
     def __split_message(message: str, max_length: int = 4096) -> Optional[List[str]]:
@@ -81,5 +74,5 @@ class EpisodeListHandler(BotMessageHandler):
         return parts
 
     async def __reply_no_episodes_found(self, message: Message, season: int) -> None:
-        await message.answer(get_no_episodes_found_message(season))
+        await self._answer(message,get_no_episodes_found_message(season))
         await self._log_system_message(logging.INFO, get_log_no_episodes_found_message(season))

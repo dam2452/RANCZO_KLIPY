@@ -32,7 +32,7 @@ class ListWhitelistHandler(BotMessageHandler):
         await self.__reply_whitelist(message, response)
 
     async def __reply_whitelist_empty(self, message: Message) -> None:
-        await message.answer(get_whitelist_empty_message())
+        await self._answer(message,get_whitelist_empty_message())
         await self._log_system_message(logging.INFO, get_log_whitelist_empty_message())
 
     async def __reply_whitelist(self, message: Message, response: str) -> None:

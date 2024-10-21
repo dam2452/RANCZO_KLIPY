@@ -44,5 +44,5 @@ class RemoveWhitelistHandler(BotMessageHandler):
         await self.__reply_user_removed(message, user_id)
 
     async def __reply_user_removed(self, message: Message, user_id: int) -> None:
-        await message.answer(get_user_removed_message(str(user_id)))
+        await self._answer(message,get_user_removed_message(str(user_id)))
         await self._log_system_message(logging.INFO, get_log_user_removed_message(str(user_id), message.from_user.username))

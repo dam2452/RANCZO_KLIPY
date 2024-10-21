@@ -32,7 +32,7 @@ class ListModeratorsHandler(BotMessageHandler):
         await self.__reply_moderators_list(message, response)
 
     async def __reply_no_moderators_found(self, message: Message) -> None:
-        await message.answer(get_no_moderators_found_message())
+        await self._answer(message,get_no_moderators_found_message())
         await self._log_system_message(logging.INFO, get_log_no_moderators_found_message())
 
     async def __reply_moderators_list(self, message: Message, response: str) -> None:

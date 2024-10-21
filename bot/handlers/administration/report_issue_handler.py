@@ -32,11 +32,11 @@ class ReportIssueHandler(BotMessageHandler):
             message, 2, get_no_report_content_message(),
         )
 
-    @staticmethod
-    async def __check_report_length(message: Message) -> bool:
+
+    async def __check_report_length(self,message: Message) -> bool:
         report_content = message.text.split(maxsplit=1)
         if len(report_content[1]) > settings.MAX_REPORT_LENGTH:
-            await message.answer(get_limit_exceeded_report_length_message())
+            await self._answer(message,get_limit_exceeded_report_length_message())
             return False
         return True
 
@@ -46,5 +46,5 @@ class ReportIssueHandler(BotMessageHandler):
 
     async def __handle_user_report_submission(self, message: Message, report: str) -> None:
         await DatabaseManager.add_report(message.from_user.id, report)
-        await message.answer(get_report_received_message())
+        await self._answer(message,get_report_received_message())
         await self._log_system_message(logging.INFO, get_log_report_received_message(message.from_user.username, report))

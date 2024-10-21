@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import List
 
 from bot.database.models import UserProfile
@@ -50,3 +51,18 @@ def get_message_too_long_message() -> str:
 
 def get_log_clip_duration_exceeded_message(user_id: int) -> str:
     return f"Clip duration limit exceeded for user '{user_id}'"
+
+def get_clip_size_log_message(file_path: Path, file_size: float) -> str:
+    return f"{file_path} Rozmiar klipu: {file_size:.2f} MB"
+
+
+def get_clip_size_exceed_log_message(file_size: float, limit_size: float) -> str:
+    return f"Rozmiar klipu {file_size:.2f} MB przekracza limit {limit_size} MB."
+
+
+def get_clip_size_exceed_message() -> str:
+    return "❌ Wyodrębniony klip jest za duży, aby go wysłać przez Telegram. Maksymalny rozmiar pliku to 50 MB.❌"
+
+
+def get_video_sent_log_message(file_path: Path) -> str:
+    return f"Wysłano plik wideo: {file_path}"

@@ -47,10 +47,10 @@ class UpdateUserNoteHandler(BotMessageHandler):
         await self.__update_user_note(message, user_id, note)
 
     async def __reply_invalid_user_id(self, message: Message, user_id_str: str) -> None:
-        await message.answer(get_invalid_user_id_message(user_id_str))
+        await self._answer(message,get_invalid_user_id_message(user_id_str))
         await self._log_system_message(logging.INFO, get_log_invalid_user_id_message(message.from_user.username, user_id_str))
 
     async def __update_user_note(self, message: Message, user_id: int, note: str) -> None:
         await DatabaseManager.update_user_note(user_id, note)
-        await message.answer(get_note_updated_message())
+        await self._answer(message,get_note_updated_message())
         await self._log_system_message(logging.INFO, get_log_note_updated_message(message.from_user.username, user_id, note))

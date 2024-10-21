@@ -1,10 +1,12 @@
+import logging
 import os
 from pathlib import Path
 
 from dotenv import load_dotenv
-from main import logger
 from pydantic import Field
 from pydantic_settings import BaseSettings
+
+logger = logging.getLogger(__name__)
 
 env_file = os.getenv('ENV_FILE')
 if env_file:

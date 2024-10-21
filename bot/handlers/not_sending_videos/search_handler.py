@@ -36,11 +36,11 @@ class SearchHandler(BotMessageHandler):
     async def __check_argument_count(self, message: Message) -> bool:
         return await self._validate_argument_count(message, 2, get_invalid_args_count_message())
 
-    @staticmethod
-    async def __check_quote_length(message: Message) -> bool:
+
+    async def __check_quote_length(self, message: Message) -> bool:
         quote = " ".join(message.text.split()[1:])
         if not await DatabaseManager.is_admin_or_moderator(message.from_user.id) and len(quote) > settings.MAX_SEARCH_QUERY_LENGTH:
-            await message.answer(get_message_too_long_message())
+            await self._answer(message,get_message_too_long_message())
             return False
         return True
 
@@ -64,7 +64,7 @@ class SearchHandler(BotMessageHandler):
         await self.__send_search_results(message, response, quote)
 
     async def __reply_no_segments_found(self, message: Message, quote: str) -> None:
-        await message.answer(get_no_segments_found_message(quote))
+        await self._answer(message,get_no_segments_found_message(quote))
         await self._log_system_message(logging.INFO, get_log_no_segments_found_message(quote))
 
     async def __send_search_results(self, message: Message, response: str, quote: str) -> None:
