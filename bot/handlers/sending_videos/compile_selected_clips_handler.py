@@ -79,6 +79,8 @@ class CompileSelectedClipsHandler(BotMessageHandler):
         compiled_output = await ClipsCompiler.compile(message, selected_segments, self._logger)
         await process_compiled_clip(message, compiled_output, ClipType.COMPILED)
 
+        await self._answer_video(message, compiled_output)
+
         await self._log_system_message(logging.INFO, get_compiled_clip_sent_message(message.from_user.username))
 
     async def __reply_no_matching_clips_found(self, message: Message) -> None:
