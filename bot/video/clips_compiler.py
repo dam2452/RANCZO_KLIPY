@@ -22,27 +22,35 @@ from bot.video.utils import FFMpegException
 class ClipsCompiler:
     @staticmethod
     async def __do_compile_clips(segment_files: List[Path], output_file: Path, logger: logging.Logger) -> None:
-        concat_file = tempfile.NamedTemporaryFile(delete=False, mode="w", suffix=".txt")
+        with tempfile.NamedTemporaryFile(delete=False, mode="w", suffix=".txt") as concat_file:
+            concat_file_path = Path(concat_file.name)
+
         try:
-            with open(concat_file.name, "w", encoding="utf-8") as f:
+            with concat_file_path.open("w", encoding="utf-8") as f:
                 for tmp_file in segment_files:
-                    f.write(f"file '{tmp_file}'\n")
+                    f.write(f"file '{tmp_file.as_posix()}'\n")
 
             command = [
-                "ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", concat_file.name,
+                "ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", str(concat_file_path),
                 "-c", "copy", "-movflags", "+faststart", "-fflags", "+genpts",
-                "-avoid_negative_ts", "1", output_file,
+                "-avoid_negative_ts", "1", str(output_file),
             ]
 
             process = await asyncio.create_subprocess_exec(*command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            await process.communicate()
+            _, stderr = await process.communicate()
+
+            if process.returncode != 0:
+                raise FFMpegException(f"FFmpeg error: {stderr.decode()}")
 
             await log_system_message(logging.INFO, f"Clips concatenated successfully into {output_file}", logger)
         except Exception as e:
             raise FFMpegException(f"Error during concatenation: {e}") from e
+        finally:
+            concat_file_path.unlink(missing_ok=True)
 
     @staticmethod
-    async def __compile_clips(selected_clips: List[Dict[str, Union[str, float]]], logger: logging.Logger) -> Path:
+    async def __compile_clips(selected_clips: List[Dict[str, Union[Path, float]]], logger: logging.Logger) -> Path:
+        #pylint: disable=too-many-try-statements
         temp_files = []
         try:
             for segment in selected_clips:
@@ -63,14 +71,14 @@ class ClipsCompiler:
             for temp_file in temp_files:
                 try:
                     if temp_file.exists():
-                        temp_file.unlink()
+                        temp_file.unlink(missing_ok=True)
                         logger.info(f"Temporary file {temp_file} deleted.")
                 except OSError as cleanup_error:
                     logger.error(f"Failed to delete temporary file {temp_file}: {cleanup_error}")
 
     @staticmethod
-    async def __insert_to_last_clips(message: Message, compiled_output: Path) -> None:
-        with open(compiled_output, "rb") as f:
+    async def __send_compiled_clip(message: Message, compiled_output: Path, bot: Bot, logger: logging.Logger) -> None:
+        with compiled_output.open("rb") as f:
             compiled_clip_data = f.read()
 
         await DatabaseManager.insert_last_clip(
@@ -96,7 +104,7 @@ class ClipsCompiler:
 async def process_compiled_clip(
         message: Message, compiled_output: Path, clip_type: ClipType,
 ) -> None:
-    with open(compiled_output, "rb") as f:
+    with compiled_output.open("rb") as f:
         compiled_clip_data = f.read()
 
     await DatabaseManager.insert_last_clip(

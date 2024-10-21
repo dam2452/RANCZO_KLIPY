@@ -4,6 +4,7 @@ from datetime import (
     datetime,
 )
 from enum import Enum
+from pathlib import Path
 from typing import Optional
 
 
@@ -76,16 +77,7 @@ class SubscriptionKey:
 
 @dataclass
 class ClipInfo:
-    output_filename: str
-    start_time: float
-    end_time: float
-    is_compilation: bool
-    season: Optional[int]
-    episode_number: Optional[int]
-
-@dataclass
-class ClipPreparationResult:
-    output_filename: str
+    output_filename: Path
     start_time: float
     end_time: float
     is_compilation: bool

@@ -1,12 +1,22 @@
 import os
+from pathlib import Path
 
 from dotenv import load_dotenv
+from main import logger
 from pydantic import Field
 from pydantic_settings import BaseSettings
 
-env_path: str = os.path.join(os.path.dirname(__file__), "..", ".env")
-if os.path.exists(env_path):
+env_file = os.getenv('ENV_FILE')
+if env_file:
+    env_path = Path(env_file)
+else:
+    env_path = Path(__file__).parent.parent / ".env"
+
+if env_path.exists():
     load_dotenv(env_path)
+    logger.warning("Using dotenv file")
+else:
+    logger.info("No dotenv file found. Environment variables should be provided by the system.")
 
 
 class Settings(BaseSettings):
@@ -41,9 +51,11 @@ class Settings(BaseSettings):
     MAX_REPORT_LENGTH: int = Field(1000)
     MAX_CLIPS_PER_USER: int = Field(100)
 
-    class Config:
-        env_file = env_path
-        env_prefix = ""
+    LOG_LEVEL: str = Field("INFO")
 
+    class Config:
+        env_file = str(env_path)
+        env_prefix = ""
+        extra = "ignore"
 
 settings = Settings()

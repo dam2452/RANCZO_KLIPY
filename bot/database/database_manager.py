@@ -4,6 +4,7 @@ from datetime import (
     timedelta,
 )
 import json
+from pathlib import Path
 from typing import (
     List,
     Optional,
@@ -41,16 +42,16 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         return DatabaseManager.pool.acquire()
 
     @staticmethod
-    async def execute_sql_file(file_path: str) -> None:
+    async def execute_sql_file(file_path: Path) -> None:
         async with DatabaseManager.pool.acquire() as conn:
             async with conn.transaction():
-                with open(file_path, "r", encoding="utf-8") as file:
+                with file_path.open("r", encoding="utf-8") as file:
                     sql = file.read()
                     await conn.execute(sql)
 
     @staticmethod
     async def init_db() -> None:
-        await DatabaseManager.execute_sql_file("./bot/database/init_db.sql")
+        await DatabaseManager.execute_sql_file(Path("./bot/database/init_db.sql"))
 
     @staticmethod
     async def log_user_activity(user_id: int, command: str) -> None:
