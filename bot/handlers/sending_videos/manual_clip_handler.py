@@ -1,7 +1,8 @@
 import logging
-import os
+from pathlib import Path
 from typing import (
     List,
+    Optional,
     Tuple,
 )
 
@@ -49,8 +50,6 @@ class ManualClipHandler(BotMessageHandler):
     async def __check_argument_count(self, message: Message) -> bool:
         return await self._validate_argument_count(message, 4, get_invalid_args_count_message())
 
-
-
     async def _do_handle(self, message: Message) -> None:
         content = message.text.split()
 
@@ -68,12 +67,16 @@ class ManualClipHandler(BotMessageHandler):
         if await self._handle_clip_duration_limit_exceeded(message, clip_duration):
             return
 
-        video_path = await TranscriptionFinder.find_video_path_by_episode(
+        video_path_str = await TranscriptionFinder.find_video_path_by_episode(
             episode.season,
             episode.get_absolute_episode_number(),
             self._logger,
         )
-        if not video_path or not os.path.exists(video_path):
+        if not video_path_str:
+            return await self.__reply_video_file_not_exist(message, None)
+
+        video_path = Path(video_path_str)
+        if not video_path.exists():
             return await self.__reply_video_file_not_exist(message, video_path)
 
         await ClipsExtractor.extract_and_send_clip(
@@ -86,7 +89,7 @@ class ManualClipHandler(BotMessageHandler):
         )
 
         segment_data = {
-            "video_path": video_path,
+            "video_path": str(video_path),
             "start": start_seconds,
             "end": end_seconds,
             "episode_info": {
@@ -117,9 +120,10 @@ class ManualClipHandler(BotMessageHandler):
         await self._answer_markdown(message, get_incorrect_season_episode_format_message())
         await self._log_system_message(logging.INFO, get_log_incorrect_season_episode_format_message())
 
-    async def __reply_video_file_not_exist(self, message: Message, video_path: str) -> None:
+    async def __reply_video_file_not_exist(self, message: Message, video_path: Optional[Path]) -> None:
         await self._answer_markdown(message, get_video_file_not_exist_message())
-        await self._log_system_message(logging.INFO, get_log_video_file_not_exist_message(video_path))
+        video_path_str = str(video_path) if video_path else "Unknown"
+        await self._log_system_message(logging.INFO, get_log_video_file_not_exist_message(video_path_str))
 
     async def __reply_incorrect_time_format(self, message: Message) -> None:
         await self._answer_markdown(message, get_incorrect_time_format_message())
