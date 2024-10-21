@@ -22,7 +22,7 @@ from bot.video.utils import FFMpegException
 class ClipsCompiler:
     @staticmethod
     async def __do_compile_clips(segment_files: List[Path], output_file: Path, logger: logging.Logger) -> None:
-        with tempfile.NamedTemporaryFile(delete=False, mode="w", suffix=".txt") as concat_file:
+        with tempfile.NamedTemporaryFile(delete=False, delete_on_close=False, mode="w", suffix=".txt") as concat_file:
             concat_file_path = Path(concat_file.name)
 
         try:
