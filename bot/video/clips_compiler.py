@@ -77,7 +77,7 @@ class ClipsCompiler:
                     logger.error(f"Failed to delete temporary file {temp_file}: {cleanup_error}")
 
     @staticmethod
-    async def __send_compiled_clip(message: Message, compiled_output: Path, bot: Bot, logger: logging.Logger) -> None:
+    async def __insert_to_last_clips(message: Message, compiled_output: Path) -> None:
         with compiled_output.open("rb") as f:
             compiled_clip_data = f.read()
 

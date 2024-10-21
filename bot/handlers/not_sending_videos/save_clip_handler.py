@@ -165,11 +165,10 @@ class SaveClipHandler(BotMessageHandler):
         )
 
     async def __handle_adjusted_clip(
-        self, last_clip: LastClip, segment_json: Dict[str, any], output_filename: Path,
+        self, last_clip: LastClip, segment_json: Dict[str, any],
         season: Optional[int], episode_number: Optional[int],
     ) -> ClipInfo:
-        video_path = Path(segment_json.get("video_path"))
-        await ClipsExtractor.extract_clip(
+        output_filename = await ClipsExtractor.extract_clip(
             segment_json.get("video_path"), last_clip.adjusted_start_time, last_clip.adjusted_end_time,
              self._logger,
         )
@@ -183,13 +182,12 @@ class SaveClipHandler(BotMessageHandler):
         )
 
     async def __handle_manual_clip(
-        self, segment_json: Dict[str, any], output_filename: Path,
+        self, segment_json: Dict[str, any],
         season: Optional[int], episode_number: Optional[int],
     ) -> ClipInfo:
-        video_path = Path(segment_json.get("video_path"))
         start_time = segment_json.get("start")
         end_time = segment_json.get("end")
-        await ClipsExtractor.extract_clip(
+        output_filename = await ClipsExtractor.extract_clip(
             segment_json.get("video_path"), segment_json.get("start"), segment_json.get("end"),
             self._logger,
         )
@@ -204,15 +202,14 @@ class SaveClipHandler(BotMessageHandler):
         )
 
     async def __handle_selected_clip(
-        self, last_clip: LastClip, segment_json: Dict[str, any], output_filename: Path,
+        self, last_clip: LastClip, segment_json: Dict[str, any],
         season: Optional[int], episode_number: Optional[int],
     ) -> ClipInfo:
-        video_path = Path(segment_json.get("video_path"))
-        await ClipsExtractor.extract_clip(
+        output_filename = await ClipsExtractor.extract_clip(
             segment_json.get("video_path"), last_clip.adjusted_start_time, last_clip.adjusted_end_time,
             self._logger,
         )
-        output_filename = output_filename.with_name(output_filename.name.replace(" ", "_"))
+
         return ClipInfo(
             output_filename=output_filename,
             start_time=last_clip.adjusted_start_time,

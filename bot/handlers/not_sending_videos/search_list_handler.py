@@ -1,6 +1,6 @@
 import json
 import logging
-import os
+from pathlib import Path
 import tempfile
 from typing import List
 
@@ -51,17 +51,17 @@ class SearchListHandler(BotMessageHandler):
             return await self.__reply_no_previous_search_results(message)
 
         response = format_search_list_response(search_term, segments)
-        temp_dir = tempfile.gettempdir()
+        temp_dir = Path(tempfile.gettempdir())
 
         sanitized_search_term = self.__sanitize_search_term(search_term)
 
-        file_name = os.path.join(temp_dir, self.FILE_NAME_TEMPLATE.format(sanitized_search_term=sanitized_search_term))
+        file_path = temp_dir / self.FILE_NAME_TEMPLATE.format(sanitized_search_term=sanitized_search_term)
 
-        with open(file_name, "w", encoding="utf-8") as file:
+        with file_path.open("w", encoding="utf-8") as file:
             file.write(response)
 
-        await self._answer_document(message, file_name, caption="📄 Wszystkie znalezione cytaty 📄")
-        os.remove(file_name)
+        await self._answer_document(message, file_path, caption="📄 Wszystkie znalezione cytaty 📄")
+        file_path.unlink()
 
         await self._log_system_message(
             logging.INFO,
