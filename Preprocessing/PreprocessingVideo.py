@@ -19,9 +19,10 @@ def convert_videos(input_dir: str, output_dir: str) -> None:
                 command = [
                     "ffmpeg", "-y", "-i", input_path,
                     "-c:v", "h264_nvenc", "-preset", "slow", "-profile:v", "main",
-                    "-cq:v", "31", "-c:a", "aac", "-b:a", "128k", "-ac", "2",
+                    "-cq:v", "31", "-g", "12",
+                    "-c:a", "aac", "-b:a", "128k", "-ac", "2",
                     "-vf", "yadif=0:-1:0,scale=1920:1080",
-                    "-movflags", "+faststart", output_path,
+                    "-movflags", "+faststart","-map_metadata","-1", output_path,
                 ]
 
                 logging.info(f"Processing {input_path} to {output_path}")
