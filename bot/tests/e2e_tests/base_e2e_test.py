@@ -30,6 +30,7 @@ class BaseE2ETest:
 
     def send_command(self, command_text: str) -> Message:
         sent_message = self.client.send_message(s.BOT_USERNAME, command_text)
+        # noinspection PyUnresolvedReferences
         sent_message_id = sent_message.id
 
         time.sleep(2)
