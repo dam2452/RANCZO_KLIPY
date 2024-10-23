@@ -13,13 +13,13 @@ if env_file:
     env_path = Path(env_file)
 else:
     env_path = Path(__file__).parent.parent.parent.parent / ".env"
-
+# pylint: disable=R0801
 if env_path.exists():
     load_dotenv(env_path)
     logger.warning("Using dotenv file")
 else:
     logger.info("No dotenv file found. Environment variables should be provided by the system.")
-
+# pylint enable=R0801
 
 class Settings(BaseSettings):
 
