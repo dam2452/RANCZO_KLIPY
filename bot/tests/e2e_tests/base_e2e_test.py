@@ -1,3 +1,4 @@
+import hashlib
 import logging
 import time
 from typing import Optional
@@ -33,7 +34,7 @@ class BaseE2ETest:
         # noinspection PyUnresolvedReferences
         sent_message_id = sent_message.id
 
-        time.sleep(2)
+        time.sleep(5)
 
         messages = self.client.iter_messages(
             s.BOT_USERNAME,
@@ -46,9 +47,18 @@ class BaseE2ETest:
                 continue
             if message.id <= sent_message_id:
                 continue
-            print(f'Odpowiedź bota: {message.text}')
+            logger.info(f'Odpowiedź bota: {message.text}')
             return message
         raise ValueError("Bot nie odpowiedział na komendę.")
+
+    @staticmethod
+    def compute_file_hash(file_path, hash_function='sha256'):
+        hash_func = hashlib.new(hash_function)
+        with open(file_path, 'rb') as f:
+            for chunk in iter(lambda: f.read(4096), b''):
+                hash_func.update(chunk)
+        return hash_func.hexdigest()
+
 
 def main():
     BaseE2ETest.setup_class()
