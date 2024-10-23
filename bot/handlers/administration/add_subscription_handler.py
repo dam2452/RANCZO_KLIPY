@@ -49,9 +49,9 @@ class AddSubscriptionHandler(BotMessageHandler):
         await self.__reply_subscription_extended(message, user_id, new_end_date)
 
     async def __reply_subscription_extended(self, message: Message, user_id: int, new_end_date: date) -> None:
-        await message.answer(get_subscription_extended_message(str(user_id), new_end_date))
+        await self._answer(message,get_subscription_extended_message(str(user_id), new_end_date))
         await self._log_system_message(logging.INFO, get_subscription_log_message(str(user_id), message.from_user.username))
 
     async def __reply_subscription_error(self, message: Message) -> None:
-        await message.answer(get_subscription_error_message())
+        await self._answer(message,get_subscription_error_message())
         await self._log_system_message(logging.ERROR, get_subscription_error_log_message())

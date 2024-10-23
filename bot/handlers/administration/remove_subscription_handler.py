@@ -35,5 +35,5 @@ class RemoveSubscriptionHandler(BotMessageHandler):
         await self.__reply_subscription_removed(message, username)
 
     async def __reply_subscription_removed(self, message: Message, username: str) -> None:
-        await message.answer(get_subscription_removed_message(username))
+        await self._answer(message,get_subscription_removed_message(username))
         await self._log_system_message(logging.INFO, get_log_subscription_removed_message(username, message.from_user.username))

@@ -52,5 +52,5 @@ class SubscriptionStatusHandler(BotMessageHandler):
 
     async def __reply_no_subscription(self, message: Message) -> None:
         user_name = message.from_user.username or message.from_user.full_name
-        await message.answer(get_no_subscription_message())
+        await self._answer(message,get_no_subscription_message())
         await self._log_system_message(logging.INFO, get_log_no_active_subscription_message(user_name))

@@ -1,5 +1,5 @@
 import logging
-import os
+from pathlib import Path
 import tempfile
 from typing import List
 
@@ -20,7 +20,6 @@ from bot.responses.sending_videos.send_clip_handler_responses import (
     get_log_empty_clip_file_message,
     get_log_empty_file_error_message,
 )
-from bot.video.utils import send_video
 
 
 class SendClipHandler(BotMessageHandler):
@@ -59,35 +58,36 @@ class SendClipHandler(BotMessageHandler):
         if not video_data:
             return await self.__reply_empty_clip_file(message, clip_identifier)
 
-        temp_file_path = os.path.join(tempfile.gettempdir(), f"{clip.name}.mp4")
+        temp_file_path = Path(tempfile.gettempdir()) / f"{clip.name}.mp4"
 
-        with open(temp_file_path, "wb") as temp_file:
+        with temp_file_path.open("wb") as temp_file:
             temp_file.write(video_data)
 
-        if os.path.getsize(temp_file_path) == 0:
+        if temp_file_path.stat().st_size == 0:
             return await self.__reply_empty_file_error(message, clip_identifier)
 
-        await send_video(message, temp_file_path, self._bot, self._logger)
+        await self._answer_video(message, temp_file_path)
 
-        os.remove(temp_file_path)
+        temp_file_path.unlink()
+
         await self._log_system_message(logging.INFO, get_log_clip_sent_message(clip.name, message.from_user.username))
 
     async def __reply_clip_not_found(self, message: Message, clip_number: int) -> None:
-        await message.answer(get_clip_not_found_message(clip_number))
+        await self._answer(message,get_clip_not_found_message(clip_number))
         await self._log_system_message(
             logging.INFO,
             get_log_clip_not_found_message(clip_number, message.from_user.username),
         )
 
     async def __reply_empty_clip_file(self, message: Message, clip_name: str) -> None:
-        await message.answer(get_empty_clip_file_message())
+        await self._answer(message,get_empty_clip_file_message())
         await self._log_system_message(
             logging.WARNING,
             get_log_empty_clip_file_message(clip_name, message.from_user.username),
         )
 
     async def __reply_empty_file_error(self, message: Message, clip_name: str) -> None:
-        await message.answer(get_empty_file_error_message())
+        await self._answer(message,get_empty_file_error_message())
         await self._log_system_message(
             logging.ERROR,
             get_log_empty_file_error_message(clip_name, message.from_user.username),

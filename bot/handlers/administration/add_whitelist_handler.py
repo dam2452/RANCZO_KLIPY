@@ -52,5 +52,5 @@ class AddWhitelistHandler(BotMessageHandler):
         await self.__reply_user_added(message, full_name or username)
 
     async def __reply_user_added(self, message: Message, username: str) -> None:
-        await message.answer(get_user_added_message(username))
+        await self._answer(message,get_user_added_message(username))
         await self._log_system_message(logging.INFO, get_log_user_added_message(username, message.from_user.username))

@@ -32,6 +32,6 @@ class RemoveKeyHandler(BotMessageHandler):
         key = message.text.split()[1]
         success = await DatabaseManager.remove_subscription_key(key)
         if success:
-            await message.answer(get_remove_key_success_message(key))
+            await self._answer(message,get_remove_key_success_message(key))
         else:
-            await message.answer(get_remove_key_failure_message(key))
+            await self._answer(message,get_remove_key_failure_message(key))

@@ -14,6 +14,7 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from bot.database.database_manager import DatabaseManager
 from bot.factory import create_all_factories
 from bot.settings import settings
+from bot.utils.log import get_log_level
 
 
 class DBLogHandler(logging.Handler):
@@ -30,7 +31,8 @@ class DBLogHandler(logging.Handler):
         await DatabaseManager.log_system_message(record.levelname, log_message)
 
 
-logging.basicConfig(level=logging.INFO)
+
+logging.basicConfig(level=get_log_level())
 logger = logging.getLogger(__name__)
 
 bot = Bot(token=settings.TELEGRAM_BOT_TOKEN)

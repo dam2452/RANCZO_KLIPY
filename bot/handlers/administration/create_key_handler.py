@@ -32,4 +32,4 @@ class CreateKeyHandler(BotMessageHandler):
         name = " ".join(args[2:])
 
         await DatabaseManager.create_subscription_key(days, name)
-        await message.answer(get_create_key_success_message(days, name))
+        await self._answer(message,get_create_key_success_message(days, name))

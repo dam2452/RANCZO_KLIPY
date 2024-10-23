@@ -31,5 +31,5 @@ class MyClipsHandler(BotMessageHandler):
         await self._log_system_message(logging.INFO, get_log_saved_clips_sent_message(message.from_user.username))
 
     async def __reply_no_saved_clips(self, message: Message) -> None:
-        await message.answer(get_no_saved_clips_message())
+        await self._answer(message,get_no_saved_clips_message())
         await self._log_system_message(logging.INFO, get_log_no_saved_clips_message(message.from_user.username))
