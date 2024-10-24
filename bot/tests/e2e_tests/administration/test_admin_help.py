@@ -38,6 +38,23 @@ class TestAdminCommand(BaseE2ETest):
                     "/t"
                 ],
             },
+            {
+                'command': ['/admin nieistniejace_polecenie'],
+                'expected_fragments': [
+                    "/addwhitelist",
+                    "/removewhitelist",
+                    "/listwhitelist",
+                    "/listadmins",
+                    "/listmoderators",
+                    "/klucz",
+                    "/listkey",
+                    "/addkey",
+                    "/removekey",
+                    "/addsubscription",
+                    "/removesubscription",
+                    "/transkrypcja"
+                ],
+            },
         ]
 
         self.run_test_cases(test_cases)
