@@ -88,11 +88,11 @@ class BotMessageHandler(ABC):
 
     @staticmethod
     async def _answer_markdown(message: Message, text: str) -> None:
-        await message.answer(text, parse_mode="Markdown", reply_to_message_id=message.message_id)
+        await message.answer(text, parse_mode="Markdown", reply_to_message_id=message.message_id,disable_notification=True)
 
     @staticmethod
     async def _answer(message: Message, text: str) -> None:
-        await message.answer(text, reply_to_message_id=message.message_id)
+        await message.answer(text, reply_to_message_id=message.message_id,disable_notification=True)
 
     @staticmethod
     async def _answer_photo(message: Message, image_bytes: bytes, image_path: Path, caption: str) -> None:
@@ -102,6 +102,7 @@ class BotMessageHandler(ABC):
             show_caption_above_media=True,
             parse_mode="Markdown",
             reply_to_message_id=message.message_id,
+            disable_notification=True,
         )
 
     async def _answer_video(self, message: Message, file_path: Path) -> None:
@@ -121,6 +122,7 @@ class BotMessageHandler(ABC):
                 width=1920,
                 height=1080,
                 reply_to_message_id=message.message_id,
+                disable_notification = True,
             )
             await self._log_system_message(logging.INFO, get_video_sent_log_message(file_path))
 
@@ -129,6 +131,7 @@ class BotMessageHandler(ABC):
             FSInputFile(file_path),
             caption=caption,
             reply_to_message_id=message.message_id,
+            disable_notification=True,
         )
         await self._log_system_message(logging.INFO, get_video_sent_log_message(file_path))
     @abstractmethod
