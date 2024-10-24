@@ -50,7 +50,6 @@ class ClipsCompiler:
 
     @staticmethod
     async def __compile_clips(selected_clips: List[Dict[str, Union[Path, float]]], logger: logging.Logger) -> Path:
-        #pylint: disable=too-many-try-statements
         temp_files = []
         try:
             for segment in selected_clips:
