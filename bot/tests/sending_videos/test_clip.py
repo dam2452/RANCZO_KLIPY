@@ -1,7 +1,7 @@
-from bot.tests.e2e_tests.base_test import BaseE2ETest
+from bot.tests.base_test import BaseTest
 
 
-class TestClipHandler(BaseE2ETest):
+class TestClipHandler(BaseTest):
 
     def test_clip_geniusz(self):
         response = self.send_command('/klip geniusz')

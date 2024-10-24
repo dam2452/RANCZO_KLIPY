@@ -1,8 +1,9 @@
 import pytest
-from bot.tests.e2e_tests.base_test import BaseE2ETest
+
+from bot.tests.base_test import BaseTest
 
 
-class TestStartCommand(BaseE2ETest):
+class TestStartCommand(BaseTest):
     quick_test_cases = [
         {
             'command': ['/start'],

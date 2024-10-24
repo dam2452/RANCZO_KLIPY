@@ -1,7 +1,7 @@
-from bot.tests.e2e_tests.base_test import BaseE2ETest
+from bot.tests.base_test import BaseTest
 
 
-class TestListCommand(BaseE2ETest):
+class TestListCommand(BaseTest):
     def test_list_after_search(self):
         response_search = self.send_command('/szukaj krowa')
         expected_text = "Znaleziono"

@@ -1,8 +1,9 @@
-from bot.tests.e2e_tests.base_test import BaseE2ETest
 import pytest
 
+from bot.tests.base_test import BaseTest
 
-class TestSearchCommand(BaseE2ETest):
+
+class TestSearchCommand(BaseTest):
     quick_test_cases = [
         {
             'command': '/szukaj krowa',

@@ -11,12 +11,12 @@ from typing import (
 from telethon.sync import TelegramClient
 from telethon.tl.custom.message import Message
 
-from bot.tests.e2e_tests.settings import settings as s
+from bot.tests.settings import settings as s
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-class BaseE2ETest:
+class BaseTest:
     client: Optional[TelegramClient] = None
     logger = logger
 

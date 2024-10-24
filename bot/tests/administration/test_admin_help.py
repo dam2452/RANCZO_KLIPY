@@ -1,8 +1,9 @@
 import pytest
-from bot.tests.e2e_tests.base_test import BaseE2ETest
+
+from bot.tests.base_test import BaseTest
 
 
-class TestAdminCommand(BaseE2ETest):
+class TestAdminCommand(BaseTest):
     quick_test_cases = [
         {
             'command': ['/admin'],
@@ -18,7 +19,7 @@ class TestAdminCommand(BaseE2ETest):
                 "/removekey",
                 "/addsubscription",
                 "/removesubscription",
-                "/transkrypcja"
+                "/transkrypcja",
             ],
         },
     ]
@@ -38,7 +39,7 @@ class TestAdminCommand(BaseE2ETest):
                 "/rmk",
                 "/addsub",
                 "/rmsub",
-                "/t"
+                "/t",
             ],
         },
         {
@@ -55,7 +56,7 @@ class TestAdminCommand(BaseE2ETest):
                 "/removekey",
                 "/addsubscription",
                 "/removesubscription",
-                "/transkrypcja"
+                "/transkrypcja",
             ],
         },
     ]
