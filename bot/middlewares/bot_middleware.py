@@ -26,8 +26,8 @@ from bot.settings import settings
 class BotMiddleware(BaseMiddleware, ABC):
     def __init__(self, logger: logging.Logger, supported_commands: List[str]):
         self._logger = logger
-        self.__supported_commands = supported_commands
-        self._logger.info(f"({self.get_middleware_name()}) Supported commands: {self.__supported_commands}")
+        self._supported_commands = supported_commands
+        self._logger.info(f"({self.get_middleware_name()}) Supported commands: {self._supported_commands}")
 
     async def __call__(
             self,
@@ -35,7 +35,7 @@ class BotMiddleware(BaseMiddleware, ABC):
             event: TelegramObject,
             data: Dict[str, Any],
     ) -> Optional[Awaitable]:
-        if not isinstance(event, Message) or self.get_command_without_initial_slash(event) not in self.__supported_commands:
+        if not isinstance(event, Message) or self.get_command_without_initial_slash(event) not in self._supported_commands:
             return await handler(event, data)
 
         return await self.handle(handler, event, data)
