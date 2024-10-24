@@ -78,13 +78,14 @@ class BaseE2ETest:
 
     def run_test_cases(self, test_cases: List[Dict[str, List[str]]]):
         for case in test_cases:
-            command = case['command']
+            commands = case['command']
             expected_fragments = case['expected_fragments']
 
-            response = self.send_command(command[0])
-            self.assert_response_contains(response, expected_fragments)
+            for command in commands:
+                response = self.send_command(command)
+                self.assert_response_contains(response, expected_fragments)
 
-            self.logger.info(f"Test komendy {command} zakończony sukcesem.")
+            self.logger.info(f"Test komend {commands} zakończony sukcesem.")
 
     def assert_video_matches(self, response: Message, expected_video_filename: str, received_video_filename: str = 'received_video.mp4'):
         assert response.media is not None, 'Bot nie zwrócił wideo.'
