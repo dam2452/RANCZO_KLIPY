@@ -102,7 +102,7 @@ class BotMessageHandler(ABC):
             show_caption_above_media=True,
             parse_mode="Markdown",
             reply_to_message_id=message.message_id,
-            disable_notification=True
+            disable_notification=True,
         )
 
     async def _answer_video(self, message: Message, file_path: Path) -> None:
@@ -131,7 +131,7 @@ class BotMessageHandler(ABC):
             FSInputFile(file_path),
             caption=caption,
             reply_to_message_id=message.message_id,
-            disable_notification=True
+            disable_notification=True,
         )
         await self._log_system_message(logging.INFO, get_video_sent_log_message(file_path))
     @abstractmethod
