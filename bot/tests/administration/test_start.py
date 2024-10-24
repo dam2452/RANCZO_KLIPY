@@ -102,10 +102,10 @@ class TestStartCommand(BaseTest):
         },
     ]
 
-    @pytest.mark.long
-    def test_start_long(self):
-        self.run_test_cases(self.long_test_cases)
-
     @pytest.mark.quick
     def test_start_quick(self):
         self.run_test_cases(self.quick_test_cases)
+
+    @pytest.mark.long
+    def test_start_long(self):
+        self.run_test_cases(self.quick_test_cases + self.long_test_cases)

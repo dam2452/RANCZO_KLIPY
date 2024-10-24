@@ -1,7 +1,11 @@
+import pytest
+
 from bot.tests.base_test import BaseTest
 
 
 class TestListCommand(BaseTest):
+
+    @pytest.mark.quick
     def test_list_after_search(self):
         response_search = self.send_command('/szukaj krowa')
         expected_text = "Znaleziono"

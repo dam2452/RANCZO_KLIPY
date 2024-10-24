@@ -12,7 +12,7 @@ env_file = os.getenv('ENV_FILE')
 if env_file:
     env_path = Path(env_file)
 else:
-    env_path = Path(__file__).parent.parent.parent.parent / ".env"
+    env_path = Path(__file__).parent.parent.parent / ".env"
 # pylint: disable=duplicate-code
 if env_path.exists():
     load_dotenv(env_path)

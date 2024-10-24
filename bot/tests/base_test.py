@@ -95,6 +95,7 @@ class BaseTest:
         expected_video_path = os.path.abspath(
             os.path.join(
                 os.path.dirname(__file__),
+                'expected',
                 'expected_videos',
                 expected_video_filename,
             ),
@@ -121,6 +122,7 @@ class BaseTest:
         expected_file_path = os.path.abspath(
             os.path.join(
                 os.path.dirname(__file__),
+                'expected',
                 'expected_files',
                 expected_file_filename,
             ),
