@@ -93,6 +93,12 @@ class TestStartCommand(BaseE2ETest):
                     "/sub",
                 ],
             },
+            {
+                'command': ['/start nieistniejace_polecenie'],
+                'expected_fragments': [
+                    "Niepoprawna komenda",
+                ],
+            },
         ]
 
         self.run_test_cases(test_cases)
@@ -104,6 +110,12 @@ class TestStartCommand(BaseE2ETest):
                 'command': ['/start'],
                 'expected_fragments': [
                     "Podstawowe komendy",
+                ],
+            },
+            {
+                'command': ['/start nieistniejace_polecenie'],
+                'expected_fragments': [
+                    "Niepoprawna komenda",
                 ],
             },
         ]
