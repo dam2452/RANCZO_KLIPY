@@ -25,7 +25,7 @@ class AnyMiddleware(BotMiddleware):
         if isinstance(event, Message):
             command = self.get_command_without_initial_slash(event)
 
-            if command in self.__supported_commands:
+            if command in self._supported_commands:
                 self._logger.info(f"Command '{command}' accessed by user {event.from_user.id}")
 
         return await handler(event, data)
