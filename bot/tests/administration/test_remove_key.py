@@ -4,7 +4,7 @@ from bot.tests.base_test import BaseTest
 
 
 class TestRemoveKeyCommand(BaseTest):
-
+    # pylint: disable=duplicate-code
     @pytest.mark.quick
     def test_remove_existing_key(self):
         add_response = self.send_command('/addkey 30 tajny_klucz')
@@ -14,13 +14,14 @@ class TestRemoveKeyCommand(BaseTest):
         remove_response = self.send_command('/removekey tajny_klucz')
         remove_expected_fragments = ["✅ Klucz `tajny_klucz` został usunięty. ✅"]
         self.assert_response_contains(remove_response, remove_expected_fragments)
-
+    #pylint: enable=duplicate-code
     @pytest.mark.quick
     def test_remove_nonexistent_key(self):
         remove_response = self.send_command('/removekey nieistniejacy_klucz')
         remove_expected_fragments = ["❌ Nie znaleziono klucza `nieistniejacy_klucz`. ❌"]
         self.assert_response_contains(remove_response, remove_expected_fragments)
 
+    #pylint: disable=duplicate-code
     @pytest.mark.long
     def test_remove_key_with_special_characters(self):
         add_response = self.send_command('/addkey 30 specjalny@klucz#!')
@@ -30,6 +31,7 @@ class TestRemoveKeyCommand(BaseTest):
         remove_response = self.send_command('/removekey specjalny@klucz#!')
         remove_expected_fragments = ["✅ Klucz `specjalny@klucz#!` został usunięty. ✅"]
         self.assert_response_contains(remove_response, remove_expected_fragments)
+    #pylint: enable=duplicate-code
 
     @pytest.mark.long
     def test_remove_key_twice(self):

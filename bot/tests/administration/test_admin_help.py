@@ -11,7 +11,7 @@ class TestAdminCommand(BaseTest):
         expected_fragments = [
             "/addwhitelist", "/removewhitelist", "/listwhitelist", "/listadmins",
             "/listmoderators", "/klucz", "/listkey", "/addkey", "/removekey",
-            "/addsubscription", "/removesubscription", "/transkrypcja"
+            "/addsubscription", "/removesubscription", "/transkrypcja",
         ]
         self.assert_response_contains(response, expected_fragments)
 
@@ -20,7 +20,7 @@ class TestAdminCommand(BaseTest):
         response = self.send_command('/admin skroty')
         expected_fragments = [
             "/addw", "/rmw", "/lw", "/la", "/lm", "/klucz", "/lk",
-            "/addk", "/rmk", "/addsub", "/rmsub", "/t"
+            "/addk", "/rmk", "/addsub", "/rmsub", "/t",
         ]
         self.assert_response_contains(response, expected_fragments)
 
@@ -30,6 +30,6 @@ class TestAdminCommand(BaseTest):
         expected_fragments = [
             "/addwhitelist", "/removewhitelist", "/listwhitelist", "/listadmins",
             "/listmoderators", "/klucz", "/listkey", "/addkey", "/removekey",
-            "/addsubscription", "/removesubscription", "/transkrypcja"
+            "/addsubscription", "/removesubscription", "/transkrypcja",
         ]
         self.assert_response_contains(response, expected_fragments)

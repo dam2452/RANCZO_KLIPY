@@ -1,5 +1,7 @@
 import pytest
+
 from bot.tests.base_test import BaseTest
+
 
 class TestStartCommand(BaseTest):
 
@@ -51,7 +53,7 @@ class TestStartCommand(BaseTest):
         expected_fragments = [
             "/klip", "/szukaj", "/lista", "/wybierz", "/odcinki", "/wytnij",
             "/dostosuj", "/kompiluj", "/zapisz", "/mojeklipy", "/wyslij",
-            "/polaczklipy", "/usunklip", "/report", "/subskrypcja"
+            "/polaczklipy", "/usunklip", "/report", "/subskrypcja",
         ]
         self.assert_response_contains(response, expected_fragments)
 
@@ -60,6 +62,6 @@ class TestStartCommand(BaseTest):
         response = self.send_command('/start skroty')
         expected_fragments = [
             "/s", "/k", "/sz", "/l", "/w", "/o", "/d", "/kom", "/pk", "/uk",
-            "/mk", "/z", "/wys", "/r", "/sub"
+            "/mk", "/z", "/wys", "/r", "/sub",
         ]
         self.assert_response_contains(response, expected_fragments)

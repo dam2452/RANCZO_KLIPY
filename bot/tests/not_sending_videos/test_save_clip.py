@@ -2,6 +2,7 @@ import pytest
 
 from bot.tests.base_test import BaseTest
 
+
 class TestClipSaveCommand(BaseTest):
 
     @pytest.mark.quick

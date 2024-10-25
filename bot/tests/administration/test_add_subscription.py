@@ -14,7 +14,7 @@ class TestAddSubscriptionCommand(BaseTest):
     @pytest.mark.quick
     def test_add_subscription_nonexistent_user(self):
         response = self.send_command('/addsubscription 999999999 30')
-        expected_fragments = ["⚠️ Wystąpił błąd podczas przedłużania subskrypcji.⚠️"] #TODO Obsłużyć to lepiej XD
+        expected_fragments = ["⚠️ Wystąpił błąd podczas przedłużania subskrypcji.⚠️"]
         self.assert_response_contains(response, expected_fragments)
 
     @pytest.mark.long

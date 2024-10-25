@@ -19,7 +19,7 @@ class TestDeleteClipCommand(BaseTest):
     @pytest.mark.quick
     def test_delete_nonexistent_clip(self):
         response = self.send_command('/usunklip 1337')
-        expected_fragments = ["⚠️ Wystąpił błąd podczas przetwarzania żądania. Prosimy spróbować ponownie później.⚠️"] #TODO Obsłużyć to lepiej
+        expected_fragments = ["⚠️ Wystąpił błąd podczas przetwarzania żądania. Prosimy spróbować ponownie później.⚠️"]
         self.assert_response_contains(response, expected_fragments)
 
     @pytest.mark.long
