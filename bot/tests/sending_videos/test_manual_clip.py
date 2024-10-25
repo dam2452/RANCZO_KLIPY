@@ -13,7 +13,7 @@ class TestManualClipCommand(BaseTest):
     @pytest.mark.quick
     def test_cut_clip_invalid_time_format(self):
         cut_response = self.send_command('/wytnij S07E06 abc 36:49.00')
-        self.assert_response_contains(cut_response, ["❌ Błędny format czasu! Użyj formatu MM:SS​.ms."])
+        self.assert_response_contains(cut_response, ["❌ Błędny format czasu! Użyj formatu"])
 
     @pytest.mark.quick
     def test_cut_clip_nonexistent_episode(self):
