@@ -4,38 +4,27 @@ from bot.tests.base_test import BaseTest
 
 
 class TestSearchCommand(BaseTest):
-    quick_test_cases = [
-        {
-            'command': '/szukaj krowa',
-            'expected_fragments': [
-                "Znaleziono",
-            ],
-        },
-        {
-            'command': '/szukaj nieistniejące_słowo',
-            'expected_fragments': [
-                "❌ Nie znaleziono pasujących cytatów dla: 'nieistniejące_słowo'.❌",
-            ],
-        },
-    ]
-    long_test_cases = [
-        {
-            'command': '/sz krowa',
-            'expected_fragments': [
-                "Znaleziono",
-            ],
-        },
-        {
-            'command': '/sz nieistniejące_słowo',
-            'expected_fragments': [
-                "❌ Nie znaleziono pasujących cytatów dla: 'nieistniejące_słowo'.❌",
-            ],
-        },
-    ]
+
     @pytest.mark.quick
-    def test_search_quick(self):
-        self.run_test_cases(self.quick_test_cases)
+    def test_search_existing_word(self):
+        response = self.send_command('/szukaj krowa')
+        expected_fragments = ["Znaleziono"]
+        self.assert_response_contains(response, expected_fragments)
+
+    @pytest.mark.quick
+    def test_search_nonexistent_word(self):
+        response = self.send_command('/szukaj nieistniejące_słowo')
+        expected_fragments = ["❌ Nie znaleziono pasujących cytatów dla: 'nieistniejące_słowo'.❌"]
+        self.assert_response_contains(response, expected_fragments)
 
     @pytest.mark.long
-    def test_search_long(self):
-        self.run_test_cases(self.quick_test_cases + self.long_test_cases)
+    def test_search_existing_word_short_command(self):
+        response = self.send_command('/sz krowa')
+        expected_fragments = ["Znaleziono"]
+        self.assert_response_contains(response, expected_fragments)
+
+    @pytest.mark.long
+    def test_search_nonexistent_word_short_command(self):
+        response = self.send_command('/sz nieistniejące_słowo')
+        expected_fragments = ["❌ Nie znaleziono pasujących cytatów dla: 'nieistniejące_słowo'.❌"]
+        self.assert_response_contains(response, expected_fragments)

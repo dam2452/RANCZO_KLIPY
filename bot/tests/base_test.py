@@ -35,27 +35,30 @@ class BaseTest:
         cls.client.disconnect()
         cls.logger.info('Klient Telegram został rozłączony.')
 
-    def send_command(self, command_text: str) -> Message:
+    def send_command(self, command_text: str, timeout=10, poll_interval=0.5) -> Message:
         sent_message = self.client.send_message(s.BOT_USERNAME, command_text)
         # noinspection PyUnresolvedReferences
         sent_message_id = sent_message.id
 
-        time.sleep(5)
+        start_time = time.time()
 
-        messages = self.client.iter_messages(
-            s.BOT_USERNAME,
-            min_id=sent_message_id,
-            reverse=True,
-        )
+        while time.time() - start_time < timeout:
+            messages = self.client.iter_messages(
+                s.BOT_USERNAME,
+                min_id=sent_message_id,
+                reverse=True,
+            )
 
-        for message in messages:
-            if message.out:
-                continue
-            if message.id <= sent_message_id:
-                continue
-            self.logger.info(f'Odpowiedź bota: {message.text}')
-            return message
-        raise ValueError("Bot nie odpowiedział na komendę.")
+            for message in messages:
+                if message.out:
+                    continue
+                if message.id > sent_message_id:
+                    self.logger.info(f'Odpowiedź bota: {message.text}')
+                    return message
+
+            time.sleep(poll_interval)
+
+        raise TimeoutError("Bot nie odpowiedział na komendę w określonym czasie.")
 
     @staticmethod
     def compute_file_hash(file_path, hash_function='sha256'):
@@ -75,17 +78,6 @@ class BaseTest:
     def assert_response_contains(self, response: Message, expected_fragments: List[str]):
         error_message = 'Oczekiwany fragment "{fragment}" nie został znaleziony w odpowiedzi "{response}".'
         return self.check_response_fragments(expected_fragments, response, error_message)
-
-    def run_test_cases(self, test_cases: List[Dict[str, List[str]]]):
-        for case in test_cases:
-            commands = case['command']
-            expected_fragments = case['expected_fragments']
-
-            for command in commands:
-                response = self.send_command(command)
-                self.assert_response_contains(response, expected_fragments)
-
-            self.logger.info(f"Test komend {commands} zakończony sukcesem.")
 
     def assert_video_matches(self, response: Message, expected_video_filename: str, received_video_filename: str = 'received_video.mp4'):
         assert response.media is not None, 'Bot nie zwrócił wideo.'
