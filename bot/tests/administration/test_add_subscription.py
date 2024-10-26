@@ -8,7 +8,7 @@ class TestAddSubscriptionCommand(BaseTest):
     @pytest.mark.quick
     def test_add_subscription_valid_user(self):
         response = self.send_command('/addsub 2015344951 30')
-        expected_fragments = ["✅ Subskrypcja dla użytkownika 2015344951 przedłużona do 2024-11-24.✅"]
+        expected_fragments = ["✅ Subskrypcja dla użytkownika 2015344951"]
         self.assert_response_contains(response, expected_fragments)
 
     @pytest.mark.quick

@@ -27,7 +27,7 @@ class TestSelectClipCommand(BaseTest):
         self.assert_response_contains(search_response, ["Wyniki wyszukiwania"])
 
         select_response_1 = self.send_command('/wybierz 1')
-        self.assert_video_matches(select_response_1, 'kozioł_clip_1.mp4')
+        self.assert_video_matches(select_response_1, 'kozioł_clip_select_1.mp4')
 
         select_response_2 = self.send_command('/wybierz 2')
-        self.assert_video_matches(select_response_2, 'kozioł_clip_2.mp4')
+        self.assert_video_matches(select_response_2, 'kozioł_clip_select_2.mp4')

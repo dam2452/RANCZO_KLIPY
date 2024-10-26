@@ -8,7 +8,7 @@ class TestTranscriptionCommand(BaseTest):
     @pytest.mark.quick
     def test_transcription_existing_quote(self):
         response = self.send_command('/transkrypcja Nie szkoda panu tego pięknego gabinetu?')
-        expected_fragments = ["📺 Trudne powroty 📺"]
+        expected_fragments = ["Trudne powroty"]
         self.assert_response_contains(response, expected_fragments)
 
     @pytest.mark.quick

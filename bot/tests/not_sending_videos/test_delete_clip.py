@@ -13,7 +13,7 @@ class TestDeleteClipCommand(BaseTest):
         self.assert_response_contains(save_response, save_expected_fragments)
 
         delete_response = self.send_command('/usunklip 1')
-        delete_expected_fragments = ["Klip 'test_clip' został usunięty."]
+        delete_expected_fragments = ["✅ Klip o nazwie 'test_clip' został usunięty.✅"]
         self.assert_response_contains(delete_response, delete_expected_fragments)
 
     @pytest.mark.quick
