@@ -1,5 +1,3 @@
-# messages.py
-
 def client_created():
     return "Telegram client has been created with session."
 
