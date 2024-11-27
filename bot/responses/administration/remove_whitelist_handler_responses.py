@@ -8,3 +8,6 @@ def get_user_removed_message(username: str) -> str:
 
 def get_log_user_removed_message(username: str, removed_by: str) -> str:
     return f"User {username} removed from whitelist by {removed_by}."
+
+def get_user_not_in_whitelist_message(username: str) -> str:
+    return f"⚠️ Użytkownik {username} nie znajduje się na whitelist.⚠️"

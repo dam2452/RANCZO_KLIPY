@@ -1,5 +1,6 @@
 import pytest
 
+import bot.responses.administration.admin_help_handler_responses as msg
 from bot.tests.base_test import BaseTest
 
 
@@ -9,30 +10,19 @@ class TestAdminCommand(BaseTest):
     def test_admin_base_command(self):
         self.expect_command_result_contains(
             '/admin',
-            [
-                "/addwhitelist", "/removewhitelist", "/listwhitelist", "/listadmins",
-                "/listmoderators", "/klucz", "/listkey", "/addkey", "/removekey",
-                "/addsubscription", "/removesubscription", "/transkrypcja",
-            ]
+            [msg.get_admin_help_message()],
         )
 
     @pytest.mark.long
     def test_admin_shortcuts(self):
         self.expect_command_result_contains(
             '/admin skroty',
-            [
-                "/addw", "/rmw", "/lw", "/la", "/lm", "/klucz", "/lk",
-                "/addk", "/rmk", "/addsub", "/rmsub", "/t",
-            ]
+            [msg.get_admin_shortcuts_message()],
         )
 
     @pytest.mark.long
     def test_admin_invalid_command(self):
         self.expect_command_result_contains(
             '/admin nieistniejace_polecenie',
-            [
-                "/addwhitelist", "/removewhitelist", "/listwhitelist", "/listadmins",
-                "/listmoderators", "/klucz", "/listkey", "/addkey", "/removekey",
-                "/addsubscription", "/removesubscription", "/transkrypcja",
-            ]
+            [msg.get_admin_help_message()],
         )

@@ -1,5 +1,7 @@
 import pytest
 
+import bot.responses.administration.create_key_handler_responses as create_key_msg
+import bot.responses.administration.use_key_handler_responses as use_key_msg
 from bot.tests.base_test import BaseTest
 
 
@@ -10,11 +12,11 @@ class TestUseKeyCommand(BaseTest):
         self.send_command('/removekey aktywny_klucz')
         self.expect_command_result_contains(
             '/addkey 30 aktywny_klucz',
-            ["✅ Stworzono klucz: `aktywny_klucz` na 30 dni. ✅"]
+            [create_key_msg.get_create_key_success_message(30, "aktywny_klucz")],
         )
         self.expect_command_result_contains(
             '/klucz aktywny_klucz',
-            ["🎉 Subskrypcja przedłużona o 30 dni! 🎉"]
+            [use_key_msg.get_subscription_redeemed_message(30)],
         )
         self.send_command('/removekey aktywny_klucz')
 
@@ -22,7 +24,7 @@ class TestUseKeyCommand(BaseTest):
     def test_use_nonexistent_key(self):
         self.expect_command_result_contains(
             '/klucz nieistniejacy_klucz',
-            ["❌ Podany klucz jest niepoprawny lub został już wykorzystany. ❌"]
+            [use_key_msg.get_invalid_key_message()],
         )
 
     @pytest.mark.long
@@ -30,11 +32,11 @@ class TestUseKeyCommand(BaseTest):
         self.send_command('/removekey spec@l_key!')
         self.expect_command_result_contains(
             '/addkey 30 spec@l_key!',
-            ["✅ Stworzono klucz: `spec@l_key!` na 30 dni. ✅"]
+            [create_key_msg.get_create_key_success_message(30, "spec@l_key!")],
         )
         self.expect_command_result_contains(
             '/klucz spec@l_key!',
-            ["🎉 Subskrypcja przedłużona o 30 dni! 🎉"]
+            [use_key_msg.get_subscription_redeemed_message(30)],
         )
         self.send_command('/removekey spec@l_key!')
 
@@ -43,15 +45,15 @@ class TestUseKeyCommand(BaseTest):
         self.send_command('/removekey klucz_jednorazowy')
         self.expect_command_result_contains(
             '/addkey 30 klucz_jednorazowy',
-            ["✅ Stworzono klucz: `klucz_jednorazowy` na 30 dni. ✅"]
+            [create_key_msg.get_create_key_success_message(30, "klucz_jednorazowy")],
         )
         self.expect_command_result_contains(
             '/klucz klucz_jednorazowy',
-            ["🎉 Subskrypcja przedłużona o 30 dni! 🎉"]
+            [use_key_msg.get_subscription_redeemed_message(30)],
         )
         self.expect_command_result_contains(
             '/klucz klucz_jednorazowy',
-            ["❌ Podany klucz jest niepoprawny lub został już wykorzystany. ❌"]
+            [use_key_msg.get_invalid_key_message()],
         )
         self.send_command('/removekey klucz_jednorazowy')
 
@@ -59,5 +61,5 @@ class TestUseKeyCommand(BaseTest):
     def test_use_key_without_content(self):
         self.expect_command_result_contains(
             '/klucz',
-            ["⚠️ Nie podano klucza.⚠️ Przykład: /klucz tajny_klucz"]
+            [use_key_msg.get_no_message_provided_message()],
         )

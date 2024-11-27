@@ -1,5 +1,6 @@
 import pytest
 
+import bot.responses.not_sending_videos.transcription_handler_responses as msg
 from bot.tests.base_test import BaseTest
 
 
@@ -9,12 +10,12 @@ class TestTranscriptionCommand(BaseTest):
     def test_transcription_existing_quote(self):
         self.expect_command_result_contains(
             '/transkrypcja Nie szkoda panu tego pięknego gabinetu?',
-            ["Trudne powroty"]
+            ["Trudne powroty"],
         )
 
     @pytest.mark.quick
     def test_transcription_nonexistent_quote(self):
         self.expect_command_result_contains(
             '/transkrypcja asdfghijk',
-            ["❌ Nie znaleziono pasujących cytatów dla: 'asdfghijk'.❌"]
+            [msg.get_no_quote_provided_message()],
         )

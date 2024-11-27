@@ -1,5 +1,8 @@
+from datetime import date
+
 import pytest
 
+import bot.responses.administration.subscription_status_handler_responses as msg
 from bot.tests.base_test import BaseTest
 
 
@@ -10,11 +13,12 @@ class TestSubscriptionCommand(BaseTest):
         self.send_command('/removesubscription 2015344951')
         self.expect_command_result_contains(
             '/addsubscription 2015344951 30',
-            ["Subskrypcja dla użytkownika 2015344951 przedłużona do"]
+            ["Subskrypcja dla użytkownika 2015344951 przedłużona do"],
         )
+
         self.expect_command_result_contains(
             '/subskrypcja',
-            ["Pozostało dni: 30"]
+            [msg.format_subscription_status_response("2015344951", date(2024, 12, 27), 30)],
         )
         self.send_command('/removesubscription 2015344951')
 
@@ -23,5 +27,5 @@ class TestSubscriptionCommand(BaseTest):
         self.send_command('/removesubscription 2015344951')
         self.expect_command_result_contains(
             '/subskrypcja',
-            ["🚫 Nie masz aktywnej subskrypcji.🚫"]
+            [msg.get_no_subscription_message()],
         )

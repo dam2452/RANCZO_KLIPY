@@ -1,5 +1,6 @@
 import pytest
 
+import bot.responses.sending_videos.compile_clips_handler_responses as msg
 from bot.tests.base_test import BaseTest
 
 
@@ -25,7 +26,7 @@ class TestCompileClipsCommand(BaseTest):
         self.expect_command_result_contains('/szukaj kozioł', ["Wyniki wyszukiwania"])
         self.expect_command_result_contains(
             '/kompiluj 10000-10005',
-            ["⚠️ Wystąpił błąd podczas przetwarzania żądania. Prosimy spróbować ponownie później.⚠️"]
+            [msg.get_invalid_range_message("10000-10005")],
         )
 
     @pytest.mark.long

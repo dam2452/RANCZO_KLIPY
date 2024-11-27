@@ -1,5 +1,6 @@
 import pytest
 
+import bot.responses.sending_videos.adjust_video_clip_handler_responses as msg
 from bot.tests.base_test import BaseTest
 
 
@@ -21,17 +22,16 @@ class TestAdjustClipCommand(BaseTest):
         self.assert_video_matches(self.send_command('/klip geniusz'), 'geniusz.mp4')
         self.expect_command_result_contains(
             '/dostosuj -abc 1.2',
-            [
-                "📝 Podaj czas w formacie `<float> <float>` lub"
-                " `<index> <float> <float>`. Przykład: /dostosuj 10.5 -15.2 lub"
-                " /dostosuj 1 10.5 -15.2",
-            ],
+            [msg.get_invalid_args_count_message()],
         )
 
     @pytest.mark.long
     def test_adjust_nonexistent_clip_number(self):
         self.expect_command_result_contains('/szukaj kozioł', ["Wyniki wyszukiwania"])
-        self.expect_command_result_contains('/dostosuj 99999 10.0 -3', ["⚠️ Podano nieprawidłowy indeks cytatu.⚠️"])
+        self.expect_command_result_contains(
+            '/dostosuj 99999 10.0 -3',
+            [msg.get_invalid_segment_index_message()],
+        )
 
     @pytest.mark.long
     def test_adjust_clip_with_large_extension_values(self):

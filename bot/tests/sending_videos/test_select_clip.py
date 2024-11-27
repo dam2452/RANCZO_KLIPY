@@ -1,5 +1,6 @@
 import pytest
 
+import bot.responses.sending_videos.select_clip_handler_responses as msg
 from bot.tests.base_test import BaseTest
 
 
@@ -13,7 +14,7 @@ class TestSelectClipCommand(BaseTest):
     @pytest.mark.quick
     def test_select_nonexistent_clip(self):
         self.expect_command_result_contains('/szukaj Anglii', ["Wyniki wyszukiwania"])
-        self.expect_command_result_contains('/wybierz 100', ["❌ Nieprawidłowy numer cytatu.❌"])
+        self.expect_command_result_contains('/wybierz 100', [msg.get_invalid_segment_number_message()])
 
     @pytest.mark.long
     def test_select_multiple_clips_in_sequence(self):
