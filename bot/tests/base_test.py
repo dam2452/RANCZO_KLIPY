@@ -13,7 +13,7 @@ from telethon.tl.custom.message import Message
 import bot.tests.messages as msg
 from bot.tests.settings import settings as s
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 class BaseTest:
