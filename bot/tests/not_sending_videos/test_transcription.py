@@ -7,12 +7,14 @@ class TestTranscriptionCommand(BaseTest):
 
     @pytest.mark.quick
     def test_transcription_existing_quote(self):
-        response = self.send_command('/transkrypcja Nie szkoda panu tego pięknego gabinetu?')
-        expected_fragments = ["Trudne powroty"]
-        self.assert_response_contains(response, expected_fragments)
+        self.expect_command_result_contains(
+            '/transkrypcja Nie szkoda panu tego pięknego gabinetu?',
+            ["Trudne powroty"]
+        )
 
     @pytest.mark.quick
     def test_transcription_nonexistent_quote(self):
-        response = self.send_command('/transkrypcja asdfghijk')
-        expected_fragments = ["❌ Nie znaleziono pasujących cytatów dla: 'asdfghijk'.❌"]
-        self.assert_response_contains(response, expected_fragments)
+        self.expect_command_result_contains(
+            '/transkrypcja asdfghijk',
+            ["❌ Nie znaleziono pasujących cytatów dla: 'asdfghijk'.❌"]
+        )

@@ -7,30 +7,35 @@ class TestAddSubscriptionCommand(BaseTest):
 
     @pytest.mark.quick
     def test_add_subscription_valid_user(self):
-        response = self.send_command('/addsub 2015344951 30')
-        expected_fragments = ["✅ Subskrypcja dla użytkownika 2015344951"]
-        self.assert_response_contains(response, expected_fragments)
+        self.expect_command_result_contains(
+            '/addsub 2015344951 30',
+            ["✅ Subskrypcja dla użytkownika 2015344951"]
+        )
 
     @pytest.mark.quick
     def test_add_subscription_nonexistent_user(self):
-        response = self.send_command('/addsubscription 999999999 30')
-        expected_fragments = ["⚠️ Wystąpił błąd podczas przedłużania subskrypcji.⚠️"]
-        self.assert_response_contains(response, expected_fragments)
+        self.expect_command_result_contains(
+            '/addsubscription 999999999 30',
+            ["⚠️ Wystąpił błąd podczas przedłużania subskrypcji.⚠️"]
+        )
 
     @pytest.mark.long
     def test_add_subscription_invalid_days_format(self):
-        response = self.send_command('/addsubscription 123456789 trzydzieści')
-        expected_fragments = ["⚠️ Nie podano ID użytkownika ani ilości dni.⚠️"]
-        self.assert_response_contains(response, expected_fragments)
+        self.expect_command_result_contains(
+            '/addsubscription 123456789 trzydzieści',
+            ["⚠️ Nie podano ID użytkownika ani ilości dni.⚠️"]
+        )
 
     @pytest.mark.long
     def test_add_subscription_invalid_user_id_format(self):
-        response = self.send_command('/addsubscription user123 30')
-        expected_fragments = ["⚠️ Nie podano ID użytkownika ani ilości dni.⚠️"]
-        self.assert_response_contains(response, expected_fragments)
+        self.expect_command_result_contains(
+            '/addsubscription user123 30',
+            ["⚠️ Nie podano ID użytkownika ani ilości dni.⚠️"]
+        )
 
     @pytest.mark.long
     def test_add_subscription_negative_days(self):
-        response = self.send_command('/addsubscription 123456789 -30')
-        expected_fragments = ["⚠️ Nie podano ID użytkownika ani ilości dni.⚠️"]
-        self.assert_response_contains(response, expected_fragments)
+        self.expect_command_result_contains(
+            '/addsubscription 123456789 -30',
+            ["⚠️ Nie podano ID użytkownika ani ilości dni.⚠️"]
+        )

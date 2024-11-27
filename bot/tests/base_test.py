@@ -101,6 +101,9 @@ class BaseTest:
         received_file_path.unlink()
         self.logger.info(msg.file_test_success(expected_file_filename))
 
+    def expect_command_result_contains(self, command: str, expected: List[str]) -> None:
+        self.assert_response_contains(self.send_command(command), expected)
+
     @staticmethod
     def __compute_file_hash(file_path: Path, hash_function: str = 'sha256'):
         hash_func = hashlib.new(hash_function)

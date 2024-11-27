@@ -7,6 +7,4 @@ class TestListWhitelistCommand(BaseTest):
 
     @pytest.mark.quick
     def test_list_whitelist_with_users(self):
-        response = self.send_command('/listwhitelist')
-        expected_fragments = ["Lista użytkowników w Whitelist:"]
-        self.assert_response_contains(response, expected_fragments)
+        self.expect_command_result_contains('/listwhitelist', ["Lista użytkowników w Whitelist:"])
