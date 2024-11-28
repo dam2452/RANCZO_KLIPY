@@ -1,6 +1,5 @@
 import pytest
 
-from bot.database.database_manager import DatabaseManager
 import bot.responses.administration.update_user_note_handler_responses as msg
 from bot.tests.base_test import BaseTest
 
@@ -11,16 +10,9 @@ class TestNoteCommand(BaseTest):
     @pytest.mark.quick
     @pytest.mark.asyncio
     async def test_add_note_with_valid_user_and_content(self):
-        user_id = 2015344951
-        await DatabaseManager.add_user(
-            user_id=user_id,
-            username="test_user",
-            full_name="Test User",
-            note=None,
-            subscription_days=None,
-        )
+        user = await self.add_test_user()
         await self.expect_command_result_contains(
-            f'/note {user_id} notatka123',
+            f'/note {user["user_id"]} notatka123',
             [msg.get_note_updated_message()],
         )
 
@@ -35,24 +27,18 @@ class TestNoteCommand(BaseTest):
     @pytest.mark.quick
     @pytest.mark.asyncio
     async def test_note_missing_content(self):
+        user = await self.add_test_user()
         await self.expect_command_result_contains(
-            '/note 2015344951',
+            f'/note {user["user_id"]}',
             [msg.get_no_note_provided_message()],
         )
 
     @pytest.mark.long
     @pytest.mark.asyncio
     async def test_note_with_special_characters_in_content(self):
-        user_id = 2015344951
-        await DatabaseManager.add_user(
-            user_id=user_id,
-            username="test_user",
-            full_name="Test User",
-            note=None,
-            subscription_days=None,
-        )
+        user = await self.add_test_user()
         await self.expect_command_result_contains(
-            f'/note {user_id} notatka@#!$%&*()',
+            f'/note {user["user_id"]} notatka@#!$%&*()',
             [msg.get_note_updated_message()],
         )
 
@@ -67,16 +53,9 @@ class TestNoteCommand(BaseTest):
     @pytest.mark.long
     @pytest.mark.asyncio
     async def test_note_with_long_content(self):
-        user_id = 2015344951
+        user = await self.add_test_user()
         long_content = "to jest bardzo długa notatka " * 10
-        await DatabaseManager.add_user(
-            user_id=user_id,
-            username="test_user",
-            full_name="Test User",
-            note=None,
-            subscription_days=None,
-        )
         await self.expect_command_result_contains(
-            f'/note {user_id} {long_content}',
+            f'/note {user["user_id"]} {long_content}',
             [msg.get_note_updated_message()],
         )

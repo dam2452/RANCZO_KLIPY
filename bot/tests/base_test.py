@@ -3,13 +3,20 @@ import hashlib
 import logging
 from pathlib import Path
 import re
+import secrets
 import time
-from typing import List
+from typing import (
+    Dict,
+    List,
+    Optional,
+    Union,
+)
 
 import pytest
 from telethon.sync import TelegramClient
 from telethon.tl.custom.message import Message
 
+from bot.database.database_manager import DatabaseManager
 import bot.tests.messages as msg
 from bot.tests.settings import settings as s
 
@@ -109,3 +116,48 @@ class BaseTest:
             if sanitized_fragment not in sanitized_response:
                 raise AssertionError(error_message.format(fragment=fragment, response=response.text))
         return True
+    @staticmethod
+    def generate_random_username(length: int = 8) -> str:
+        return f"user_{secrets.token_hex(length // 2)}"
+
+
+    async def add_test_user(
+        self,
+            user_id: Optional[int] = None,
+            username: Optional[str] = None,
+            full_name: str = "Test User",
+            note: Optional[str] = None,
+            subscription_days: Optional[int] = None,
+    ) -> Dict[str, Union[int, str]]:
+        user_id = user_id or secrets.randbits(32)
+        username = username or self.generate_random_username()
+
+        await DatabaseManager.add_user(
+            user_id=user_id,
+            username=username,
+            full_name=full_name,
+            note=note,
+            subscription_days=subscription_days,
+        )
+
+        return {
+            "user_id": user_id,
+            "username": username,
+            "full_name": full_name,
+            "note": note,
+            "subscription_days": subscription_days,
+        }
+    @staticmethod
+    async def add_test_admin_user() -> Dict[str, Union[int, str]]:
+        await DatabaseManager.add_user(
+            user_id=s.DEFAULT_ADMIN,
+            username=s.ADMIN_USERNAME,
+            full_name=s.ADMIN_FULL_NAME,
+            note=None,
+            subscription_days=None,
+        )
+        return {
+            "user_id": s.DEFAULT_ADMIN,
+            "username": s.ADMIN_USERNAME,
+            "full_name": s.ADMIN_FULL_NAME,
+        }
