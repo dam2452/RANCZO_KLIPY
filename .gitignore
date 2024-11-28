@@ -33,3 +33,4 @@ video_data_1
 *.session-journal
 Test Results - .html
 *.html
+bot/tests/received_file.txt
