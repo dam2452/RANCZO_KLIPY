@@ -1,11 +1,10 @@
+import asyncio
 import hashlib
 import logging
 from pathlib import Path
+import re
 import time
-from typing import (
-    List,
-    Optional,
-)
+from typing import List
 
 from telethon.sync import TelegramClient
 from telethon.tl.custom.message import Message
@@ -17,46 +16,32 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 class BaseTest:
-    client: Optional[TelegramClient] = None
-    logger = logger
+    client: TelegramClient
 
-    @classmethod
-    def setup_class(cls) -> None:
-        if s.SESSION:
-            cls.client = TelegramClient(s.SESSION, s.API_ID, s.API_HASH)
-            cls.logger.info(msg.client_created())
-        else:
-            cls.client = TelegramClient('test_session', s.API_ID, s.API_HASH)
-        cls.client.start(password=s.PASSWORD, phone=s.PHONE)
-        cls.logger.info(msg.client_started())
-
-    @classmethod
-    def teardown_class(cls) -> None:
-        cls.client.disconnect()
-        cls.logger.info(msg.client_disconnected())
-
-    def send_command(self, command_text: str, timeout: int = 10, poll_interval: float = 0.5) -> Message:
-        sent_message = self.client.send_message(s.BOT_USERNAME, command_text)
-        # noinspection PyUnresolvedReferences
+    @staticmethod
+    def __sanitize_text(text: str) -> str:
+        sanitized = re.sub(r'[^\w\s]', '', text, flags=re.UNICODE)
+        sanitized = " ".join(sanitized.split())
+        return sanitized.lower()
+    async def send_command(self, command_text: str, timeout: int = 10, poll_interval: float = 0.5):
+        sent_message = await self.client.send_message(s.BOT_USERNAME, command_text)
         sent_message_id = sent_message.id
 
         start_time = time.time()
 
         while time.time() - start_time < timeout:
-            messages = self.client.iter_messages(
-                s.BOT_USERNAME,
-                min_id=sent_message_id,
-                reverse=True,
-            )
-
-            for message in messages:
+            async for message in self.client.iter_messages(
+                    s.BOT_USERNAME,
+                    min_id=sent_message_id,
+                    reverse=True,
+            ):
                 if message.out:
                     continue
                 if message.id > sent_message_id:
-                    self.logger.info(f"Bot response: {message.text}")
+                    logger.info(f"Bot response: {message.text}")
                     return message
 
-            time.sleep(poll_interval)
+            await asyncio.sleep(poll_interval)
 
         raise TimeoutError(msg.bot_response_timeout())
 
@@ -80,7 +65,7 @@ class BaseTest:
         assert expected_hash == received_hash, msg.video_mismatch()
 
         received_video_path.unlink()
-        self.logger.info(msg.video_test_success(expected_video_filename))
+        logger.info(msg.video_test_success(expected_video_filename))
 
     def assert_file_matches(self, response: Message, expected_file_filename: str, expected_extension: str, received_file_filename: str = 'received_file'):
         assert response.media is not None, msg.file_not_returned()
@@ -99,10 +84,10 @@ class BaseTest:
         assert expected_hash == received_hash, msg.file_mismatch()
 
         received_file_path.unlink()
-        self.logger.info(msg.file_test_success(expected_file_filename))
+        logger.info(msg.file_test_success(expected_file_filename))
 
-    def expect_command_result_contains(self, command: str, expected: List[str]) -> None:
-        self.assert_response_contains(self.send_command(command), expected)
+    async def expect_command_result_contains(self, command: str, expected: List[str]) -> None:
+        self.assert_response_contains(await self.send_command(command), expected)
 
     @staticmethod
     def __compute_file_hash(file_path: Path, hash_function: str = 'sha256'):
@@ -114,7 +99,10 @@ class BaseTest:
 
     @staticmethod
     def __check_response_fragments(expected_fragments: List[str], response: Message, error_message: str):
+        sanitized_response = BaseTest.__sanitize_text(response.text)
+
         for fragment in expected_fragments:
-            if fragment not in response.text:
+            sanitized_fragment = BaseTest.__sanitize_text(fragment)
+            if sanitized_fragment not in sanitized_response:
                 raise AssertionError(error_message.format(fragment=fragment, response=response.text))
         return True

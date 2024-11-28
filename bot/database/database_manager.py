@@ -10,7 +10,6 @@ from typing import (
     Optional,
 )
 
-from aiogram import Bot
 import asyncpg
 
 from bot.database.models import (
@@ -28,14 +27,22 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
     pool: asyncpg.Pool = None
 
     @staticmethod
-    async def init_pool():
-        DatabaseManager.pool = await asyncpg.create_pool(
-            host=settings.POSTGRES_HOST,
-            port=settings.POSTGRES_PORT,
-            database=settings.POSTGRES_DB,
-            user=settings.POSTGRES_USER,
-            password=settings.POSTGRES_PASSWORD,
-        )
+    async def init_pool(
+        host: Optional[str] = None,
+        port: Optional[int] = None,
+        database: Optional[str] = None,
+        user: Optional[str] = None,
+        password: Optional[str] = None,
+    ):
+        config = {
+            "host": host or settings.POSTGRES_HOST,
+            "port": port or settings.POSTGRES_PORT,
+            "database": database or settings.POSTGRES_DB,
+            "user": user or settings.POSTGRES_USER,
+            "password": password or settings.POSTGRES_PASSWORD,
+        }
+
+        DatabaseManager.pool = await asyncpg.create_pool(**config)
 
     @staticmethod
     def get_db_connection():
@@ -43,15 +50,19 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
 
     @staticmethod
     async def execute_sql_file(file_path: Path) -> None:
+        absolute_path = file_path if file_path.is_absolute() else Path(__file__).parent / file_path
+        if not absolute_path.exists():
+            raise FileNotFoundError(f"SQL file not found: {absolute_path}")
+
         async with DatabaseManager.pool.acquire() as conn:
             async with conn.transaction():
-                with file_path.open("r", encoding="utf-8") as file:
+                with absolute_path.open("r", encoding="utf-8") as file:
                     sql = file.read()
                     await conn.execute(sql)
 
     @staticmethod
     async def init_db() -> None:
-        await DatabaseManager.execute_sql_file(Path("./bot/database/init_db.sql"))
+        await DatabaseManager.execute_sql_file(Path("init_db.sql"))
 
     @staticmethod
     async def log_user_activity(user_id: int, command: str) -> None:
@@ -73,21 +84,18 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
 
     @staticmethod
     async def add_user(
-            user_id: int, username: Optional[str], full_name: Optional[str], note: Optional[str], bot: Bot,
-            subscription_days: Optional[int] = None,
+            user_id: int, username: Optional[str], full_name: Optional[str],
+            note: Optional[str], subscription_days: Optional[int] = None,
     ) -> None:
         async with DatabaseManager.get_db_connection() as conn:
-            if not username or not full_name:
-                user_data = await bot.get_chat(user_id)
-                username = user_data.username
-                full_name = user_data.full_name
-
             subscription_end = date.today() + timedelta(days=subscription_days) if subscription_days else None
             async with conn.transaction():
                 await conn.execute(
-                    "INSERT INTO user_profiles (user_id, username, full_name, subscription_end, note) "
-                    "VALUES ($1, $2, $3, $4, $5) "
-                    "ON CONFLICT (user_id) DO NOTHING",
+                    """
+                    INSERT INTO user_profiles (user_id, username, full_name, subscription_end, note)
+                    VALUES ($1, $2, $3, $4, $5)
+                    ON CONFLICT (user_id) DO NOTHING
+                    """,
                     user_id, username, full_name, subscription_end, note,
                 )
 
@@ -221,18 +229,15 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         return result
 
     @staticmethod
-    async def set_default_admin(user_id: int, bot: Bot) -> None:
+    async def set_default_admin(user_id: int, username: str, full_name: str) -> None:
         async with DatabaseManager.get_db_connection() as conn:
-            user_data = await bot.get_chat(user_id)
-            username = user_data.username
-            full_name = user_data.full_name
-
             await conn.execute(
                 "INSERT INTO user_profiles (user_id, username, full_name) "
                 "VALUES ($1, $2, $3) "
                 "ON CONFLICT (user_id) DO NOTHING",
                 user_id, username, full_name,
             )
+
             await conn.execute(
                 "INSERT INTO user_roles (user_id, is_admin) "
                 "VALUES ($1, TRUE) "
@@ -612,3 +617,14 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
                 chat_id,
             )
         return result
+
+    @staticmethod
+    async def clear_test_db(schema: str = "public") -> None:
+        async with DatabaseManager.get_db_connection() as conn:
+            async with conn.transaction():
+                tables = await conn.fetch(
+                    "SELECT tablename FROM pg_tables WHERE schemaname = $1;", schema,
+                )
+                for table in tables:
+                    table_name = table["tablename"]
+                    await conn.execute(f'TRUNCATE TABLE "{schema}"."{table_name}" CASCADE;')

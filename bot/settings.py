@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from pydantic import Field
 from pydantic_settings import BaseSettings
 
+# pylint: disable=duplicate-code
 logger = logging.getLogger(__name__)
 
 env_file = os.getenv('ENV_FILE')
@@ -13,7 +14,7 @@ if env_file:
     env_path = Path(env_file)
 else:
     env_path = Path(__file__).parent.parent / ".env"
-# pylint: disable=duplicate-code
+
 if env_path.exists():
     load_dotenv(env_path)
     logger.warning("Using dotenv file")
