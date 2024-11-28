@@ -37,7 +37,7 @@ class SaveUserKeyHandler(BotMessageHandler):
         if subscription_days:
             await DatabaseManager.add_user(
                 message.from_user.id, message.from_user.username, message.from_user.full_name,
-                None, self._bot,
+                None,
             )
             await DatabaseManager.add_subscription(message.from_user.id, subscription_days)
             await DatabaseManager.remove_subscription_key(key)
