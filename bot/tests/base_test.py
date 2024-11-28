@@ -27,14 +27,14 @@ logger = logging.getLogger(__name__)
 class BaseTest:
     client: TelegramClient
     @pytest.fixture(autouse=True)
-    def setup_client(self, telegram_client):
+    def setup_client(self, telegram_client) -> None:
         self.client = telegram_client
     @staticmethod
     def __sanitize_text(text: str) -> str:
         sanitized = re.sub(r'[^\w\s]', '', text, flags=re.UNICODE)
         sanitized = " ".join(sanitized.split())
         return sanitized.lower()
-    async def send_command(self, command_text: str, timeout: int = 10, poll_interval: float = 0.5):
+    async def send_command(self, command_text: str, timeout: int = 10, poll_interval: float = 0.5) -> Message:
         sent_message = await self.client.send_message(s.BOT_USERNAME, command_text)
         sent_message_id = sent_message.id
 
@@ -56,7 +56,7 @@ class BaseTest:
 
         raise TimeoutError(msg.bot_response_timeout())
 
-    def assert_response_contains(self, response: Message, expected_fragments: List[str]):
+    def assert_response_contains(self, response: Message, expected_fragments: List[str]) -> bool:
         error_message = msg.missing_fragment("{fragment}", "{response}")
         return self.__check_response_fragments(expected_fragments, response, error_message)
 
@@ -66,7 +66,7 @@ class BaseTest:
             expected_filename: str,
             expected_extension: Optional[str] = None,
             received_filename: str = 'received_file',
-    ):
+    ) -> None:
         assert response.media is not None, msg.file_not_returned()
 
         if expected_extension:
@@ -100,7 +100,7 @@ class BaseTest:
         self.assert_response_contains(await self.send_command(command), expected)
 
     @staticmethod
-    def __compute_file_hash(file_path: Path, hash_function: str = 'sha256'):
+    def __compute_file_hash(file_path: Path, hash_function: str = 'sha256') -> str:
         hash_func = hashlib.new(hash_function)
         with file_path.open('rb') as f:
             for chunk in iter(lambda: f.read(4096), b''):
@@ -108,7 +108,7 @@ class BaseTest:
         return hash_func.hexdigest()
 
     @staticmethod
-    def __check_response_fragments(expected_fragments: List[str], response: Message, error_message: str):
+    def __check_response_fragments(expected_fragments: List[str], response: Message, error_message: str) -> bool:
         sanitized_response = BaseTest.__sanitize_text(response.text)
 
         for fragment in expected_fragments:
