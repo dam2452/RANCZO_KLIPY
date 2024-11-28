@@ -1,61 +1,60 @@
 import pytest
 
 import bot.responses.not_sending_videos.delete_clip_handler_responses as delete_msg
+import bot.responses.not_sending_videos.save_clip_handler_responses as save_msg
 from bot.tests.base_test import BaseTest
 
 
+@pytest.mark.usefixtures("db_pool", "telegram_client")
 class TestDeleteClipCommand(BaseTest):
 
     @pytest.mark.quick
-    def test_delete_existing_clip(self):
-        self.send_command('/klip cytat')
-        self.expect_command_result_contains(
+    @pytest.mark.asyncio
+    async def test_delete_existing_clip(self):
+        await self.send_command('/klip cytat')
+        await self.expect_command_result_contains(
             '/zapisz test_clip',
-            [delete_msg.get_clip_deleted_message("test_clip")],
+            [save_msg.get_clip_saved_successfully_message("test_clip")],
         )
-        self.expect_command_result_contains(
+        await self.expect_command_result_contains(
             '/usunklip 1',
             [delete_msg.get_clip_deleted_message("test_clip")],
         )
 
     @pytest.mark.quick
-    def test_delete_nonexistent_clip(self):
-        self.expect_command_result_contains(
+    @pytest.mark.asyncio
+    async def test_delete_nonexistent_clip(self):
+        await self.expect_command_result_contains(
             '/usunklip 1337',
             [delete_msg.get_clip_not_exist_message(1337)],
         )
 
     @pytest.mark.long
-    def test_delete_multiple_clips(self):
-        self.send_command('/klip pierwszy')
-        self.expect_command_result_contains(
-            '/zapisz pierwszy_clip',
-            [delete_msg.get_clip_deleted_message("pierwszy_clip")],
-        )
+    @pytest.mark.asyncio
+    async def test_delete_multiple_clips(self):
+        for idx, clip_name in enumerate(["pierwszy_clip", "drugi_clip"], start=1):
+            await self.send_command(f'/klip {clip_name}')
+            await self.expect_command_result_contains(
+                f'/zapisz {clip_name}',
+                [save_msg.get_clip_saved_successfully_message(clip_name)],
+            )
 
-        self.send_command('/klip drugi')
-        self.expect_command_result_contains(
-            '/zapisz drugi_clip',
-            [delete_msg.get_clip_deleted_message("drugi_clip")],
-        )
-
-        self.expect_command_result_contains(
-            '/usunklip 1',
-            [delete_msg.get_clip_deleted_message("pierwszy_clip")],
-        )
-        self.expect_command_result_contains(
-            '/usunklip 1',
-            [delete_msg.get_clip_deleted_message("drugi_clip")],
-        )
+        for idx, clip_name in enumerate(["pierwszy_clip", "drugi_clip"], start=1):
+            await self.expect_command_result_contains(
+                f'/usunklip {idx}',
+                [delete_msg.get_clip_deleted_message(clip_name)],
+            )
 
     @pytest.mark.long
-    def test_delete_clip_with_special_characters(self):
-        self.send_command('/klip cytat specjalny')
-        self.expect_command_result_contains(
-            '/zapisz spec@l_clip!',
-            [delete_msg.get_clip_deleted_message("spec@l_clip!")],
+    @pytest.mark.asyncio
+    async def test_delete_clip_with_special_characters(self):
+        special_clip_name = "spec@l_clip!"
+        await self.send_command('/klip cytat specjalny')
+        await self.expect_command_result_contains(
+            f'/zapisz {special_clip_name}',
+            [save_msg.get_clip_saved_successfully_message(special_clip_name)],
         )
-        self.expect_command_result_contains(
+        await self.expect_command_result_contains(
             '/usunklip 1',
-            [delete_msg.get_clip_deleted_message("spec@l_clip!")],
+            [delete_msg.get_clip_deleted_message(special_clip_name)],
         )

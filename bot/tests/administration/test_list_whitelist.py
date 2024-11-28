@@ -10,9 +10,6 @@ from bot.tests.settings import settings as s
 @pytest.mark.usefixtures("db_pool", "telegram_client")
 class TestListWhitelistCommand(BaseTest):
 
-    @pytest.fixture(autouse=True)
-    def setup_client(self, telegram_client):
-        self.client = telegram_client
 
     @pytest.mark.asyncio
     async def test_list_whitelist_with_users(self):

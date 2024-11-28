@@ -4,6 +4,7 @@ import bot.responses.not_sending_videos.search_handler_responses as msg
 from bot.tests.base_test import BaseTest
 
 
+@pytest.mark.usefixtures("db_pool", "telegram_client")
 class TestSearchCommand(BaseTest):
 
     @pytest.mark.quick

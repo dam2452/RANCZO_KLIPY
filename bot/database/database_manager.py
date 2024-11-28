@@ -628,3 +628,15 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
                 for table in tables:
                     table_name = table["tablename"]
                     await conn.execute(f'TRUNCATE TABLE "{schema}"."{table_name}" CASCADE;')
+
+    @staticmethod
+    async def set_user_as_moderator(user_id: int) -> None:
+        async with DatabaseManager.get_db_connection() as conn:
+            await conn.execute(
+                """
+                INSERT INTO user_roles (user_id, is_moderator)
+                VALUES ($1, TRUE)
+                ON CONFLICT (user_id) DO UPDATE SET is_moderator = TRUE
+                """,
+                user_id,
+            )

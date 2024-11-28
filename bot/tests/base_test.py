@@ -6,6 +6,7 @@ import re
 import time
 from typing import List
 
+import pytest
 from telethon.sync import TelegramClient
 from telethon.tl.custom.message import Message
 
@@ -17,7 +18,9 @@ logger = logging.getLogger(__name__)
 
 class BaseTest:
     client: TelegramClient
-
+    @pytest.fixture(autouse=True)
+    def setup_client(self, telegram_client):
+        self.client = telegram_client
     @staticmethod
     def __sanitize_text(text: str) -> str:
         sanitized = re.sub(r'[^\w\s]', '', text, flags=re.UNICODE)

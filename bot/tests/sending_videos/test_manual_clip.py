@@ -4,12 +4,13 @@ import bot.responses.sending_videos.manual_clip_handler_responses as msg
 from bot.tests.base_test import BaseTest
 
 
+@pytest.mark.usefixtures("db_pool", "telegram_client")
 class TestManualClipCommand(BaseTest):
 
     @pytest.mark.quick
-    def test_cut_clip_valid_range(self):
-        self.assert_video_matches(
-            self.send_command('/wytnij S07E06 36:47.50 36:49.00'),
+    async def test_cut_clip_valid_range(self):
+        await self.assert_video_matches(
+            await self.send_command('/wytnij S07E06 36:47.50 36:49.00'),
             'cut_S07E06_36-47.50_36-49.00.mp4',
         )
 
@@ -35,9 +36,9 @@ class TestManualClipCommand(BaseTest):
         )
 
     @pytest.mark.long
-    def test_cut_clip_large_time_range(self):
+    async def test_cut_clip_large_time_range(self):
         self.assert_video_matches(
-            self.send_command('/wytnij S07E06 40:00.00 41:00.00', timeout=30),
+            await self.send_command('/wytnij S07E06 40:00.00 41:00.00', timeout=30),
             'cut_S07E06_40-00.00_41-00.00.mp4',
         )
 
