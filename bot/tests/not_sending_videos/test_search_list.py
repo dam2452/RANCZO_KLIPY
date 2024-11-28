@@ -9,5 +9,7 @@ class TestListCommand(BaseTest):
     @pytest.mark.quick
     async def test_list_after_search(self):
         await self.expect_command_result_contains('/szukaj krowa', ["Znaleziono"])
-        response_list = await self.send_command('/lista')
-        self.assert_file_matches(response_list, 'expected_list.txt', '.txt')
+        await self.assert_file_matches(
+            await self.send_command('/lista'),
+            'RanczoKlipy_Lista_krowa.txt',
+        )

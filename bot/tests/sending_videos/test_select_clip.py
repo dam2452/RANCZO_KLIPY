@@ -10,7 +10,7 @@ class TestSelectClipCommand(BaseTest):
     @pytest.mark.quick
     async def test_select_existing_clip(self):
         await self.expect_command_result_contains('/szukaj kozioł', ["Wyniki wyszukiwania"])
-        self.assert_video_matches(await self.send_command('/wybierz 1'), 'kozioł_clip_1.mp4')
+        await self.assert_file_matches(await self.send_command('/wybierz 1'), 'kozioł_clip_1.mp4')
 
     @pytest.mark.quick
     def test_select_nonexistent_clip(self):
@@ -20,5 +20,5 @@ class TestSelectClipCommand(BaseTest):
     @pytest.mark.long
     async def test_select_multiple_clips_in_sequence(self):
         await self.expect_command_result_contains('/szukaj kozioł', ["Wyniki wyszukiwania"])
-        self.assert_video_matches(await self.send_command('/wybierz 1'), 'kozioł_clip_select_1.mp4')
-        self.assert_video_matches(await self.send_command('/wybierz 2'), 'kozioł_clip_select_2.mp4')
+        await self.assert_file_matches(await self.send_command('/wybierz 1'), 'kozioł_clip_select_1.mp4')
+        await self.assert_file_matches(await self.send_command('/wybierz 2'), 'kozioł_clip_select_2.mp4')

@@ -1,5 +1,6 @@
 import asyncio
 import hashlib
+import json
 import logging
 from pathlib import Path
 import re
@@ -59,42 +60,41 @@ class BaseTest:
         error_message = msg.missing_fragment("{fragment}", "{response}")
         return self.__check_response_fragments(expected_fragments, response, error_message)
 
-    def assert_video_matches(self, response: Message, expected_video_filename: str, received_video_filename: str = 'received_video.mp4'):
-        assert response.media is not None, msg.video_not_returned()
-
-
-        received_video_path = Path(str(self.client.download_media(response, file=received_video_filename)))
-
-        expected_video_path = Path(__file__).parent / 'expected' / 'expected_videos' / expected_video_filename
-
-        assert expected_video_path.exists(), msg.video_not_found(expected_video_filename)
-
-        expected_hash = self.__compute_file_hash(expected_video_path)
-        received_hash = self.__compute_file_hash(received_video_path)
-
-        assert expected_hash == received_hash, msg.video_mismatch()
-
-        received_video_path.unlink()
-        logger.info(msg.video_test_success(expected_video_filename))
-
-    def assert_file_matches(self, response: Message, expected_file_filename: str, expected_extension: str, received_file_filename: str = 'received_file'):
+    async def assert_file_matches(
+            self,
+            response: Message,
+            expected_filename: str,
+            expected_extension: Optional[str] = None,
+            received_filename: str = 'received_file',
+    ):
         assert response.media is not None, msg.file_not_returned()
 
-        assert response.file.ext == expected_extension, msg.file_extension_mismatch(expected_extension, response.file.ext)
+        if expected_extension:
+            assert response.file.ext == expected_extension, msg.file_extension_mismatch(
+                expected_extension,
+                response.file.ext,
+            )
 
-        received_file_path = Path(str(self.client.download_media(response, file=f'{received_file_filename}{expected_extension}')))
+        received_file_path = Path(
+            str(await self.client.download_media(response, file=f'{received_filename}{expected_extension or ""}')),
+        )
+        expected_hashes_path = Path(__file__).parent / 'expected_file_hashes.json'
 
-        expected_file_path = Path(__file__).parent / 'expected' / 'expected_files' / expected_file_filename
+        assert expected_hashes_path.exists(), msg.hash_file_not_found()
 
-        assert expected_file_path.exists(), msg.file_not_found(expected_file_filename)
+        with open(expected_hashes_path, 'r', encoding= 'UTF-8') as f:
+            expected_hashes = json.load(f)
 
-        expected_hash = self.__compute_file_hash(expected_file_path)
+        assert expected_filename in expected_hashes, msg.hash_not_found(expected_filename)
+
+        expected_hash = expected_hashes[expected_filename]
+
         received_hash = self.__compute_file_hash(received_file_path)
 
         assert expected_hash == received_hash, msg.file_mismatch()
 
         received_file_path.unlink()
-        logger.info(msg.file_test_success(expected_file_filename))
+        logger.info(msg.file_test_success(expected_filename))
 
     async def expect_command_result_contains(self, command: str, expected: List[str]) -> None:
         self.assert_response_contains(await self.send_command(command), expected)

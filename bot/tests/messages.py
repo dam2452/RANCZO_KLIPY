@@ -39,3 +39,9 @@ def file_test_success(filename):
 
 def missing_fragment(fragment, response):
     return f'Expected fragment "{fragment}" was not found in response "{response}".'
+
+def hash_file_not_found():
+    return "The file with expected hashes was not found."
+
+def hash_not_found(filename):
+    return f"Hash for the expected file {filename} was not found."

@@ -9,7 +9,7 @@ class TestManualClipCommand(BaseTest):
 
     @pytest.mark.quick
     async def test_cut_clip_valid_range(self):
-        await self.assert_video_matches(
+        await self.assert_file_matches(
             await self.send_command('/wytnij S07E06 36:47.50 36:49.00'),
             'cut_S07E06_36-47.50_36-49.00.mp4',
         )
@@ -37,7 +37,7 @@ class TestManualClipCommand(BaseTest):
 
     @pytest.mark.long
     async def test_cut_clip_large_time_range(self):
-        self.assert_video_matches(
+        await self.assert_file_matches(
             await self.send_command('/wytnij S07E06 40:00.00 41:00.00', timeout=30),
             'cut_S07E06_40-00.00_41-00.00.mp4',
         )
