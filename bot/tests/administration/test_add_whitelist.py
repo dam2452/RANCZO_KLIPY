@@ -12,8 +12,9 @@ class TestWhitelistCommands(BaseTest):
     @pytest.mark.quick
     @pytest.mark.asyncio
     async def test_add_and_remove_valid_user_whitelist(self):
+        user_id = 123456789
         await DatabaseManager.add_user(
-            user_id=123456789,
+            user_id=user_id,
             username="valid_user",
             full_name="Valid User",
             note=None,
@@ -21,38 +22,41 @@ class TestWhitelistCommands(BaseTest):
         )
 
         await self.expect_command_result_contains(
-            '/addwhitelist 123456789',
-            [add_msg.get_user_added_message("123456789")],
+            f'/addwhitelist {user_id}',
+            [add_msg.get_user_added_message(str(user_id))],
         )
         await self.expect_command_result_contains(
-            '/removewhitelist 123456789',
-            [remove_msg.get_user_removed_message("123456789")],
+            f'/removewhitelist {user_id}',
+            [remove_msg.get_user_removed_message(str(user_id))],
         )
 
     @pytest.mark.quick
     @pytest.mark.asyncio
     async def test_add_nonexistent_user_whitelist(self):
+        user_id = 999999999
         await self.expect_command_result_contains(
-            '/addwhitelist 999999999',
-            [add_msg.get_user_added_message("999999999")],
+            f'/addwhitelist {user_id}',
+            [add_msg.get_user_added_message(str(user_id))],
         )
         await self.expect_command_result_contains(
-            '/removewhitelist 999999999',
-            [remove_msg.get_user_removed_message("999999999")],
+            f'/removewhitelist {user_id}',
+            [remove_msg.get_user_removed_message(str(user_id))],
         )
 
     @pytest.mark.long
     @pytest.mark.asyncio
     async def test_add_whitelist_invalid_user_id_format(self):
+        user_id_invalid = "user123"
         await self.expect_command_result_contains(
-            '/addwhitelist user123',
+            f'/addwhitelist {user_id_invalid}',
             [add_msg.get_no_user_id_provided_message()],
         )
 
     @pytest.mark.long
     @pytest.mark.asyncio
     async def test_remove_nonexistent_user_whitelist(self):
+        user_id = 888888888
         await self.expect_command_result_contains(
-            '/removewhitelist 888888888',
-            [remove_msg.get_user_removed_message("888888888")],
+            f'/removewhitelist {user_id}',
+            [remove_msg.get_user_removed_message(str(user_id))],
         )

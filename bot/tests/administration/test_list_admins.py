@@ -1,5 +1,3 @@
-
-
 import pytest
 
 from bot.database.models import UserProfile
@@ -13,6 +11,8 @@ class TestListAdminsCommand(BaseTest):
     @pytest.mark.quick
     @pytest.mark.asyncio
     async def test_list_admins_with_admins(self):
+        command = '/listadmins'
+
         admin_user = await self.add_test_admin_user()
 
         admins = [
@@ -25,4 +25,4 @@ class TestListAdminsCommand(BaseTest):
             ),
         ]
 
-        await self.expect_command_result_contains('/listadmins', [msg.format_admins_list(admins)])
+        await self.expect_command_result_contains(command, [msg.format_admins_list(admins)])
