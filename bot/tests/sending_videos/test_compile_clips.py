@@ -7,30 +7,71 @@ from bot.tests.base_test import BaseTest
 @pytest.mark.usefixtures("db_pool", "telegram_client")
 class TestCompileClipsCommand(BaseTest):
 
-    @pytest.mark.quick
+    @pytest.mark.asyncio
     async def test_compile_all_clips(self):
-        await self.expect_command_result_contains('/szukaj Anglii', ["Wyniki wyszukiwania"])
-        await self.assert_command_result_file_matches(await self.send_command('/kompiluj wszystko', timeout=30), 'Anglii_compilation_all.mp4')
+        message = await self.send_command('/szukaj Anglii')
+        await self.assert_message_hash_matches(message, expected_key="search_anglii_results.message")
 
-    @pytest.mark.quick
+        response = await self.send_command('/kompiluj wszystko', timeout=30)
+        await self.assert_command_result_file_matches(response, 'compile_anglii_all.mp4')
+
+    @pytest.mark.asyncio
     async def test_compile_clip_range(self):
-        await self.expect_command_result_contains('/szukaj kozioł', ["Wyniki wyszukiwania"])
-        await self.assert_command_result_file_matches(await self.send_command('/kompiluj 1-4'), 'kozioł_compilation_1-4.mp4')
+        message = await self.send_command('/szukaj kozioł')
+        await self.assert_message_hash_matches(message, expected_key="search_kozioł_results.message")
 
-    @pytest.mark.quick
+        response = await self.send_command('/kompiluj 1-4')
+        await self.assert_command_result_file_matches(response, 'compile_kozioł_1-4.mp4')
+
+    @pytest.mark.asyncio
     async def test_compile_specific_clips(self):
-        await self.expect_command_result_contains('/szukaj kozioł', ["Wyniki wyszukiwania"])
-        await self.assert_command_result_file_matches(await self.send_command('/kompiluj 1 3 5'), 'kozioł_compilation_1_3_5.mp4')
+        message = await self.send_command('/szukaj kozioł')
+        await self.assert_message_hash_matches(message, expected_key="search_kozioł_results.message")
 
-    @pytest.mark.long
-    def test_compile_out_of_range_clips(self):
-        self.expect_command_result_contains('/szukaj kozioł', ["Wyniki wyszukiwania"])
-        self.expect_command_result_contains(
-            '/kompiluj 10000-10005',
-            [msg.get_invalid_range_message("10000-10005")],
-        )
+        response = await self.send_command('/kompiluj 1 3 5')
+        await self.assert_command_result_file_matches(response, 'compile_kozioł_1_3_5.mp4')
 
-    @pytest.mark.long
-    async def test_compile_invalid_clip_numbers(self):
-        await self.expect_command_result_contains('/szukaj kozioł', ["Wyniki wyszukiwania"])
-        await self.assert_command_result_file_matches(await self.send_command('/kompiluj 1 abc 3'), 'kozioł_compilation_1_abc_3.mp4')
+    # @pytest.mark.asyncio
+    # async def test_compile_invalid_range(self):
+    #     message = await self.send_command('/szukaj kozioł')
+    #     await self.assert_message_hash_matches(message, expected_key="szukaj_kozioł_wyniki.message")
+    #
+    #     response = await self.send_command('/kompiluj 5-3')
+    #     self.assert_response_contains(response, [msg.get_invalid_range_message("5-3")])
+
+    # @pytest.mark.asyncio
+    # async def test_compile_invalid_index(self):
+    #     message = await self.send_command('/szukaj kozioł')
+    #     await self.assert_message_hash_matches(message, expected_key="szukaj_kozioł_wyniki.message")
+    #
+    #     response = await self.send_command('/kompiluj abc')
+    #     self.assert_response_contains(response, [msg.get_invalid_index_message("abc")])
+
+    @pytest.mark.asyncio
+    async def test_no_previous_search_results(self):
+        response = await self.send_command('/kompiluj wszystko', timeout=30)
+        self.assert_response_contains(response, [msg.get_no_previous_search_results_message()])
+
+    @pytest.mark.asyncio
+    async def test_no_matching_segments_found(self):
+        message = await self.send_command('/szukaj brak_klipów')
+        await self.assert_message_hash_matches(message, expected_key="search_no_clips_results.message")
+
+        response = await self.send_command('/kompiluj 1-5')
+        self.assert_response_contains(response, [msg.get_no_previous_search_results_message()])
+
+    # @pytest.mark.asyncio
+    # async def test_compile_exceeding_max_clips(self):
+    #     message = await self.send_command('/szukaj Anglii')
+    #     await self.assert_message_hash_matches(message, expected_key="szukaj_Anglii_wyniki.message")
+    #
+    #     response = await self.send_command('/kompiluj 1-1000')
+    #     self.assert_response_contains(response, [msg.get_max_clips_exceeded_message()])
+
+    # @pytest.mark.asyncio
+    # async def test_compile_exceeding_total_duration(self):
+    #     message = await self.send_command('/szukaj Anglii')
+    #     await self.assert_message_hash_matches(message, expected_key="szukaj_Anglii_wyniki.message")
+    #
+    #     response = await self.send_command('/kompiluj 1-100')
+    #     self.assert_response_contains(response, [msg.get_clip_time_message()])

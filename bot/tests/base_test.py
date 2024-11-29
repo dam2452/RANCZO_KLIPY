@@ -161,3 +161,43 @@ class BaseTest:
             "username": s.ADMIN_USERNAME,
             "full_name": s.ADMIN_FULL_NAME,
         }
+    @staticmethod
+    async def switch_to_normal_user() -> None:
+        await DatabaseManager.remove_admin(s.DEFAULT_ADMIN)
+        await DatabaseManager.add_subscription(s.DEFAULT_ADMIN, 2137)
+
+    @staticmethod
+    async def switch_to_admin_user() -> None:
+        await DatabaseManager.add_admin(s.DEFAULT_ADMIN)
+        await DatabaseManager.remove_subscription(s.DEFAULT_ADMIN)
+
+    @staticmethod
+    async def calculate_hash_of_message(message: str) -> str:
+        return hashlib.sha256(message.encode()).hexdigest()
+
+    async def assert_message_hash_matches(
+            self,
+            message: Message,
+            expected_key: str,
+            expected_hashes_file: str = 'expected_file_hashes.json',
+    ) -> None:
+        sanitized_message = self.__sanitize_text(message.text)
+
+        computed_hash = hashlib.sha256(sanitized_message.encode()).hexdigest()
+
+        expected_hashes_path = Path(__file__).parent / expected_hashes_file
+        assert expected_hashes_path.exists(), "Expected hashes file not found!"
+
+        with open(expected_hashes_path, 'r', encoding='UTF-8') as f:
+            expected_hashes = json.load(f)
+
+        assert expected_key in expected_hashes, f"Expected key '{expected_key}' not found in hashes file!"
+
+        expected_hash = expected_hashes[expected_key]
+
+        assert computed_hash == expected_hash, (
+            f"Hash mismatch for key '{expected_key}': "
+            f"expected {expected_hash}, got {computed_hash}"
+        )
+
+        logger.info(f"Message hash test passed for key: {expected_key}")

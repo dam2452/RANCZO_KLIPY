@@ -640,3 +640,43 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
                 """,
                 user_id,
             )
+
+    @staticmethod
+    async def add_admin(user_id: int) -> None:
+        async with DatabaseManager.get_db_connection() as conn:
+            async with conn.transaction():
+                user_exists = await conn.fetchval(
+                    "SELECT COUNT(*) FROM user_profiles WHERE user_id = $1",
+                    user_id,
+                )
+                if not user_exists:
+                    raise ValueError(f"User with ID {user_id} does not exist in user_profiles")
+
+                await conn.execute(
+                    """
+                    INSERT INTO user_roles (user_id, is_admin)
+                    VALUES ($1, TRUE)
+                    ON CONFLICT (user_id) DO UPDATE SET is_admin = TRUE
+                    """,
+                    user_id,
+                )
+
+    @staticmethod
+    async def remove_admin(user_id: int) -> None:
+        async with DatabaseManager.get_db_connection() as conn:
+            async with conn.transaction():
+                user_in_roles = await conn.fetchval(
+                    "SELECT COUNT(*) FROM user_roles WHERE user_id = $1",
+                    user_id,
+                )
+                if not user_in_roles:
+                    raise ValueError(f"User with ID {user_id} does not exist in user_roles")
+
+                await conn.execute(
+                    """
+                    UPDATE user_roles
+                    SET is_admin = FALSE
+                    WHERE user_id = $1
+                    """,
+                    user_id,
+                )

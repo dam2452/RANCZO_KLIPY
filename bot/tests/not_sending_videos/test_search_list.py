@@ -11,5 +11,5 @@ class TestListCommand(BaseTest):
         await self.expect_command_result_contains('/szukaj krowa', ["Znaleziono"])
         await self.assert_command_result_file_matches(
             await self.send_command('/lista'),
-            'RanczoKlipy_Lista_krowa.txt',
+            'clip_geniusz_krowa_list.txt',
         )
