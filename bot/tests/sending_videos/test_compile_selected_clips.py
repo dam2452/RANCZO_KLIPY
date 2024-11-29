@@ -26,7 +26,7 @@ class TestMergeClipsCommand(BaseTest):
             [save_msg.get_clip_saved_successfully_message("klip3")],
         )
 
-        await self.assert_file_matches(await self.send_command('/polaczklipy 1 2 3'), 'merged_clip_1_2_3.mp4')
+        await self.assert_command_result_file_matches(await self.send_command('/polaczklipy 1 2 3'), 'merged_clip_1_2_3.mp4')
 
 
     @pytest.mark.quick
@@ -57,7 +57,7 @@ class TestMergeClipsCommand(BaseTest):
             [save_msg.get_clip_saved_successfully_message("klip1")],
         )
 
-        await self.assert_file_matches(await self.send_command('/polaczklipy 1'), 'merged_single_clip_1.mp4')
+        await self.assert_command_result_file_matches(await self.send_command('/polaczklipy 1'), 'merged_single_clip_1.mp4')
 
 
 
@@ -76,4 +76,4 @@ class TestMergeClipsCommand(BaseTest):
             [save_msg.get_clip_saved_successfully_message("klip@specjalny!")],
         )
 
-        await self.assert_file_matches(await self.send_command('/polaczklipy 1'), 'merged_special_name_clip.mp4')
+        await self.assert_command_result_file_matches(await self.send_command('/polaczklipy 1'), 'merged_special_name_clip.mp4')

@@ -14,7 +14,7 @@ class TestSendClipCommand(BaseTest):
             '/zapisz klip1',
             [save_msg.get_clip_saved_successfully_message("klip1")],
         )
-        await self.assert_file_matches(
+        await self.assert_command_result_file_matches(
             await self.send_command('/wyslij klip1'),
             'geniusz_klip1_from_send.mp4',
         )
@@ -46,11 +46,11 @@ class TestSendClipCommand(BaseTest):
             [save_msg.get_clip_saved_successfully_message("klip2")],
         )
 
-        await self.assert_file_matches(
+        await self.assert_command_result_file_matches(
             await self.send_command('/wyslij klip1'),
             'geniusz_klip1_from_send.mp4',
         )
-        await self.assert_file_matches(
+        await self.assert_command_result_file_matches(
             await self.send_command('/wyslij klip2'),
             'kozioł_klip2_from_send.mp4',
         )
@@ -63,7 +63,7 @@ class TestSendClipCommand(BaseTest):
             f'/zapisz {special_clip_name}',
             [save_msg.get_clip_saved_successfully_message(special_clip_name)],
         )
-        await self.assert_file_matches(
+        await self.assert_command_result_file_matches(
             await self.send_command(f'/wyslij {special_clip_name}'),
             'geniusz_clip_special_name_sent.mp4',
         )

@@ -60,7 +60,7 @@ class BaseTest:
         error_message = msg.missing_fragment("{fragment}", "{response}")
         return self.__check_response_fragments(expected_fragments, response, error_message)
 
-    async def assert_file_matches(
+    async def assert_command_result_file_matches(
             self,
             response: Message,
             expected_filename: str,
