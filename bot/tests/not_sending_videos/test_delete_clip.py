@@ -37,16 +37,16 @@ class TestDeleteClipCommand(BaseTest):
 
     @pytest.mark.asyncio
     async def test_delete_multiple_clips(self):
-        for idx, clip_name in enumerate(["geniusz", "kozioł"], start=1):
-            await self.send_command(f'/klip {clip_name}')
+        for clip_name in ("geniusz", "kozioł"):
+            await self.send_command(f"/klip {clip_name}")
             await self.expect_command_result_contains(
-                f'/zapisz {clip_name}',
+                f"/zapisz {clip_name}",
                 [save_msg.get_clip_saved_successfully_message(clip_name)],
             )
 
-        for clip_name in ["geniusz", "kozioł"]:
+        for clip_name in ("geniusz", "kozioł"):
             await self.expect_command_result_contains(
-                f'/usunklip 1',
+                "/usunklip 1",
                 [delete_msg.get_clip_deleted_message(clip_name)],
             )
 

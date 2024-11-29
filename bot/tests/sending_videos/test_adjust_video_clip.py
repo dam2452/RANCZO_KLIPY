@@ -19,7 +19,7 @@ class TestAdjustClipCommand(BaseTest):
         video_name = "geniusz"
         adjust_params = "-5.5 1.5"
         adjusted_filename = f"adjusted_{video_name}_{adjust_params}.mp4"
-        await self.assert_command_result_file_matches(await self.send_command(f"/klip {video_name}"), f"{video_name}.mp4")
+        await self.assert_command_result_file_matches(await self.send_command(f"/klip {video_name}"), "clip_geniusz.mp4")
         await self.assert_command_result_file_matches(await self.send_command(f"/dostosuj {adjust_params}"), adjusted_filename)
 
     @pytest.mark.asyncio
@@ -29,7 +29,10 @@ class TestAdjustClipCommand(BaseTest):
         adjust_params = "10.0 -3"
         adjusted_filename = f"adjusted_{search_term}_clip{clip_number}_{adjust_params}.mp4"
         await self.expect_command_result_contains(f"/szukaj {search_term}", ["Wyniki wyszukiwania"])
-        await self.assert_command_result_file_matches(await self.send_command(f"/wybierz {clip_number}"), f"{search_term} clip {clip_number}.mp4")
+        await self.assert_command_result_file_matches(
+            await self.send_command(f"/wybierz {clip_number}"),
+            f"clip_{search_term}_clip{clip_number}.mp4",
+        )
         await self.assert_command_result_file_matches(await self.send_command(f"/dostosuj {adjust_params}"), adjusted_filename)
 
     @pytest.mark.asyncio
@@ -45,7 +48,7 @@ class TestAdjustClipCommand(BaseTest):
     @pytest.mark.asyncio
     async def test_invalid_args_count(self):
         video_name = "geniusz"
-        await self.assert_command_result_file_matches(await self.send_command(f"/klip {video_name}"), f"{video_name}.mp4")
+        await self.assert_command_result_file_matches(await self.send_command(f"/klip {video_name}"), "clip_geniusz.mp4")
         response = await self.send_command("/dostosuj -abc 1.2")
         self.assert_response_contains(response, [get_invalid_args_count_message()])
 
@@ -71,7 +74,7 @@ class TestAdjustClipCommand(BaseTest):
         video_name = "geniusz"
         large_adjust_params = "100 100"
         await self.switch_to_normal_user()
-        await self.assert_command_result_file_matches(await self.send_command(f"/klip {video_name}"), f"{video_name}.mp4")
+        await self.assert_command_result_file_matches(await self.send_command(f"/klip {video_name}"), "clip_geniusz.mp4")
         response = await self.send_command(f"/dostosuj {large_adjust_params}")
         self.assert_response_contains(response, [get_max_extension_limit_message()])
 
@@ -80,6 +83,6 @@ class TestAdjustClipCommand(BaseTest):
         video_name = "geniusz"
         large_adjust_params = "500 500"
         await self.switch_to_normal_user()
-        await self.assert_command_result_file_matches(await self.send_command(f"/klip {video_name}"), f"{video_name}.mp4")
+        await self.assert_command_result_file_matches(await self.send_command(f"/klip {video_name}"), "clip_geniusz.mp4")
         response = await self.send_command(f"/dostosuj {large_adjust_params}")
         self.assert_response_contains(response, [get_max_extension_limit_message()])
