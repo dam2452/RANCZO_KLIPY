@@ -6,8 +6,10 @@ from datetime import (
 import json
 from pathlib import Path
 from typing import (
+    Dict,
     List,
     Optional,
+    Union,
 )
 
 import asyncpg
@@ -130,7 +132,9 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
     @staticmethod
     async def remove_user(user_id: int) -> None:
         async with DatabaseManager.get_db_connection() as conn:
-            await conn.execute("DELETE FROM user_profiles WHERE user_id = $1", user_id)
+            async with conn.transaction():
+                await conn.execute("DELETE FROM user_roles WHERE user_id = $1", user_id)
+                await conn.execute("DELETE FROM user_profiles WHERE user_id = $1", user_id)
 
     @staticmethod
     async def get_all_users() -> Optional[List[UserProfile]]:
@@ -366,6 +370,15 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
                 "VALUES ($1, $2)",
                 user_id, report,
             )
+
+    @staticmethod
+    async def get_reports(user_id: int) -> List[Dict[str, Union[int, str]]]:
+        async with DatabaseManager.get_db_connection() as conn:
+            rows = await conn.fetch(
+                "SELECT id, report FROM reports WHERE user_id = $1 ORDER BY id DESC",
+                user_id,
+            )
+            return [{"id": row["id"], "report": row["report"]} for row in rows]
 
     @staticmethod
     async def delete_clip(user_id: int, clip_name: str) -> str:

@@ -19,6 +19,7 @@ class TestAddSubscriptionCommand(BaseTest):
     async def test_add_subscription_valid_user(self):
         user_id = 123456789
         days = 30
+
         await DatabaseManager.add_user(
             user_id=user_id,
             username="test_user",
@@ -49,6 +50,7 @@ class TestAddSubscriptionCommand(BaseTest):
     async def test_add_subscription_nonexistent_user(self):
         user_id = 999999999
         days = 30
+
         await self.expect_command_result_contains(
             f'/addsubscription {user_id} {days}',
             [msg.get_subscription_error_message()],
@@ -59,6 +61,7 @@ class TestAddSubscriptionCommand(BaseTest):
     async def test_add_subscription_invalid_days_format(self):
         user_id = 123456789
         invalid_days = "trzydzieści"
+
         await self.expect_command_result_contains(
             f'/addsubscription {user_id} {invalid_days}',
             [msg.get_no_user_id_provided_message()],
@@ -69,6 +72,7 @@ class TestAddSubscriptionCommand(BaseTest):
     async def test_add_subscription_invalid_user_id_format(self):
         user_id_invalid = "user123"
         days = 30
+
         await self.expect_command_result_contains(
             f'/addsubscription {user_id_invalid} {days}',
             [msg.get_no_user_id_provided_message()],
@@ -79,6 +83,7 @@ class TestAddSubscriptionCommand(BaseTest):
     async def test_add_subscription_negative_days(self):
         user_id = 123456789
         negative_days = -30
+
         await self.expect_command_result_contains(
             f'/addsubscription {user_id} {negative_days}',
             [msg.get_no_user_id_provided_message()],

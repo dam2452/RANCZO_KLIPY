@@ -27,6 +27,14 @@ class TestRemoveKeyCommand(BaseTest):
             [remove_key_msg.get_remove_key_failure_message(key)],
         )
 
+    @pytest.mark.quick
+    @pytest.mark.asyncio
+    async def test_remove_key_no_argument(self):
+        await self.expect_command_result_contains(
+            '/removekey',
+            [remove_key_msg.get_remove_key_usage_message()],
+        )
+
     @pytest.mark.long
     @pytest.mark.asyncio
     async def test_remove_key_with_special_characters(self):
