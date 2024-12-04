@@ -97,7 +97,7 @@ class BaseTest:
         logger.info(msg.file_test_success(expected_filename))
 
     async def expect_command_result_contains(self, command: str, expected: List[str]) -> None:
-        self.assert_response_contains(await self.send_command(command), expected)
+        self.assert_response_contains(await self.send_command(command, timeout=60), expected)
 
     @staticmethod
     def __compute_file_hash(file_path: Path, hash_function: str = 'sha256') -> str:
@@ -205,3 +205,18 @@ class BaseTest:
     @staticmethod
     def remove_first_line(text: str) -> str:
         return "\n".join(text.splitlines()[1:])
+
+    async def expect_command_result_hash(
+        self,
+        command: str,
+        expected_key: str,
+        expected_hashes_file: str = 'expected_file_hashes.json',
+        timeout: int = 10,
+    ) -> None:
+
+        response = await self.send_command(command, timeout=timeout)
+        await self.assert_message_hash_matches(
+            response,
+            expected_key=expected_key,
+            expected_hashes_file=expected_hashes_file,
+        )

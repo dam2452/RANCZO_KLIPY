@@ -11,8 +11,9 @@ from bot.tests.base_test import BaseTest
 class TestClipHandler(BaseTest):
     @pytest.mark.asyncio
     async def test_clip_found(self):
-        await self.expect_command_result_contains(
-            '/klip geniusz', ["clip_geniusz.mp4"],
+        await self.assert_command_result_file_matches(
+            await self.send_command('/klip geniusz'),
+            "clip_geniusz.mp4",
         )
 
     @pytest.mark.asyncio

@@ -1,6 +1,9 @@
 import pytest
 
-import bot.responses.sending_videos.select_clip_handler_responses as msg
+from bot.responses.sending_videos.select_clip_handler_responses import (
+    get_invalid_segment_number_message,
+    get_no_previous_search_message,
+)
 from bot.tests.base_test import BaseTest
 
 
@@ -9,36 +12,35 @@ class TestSelectClipCommand(BaseTest):
 
     @pytest.mark.asyncio
     async def test_select_valid_segment(self):
-        await self.expect_command_result_contains(
-            '/szukaj geniusz', ["search_geniusz_results.message"],
+        await self.expect_command_result_hash(
+            '/szukaj geniusz',
+            expected_key="search_geniusz_results.message",
         )
 
-        # Wybór segmentu
-        await self.expect_command_result_contains(
-            '/wybierz 1', ['selected_geniusz_clip_1.mp4'],
-        )
+        select_response = await self.send_command('/wybierz 1')
+        await self.assert_command_result_file_matches(select_response, 'selected_geniusz_clip_1.mp4')
 
     @pytest.mark.asyncio
     async def test_select_no_previous_search(self):
-        await self.expect_command_result_contains(
-            '/wybierz 1', [msg.get_no_previous_search_message()],
-        )
+        response = await self.send_command('/wybierz 1')
+        self.assert_response_contains(response, [get_no_previous_search_message()])
+
     @pytest.mark.asyncio
     async def test_select_invalid_segment_number(self):
-        await self.expect_command_result_contains(
-            '/szukaj geniusz', ["search_geniusz_results.message"],
+        await self.expect_command_result_hash(
+            '/szukaj geniusz',
+            expected_key="search_geniusz_results.message",
         )
 
-        await self.expect_command_result_contains(
-            '/wybierz 999', [msg.get_invalid_segment_number_message()],
-        )
+        response = await self.send_command('/wybierz 999')
+        self.assert_response_contains(response, [get_invalid_segment_number_message()])
 
     # @pytest.mark.asyncio
     # async def test_select_clip_duration_exceeds_limit(self):
-    #     await self.expect_command_result_contains(
-    #         '/szukaj długi_segment', ["search_long_segment_results.message"]
-    #     )
+    #     # Weryfikacja hasha wiadomości po wyszukiwaniu segmentu
+    #     search_response = await self.send_command('/szukaj długi_segment')
+    #     await self.assert_message_hash_matches(search_response, expected_key="search_long_segment_results.message")
     #
-    #     await self.expect_command_result_contains(
-    #         '/wybierz 2', [msg.get_limit_exceeded_clip_duration_message()]
-    #     )
+    #     # Próba wyboru segmentu o zbyt długim czasie
+    #     response = await self.send_command('/wybierz 2')
+    #     self.assert_response_contains(response, [msg.get_limit_exceeded_clip_duration_message()])
