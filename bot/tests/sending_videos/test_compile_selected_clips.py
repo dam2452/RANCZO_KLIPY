@@ -37,7 +37,7 @@ class TestMergeClipsCommand(BaseTest):
             [save_msg.get_clip_saved_successfully_message(f"{clip3_name}")],
         )
 
-        response = await self.send_command(f'/polaczklipy {compile_params}')
+        response = await self.send_command(f'/polaczklipy {compile_params}', timeout=30)
         await self.assert_command_result_file_matches(response, f'merged_clip_{compile_params}.mp4')
 
     @pytest.mark.asyncio

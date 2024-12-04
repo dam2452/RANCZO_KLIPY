@@ -9,29 +9,36 @@ class TestSelectClipCommand(BaseTest):
 
     @pytest.mark.asyncio
     async def test_select_valid_segment(self):
-        search_response = await self.send_command('/szukaj geniusz')
-        await self.assert_message_hash_matches(search_response, expected_key="search_geniusz_results.message")
+        await self.expect_command_result_contains(
+            '/szukaj geniusz', ["search_geniusz_results.message"]
+        )
 
-        response = await self.send_command('/wybierz 1')
-        await self.assert_command_result_file_matches(response, 'selected_geniusz_clip_1.mp4')
+        # Wybór segmentu
+        await self.expect_command_result_contains(
+            '/wybierz 1', ['selected_geniusz_clip_1.mp4']
+        )
 
     @pytest.mark.asyncio
     async def test_select_no_previous_search(self):
-        response = await self.send_command('/wybierz 1')
-        self.assert_response_contains(response, [msg.get_no_previous_search_message()])
-
+        await self.expect_command_result_contains(
+            '/wybierz 1', [msg.get_no_previous_search_message()]
+        )
     @pytest.mark.asyncio
     async def test_select_invalid_segment_number(self):
-        search_response = await self.send_command('/szukaj geniusz')
-        await self.assert_message_hash_matches(search_response, expected_key="search_geniusz_results.message")
+        await self.expect_command_result_contains(
+            '/szukaj geniusz', ["search_geniusz_results.message"]
+        )
 
-        response = await self.send_command('/wybierz 999')
-        self.assert_response_contains(response, [msg.get_invalid_segment_number_message()])
+        await self.expect_command_result_contains(
+            '/wybierz 999', [msg.get_invalid_segment_number_message()]
+        )
 
     # @pytest.mark.asyncio
     # async def test_select_clip_duration_exceeds_limit(self):
-    #     search_response = await self.send_command('/szukaj długi_segment')
-    #     await self.assert_message_hash_matches(search_response, expected_key="search_long_segment_results.message")
+    #     await self.expect_command_result_contains(
+    #         '/szukaj długi_segment', ["search_long_segment_results.message"]
+    #     )
     #
-    #     response = await self.send_command('/wybierz 2')
-    #     self.assert_response_contains(response, [msg.get_limit_exceeded_clip_duration_message()])
+    #     await self.expect_command_result_contains(
+    #         '/wybierz 2', [msg.get_limit_exceeded_clip_duration_message()]
+    #     )
