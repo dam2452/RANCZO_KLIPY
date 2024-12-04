@@ -1,7 +1,7 @@
 import pytest
 
-from bot.tests.base_test import BaseTest
 import bot.responses.administration.admin_help_handler_responses as msg
+from bot.tests.base_test import BaseTest
 
 
 @pytest.mark.usefixtures("db_pool", "telegram_client")

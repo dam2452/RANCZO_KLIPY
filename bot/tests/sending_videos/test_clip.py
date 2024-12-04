@@ -12,19 +12,19 @@ class TestClipHandler(BaseTest):
     @pytest.mark.asyncio
     async def test_clip_found(self):
         await self.expect_command_result_contains(
-            '/klip geniusz', ["clip_geniusz.mp4"]
+            '/klip geniusz', ["clip_geniusz.mp4"],
         )
 
     @pytest.mark.asyncio
     async def test_clip_not_found(self):
         await self.expect_command_result_contains(
-            '/klip nieistniejący_cytat', [get_no_segments_found_message()]
+            '/klip nieistniejący_cytat', [get_no_segments_found_message()],
         )
 
     @pytest.mark.asyncio
     async def test_no_quote_provided(self):
         await self.expect_command_result_contains(
-            '/klip', [get_no_quote_provided_message()]
+            '/klip', [get_no_quote_provided_message()],
         )
 
     # Nie można przetestować, ponieważ API nie pozwala wysyłać wiadomości dłuższych niż 4096 znaków

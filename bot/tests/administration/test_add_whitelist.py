@@ -1,7 +1,8 @@
 import pytest
 
-from bot.database.database_manager import DatabaseManager
+# from bot.database.database_manager import DatabaseManager
 from bot.tests.base_test import BaseTest
+
 # import bot.responses.administration.add_whitelist_handler_responses as add_msg
 # import bot.responses.administration.remove_whitelist_handler_responses as remove_msg
 

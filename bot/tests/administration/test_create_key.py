@@ -1,7 +1,6 @@
 import pytest
 
 import bot.responses.administration.create_key_handler_responses as create_key_msg
-import bot.responses.administration.remove_key_handler_responses as remove_key_msg
 from bot.tests.base_test import BaseTest
 
 

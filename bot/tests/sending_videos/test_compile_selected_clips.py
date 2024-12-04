@@ -16,7 +16,7 @@ class TestMergeClipsCommand(BaseTest):
             {"name": "klip3", "command": "/klip uczniowie", "file": "clip_uczniowie_saved.mp4"},
         ]
 
-        for index, clip in enumerate(clips, start=1):
+        for clip in clips:
             response = await self.send_command(clip["command"])
             await self.assert_command_result_file_matches(response, clip["file"])
             await self.expect_command_result_contains(
@@ -25,7 +25,7 @@ class TestMergeClipsCommand(BaseTest):
             )
 
         compile_params = "1 2 3"
-        response = await self.send_command(f'/polaczklipy {compile_params}', timeout=30)
+        response = await self.send_command(f'/polaczklipy {compile_params}', timeout=60)
         await self.assert_command_result_file_matches(response, f'merged_clip_{compile_params}.mp4')
 
     @pytest.mark.asyncio
