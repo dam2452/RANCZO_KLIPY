@@ -10,33 +10,21 @@ class TestMergeClipsCommand(BaseTest):
 
     @pytest.mark.asyncio
     async def test_merge_multiple_clips(self):
-        clip1_name = "klip1"
-        clip2_name = "klip2"
-        clip3_name = "klip3"
+        clips = [
+            {"name": "klip1", "command": "/klip geniusz", "file": "clip_geniusz_saved.mp4"},
+            {"name": "klip2", "command": "/klip kozioł", "file": "clip_kozioł_saved.mp4"},
+            {"name": "klip3", "command": "/klip uczniowie", "file": "clip_uczniowie_saved.mp4"},
+        ]
+
+        for index, clip in enumerate(clips, start=1):
+            response = await self.send_command(clip["command"])
+            await self.assert_command_result_file_matches(response, clip["file"])
+            await self.expect_command_result_contains(
+                f'/zapisz {clip["name"]}',
+                [save_msg.get_clip_saved_successfully_message(clip["name"])],
+            )
 
         compile_params = "1 2 3"
-
-        response = await self.send_command('/klip geniusz')
-        await self.assert_command_result_file_matches(response, 'clip_geniusz_saved.mp4')
-        await self.expect_command_result_contains(
-            f'/zapisz {clip1_name}',
-            [save_msg.get_clip_saved_successfully_message(f"{clip1_name}")],
-        )
-
-        response = await self.send_command('/klip kozioł')
-        await self.assert_command_result_file_matches(response, 'clip_kozioł_saved.mp4')
-        await self.expect_command_result_contains(
-            f'/zapisz {clip2_name}',
-            [save_msg.get_clip_saved_successfully_message(f"{clip2_name}")],
-        )
-
-        response = await self.send_command('/klip uczniowie')
-        await self.assert_command_result_file_matches(response, 'clip_uczniowie_saved.mp4')
-        await self.expect_command_result_contains(
-            f'/zapisz {clip3_name}',
-            [save_msg.get_clip_saved_successfully_message(f"{clip3_name}")],
-        )
-
         response = await self.send_command(f'/polaczklipy {compile_params}', timeout=30)
         await self.assert_command_result_file_matches(response, f'merged_clip_{compile_params}.mp4')
 
