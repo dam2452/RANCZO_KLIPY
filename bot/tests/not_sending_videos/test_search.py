@@ -7,6 +7,8 @@ from bot.tests.base_test import BaseTest
 @pytest.mark.usefixtures("db_pool", "telegram_client")
 class TestSearchCommand(BaseTest):
 
+    LONG_QUOTE_WORD_COUNT = 100
+
     @pytest.mark.asyncio
     async def test_search_existing_quote(self):
         response = await self.send_command('/szukaj geniusz')
@@ -24,7 +26,7 @@ class TestSearchCommand(BaseTest):
 
     @pytest.mark.asyncio
     async def test_search_long_quote_exceeds_limit(self):
-        long_quote = " ".join(["słowo"] * 100)
+        long_quote = " ".join(["słowo"] * self.LONG_QUOTE_WORD_COUNT)
         response = await self.send_command(f'/szukaj {long_quote}')
         await self.assert_message_hash_matches(response, expected_key="search_long_quote_exceeds_limit.message")
 

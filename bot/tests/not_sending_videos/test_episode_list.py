@@ -9,13 +9,15 @@ class TestEpisodesListsCommand(BaseTest):
 
     @pytest.mark.asyncio
     async def test_episodes_for_valid_season(self):
-        response = await self.send_command('/odcinki 4')
-        await self.assert_message_hash_matches(response, expected_key="episode_list_season_4.message")
+        season_number = 4
+        response = await self.send_command(f'/odcinki {season_number}')
+        await self.assert_message_hash_matches(response, expected_key=f"episode_list_season_{season_number}.message")
 
     @pytest.mark.asyncio
     async def test_episodes_for_nonexistent_season(self):
-        response = await self.send_command('/odcinki 99')
-        self.assert_response_contains(response, [msg.get_no_episodes_found_message(99)])
+        season_number = 99
+        response = await self.send_command(f'/odcinki {season_number}')
+        self.assert_response_contains(response, [msg.get_no_episodes_found_message(season_number)])
 
     @pytest.mark.asyncio
     async def test_episodes_invalid_arguments(self):
@@ -24,10 +26,12 @@ class TestEpisodesListsCommand(BaseTest):
 
     @pytest.mark.asyncio
     async def test_episodes_long_list(self):
-        response = await self.send_command('/odcinki 3')
-        await self.assert_message_hash_matches(response, expected_key="episode_list_season_3_long.message")
+        season_number = 3
+        response = await self.send_command(f'/odcinki {season_number}')
+        await self.assert_message_hash_matches(response, expected_key=f"episode_list_season_{season_number}_long.message")
 
     @pytest.mark.asyncio
     async def test_episodes_for_season_11(self):
-        response = await self.send_command('/odcinki 11')
+        season_number = 11
+        response = await self.send_command(f'/odcinki {season_number}')
         self.assert_response_contains(response, [msg.get_season_11_petition_message()])

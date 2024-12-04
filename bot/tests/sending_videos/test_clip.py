@@ -11,36 +11,42 @@ from bot.tests.base_test import BaseTest
 class TestClipHandler(BaseTest):
     @pytest.mark.asyncio
     async def test_clip_found(self):
-        response = await self.send_command('/klip geniusz')
-        await self.assert_command_result_file_matches(response, "clip_geniusz.mp4")
+        await self.expect_command_result_contains(
+            '/klip geniusz', ["clip_geniusz.mp4"]
+        )
 
     @pytest.mark.asyncio
     async def test_clip_not_found(self):
-        response = await self.send_command('/klip nieistniejący_cytat')
-        self.assert_response_contains(response, [get_no_segments_found_message()])
+        await self.expect_command_result_contains(
+            '/klip nieistniejący_cytat', [get_no_segments_found_message()]
+        )
 
     @pytest.mark.asyncio
     async def test_no_quote_provided(self):
-        response = await self.send_command('/klip')
-        self.assert_response_contains(response, [get_no_quote_provided_message()])
+        await self.expect_command_result_contains(
+            '/klip', [get_no_quote_provided_message()]
+        )
 
-    # hmm, how to test this becuse api dont let me to send messages longer than 4096 characters
+    # Nie można przetestować, ponieważ API nie pozwala wysyłać wiadomości dłuższych niż 4096 znaków
     # @pytest.mark.asyncio
     # async def test_message_too_long(self):
     #     long_quote = "a" * 5000
-    #     response = await self.send_command(f'/klip {long_quote}')
-    #     self.assert_response_contains(response, [get_message_too_long_message()])
+    #     await self.expect_command_result_contains(
+    #         f'/klip {long_quote}', [get_message_too_long_message()]
+    #     )
 
-    #how to find a quote that is too long?
+    # Jak znaleźć cytat, który jest zbyt długi?
     # @pytest.mark.asyncio
     # async def test_clip_duration_exceeds_limit(self):
-    #     response = await self.send_command('/klip bardzo_długi_cytat')
-    #     self.assert_response_contains(response, [get_limit_exceeded_clip_duration_message()])
+    #     await self.expect_command_result_contains(
+    #         '/klip bardzo_długi_cytat', [get_limit_exceeded_clip_duration_message()]
+    #     )
 
-    # hmm, how to test this becuse api dont let me to send messages longer than 4096 characters
+    # Nie można przetestować, ponieważ API nie pozwala wysyłać wiadomości dłuższych niż 4096 znaków
     # @pytest.mark.asyncio
     # async def test_user_without_permissions(self):
     #     await DatabaseManager.remove_admin(s.DEFAULT_ADMIN)
     #     long_quote = "a" * 5000
-    #     response = await self.send_command(f'/klip {long_quote}')
-    #     self.assert_response_contains(response, [get_message_too_long_message()])
+    #     await self.expect_command_result_contains(
+    #         f'/klip {long_quote}', [get_message_too_long_message()]
+    #     )
