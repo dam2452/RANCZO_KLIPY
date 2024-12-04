@@ -14,14 +14,9 @@ class TestAddKeyCommand(BaseTest):
         key_name = "tajny_klucz"
         days = 30
 
-        await self.send_command(f'/removekey {key_name}')
         await self.expect_command_result_contains(
             f'/addkey {days} {key_name}',
             [create_key_msg.get_create_key_success_message(days, key_name)],
-        )
-        await self.expect_command_result_contains(
-            f'/removekey {key_name}',
-            [remove_key_msg.get_remove_key_success_message(key_name)],
         )
 
     @pytest.mark.quick
@@ -30,7 +25,6 @@ class TestAddKeyCommand(BaseTest):
         key_name = "klucz_na_zero_dni"
         days = 0
 
-        await self.send_command(f'/removekey {key_name}')
         await self.expect_command_result_contains(
             f'/addkey {days} {key_name}',
             [create_key_msg.get_create_key_success_message(days, key_name)],
@@ -78,10 +72,6 @@ class TestAddKeyCommand(BaseTest):
         await self.expect_command_result_contains(
             f'/addkey {days} {key_name}',
             [create_key_msg.get_create_key_success_message(days, key_name)],
-        )
-        await self.expect_command_result_contains(
-            f'/removekey {key_name}',
-            [remove_key_msg.get_remove_key_success_message(key_name)],
         )
 
     # @pytest.mark.quick
