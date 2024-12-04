@@ -11,52 +11,63 @@ class TestUseKeyCommand(BaseTest):
     @pytest.mark.quick
     @pytest.mark.asyncio
     async def test_use_valid_key(self):
-        await DatabaseManager.create_subscription_key(30, "valid_key")
+        key = "valid_key"
+        subscription_days = 30
+
+        await DatabaseManager.create_subscription_key(subscription_days, key)
         await self.expect_command_result_contains(
-            '/klucz valid_key',
-            [use_key_msg.get_subscription_redeemed_message(30)],
+            f'/klucz {key}',
+            [use_key_msg.get_subscription_redeemed_message(subscription_days)],
         )
         await self.expect_command_result_contains(
-            '/klucz valid_key',
+            f'/klucz {key}',
             [use_key_msg.get_invalid_key_message()],
         )
-        await DatabaseManager.remove_subscription_key("valid_key")
+        await DatabaseManager.remove_subscription_key(key)
 
     @pytest.mark.quick
     @pytest.mark.asyncio
     async def test_use_invalid_key(self):
-        response = await self.send_command('/klucz invalid_key')
+        key = "invalid_key"
+
+        response = await self.send_command(f'/klucz {key}')
         self.assert_response_contains(response, [use_key_msg.get_invalid_key_message()])
 
     @pytest.mark.quick
     @pytest.mark.asyncio
     async def test_use_key_no_arguments(self):
-        response = await self.send_command('/klucz')
+        command = '/klucz'
+
+        response = await self.send_command(command)
         self.assert_response_contains(response, [use_key_msg.get_no_message_provided_message()])
 
     @pytest.mark.long
     @pytest.mark.asyncio
     async def test_use_key_special_characters(self):
-        special_key = "spec!@#_key"
-        await DatabaseManager.create_subscription_key(30, special_key)
+        key = "spec!@#_key"
+        subscription_days = 30
+
+        await DatabaseManager.create_subscription_key(subscription_days, key)
         await self.expect_command_result_contains(
-            f'/klucz {special_key}',
-            [use_key_msg.get_subscription_redeemed_message(30)],
+            f'/klucz {key}',
+            [use_key_msg.get_subscription_redeemed_message(subscription_days)],
         )
         await self.expect_command_result_contains(
-            f'/klucz {special_key}',
+            f'/klucz {key}',
             [use_key_msg.get_invalid_key_message()],
         )
-        await DatabaseManager.remove_subscription_key(special_key)
+        await DatabaseManager.remove_subscription_key(key)
 
     @pytest.mark.long
     @pytest.mark.asyncio
     async def test_use_key_multiple_times(self):
         key = "single_use_key"
-        await DatabaseManager.create_subscription_key(30, key)
+        subscription_days = 30
+
+        await DatabaseManager.create_subscription_key(subscription_days, key)
         await self.expect_command_result_contains(
             f'/klucz {key}',
-            [use_key_msg.get_subscription_redeemed_message(30)],
+            [use_key_msg.get_subscription_redeemed_message(subscription_days)],
         )
         await self.expect_command_result_contains(
             f'/klucz {key}',
@@ -67,14 +78,16 @@ class TestUseKeyCommand(BaseTest):
     @pytest.mark.quick
     @pytest.mark.asyncio
     async def test_use_key_edge_case(self):
-        long_key = "key_" + "x" * 100
-        await DatabaseManager.create_subscription_key(30, long_key)
+        key = "key_" + "x" * 100
+        subscription_days = 30
+
+        await DatabaseManager.create_subscription_key(subscription_days, key)
         await self.expect_command_result_contains(
-            f'/klucz {long_key}',
-            [use_key_msg.get_subscription_redeemed_message(30)],
+            f'/klucz {key}',
+            [use_key_msg.get_subscription_redeemed_message(subscription_days)],
         )
         await self.expect_command_result_contains(
-            f'/klucz {long_key}',
+            f'/klucz {key}',
             [use_key_msg.get_invalid_key_message()],
         )
-        await DatabaseManager.remove_subscription_key(long_key)
+        await DatabaseManager.remove_subscription_key(key)

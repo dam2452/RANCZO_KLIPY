@@ -31,9 +31,11 @@ class BaseTest:
         self.client = telegram_client
     @staticmethod
     def __sanitize_text(text: str) -> str:
+        text = text.replace('\xa0', ' ')
         sanitized = re.sub(r'[^\w\s]', '', text, flags=re.UNICODE)
         sanitized = " ".join(sanitized.split())
         return sanitized.lower()
+
     async def send_command(self, command_text: str, timeout: int = 10, poll_interval: float = 0.5) -> Message:
         sent_message = await self.client.send_message(s.BOT_USERNAME, command_text)
         sent_message_id = sent_message.id
@@ -46,9 +48,7 @@ class BaseTest:
                     min_id=sent_message_id,
                     reverse=True,
             ):
-                if message.out:
-                    continue
-                if message.id > sent_message_id:
+                if not message.out and message.id > sent_message_id:
                     logger.info(f"Bot response: {message.text}")
                     return message
 
@@ -201,3 +201,7 @@ class BaseTest:
         )
 
         logger.info(f"Message hash test passed for key: {expected_key}")
+
+    @staticmethod
+    def remove_first_line(text: str) -> str:
+        return "\n".join(text.splitlines()[1:])
