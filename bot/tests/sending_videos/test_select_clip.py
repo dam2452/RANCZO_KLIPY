@@ -37,10 +37,8 @@ class TestSelectClipCommand(BaseTest):
 
     # @pytest.mark.asyncio
     # async def test_select_clip_duration_exceeds_limit(self):
-    #     # Weryfikacja hasha wiadomości po wyszukiwaniu segmentu
     #     search_response = await self.send_command('/szukaj długi_segment')
     #     await self.assert_message_hash_matches(search_response, expected_key="search_long_segment_results.message")
     #
-    #     # Próba wyboru segmentu o zbyt długim czasie
     #     response = await self.send_command('/wybierz 2')
     #     self.assert_response_contains(response, [msg.get_limit_exceeded_clip_duration_message()])

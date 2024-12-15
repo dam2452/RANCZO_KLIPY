@@ -12,7 +12,6 @@ class TestManualClipCommand(BaseTest):
         episode = "S07E06"
         start_time = "36:47.50"
         end_time = "36:49.00"
-        # Poprzednio: 'cut_S07E06_36-47.50_36-49.00.mp4'
         expected_file = f"cut_{episode}_{start_time}_{end_time}.mp4"
 
         command = f"/wytnij {episode} {start_time} {end_time}"
@@ -36,7 +35,7 @@ class TestManualClipCommand(BaseTest):
         episode = "S99E99"
         start_time = "00:00.00"
         end_time = "00:10.00"
-        # Wiadomość błędu dla nieistniejącego pliku wideo
+
         expected_message = msg.get_video_file_not_exist_message()
 
         command = f"/wytnij {episode} {start_time} {end_time}"
@@ -48,7 +47,7 @@ class TestManualClipCommand(BaseTest):
         episode = "S07E06"
         start_time = "40:00.00"
         end_time = "41:00.00"
-        # Poprzednio: 'cut_S07E06_40-00.00_41-00.00.mp4'
+
         expected_file = f"cut_{episode}_{start_time}_{end_time}.mp4"
         timeout = 30
 
