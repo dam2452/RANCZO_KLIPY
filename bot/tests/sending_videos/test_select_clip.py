@@ -12,13 +12,14 @@ class TestSelectClipCommand(BaseTest):
 
     @pytest.mark.asyncio
     async def test_select_valid_segment(self):
+        quote = "geniusz"
         await self.expect_command_result_hash(
-            '/szukaj geniusz',
-            expected_key="search_geniusz_results.message",
+            f'/szukaj {quote}',
+            expected_key=f"search_{quote}_results.message",
         )
 
         select_response = await self.send_command('/wybierz 1')
-        await self.assert_command_result_file_matches(select_response, 'selected_geniusz_clip_1.mp4')
+        await self.assert_command_result_file_matches(select_response, f'selected_{quote}_clip_1.mp4')
 
     @pytest.mark.asyncio
     async def test_select_no_previous_search(self):
@@ -27,8 +28,9 @@ class TestSelectClipCommand(BaseTest):
 
     @pytest.mark.asyncio
     async def test_select_invalid_segment_number(self):
+        quote = "geniusz"
         await self.expect_command_result_hash(
-            '/szukaj geniusz',
+            f'/szukaj {quote}',
             expected_key="search_geniusz_results.message",
         )
 
