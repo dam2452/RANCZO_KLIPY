@@ -38,7 +38,7 @@ class TestAddKeyCommand(BaseTest):
         await self.send_command(f'/removekey {key_name}')
         await self.expect_command_result_contains(
             f'/addkey {days} {key_name}',
-            [create_key_msg.get_create_key_success_message(days, key_name)],
+            [create_key_msg.get_create_key_usage_message()],
         )
 
     @pytest.mark.quick
