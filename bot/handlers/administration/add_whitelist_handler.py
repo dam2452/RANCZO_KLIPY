@@ -23,6 +23,7 @@ class AddWhitelistHandler(BotMessageHandler):
     def _get_validator_functions(self) -> ValidatorFunctions:
         return [
             self.__check_argument_count,
+            self.__check_user_id_is_digit,
         ]
 
     async def __check_argument_count(self, message: Message) -> bool:
@@ -30,12 +31,15 @@ class AddWhitelistHandler(BotMessageHandler):
             message, 2, get_no_username_provided_message(),
         )
 
-    async def _do_handle(self, message: Message) -> None:
+    async def __check_user_id_is_digit(self, message: Message) -> bool:
         user_input = message.text.split()[1]
-
         if not user_input.isdigit():
             await self.__reply_user_not_found(message)
-            return
+            return False
+        return True
+
+    async def _do_handle(self, message: Message) -> None:
+        user_input = message.text.split()[1]
 
         await DatabaseManager.add_user(
             user_id=int(user_input),
