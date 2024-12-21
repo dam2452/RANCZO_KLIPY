@@ -40,9 +40,23 @@ dp = Dispatcher(storage=MemoryStorage())
 
 
 async def on_startup() -> None:
-    await DatabaseManager.init_pool()
+    await DatabaseManager.init_pool(
+        host=settings.POSTGRES_HOST,
+        port=settings.POSTGRES_PORT,
+        database=settings.POSTGRES_DB,
+        user=settings.POSTGRES_USER,
+        password=settings.POSTGRES_PASSWORD,
+    )
     await DatabaseManager.init_db()
-    await DatabaseManager.set_default_admin(int(os.getenv("DEFAULT_ADMIN")), bot=bot)
+
+    admin_user_id = int(os.getenv("DEFAULT_ADMIN"))
+    user_data = await bot.get_chat(admin_user_id)
+
+    await DatabaseManager.set_default_admin(
+        user_id=admin_user_id,
+        username=user_data.username or "unknown",
+        full_name=user_data.full_name or "Unknown User",
+    )
     logger.info("📦 Database initialized and default admin set. 📦")
 
     factories = create_all_factories(logger, bot)
@@ -50,6 +64,7 @@ async def on_startup() -> None:
         factory.create_and_register(dp)
 
     logger.info("Handlers and middlewares registered successfully.")
+
 
 
 async def main() -> None:

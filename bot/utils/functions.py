@@ -1,4 +1,5 @@
 import json
+import logging
 from typing import (
     Dict,
     List,
@@ -8,6 +9,7 @@ import unicodedata
 from bot.database.database_manager import UserProfile
 from bot.database.models import FormattedSegmentInfo
 
+logger = logging.getLogger(__name__)
 
 class InvalidTimeStringException(Exception):
     def __init__(self, time: str) -> None:
