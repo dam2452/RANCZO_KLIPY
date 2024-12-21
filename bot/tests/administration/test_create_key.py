@@ -38,19 +38,19 @@ class TestAddKeyCommand(BaseTest):
         await self.send_command(f'/removekey {key_name}')
         await self.expect_command_result_contains(
             f'/addkey {days} {key_name}',
-            [create_key_msg.get_create_key_success_message(days, key_name)],
+            [create_key_msg.get_create_key_usage_message()],
         )
 
-    # @pytest.mark.quick
-    # @pytest.mark.asyncio
-    # async def test_add_key_invalid_days_format(self):
-    #     invalid_days = "trzydzieści"
-    #     key_name = "klucz_tekstowy_dni"
-    #
-    #     await self.expect_command_result_contains(
-    #         f'/addkey {invalid_days} {key_name}',
-    #         [create_key_msg.get_create_key_usage_message()],
-    #     )
+    @pytest.mark.quick
+    @pytest.mark.asyncio
+    async def test_add_key_invalid_days_format(self):
+        invalid_days = "trzydzieści"
+        key_name = "klucz_tekstowy_dni"
+
+        await self.expect_command_result_contains(
+            f'/addkey {invalid_days} {key_name}',
+            [create_key_msg.get_create_key_usage_message()],
+        )
 
     @pytest.mark.quick
     @pytest.mark.asyncio
@@ -73,18 +73,18 @@ class TestAddKeyCommand(BaseTest):
             [create_key_msg.get_create_key_success_message(days, key_name)],
         )
 
-    # @pytest.mark.quick
-    # @pytest.mark.asyncio
-    # async def test_add_key_duplicate(self):
-    #     key_name = "duplikat_klucza"
-    #     days = 30
-    #
-    #     await self.expect_command_result_contains(
-    #         f'/addkey {days} {key_name}',
-    #         [create_key_msg.get_create_key_success_message(days, key_name)],
-    #     )
-    #
-    #     await self.expect_command_result_contains(
-    #         f'/addkey {days} {key_name}',
-    #         [create_key_msg.get_create_key_success_message(days, key_name)],
-    #     )
+    @pytest.mark.quick
+    @pytest.mark.asyncio
+    async def test_add_key_duplicate(self):
+        key_name = "duplikat_klucza"
+        days = 30
+
+        await self.expect_command_result_contains(
+            f'/addkey {days} {key_name}',
+            [create_key_msg.get_create_key_success_message(days, key_name)],
+        )
+
+        await self.expect_command_result_contains(
+            f'/addkey {days} {key_name}',
+            [create_key_msg.get_key_already_exists_message(key_name)],
+        )
