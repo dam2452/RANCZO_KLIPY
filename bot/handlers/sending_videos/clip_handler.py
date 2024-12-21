@@ -60,7 +60,6 @@ class ClipHandler(BotMessageHandler):
             return await self.__reply_no_segments_found(message, quote)
         segment = segments[0] if isinstance(segments, list) else segments
         # pylint: disable=duplicate-code
-        segment_data = segment.to_dict()['_source']
         start_time = max(0, segment["start"] - settings.EXTEND_BEFORE)
         end_time = segment["end"] + settings.EXTEND_AFTER
 
@@ -73,9 +72,10 @@ class ClipHandler(BotMessageHandler):
         except FFMpegException as e:
             return await self.__reply_extraction_failed(message, e)
         # pylint: enable=duplicate-code
+        # noinspection PyTypeChecker
         await DatabaseManager.insert_last_clip(
             chat_id=message.chat.id,
-            segment=segment_data,
+            segment=segment,
             compiled_clip=None,
             clip_type=ClipType.SINGLE,
             adjusted_start_time=start_time,
