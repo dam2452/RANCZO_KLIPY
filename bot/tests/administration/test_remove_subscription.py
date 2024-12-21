@@ -33,13 +33,13 @@ class TestRemoveSubscriptionCommand(BaseTest):
             [msg.get_subscription_removed_message(str(user_id))],
         )
 
-    # @pytest.mark.quick
-    # @pytest.mark.asyncio
-    # async def test_remove_subscription_invalid_user_id_format(self):
-    #     await self.expect_command_result_contains(
-    #         '/removesubscription user123',
-    #         [msg.get_no_user_id_provided_message()],
-    #     )
+    @pytest.mark.quick
+    @pytest.mark.asyncio
+    async def test_remove_subscription_invalid_user_id_format(self):
+        await self.expect_command_result_contains(
+            '/removesubscription user123',
+            [msg.get_no_user_id_provided_message()],
+        )
 
     @pytest.mark.long
     @pytest.mark.asyncio
