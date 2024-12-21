@@ -27,3 +27,10 @@
 log.txt
 video_data_1
 *.session
+/bot/tests/e2e_tests/expected_files
+/bot/tests/expected
+/bot/tests/expected/expected_files
+*.session-journal
+Test Results - .html
+*.html
+bot/tests/received_file.txt

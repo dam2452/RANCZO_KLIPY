@@ -72,6 +72,7 @@ class ClipHandler(BotMessageHandler):
         except FFMpegException as e:
             return await self.__reply_extraction_failed(message, e)
         # pylint: enable=duplicate-code
+        # noinspection PyTypeChecker
         await DatabaseManager.insert_last_clip(
             chat_id=message.chat.id,
             segment=segment,

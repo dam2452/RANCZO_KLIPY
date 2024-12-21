@@ -6,11 +6,12 @@ from datetime import (
 import json
 from pathlib import Path
 from typing import (
+    Dict,
     List,
     Optional,
+    Union,
 )
 
-from aiogram import Bot
 import asyncpg
 
 from bot.database.models import (
@@ -28,14 +29,22 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
     pool: asyncpg.Pool = None
 
     @staticmethod
-    async def init_pool():
-        DatabaseManager.pool = await asyncpg.create_pool(
-            host=settings.POSTGRES_HOST,
-            port=settings.POSTGRES_PORT,
-            database=settings.POSTGRES_DB,
-            user=settings.POSTGRES_USER,
-            password=settings.POSTGRES_PASSWORD,
-        )
+    async def init_pool(
+        host: Optional[str] = None,
+        port: Optional[int] = None,
+        database: Optional[str] = None,
+        user: Optional[str] = None,
+        password: Optional[str] = None,
+    ):
+        config = {
+            "host": host or settings.POSTGRES_HOST,
+            "port": port or settings.POSTGRES_PORT,
+            "database": database or settings.POSTGRES_DB,
+            "user": user or settings.POSTGRES_USER,
+            "password": password or settings.POSTGRES_PASSWORD,
+        }
+
+        DatabaseManager.pool = await asyncpg.create_pool(**config)
 
     @staticmethod
     def get_db_connection():
@@ -43,15 +52,19 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
 
     @staticmethod
     async def execute_sql_file(file_path: Path) -> None:
+        absolute_path = file_path if file_path.is_absolute() else Path(__file__).parent / file_path
+        if not absolute_path.exists():
+            raise FileNotFoundError(f"SQL file not found: {absolute_path}")
+
         async with DatabaseManager.pool.acquire() as conn:
             async with conn.transaction():
-                with file_path.open("r", encoding="utf-8") as file:
+                with absolute_path.open("r", encoding="utf-8") as file:
                     sql = file.read()
                     await conn.execute(sql)
 
     @staticmethod
     async def init_db() -> None:
-        await DatabaseManager.execute_sql_file(Path("./bot/database/init_db.sql"))
+        await DatabaseManager.execute_sql_file(Path("init_db.sql"))
 
     @staticmethod
     async def log_user_activity(user_id: int, command: str) -> None:
@@ -73,21 +86,18 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
 
     @staticmethod
     async def add_user(
-            user_id: int, username: Optional[str], full_name: Optional[str], note: Optional[str], bot: Bot,
-            subscription_days: Optional[int] = None,
+            user_id: int, username: Optional[str], full_name: Optional[str],
+            note: Optional[str], subscription_days: Optional[int] = None,
     ) -> None:
         async with DatabaseManager.get_db_connection() as conn:
-            if not username or not full_name:
-                user_data = await bot.get_chat(user_id)
-                username = user_data.username
-                full_name = user_data.full_name
-
             subscription_end = date.today() + timedelta(days=subscription_days) if subscription_days else None
             async with conn.transaction():
                 await conn.execute(
-                    "INSERT INTO user_profiles (user_id, username, full_name, subscription_end, note) "
-                    "VALUES ($1, $2, $3, $4, $5) "
-                    "ON CONFLICT (user_id) DO NOTHING",
+                    """
+                    INSERT INTO user_profiles (user_id, username, full_name, subscription_end, note)
+                    VALUES ($1, $2, $3, $4, $5)
+                    ON CONFLICT (user_id) DO NOTHING
+                    """,
                     user_id, username, full_name, subscription_end, note,
                 )
 
@@ -122,7 +132,9 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
     @staticmethod
     async def remove_user(user_id: int) -> None:
         async with DatabaseManager.get_db_connection() as conn:
-            await conn.execute("DELETE FROM user_profiles WHERE user_id = $1", user_id)
+            async with conn.transaction():
+                await conn.execute("DELETE FROM user_roles WHERE user_id = $1", user_id)
+                await conn.execute("DELETE FROM user_profiles WHERE user_id = $1", user_id)
 
     @staticmethod
     async def get_all_users() -> Optional[List[UserProfile]]:
@@ -221,18 +233,15 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         return result
 
     @staticmethod
-    async def set_default_admin(user_id: int, bot: Bot) -> None:
+    async def set_default_admin(user_id: int, username: str, full_name: str) -> None:
         async with DatabaseManager.get_db_connection() as conn:
-            user_data = await bot.get_chat(user_id)
-            username = user_data.username
-            full_name = user_data.full_name
-
             await conn.execute(
                 "INSERT INTO user_profiles (user_id, username, full_name) "
                 "VALUES ($1, $2, $3) "
                 "ON CONFLICT (user_id) DO NOTHING",
                 user_id, username, full_name,
             )
+
             await conn.execute(
                 "INSERT INTO user_roles (user_id, is_admin) "
                 "VALUES ($1, TRUE) "
@@ -361,6 +370,15 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
                 "VALUES ($1, $2)",
                 user_id, report,
             )
+
+    @staticmethod
+    async def get_reports(user_id: int) -> List[Dict[str, Union[int, str]]]:
+        async with DatabaseManager.get_db_connection() as conn:
+            rows = await conn.fetch(
+                "SELECT id, report FROM reports WHERE user_id = $1 ORDER BY id DESC",
+                user_id,
+            )
+            return [{"id": row["id"], "report": row["report"]} for row in rows]
 
     @staticmethod
     async def delete_clip(user_id: int, clip_name: str) -> str:
@@ -612,3 +630,66 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
                 chat_id,
             )
         return result
+
+    @staticmethod
+    async def clear_test_db(schema: str = "public") -> None:
+        async with DatabaseManager.get_db_connection() as conn:
+            async with conn.transaction():
+                tables = await conn.fetch(
+                    "SELECT tablename FROM pg_tables WHERE schemaname = $1;", schema,
+                )
+                for table in tables:
+                    table_name = table["tablename"]
+                    await conn.execute(f'TRUNCATE TABLE "{schema}"."{table_name}" CASCADE;')
+
+    @staticmethod
+    async def set_user_as_moderator(user_id: int) -> None:
+        async with DatabaseManager.get_db_connection() as conn:
+            await conn.execute(
+                """
+                INSERT INTO user_roles (user_id, is_moderator)
+                VALUES ($1, TRUE)
+                ON CONFLICT (user_id) DO UPDATE SET is_moderator = TRUE
+                """,
+                user_id,
+            )
+
+    @staticmethod
+    async def add_admin(user_id: int) -> None:
+        async with DatabaseManager.get_db_connection() as conn:
+            async with conn.transaction():
+                user_exists = await conn.fetchval(
+                    "SELECT COUNT(*) FROM user_profiles WHERE user_id = $1",
+                    user_id,
+                )
+                if not user_exists:
+                    raise ValueError(f"User with ID {user_id} does not exist in user_profiles")
+
+                await conn.execute(
+                    """
+                    INSERT INTO user_roles (user_id, is_admin)
+                    VALUES ($1, TRUE)
+                    ON CONFLICT (user_id) DO UPDATE SET is_admin = TRUE
+                    """,
+                    user_id,
+                )
+
+    @staticmethod
+    async def remove_admin(user_id: int) -> None:
+        async with DatabaseManager.get_db_connection() as conn:
+            async with conn.transaction():
+                user_in_roles = await conn.fetchval(
+                    "SELECT COUNT(*) FROM user_roles WHERE user_id = $1",
+                    user_id,
+                )
+                if not user_in_roles:
+                    raise ValueError(f"User with ID {user_id} does not exist in user_roles")
+
+                await conn.execute(
+                    """
+                    UPDATE user_roles
+                    SET is_admin = FALSE
+                    WHERE user_id = $1
+                    """,
+                    user_id,
+                )

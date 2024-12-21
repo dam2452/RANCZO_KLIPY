@@ -1,29 +1,15 @@
 import logging
-import os
-from pathlib import Path
 
-from dotenv import load_dotenv
 from pydantic import Field
 from pydantic_settings import BaseSettings
 
+from bot.utils.config_loader import load_env_file
+
 logger = logging.getLogger(__name__)
-
-env_file = os.getenv('ENV_FILE')
-if env_file:
-    env_path = Path(env_file)
-else:
-    env_path = Path(__file__).parent.parent / ".env"
-
-if env_path.exists():
-    load_dotenv(env_path)
-    logger.warning("Using dotenv file")
-else:
-    logger.info("No dotenv file found. Environment variables should be provided by the system.")
-
+env_path = load_env_file()
 
 class Settings(BaseSettings):
     TELEGRAM_FILE_SIZE_LIMIT_MB: int = Field(50)
-
     TELEGRAM_BOT_TOKEN: str = Field(...)
     DEFAULT_ADMIN: str = Field(...)
 
