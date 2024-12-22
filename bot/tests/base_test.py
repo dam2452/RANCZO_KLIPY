@@ -36,6 +36,10 @@ class BaseTest:
         sanitized = " ".join(sanitized.split())
         return sanitized.lower()
 
+    @staticmethod
+    def remove_until_first_space(text: str) -> str:
+        return text.split(' ', 1)[-1] if ' ' in text else text
+
     async def send_command(self, command_text: str, timeout: int = 10, poll_interval: float = 0.5) -> Message:
         sent_message = await self.client.send_message(s.BOT_USERNAME, command_text)
         sent_message_id = sent_message.id
