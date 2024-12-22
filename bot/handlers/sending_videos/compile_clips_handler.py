@@ -15,12 +15,12 @@ from bot.handlers.bot_message_handler import (
     ValidatorFunctions,
 )
 from bot.responses.sending_videos.compile_clips_handler_responses import (
+    get_clip_time_message,
     get_compilation_success_message,
     get_invalid_args_count_message,
     get_invalid_index_message,
     get_invalid_range_message,
-    get_log_no_matching_segments_found_message,
-    get_log_no_previous_search_results_message,
+    get_log_compiled_clip_is_too_long_message,
     get_max_clips_exceeded_message,
     get_no_matching_segments_found_message,
     get_no_previous_search_results_message,
@@ -47,8 +47,13 @@ class CompileClipsHandler(BotMessageHandler):
             self.__check_argument_count,
         ]
 
+    class InvalidRangeException(Exception):
+        ""
+
     async def __check_argument_count(self, message: Message) -> bool:
         return await self._validate_argument_count(message, 2, get_invalid_args_count_message())
+    class NoMatchingSegmentsException(Exception):
+        ""
 
     # pylint: enable=duplicate-code
 
@@ -60,15 +65,16 @@ class CompileClipsHandler(BotMessageHandler):
             return await self.__reply_no_previous_search_results(message)
 
         segments = json.loads(last_search.segments)
+        selected_segments, errors = self.__parse_segments(content[1:], segments)
 
-        selected_segments = self.__parse_segments(content[1:], segments)
+        if errors:
+            return await self._answer(message, "\n".join(errors))
 
         if not selected_segments:
             return await self.__reply_no_matching_segments_found(message)
 
         if not await DatabaseManager.is_admin_or_moderator(message.from_user.id) and len(selected_segments) > settings.MAX_CLIPS_PER_COMPILATION:
-            await self._answer(message,get_max_clips_exceeded_message())
-            return
+            return await self._answer(message, get_max_clips_exceeded_message())
 
         total_duration = 0
         for segment in selected_segments:
@@ -78,61 +84,110 @@ class CompileClipsHandler(BotMessageHandler):
                 logging.INFO, f"Selected clip: {segment['video_path']} "
                 f"from {segment['start']} to {segment['end']} with duration {duration}",
             )
-            await self._log_system_message(logging.INFO, f"Total duration: {total_duration}")
 
-        if await self._handle_clip_duration_limit_exceeded(message, total_duration):
+        if await self._check_clip_duration_limit(message, total_duration):
             return
-        compiled_output = await ClipsCompiler.compile(message, selected_segments, self._logger)
 
+        compiled_output = await ClipsCompiler.compile(message, selected_segments, self._logger)
         await self._answer_video(message, compiled_output)
         await process_compiled_clip(message, compiled_output, ClipType.COMPILED)
 
         await self._log_system_message(logging.INFO, get_compilation_success_message(message.from_user.username))
 
     @staticmethod
-    def __parse_segments(content: List[str], segments: List[Dict[str, Union[str, float]]]) -> List[Dict[str, Union[str, float]]]:
+    def __parse_segments(content: List[str], segments: List[Dict[str, Union[str, float]]]) -> (List[Dict[str, Union[str, float]]], List[str]):
         selected_segments = []
-        for index in content:
-            if index.lower() == "wszystko" or index.lower() == "all":
-                selected_segments.extend(
-                    {"video_path": segment["video_path"], "start": segment["start"], "end": segment["end"]}
-                    for segment in segments
-                )
-                return selected_segments
+        errors = []
 
-            if "-" in index:
-                selected_segments.extend(CompileClipsHandler.__parse_range(index, segments))
+        for arg in content:
+            if arg.lower() in ("wszystko", "all"):
+                selected_segments.extend(
+                    {"video_path": s["video_path"], "start": s["start"], "end": s["end"]}
+                    for s in segments
+                )
+                return selected_segments, errors
+
+            if "-" in arg:
+                try:
+                    selected_segments.extend(CompileClipsHandler.__parse_range(arg, segments))
+                except CompileClipsHandler.InvalidRangeException as e:
+                    errors.append(str(e))
+                except CompileClipsHandler.NoMatchingSegmentsException as e:
+                    errors.append(str(e))
             else:
                 try:
-                    selected_segments.append(CompileClipsHandler.__parse_single(index, segments))
-                except CompileClipsHandler.ParseSegmentsException:
-                    continue
+                    selected_segments.append(CompileClipsHandler.__parse_single(arg, segments))
+                except CompileClipsHandler.InvalidRangeException as e:
+                    errors.append(str(e))
+                except CompileClipsHandler.NoMatchingSegmentsException as e:
+                    errors.append(str(e))
 
-        return selected_segments
+        return selected_segments, errors
 
     @staticmethod
     def __parse_range(index: str, segments: List[Dict[str, Union[str, float]]]) -> List[Dict[str, Union[str, float]]]:
+        start_str, end_str = index.split("-")
         try:
-            start, end = [int(i) for i in index.split("-")]
-            return [
-                {"video_path": segments[i - 1]["video_path"], "start": segments[i - 1]["start"], "end": segments[i - 1]["end"]}
-                for i in range(start, end + 1)
-            ]
-        except ValueError as e:
-            raise CompileClipsHandler.ParseSegmentsException(get_invalid_range_message(index)) from e
+            start, end = int(start_str), int(end_str)
+        except ValueError:
+            raise CompileClipsHandler.InvalidRangeException(get_invalid_range_message(index))
+
+        if start > end:
+            raise CompileClipsHandler.InvalidRangeException(get_invalid_range_message(index))
+
+        num_of_clips = end - start + 1
+        if num_of_clips > settings.MAX_CLIPS_PER_COMPILATION:
+            raise CompileClipsHandler.InvalidRangeException(get_max_clips_exceeded_message())
+
+        collected = []
+        for i in range(start, end + 1):
+            try:
+                segment = segments[i - 1]
+                collected.append({
+                    "video_path": segment["video_path"],
+                    "start": segment["start"],
+                    "end": segment["end"],
+                })
+            except IndexError:
+                pass
+
+        if not collected:
+            raise CompileClipsHandler.NoMatchingSegmentsException(get_no_matching_segments_found_message())
+
+        return collected
 
     @staticmethod
     def __parse_single(index: str, segments: List[Dict[str, Union[str, float]]]) -> Dict[str, Union[str, float]]:
         try:
-            segment = segments[int(index) - 1]
-            return {"video_path": segment["video_path"], "start": segment["start"], "end": segment["end"]}
-        except (ValueError, IndexError) as e:
-            raise CompileClipsHandler.ParseSegmentsException(get_invalid_index_message(index)) from e
+            idx = int(index)
+            segment = segments[idx - 1]
+            return {
+                "video_path": segment["video_path"],
+                "start": segment["start"],
+                "end": segment["end"],
+            }
+        except ValueError:
+            raise CompileClipsHandler.InvalidRangeException(get_invalid_index_message(index))
+        except IndexError:
+            raise CompileClipsHandler.NoMatchingSegmentsException(get_no_matching_segments_found_message())
+
+    async def _check_clip_duration_limit(self, message: Message, total_duration: float) -> bool:
+        if await DatabaseManager.is_admin_or_moderator(message.from_user.id):
+            return False
+        limit = settings.LIMIT_DURATION
+        if total_duration > limit:
+            await self.__reply_clip_duration_exceeded(message)
+            return True
+        return False
 
     async def __reply_no_previous_search_results(self, message: Message) -> None:
-        await self._answer(message,get_no_previous_search_results_message())
-        await self._log_system_message(logging.INFO, get_log_no_previous_search_results_message())
+        await self._answer(message, get_no_previous_search_results_message())
+        await self._log_system_message(logging.INFO, "No previous search results found.")
 
     async def __reply_no_matching_segments_found(self, message: Message) -> None:
-        await self._answer(message,get_no_matching_segments_found_message())
-        await self._log_system_message(logging.INFO, get_log_no_matching_segments_found_message())
+        await self._answer(message, get_no_matching_segments_found_message())
+        await self._log_system_message(logging.INFO, "No matching segments found.")
+
+    async def __reply_clip_duration_exceeded(self, message: Message) -> None:
+        await self._answer(message, get_clip_time_message())
+        await self._log_system_message(logging.INFO, get_log_compiled_clip_is_too_long_message(message.from_user.username))

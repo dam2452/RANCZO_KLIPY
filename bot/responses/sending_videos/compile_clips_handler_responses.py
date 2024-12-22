@@ -29,6 +29,8 @@ def get_log_no_previous_search_results_message() -> str:
 def get_log_no_matching_segments_found_message() -> str:
     return "No matching segments found for compilation."
 
+def get_log_compiled_clip_is_too_long_message(username: str) -> str:
+    return f"Compiled clip is too long for user '{username}'."
 
 def get_max_clips_exceeded_message() -> str:
     return "❌ Przekroczono maksymalną liczbę klipów do skompilowania.❌"
