@@ -96,6 +96,11 @@ class BaseTest:
         received_file_path.unlink()
         logger.info(msg.file_test_success(expected_filename))
 
+    @staticmethod
+    def remove_n_lines(text: str, n: int) -> str:
+        lines = text.splitlines()
+        return "\n".join(lines[n:])
+
     async def expect_command_result_contains(self, command: str, expected: List[str]) -> None:
         self.assert_response_contains(await self.send_command(command, timeout=60), expected)
 
