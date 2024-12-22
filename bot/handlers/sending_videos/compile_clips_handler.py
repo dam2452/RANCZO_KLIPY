@@ -33,29 +33,29 @@ from bot.video.clips_compiler import (
 
 
 class CompileClipsHandler(BotMessageHandler):
+
     class ParseSegmentsException(Exception):
+        """Exception raised during segment parsing."""
         def __init__(self, message: str) -> None:
             self.message = message
             super().__init__(self.message)
 
-    def get_commands(self) -> List[str]:
-        return ["kompiluj", "compile", "kom"]
+    class InvalidRangeException(Exception):
+        """Raised when the range is reversed (e.g., 5-3) or improperly formatted."""
 
-    # pylint: disable=duplicate-code
+    class NoMatchingSegmentsException(Exception):
+        """Raised when there are no matching segments within the provided range."""
+
+    def get_commands(self) -> List[str]:
+        return ["compile", "kompiluj", "kom"]
+
     def _get_validator_functions(self) -> ValidatorFunctions:
         return [
             self.__check_argument_count,
         ]
 
-    class InvalidRangeException(Exception):
-        ""
-
     async def __check_argument_count(self, message: Message) -> bool:
         return await self._validate_argument_count(message, 2, get_invalid_args_count_message())
-    class NoMatchingSegmentsException(Exception):
-        ""
-
-    # pylint: enable=duplicate-code
 
     async def _do_handle(self, message: Message) -> None:
         content = message.text.split()
@@ -73,15 +73,22 @@ class CompileClipsHandler(BotMessageHandler):
         if not selected_segments:
             return await self.__reply_no_matching_segments_found(message)
 
-        if not await DatabaseManager.is_admin_or_moderator(message.from_user.id) and len(selected_segments) > settings.MAX_CLIPS_PER_COMPILATION:
+        if (
+            not await DatabaseManager.is_admin_or_moderator(message.from_user.id)
+            and len(selected_segments) > settings.MAX_CLIPS_PER_COMPILATION
+        ):
             return await self._answer(message, get_max_clips_exceeded_message())
 
         total_duration = 0
         for segment in selected_segments:
-            duration = (segment["end"] + settings.EXTEND_AFTER) - (segment["start"] - settings.EXTEND_BEFORE)
+            duration = (
+                (segment["end"] + settings.EXTEND_AFTER)
+                - (segment["start"] - settings.EXTEND_BEFORE)
+            )
             total_duration += duration
             await self._log_system_message(
-                logging.INFO, f"Selected clip: {segment['video_path']} "
+                logging.INFO,
+                f"Selected clip: {segment['video_path']} "
                 f"from {segment['start']} to {segment['end']} with duration {duration}",
             )
 
@@ -92,17 +99,31 @@ class CompileClipsHandler(BotMessageHandler):
         await self._answer_video(message, compiled_output)
         await process_compiled_clip(message, compiled_output, ClipType.COMPILED)
 
-        await self._log_system_message(logging.INFO, get_compilation_success_message(message.from_user.username))
+        await self._log_system_message(
+            logging.INFO,
+            get_compilation_success_message(message.from_user.username),
+        )
 
+    # Parsing Methods
     @staticmethod
-    def __parse_segments(content: List[str], segments: List[Dict[str, Union[str, float]]]) -> (List[Dict[str, Union[str, float]]], List[str]):
+    def __parse_segments(
+        content: List[str],
+        segments: List[Dict[str, Union[str, float]]],
+    ) -> (List[Dict[str, Union[str, float]]], List[str]):
         selected_segments = []
         errors = []
 
+        # noinspection PyPep8Naming
+        ALL_KEYWORDS = {"all", "wszystko"}
+
         for arg in content:
-            if arg.lower() in ("wszystko", "all"):
+            if arg.lower() in ALL_KEYWORDS:
                 selected_segments.extend(
-                    {"video_path": s["video_path"], "start": s["start"], "end": s["end"]}
+                    {
+                        "video_path": s["video_path"],
+                        "start": s["start"],
+                        "end": s["end"],
+                    }
                     for s in segments
                 )
                 return selected_segments, errors
@@ -110,17 +131,17 @@ class CompileClipsHandler(BotMessageHandler):
             if "-" in arg:
                 try:
                     selected_segments.extend(CompileClipsHandler.__parse_range(arg, segments))
-                except CompileClipsHandler.InvalidRangeException as e:
-                    errors.append(str(e))
-                except CompileClipsHandler.NoMatchingSegmentsException as e:
-                    errors.append(str(e))
+                except CompileClipsHandler.InvalidRangeException as exc:
+                    errors.append(str(exc))
+                except CompileClipsHandler.NoMatchingSegmentsException as exc:
+                    errors.append(str(exc))
             else:
                 try:
                     selected_segments.append(CompileClipsHandler.__parse_single(arg, segments))
-                except CompileClipsHandler.InvalidRangeException as e:
-                    errors.append(str(e))
-                except CompileClipsHandler.NoMatchingSegmentsException as e:
-                    errors.append(str(e))
+                except CompileClipsHandler.InvalidRangeException as exc:
+                    errors.append(str(exc))
+                except CompileClipsHandler.NoMatchingSegmentsException as exc:
+                    errors.append(str(exc))
 
         return selected_segments, errors
 
@@ -129,8 +150,10 @@ class CompileClipsHandler(BotMessageHandler):
         start_str, end_str = index.split("-")
         try:
             start, end = int(start_str), int(end_str)
-        except ValueError:
-            raise CompileClipsHandler.InvalidRangeException(get_invalid_range_message(index))
+        except ValueError as exc:
+            raise CompileClipsHandler.InvalidRangeException(
+                get_invalid_range_message(index),
+            ) from exc
 
         if start > end:
             raise CompileClipsHandler.InvalidRangeException(get_invalid_range_message(index))
@@ -166,10 +189,14 @@ class CompileClipsHandler(BotMessageHandler):
                 "start": segment["start"],
                 "end": segment["end"],
             }
-        except ValueError:
-            raise CompileClipsHandler.InvalidRangeException(get_invalid_index_message(index))
-        except IndexError:
-            raise CompileClipsHandler.NoMatchingSegmentsException(get_no_matching_segments_found_message())
+        except ValueError as exc:
+            raise CompileClipsHandler.InvalidRangeException(
+                get_invalid_index_message(index),
+            ) from exc
+        except IndexError as exc:
+            raise CompileClipsHandler.NoMatchingSegmentsException(
+                get_no_matching_segments_found_message(),
+            ) from exc
 
     async def _check_clip_duration_limit(self, message: Message, total_duration: float) -> bool:
         if await DatabaseManager.is_admin_or_moderator(message.from_user.id):
