@@ -28,27 +28,3 @@ class TestClipHandler(BaseTest):
         await self.expect_command_result_contains(
             '/klip', [get_no_quote_provided_message()],
         )
-
-    # Nie można przetestować, ponieważ API nie pozwala wysyłać wiadomości dłuższych niż 4096 znaków
-    # @pytest.mark.asyncio
-    # async def test_message_too_long(self):
-    #     long_quote = "a" * 5000
-    #     await self.expect_command_result_contains(
-    #         f'/klip {long_quote}', [get_message_too_long_message()]
-    #     )
-
-    # Jak znaleźć cytat, który jest zbyt długi?
-    # @pytest.mark.asyncio
-    # async def test_clip_duration_exceeds_limit(self):
-    #     await self.expect_command_result_contains(
-    #         '/klip bardzo_długi_cytat', [get_limit_exceeded_clip_duration_message()]
-    #     )
-
-    # Nie można przetestować, ponieważ API nie pozwala wysyłać wiadomości dłuższych niż 4096 znaków
-    # @pytest.mark.asyncio
-    # async def test_user_without_permissions(self):
-    #     await DatabaseManager.remove_admin(s.DEFAULT_ADMIN)
-    #     long_quote = "a" * 5000
-    #     await self.expect_command_result_contains(
-    #         f'/klip {long_quote}', [get_message_too_long_message()]
-    #     )
