@@ -26,6 +26,8 @@ class Settings(BaseSettings):
     ADMIN_USERNAME: str = Field("Admin")
     ADMIN_FULL_NAME: str = Field("Admin")
 
+    TESTER_USERNAME: str = Field("dam2452")
+
     class Config:
         env_file = str(env_path)
         env_prefix = ""
