@@ -1,25 +1,26 @@
 import pytest
 
 import bot.responses.not_sending_videos.save_clip_handler_responses as save_msg
+import bot.responses.sending_videos.send_clip_handler_responses as send_msg
 from bot.tests.base_test import BaseTest
 
 
 @pytest.mark.usefixtures("db_pool", "telegram_client")
 class TestSendClipCommand(BaseTest):
 
-    # @pytest.mark.asyncio
-    # async def test_send_existing_clip_by_number(self):
-    #     clip_name = "klip1"
-    #     await self.send_command('/klip geniusz')
-    #     await self.expect_command_result_contains(
-    #         f'/zapisz {clip_name}',
-    #         [save_msg.get_clip_saved_successfully_message(clip_name)],
-    #     )
-    #
-    #     response = await self.send_command('/wyslij 1',timeout=30)
-    #     await self.assert_command_result_file_matches(
-    #         response, 'send_clip_geniusz_klip1.mp4'
-    #     )
+    @pytest.mark.asyncio
+    async def test_send_existing_clip_by_number(self):
+        clip_name = "klip1"
+        await self.send_command('/klip geniusz')
+        await self.expect_command_result_contains(
+            f'/zapisz {clip_name}',
+            [save_msg.get_clip_saved_successfully_message(clip_name)],
+        )
+
+        response = await self.send_command('/wyslij 1',timeout=60)
+        await self.assert_command_result_file_matches(
+            response, 'send_clip_geniusz_klip1.mp4',
+        )
 
     @pytest.mark.asyncio
     async def test_send_existing_clip_by_name(self):
@@ -35,13 +36,13 @@ class TestSendClipCommand(BaseTest):
             response, 'send_clip_geniusz_klip1.mp4',
         )
 
-    # @pytest.mark.asyncio
-    # async def test_send_nonexistent_clip(self):
-    #     clip_number = 1
-    #     response = await self.send_command(f'/wyslij {clip_number}')
-    #     self.assert_response_contains(
-    #         response, [msg.get_clip_not_found_message(clip_number)]
-    #     )
+    @pytest.mark.asyncio
+    async def test_send_nonexistent_clip(self):
+        clip_number = 1
+        response = await self.send_command(f'/wyslij {clip_number}')
+        self.assert_response_contains(
+            response, [send_msg.get_clip_not_found_message(clip_number)],
+        )
 
     @pytest.mark.asyncio
     async def test_send_clip_with_special_characters_in_name(self):
@@ -57,17 +58,3 @@ class TestSendClipCommand(BaseTest):
         await self.assert_command_result_file_matches(
             response, 'send_clip_geniusz_special_name.mp4',
         )
-
-    # @pytest.mark.asyncio
-    # async def test_send_clip_duration_exceeds_limit(self):
-    #     clip_name = "klip_dlugi"
-    #     await self.send_command('/klip dlugi')
-    #     await self.expect_command_result_contains(
-    #         f'/zapisz {clip_name}',
-    #         [save_msg.get_clip_saved_successfully_message(clip_name)],
-    #     )
-    #
-    #     response = await self.send_command(f'/wyslij {clip_name}')
-    #     self.assert_response_contains(
-    #         response, [msg.get_limit_exceeded_clip_duration_message()]
-    #     )

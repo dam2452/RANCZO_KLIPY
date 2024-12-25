@@ -1,7 +1,10 @@
 import logging
 from pathlib import Path
 import tempfile
-from typing import List
+from typing import (
+    List,
+    Optional,
+)
 
 from aiogram.types import Message
 
@@ -29,27 +32,44 @@ class SendClipHandler(BotMessageHandler):
     def _get_validator_functions(self) -> ValidatorFunctions:
         return [
             self.__check_argument_count,
+            self.__check_clip_existence,
         ]
+
+    async def __check_clip_existence(self, message: Message) -> bool:
+        content = message.text.split()
+        if len(content) < 2:
+            return True
+
+        clip_identifier = " ".join(content[1:])
+
+        clips = await DatabaseManager.get_saved_clips(message.from_user.id) or []
+
+        if clip_identifier.isdigit():
+            clip_number = int(clip_identifier)
+            if clip_number < 1 or clip_number > len(clips):
+                await self.__reply_clip_not_found(message, clip_number)
+                return False
+        else:
+            clip = await DatabaseManager.get_clip_by_name(message.from_user.id, clip_identifier)
+            if not clip:
+                await self.__reply_clip_not_found(message, None)
+                return False
+
+        return True
 
     async def __check_argument_count(self, message: Message) -> bool:
         return await self._validate_argument_count(message, 2, get_give_clip_name_message())
 
     async def _do_handle(self, message: Message) -> None:
         content = message.text.split()
-        clip_number = None
         clip_identifier = " ".join(content[1:])
 
         if clip_identifier.isdigit():
             clip_number = int(clip_identifier)
             clips = await DatabaseManager.get_saved_clips(message.from_user.id)
-            if clip_number not in range(1, len(clips)):
-                return await self.__reply_clip_not_found(message, clip_number)
             clip = clips[clip_number - 1]
         else:
             clip = await DatabaseManager.get_clip_by_name(message.from_user.id, clip_identifier)
-
-        if not clip:
-            return await self.__reply_clip_not_found(message, clip_number)
 
         if await self._handle_clip_duration_limit_exceeded(message, clip.duration):
             return
@@ -59,7 +79,6 @@ class SendClipHandler(BotMessageHandler):
             return await self.__reply_empty_clip_file(message, clip_identifier)
 
         temp_file_path = Path(tempfile.gettempdir()) / f"{clip.name}.mp4"
-
         with temp_file_path.open("wb") as temp_file:
             temp_file.write(video_data)
 
@@ -67,12 +86,14 @@ class SendClipHandler(BotMessageHandler):
             return await self.__reply_empty_file_error(message, clip_identifier)
 
         await self._answer_video(message, temp_file_path)
-
         temp_file_path.unlink()
 
-        await self._log_system_message(logging.INFO, get_log_clip_sent_message(clip.name, message.from_user.username))
+        await self._log_system_message(
+            logging.INFO,
+            get_log_clip_sent_message(clip.name, message.from_user.username),
+        )
 
-    async def __reply_clip_not_found(self, message: Message, clip_number: int) -> None:
+    async def __reply_clip_not_found(self, message: Message, clip_number: Optional[int]) -> None:
         await self._answer(message,get_clip_not_found_message(clip_number))
         await self._log_system_message(
             logging.INFO,
