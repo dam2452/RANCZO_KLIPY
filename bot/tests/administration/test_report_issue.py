@@ -27,14 +27,6 @@ class TestReportCommand(BaseTest):
         message = 'To się nie działa @#$%^&*()!'
         await self.expect_command_result_contains(f'/report {message}', [msg.get_report_received_message()])
 
-    # @pytest.mark.quick
-    # @pytest.mark.asyncio
-    # async def test_report_with_long_message(self):
-    #     long_message = "To i to nie działa. " * 4000
-    #     await self.expect_command_result_contains(
-    #         f'/report {long_message}',
-    #         [msg.get_limit_exceeded_report_length_message()]
-    #     )
 
     @pytest.mark.quick
     @pytest.mark.asyncio
