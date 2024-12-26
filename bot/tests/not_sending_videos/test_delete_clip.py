@@ -65,5 +65,6 @@ class TestDeleteClipCommand(BaseTest):
 
     @pytest.mark.asyncio
     async def test_delete_clip_invalid_index(self):
-        response = await self.send_command('/usunklip 999')
-        self.assert_response_contains(response, [delete_msg.get_clip_not_exist_message(999)])
+        id = 999
+        response = await self.send_command(f'/usunklip {id}')
+        self.assert_response_contains(response, [delete_msg.get_clip_not_exist_message(id)])
