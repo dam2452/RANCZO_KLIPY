@@ -22,8 +22,9 @@ class TestDeleteClipCommand(BaseTest):
 
     @pytest.mark.asyncio
     async def test_delete_nonexistent_clip(self):
-        response = await self.send_command('/usunklip 1337')
-        self.assert_response_contains(response, [delete_msg.get_clip_not_exist_message(1337)])
+        id = 1337
+        response = await self.send_command(f'/usunklip {id}')
+        self.assert_response_contains(response, [delete_msg.get_clip_not_exist_message(id)])
 
     @pytest.mark.asyncio
     async def test_delete_clip_no_arguments(self):
