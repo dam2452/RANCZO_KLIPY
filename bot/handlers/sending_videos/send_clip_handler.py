@@ -37,8 +37,6 @@ class SendClipHandler(BotMessageHandler):
 
     async def __check_clip_existence(self, message: Message) -> bool:
         content = message.text.split()
-        if len(content) < 2:
-            return True
 
         clip_identifier = " ".join(content[1:])
 
