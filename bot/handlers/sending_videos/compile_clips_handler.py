@@ -16,11 +16,13 @@ from bot.handlers.bot_message_handler import (
 )
 from bot.responses.sending_videos.compile_clips_handler_responses import (
     get_clip_time_message,
-    get_log_compilation_success_message,
     get_invalid_args_count_message,
     get_invalid_index_message,
     get_invalid_range_message,
+    get_log_compilation_success_message,
     get_log_compiled_clip_is_too_long_message,
+    get_log_no_matching_segments_found_message,
+    get_log_no_previous_search_results_message,
     get_max_clips_exceeded_message,
     get_no_matching_segments_found_message,
     get_no_previous_search_results_message,
@@ -35,10 +37,7 @@ from bot.video.clips_compiler import (
 class CompileClipsHandler(BotMessageHandler):
 
     class ParseSegmentsException(Exception):
-        """Exception raised during segment parsing."""
-        def __init__(self, message: str) -> None:
-            self.message = message
-            super().__init__(self.message)
+        """Raised when there is an error parsing the segments from the provided arguments."""
 
     class InvalidRangeException(Exception):
         """Raised when the range is reversed (e.g., 5-3) or improperly formatted."""
@@ -104,7 +103,6 @@ class CompileClipsHandler(BotMessageHandler):
             get_log_compilation_success_message(message.from_user.username),
         )
 
-    # Parsing Methods
     @staticmethod
     def __parse_segments(
         content: List[str],
@@ -113,11 +111,8 @@ class CompileClipsHandler(BotMessageHandler):
         selected_segments = []
         errors = []
 
-        # noinspection PyPep8Naming
-        ALL_KEYWORDS = {"all", "wszystko"}
-
         for arg in content:
-            if arg.lower() in ALL_KEYWORDS:
+            if arg.lower() in {"all", "wszystko"}:
                 selected_segments.extend(
                     {
                         "video_path": s["video_path"],
@@ -209,11 +204,11 @@ class CompileClipsHandler(BotMessageHandler):
 
     async def __reply_no_previous_search_results(self, message: Message) -> None:
         await self._answer(message, get_no_previous_search_results_message())
-        await self._log_system_message(logging.INFO, "No previous search results found.")
+        await self._log_system_message(logging.INFO,  get_log_no_previous_search_results_message())
 
     async def __reply_no_matching_segments_found(self, message: Message) -> None:
         await self._answer(message, get_no_matching_segments_found_message())
-        await self._log_system_message(logging.INFO, "No matching segments found.")
+        await self._log_system_message(logging.INFO, get_log_no_matching_segments_found_message())
 
     async def __reply_clip_duration_exceeded(self, message: Message) -> None:
         await self._answer(message, get_clip_time_message())
