@@ -55,27 +55,28 @@ class TestManualClipCommand(BaseTest):
         response = await self.send_command(command, timeout=timeout)
         await self.assert_command_result_file_matches(response, expected_file)
 
-    # @pytest.mark.asyncio
-    # async def test_cut_clip_end_time_before_start_time(self):
-    #     episode = "S07E06"
-    #     start_time = "36:49.00"
-    #     end_time = "36:47.50"
-    #
-    #     expected_message = msg.get_end_time_earlier_than_start_message()
-    #
-    #     command = f"/wytnij {episode} {start_time} {end_time}"
-    #     response = await self.send_command(command)
-    #     self.assert_response_contains(response, [expected_message])
+    @pytest.mark.asyncio
+    async def test_cut_clip_end_time_before_start_time(self):
+        episode = "S07E06"
+        start_time = "36:49.00"
+        end_time = "36:47.50"
 
-    # @pytest.mark.asyncio
-    # async def test_cut_clip_exact_episode_length(self):
-    #     episode = "S07E06"
-    #     start_time = "00:00.00"
-    #     end_time = "45:00.00"
-    #
-    #     expected_message = msg.get_limit_exceeded_clip_duration_message()
-    #     timeout = 30
-    #
-    #     command = f"/wytnij {episode} {start_time} {end_time}"
-    #     response = await self.send_command(command, timeout=timeout)
-    #     self.assert_response_contains(response, [expected_message])
+        expected_message = msg.get_end_time_earlier_than_start_message()
+
+        command = f"/wytnij {episode} {start_time} {end_time}"
+        response = await self.send_command(command)
+        self.assert_response_contains(response, [expected_message])
+
+    @pytest.mark.asyncio
+    async def test_cut_clip_exact_episode_length(self):
+        await self.switch_to_normal_user()
+        episode = "S07E06"
+        start_time = "00:00.00"
+        end_time = "45:00.00"
+
+        expected_message = msg.get_limit_exceeded_clip_duration_message()
+        timeout = 30
+
+        command = f"/wytnij {episode} {start_time} {end_time}"
+        response = await self.send_command(command, timeout=timeout)
+        self.assert_response_contains(response, [expected_message])
