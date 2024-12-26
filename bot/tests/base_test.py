@@ -36,6 +36,10 @@ class BaseTest:
         sanitized = " ".join(sanitized.split())
         return sanitized.lower()
 
+    @staticmethod
+    def remove_until_first_space(text: str) -> str:
+        return text.split(' ', 1)[-1] if ' ' in text else text
+
     async def send_command(self, command_text: str, timeout: int = 10, poll_interval: float = 0.5) -> Message:
         sent_message = await self.client.send_message(s.BOT_USERNAME, command_text)
         sent_message_id = sent_message.id
@@ -95,6 +99,11 @@ class BaseTest:
 
         received_file_path.unlink()
         logger.info(msg.file_test_success(expected_filename))
+
+    @staticmethod
+    def remove_n_lines(text: str, n: int) -> str:
+        lines = text.splitlines()
+        return "\n".join(lines[n:])
 
     async def expect_command_result_contains(self, command: str, expected: List[str]) -> None:
         self.assert_response_contains(await self.send_command(command, timeout=60), expected)

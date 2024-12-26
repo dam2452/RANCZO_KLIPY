@@ -34,11 +34,18 @@ class CompileSelectedClipsHandler(BotMessageHandler):
     def _get_validator_functions(self) -> ValidatorFunctions:
         return [
             self.__check_argument_count,
+            self.__check_user_has_clips,
         ]
 
     async def __check_argument_count(self, message: Message) -> bool:
         return await self._validate_argument_count(message, 2, get_invalid_args_count_message())
 
+    async def __check_user_has_clips(self, message: Message) -> bool:
+        user_clips = await DatabaseManager.get_saved_clips(message.from_user.id)
+        if not user_clips:
+            await self.__reply_no_matching_clips_found(message)
+            return False
+        return True
 
     async def _do_handle(self, message: Message) -> None:
         content = message.text.split()
@@ -78,7 +85,6 @@ class CompileSelectedClipsHandler(BotMessageHandler):
 
         compiled_output = await ClipsCompiler.compile(message, selected_segments, self._logger)
         await process_compiled_clip(message, compiled_output, ClipType.COMPILED)
-
         await self._answer_video(message, compiled_output)
 
         await self._log_system_message(logging.INFO, get_compiled_clip_sent_message(message.from_user.username))
