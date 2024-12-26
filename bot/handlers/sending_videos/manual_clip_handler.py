@@ -50,8 +50,6 @@ class ManualClipHandler(BotMessageHandler):
 
     async def __check_end_time_after_start_time(self, message: Message) -> bool:
         content = message.text.split()
-        if len(content) < 4:
-            return True
 
         try:
             start_seconds = minutes_str_to_seconds(content[2])
