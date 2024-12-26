@@ -1,5 +1,16 @@
-def get_clip_not_found_message(clip_number: int) -> str:
-    return f"❌ Nie znaleziono klipu o numerze '{clip_number}'.❌"
+from typing import Optional
+
+
+def get_clip_not_found_message(clip_identifier: Optional[int]) -> str:
+    if clip_identifier is None:
+        return "❌ Nie znaleziono klipu o podanej nazwie.❌"
+    return f"❌ Nie znaleziono klipu o numerze '{clip_identifier}'.❌"
+
+def get_log_clip_not_found_message(clip_identifier: Optional[int], username: str) -> str:
+    if clip_identifier is None:
+        return f"No clip found by name for user: {username}"
+    return f"No clip found with number {clip_identifier} for user: {username}"
+
 
 
 def get_empty_clip_file_message() -> str:
@@ -9,9 +20,6 @@ def get_empty_clip_file_message() -> str:
 def get_empty_file_error_message() -> str:
     return "⚠️ Wystąpił błąd podczas wysyłania klipu. Plik jest pusty.⚠️"
 
-
-def get_log_clip_not_found_message(clip_number: int, username: str) -> str:
-    return f"Clip '{clip_number}' not found for user '{username}'."
 
 
 def get_log_empty_clip_file_message(clip_name: str, username: str) -> str:
