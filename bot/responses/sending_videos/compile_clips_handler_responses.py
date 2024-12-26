@@ -18,7 +18,7 @@ def get_invalid_index_message(index: str) -> str:
     return f"⚠️ Podano nieprawidłowy indeks cytatu: {index} ⚠️"
 
 
-def get_compilation_success_message(username: str) -> str:
+def get_log_compilation_success_message(username: str) -> str:
     return f"Compiled clip sent to user '{username}' and temporary files removed."
 
 

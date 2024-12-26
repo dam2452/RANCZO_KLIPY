@@ -16,7 +16,7 @@ from bot.handlers.bot_message_handler import (
 )
 from bot.responses.sending_videos.compile_clips_handler_responses import (
     get_clip_time_message,
-    get_compilation_success_message,
+    get_log_compilation_success_message,
     get_invalid_args_count_message,
     get_invalid_index_message,
     get_invalid_range_message,
@@ -101,7 +101,7 @@ class CompileClipsHandler(BotMessageHandler):
 
         await self._log_system_message(
             logging.INFO,
-            get_compilation_success_message(message.from_user.username),
+            get_log_compilation_success_message(message.from_user.username),
         )
 
     # Parsing Methods
