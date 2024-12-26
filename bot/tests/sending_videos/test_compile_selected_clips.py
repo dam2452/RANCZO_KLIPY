@@ -59,10 +59,10 @@ class TestMergeClipsCommand(BaseTest):
         response = await self.send_command('/polaczklipy 1')
         await self.assert_command_result_file_matches(response, 'merged_single_clip_1.mp4')
 
-    # @pytest.mark.asyncio
-    # async def test_merge_no_clips(self):
-    #     response = await self.send_command('/polaczklipy 1 2')
-    #     self.assert_response_contains(response, [comp_msg.get_no_matching_clips_found_message()])
+    @pytest.mark.asyncio
+    async def test_merge_no_clips(self):
+        response = await self.send_command('/polaczklipy 1 2')
+        self.assert_response_contains(response, [comp_msg.get_no_matching_clips_found_message()])
 
     @pytest.mark.asyncio
     async def test_merge_clips_with_special_characters_in_name(self):
