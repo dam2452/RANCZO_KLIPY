@@ -9,6 +9,7 @@ from bot.handlers.bot_message_handler import (
     ValidatorFunctions,
 )
 from bot.responses.administration.remove_whitelist_handler_responses import (
+    get_log_user_not_in_whitelist_message,
     get_log_user_removed_message,
     get_no_user_id_provided_message,
     get_user_not_in_whitelist_message,
@@ -62,4 +63,4 @@ class RemoveWhitelistHandler(BotMessageHandler):
 
     async def _reply_user_not_found(self, message: Message, user_id: int) -> None:
         await self._answer(message, get_user_not_in_whitelist_message(user_id))
-        await self._log_system_message(logging.WARNING, f"User with ID {user_id} not found.")
+        await self._log_system_message(logging.WARNING, get_log_user_not_in_whitelist_message(user_id))
