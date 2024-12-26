@@ -35,7 +35,7 @@ class DeleteClipHandler(BotMessageHandler):
     async def __check_clip_number_format(self, message: Message) -> bool:
         content = message.text.split()
         if not content[1].isdigit():
-            await self.__replay_invalid_args_count(message)
+            await self.__reply_invalid_args_count(message)
             return False
         return True
 
@@ -65,7 +65,7 @@ class DeleteClipHandler(BotMessageHandler):
             ),
         )
 
-    async def __replay_invalid_args_count(self, message: Message) -> None:
+    async def __reply_invalid_args_count(self, message: Message) -> None:
         await self._answer(message, get_invalid_args_count_message())
         await self._log_system_message(logging.INFO, get_invalid_args_count_message())
 
