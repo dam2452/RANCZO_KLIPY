@@ -52,7 +52,7 @@ class CompileClipsHandler(BotMessageHandler):
         pass
 
     def get_commands(self) -> List[str]:
-        return ["compile", "kompiluj", "kom"]
+        return ["kompiluj", "compile", "kom"]
 
     def _get_validator_functions(self) -> ValidatorFunctions:
         return [
