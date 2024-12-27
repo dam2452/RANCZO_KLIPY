@@ -20,10 +20,11 @@ class TestDeleteClipCommand(BaseTest):
             [delete_msg.get_clip_deleted_message("test_clip")],
         )
 
-    # @pytest.mark.asyncio
-    # async def test_delete_nonexistent_clip(self):
-    #     response = await self.send_command('/usunklip 1337')
-    #     self.assert_response_contains(response, [delete_msg.get_clip_not_exist_message(1337)])
+    @pytest.mark.asyncio
+    async def test_delete_nonexistent_clip(self):
+        clip_id = 1337
+        response = await self.send_command(f'/usunklip {clip_id}')
+        self.assert_response_contains(response, [delete_msg.get_clip_not_exist_message(clip_id)])
 
     @pytest.mark.asyncio
     async def test_delete_clip_no_arguments(self):
@@ -63,7 +64,8 @@ class TestDeleteClipCommand(BaseTest):
             [delete_msg.get_clip_deleted_message(special_clip_name)],
         )
 
-    # @pytest.mark.asyncio
-    # async def test_delete_clip_invalid_index(self):
-    #     response = await self.send_command('/usunklip 999')
-    #     self.assert_response_contains(response, [delete_msg.get_clip_not_exist_message(999)])
+    @pytest.mark.asyncio
+    async def test_delete_clip_invalid_index(self):
+        clip_id = 999
+        response = await self.send_command(f'/usunklip {clip_id}')
+        self.assert_response_contains(response, [delete_msg.get_clip_not_exist_message(clip_id)])
