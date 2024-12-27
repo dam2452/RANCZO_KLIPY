@@ -19,7 +19,7 @@ class TestSubscriptionCommand(BaseTest):
         end_date = date.today() + timedelta(days=days)
         await self.send_command(f'/addsubscription {s.DEFAULT_ADMIN} {days}')
         expected_response = msg.format_subscription_status_response(
-            s.TESTER_USERNAME, end_date, {days},
+            s.TESTER_USERNAME, end_date, days,
         )
 
         await self.expect_command_result_contains('/subskrypcja', [expected_response])
