@@ -54,9 +54,9 @@ def get_incorrect_time_format_message() -> str:
 
 def get_end_time_earlier_than_start_message() -> str:
     return (
-        "❌ **Czas zakończenia musi być późniejszy niż czas rozpoczęcia!**\n"
-        "Upewnij się, że **czas_start** jest wcześniejszy niż **czas_koniec**.\n"
-        "Przykład: **20:30.11** (czas_start) powinno być wcześniejsze niż **21:32.50** (czas_koniec)."
+        "❌ Czas zakończenia musi być późniejszy niż czas rozpoczęcia!\n"
+        "Upewnij się, że czas_start jest wcześniejszy niż czas_koniec.\n"
+        "Przykład: 20:30.11 (czas_start) powinno być wcześniejsze niż 21:32.50 (czas_koniec)."
     )
 
 

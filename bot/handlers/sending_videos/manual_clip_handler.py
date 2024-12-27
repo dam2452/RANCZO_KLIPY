@@ -45,7 +45,23 @@ class ManualClipHandler(BotMessageHandler):
     def _get_validator_functions(self) -> ValidatorFunctions:
         return [
             self.__check_argument_count,
+            self.__check_end_time_after_start_time,
         ]
+
+    async def __check_end_time_after_start_time(self, message: Message) -> bool:
+        content = message.text.split()
+
+        try:
+            start_seconds = minutes_str_to_seconds(content[2])
+            end_seconds = minutes_str_to_seconds(content[3])
+        except (InvalidSeasonEpisodeStringException, InvalidTimeStringException):
+            return True
+
+        if end_seconds <= start_seconds:
+            await self.__reply_end_time_earlier_than_start(message)
+            return False
+
+        return True
 
     async def __check_argument_count(self, message: Message) -> bool:
         return await self._validate_argument_count(message, 4, get_invalid_args_count_message())
@@ -59,9 +75,6 @@ class ManualClipHandler(BotMessageHandler):
             return await self.__reply_incorrect_season_episode_format(message)
         except InvalidTimeStringException:
             return await self.__reply_incorrect_time_format(message)
-
-        if end_seconds <= start_seconds:
-            return await self.__reply_end_time_earlier_than_start(message)
 
         clip_duration = end_seconds - start_seconds
         if await self._handle_clip_duration_limit_exceeded(message, clip_duration):
@@ -129,5 +142,5 @@ class ManualClipHandler(BotMessageHandler):
         await self._log_system_message(logging.INFO, get_log_incorrect_time_format_message())
 
     async def __reply_end_time_earlier_than_start(self, message: Message) -> None:
-        await self._answer_markdown(message, get_end_time_earlier_than_start_message())
+        await self._answer(message, get_end_time_earlier_than_start_message())
         await self._log_system_message(logging.INFO, get_log_end_time_earlier_than_start_message())
