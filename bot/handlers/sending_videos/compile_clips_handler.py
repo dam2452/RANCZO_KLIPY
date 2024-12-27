@@ -98,8 +98,8 @@ class CompileClipsHandler(BotMessageHandler):
                 get_selected_clip_message(segment["video_path"], segment["start"], segment["end"], duration),
             )
 
-        if await self._check_clip_duration_limit(message, total_duration):
-            return
+        if await self._check_clip_duration_limit(message.from_user.id, total_duration):
+            return await self.__reply_clip_duration_exceeded(message)
 
         compiled_output = await ClipsCompiler.compile(message, selected_segments, self._logger)
         await self._answer_video(message, compiled_output)
@@ -181,13 +181,11 @@ class CompileClipsHandler(BotMessageHandler):
             "end": segment["end"],
         }
 
-    async def _check_clip_duration_limit(self, message: Message, total_duration: float) -> bool:
-        if await DatabaseManager.is_admin_or_moderator(message.from_user.id):
+    @staticmethod
+    async def _check_clip_duration_limit(user_id: int, total_duration: float) -> bool:
+        if await DatabaseManager.is_admin_or_moderator(user_id):
             return False
-        if total_duration > settings.LIMIT_DURATION:
-            await self.__reply_clip_duration_exceeded(message)
-            return True
-        return False
+        return total_duration > settings.LIMIT_DURATION
 
     async def __reply_no_previous_search_results(self, message: Message) -> None:
         await self._answer(message, get_no_previous_search_results_message())
