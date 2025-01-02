@@ -10,9 +10,6 @@ from bot.handlers.bot_message_handler import (
 )
 from bot.response_keys import ResponseKey as RK
 from bot.responses.not_sending_videos.delete_clip_handler_responses import (
-    get_clip_deleted_message,
-    get_clip_not_exist_message,
-    get_invalid_args_count_message,
     get_log_clip_deleted_message,
     get_log_clip_not_exist_message,
 )
@@ -31,7 +28,7 @@ class DeleteClipHandler(BotMessageHandler):
         ]
 
     async def __check_argument_count(self, message: Message) -> bool:
-        return await self._validate_argument_count(message, 2, get_invalid_args_count_message())
+        return await self._validate_argument_count(message, 2, await self.get_response(RK.INVALID_ARGS_COUNT))
 
     async def __check_clip_number_format(self, message: Message) -> bool:
         content = message.text.split()
@@ -57,14 +54,7 @@ class DeleteClipHandler(BotMessageHandler):
         clip_to_delete = user_clips[clip_number - 1]
         await DatabaseManager.delete_clip(message.from_user.id, clip_to_delete.name)
 
-        await self._answer(message, get_clip_deleted_message(clip_to_delete.name))
-        await self._log_system_message(
-            logging.INFO,
-            get_log_clip_deleted_message(
-                clip_to_delete.name,
-                message.from_user.username,
-            ),
-        )
+        await self.__reply_clip_deleted(message, clip_to_delete.name)
 
     async def __reply_invalid_args_count(self, message: Message) -> None:
         await self._answer(message, await self.get_response(RK.INVALID_ARGS_COUNT))
@@ -72,4 +62,14 @@ class DeleteClipHandler(BotMessageHandler):
 
     async def __reply_clip_not_exist(self, message: Message, clip_number: int) -> None:
         await self._answer(message, await self.get_response(RK.CLIP_NOT_EXIST, args=[str(clip_number)]))
-        await self._log_system_message(logging.INFO, get_log_clip_not_exist_message(clip_number, message.from_user.username))
+        await self._log_system_message(
+            logging.INFO,
+            get_log_clip_not_exist_message(clip_number, message.from_user.username),
+        )
+
+    async def __reply_clip_deleted(self, message: Message, clip_name: str) -> None:
+        await self._answer(message, await self.get_response(RK.CLIP_DELETED, args=[clip_name]))
+        await self._log_system_message(
+            logging.INFO,
+            get_log_clip_deleted_message(clip_name, message.from_user.username),
+        )

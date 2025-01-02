@@ -30,6 +30,7 @@ from bot.responses.bot_message_handler_responses import (
     get_general_error_message,
     get_invalid_args_count_message,
     get_log_clip_duration_exceeded_message,
+    get_response,
     get_video_sent_log_message,
 )
 from bot.responses.sending_videos.manual_clip_handler_responses import get_limit_exceeded_clip_duration_message
@@ -80,11 +81,9 @@ class BotMessageHandler(ABC):
         return self.__class__.__name__
 
     async def get_response(self, key: str, args: Optional[List[str]] = None) -> str:
-        return await DatabaseManager.get_response(
+        return await get_response(
             key=key,
-            specialized_table=settings.SPECIALIZED_TABLE,
             handler_name=self.get_action_name() ,
-            default_message=get_general_error_message() ,
             args=args,
         )
 

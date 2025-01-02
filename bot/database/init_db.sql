@@ -140,24 +140,19 @@ CREATE INDEX IF NOT EXISTS idx_subscription_keys_key ON subscription_keys(key);
 CREATE INDEX IF NOT EXISTS idx_subscription_keys_is_active ON subscription_keys(is_active);
 
 CREATE TABLE IF NOT EXISTS common_messages (
-    id SERIAL PRIMARY KEY,
     handler_name TEXT NOT NULL,
     key TEXT NOT NULL,
-    message TEXT NOT NULL
+    message TEXT NOT NULL,
+    PRIMARY KEY (handler_name, key)
 );
+
 
 CREATE TABLE IF NOT EXISTS ranczo_messages (
-    id SERIAL PRIMARY KEY,
     handler_name TEXT NOT NULL,
     key TEXT NOT NULL,
-    message TEXT NOT NULL
+    message TEXT NOT NULL,
+    PRIMARY KEY (handler_name, key)
 );
-
-CREATE UNIQUE INDEX IF NOT EXISTS idx_common_messages_handler_key
-ON common_messages (handler_name, key);
-
-CREATE UNIQUE INDEX IF NOT EXISTS idx_ranczo_messages_handler_key
-ON ranczo_messages (handler_name, key);
 
 CREATE INDEX IF NOT EXISTS idx_common_messages_key
 ON common_messages (key);
@@ -170,8 +165,6 @@ ON common_messages (handler_name);
 
 CREATE INDEX IF NOT EXISTS idx_ranczo_messages_handler_name
 ON ranczo_messages (handler_name);
-
-
 
 
 CREATE OR REPLACE FUNCTION clean_old_last_clips() RETURNS trigger AS $$

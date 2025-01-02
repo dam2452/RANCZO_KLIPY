@@ -4,9 +4,7 @@ from datetime import (
     timedelta,
 )
 import json
-import logging
 from pathlib import Path
-import re
 from typing import (
     Dict,
     List,
@@ -632,15 +630,32 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         return result
 
     @staticmethod
-    async def clear_test_db(schema: str = "public") -> None:
+    async def clear_test_db(tables: List[str], schema: str = "public") -> None:
+        if not tables:
+            raise ValueError("No tables specified for truncation.")
+
         async with DatabaseManager.get_db_connection() as conn:
             async with conn.transaction():
-                tables = await conn.fetch(
-                    "SELECT tablename FROM pg_tables WHERE schemaname = $1;", schema,
+                valid_schema = await conn.fetchval(
+                    "SELECT COUNT(*) > 0 FROM information_schema.schemata WHERE schema_name = $1",
+                    schema,
                 )
+                if not valid_schema:
+                    raise ValueError(f"Invalid schema: {schema}")
+
                 for table in tables:
-                    table_name = table["tablename"]
-                    await conn.execute(f'TRUNCATE TABLE "{schema}"."{table_name}" CASCADE;')
+                    valid_table = await conn.fetchval(
+                        """
+                        SELECT COUNT(*) > 0 
+                        FROM information_schema.tables 
+                        WHERE table_schema = $1 AND table_name = $2
+                        """,
+                        schema, table,
+                    )
+                    if not valid_table:
+                        raise ValueError(f"Invalid table: {table}")
+
+                    await conn.execute(f'TRUNCATE TABLE "{schema}"."{table}" CASCADE;')
 
     @staticmethod
     async def set_user_as_moderator(user_id: int) -> None:
@@ -695,65 +710,27 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
                 )
 
     @staticmethod
-    async def get_response(
-            key: str,
-            specialized_table: str,
-            handler_name: str,
-            default_message: str,
-            args: List[str] = None,
-    ) -> str:
+    async def get_message_from_specialized_table(
+        key: str, handler_name: str,
+    ) -> Optional[str]:
         async with DatabaseManager.get_db_connection() as conn:
-            message = None
+            query = f"""
+                SELECT message
+                FROM {settings.SPECIALIZED_TABLE}
+                WHERE handler_name = $1 AND key = $2
+            """
+            row = await conn.fetchrow(query, handler_name, key)
+            return row["message"] if row else None
 
-            if specialized_table:
-                row = await conn.fetchrow(
-                    f"""
-                    SELECT message
-                    FROM {specialized_table}
-                    WHERE key = $1 AND handler_name = $2
-                    """,
-                    key,
-                    handler_name,
-                )
-                if row:
-                    message = row["message"]
-
-            if not message:
-                row = await conn.fetchrow(
-                    """
-                    SELECT message
-                    FROM common_messages
-                    WHERE key = $1 AND handler_name = $2
-                    """,
-                    key,
-                    handler_name,
-                )
-                if row:
-                    message = row["message"]
-
-        if not message:
-            logging.debug(
-                f"Message not found. key='{key}', handler_name='{handler_name}', specialized_table='{specialized_table}'",
-            )
-            return default_message
-
-        placeholder_count = len(re.findall(r"{}", message))
-        args = args or []
-
-        if len(args) != placeholder_count:
-            logging.debug(
-                f"Argument count mismatch for key='{key}', handler_name='{handler_name}'. "
-                f"Expected {placeholder_count}, got {len(args)}. Message: {message}",
-            )
-            return default_message
-
-        try:
-            final_message = message.format(*args)
-        except IndexError as e:
-            logging.debug(
-                f"Formatting error for key='{key}', handler_name='{handler_name}'. "
-                f"Message: {message}, Args: {args}, Error: {e}",
-            )
-            return default_message
-
-        return final_message
+    @staticmethod
+    async def get_message_from_common_messages(
+        key: str, handler_name: str,
+    ) -> Optional[str]:
+        async with DatabaseManager.get_db_connection() as conn:
+            query = """
+                SELECT message
+                FROM common_messages
+                WHERE handler_name = $1 AND key = $2
+            """
+            row = await conn.fetchrow(query, handler_name, key)
+            return row["message"] if row else None

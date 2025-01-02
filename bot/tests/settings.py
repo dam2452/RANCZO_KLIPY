@@ -16,6 +16,8 @@ class Settings(BaseSettings):
     PASSWORD: str = Field(...)
     PHONE: str = Field(...)
 
+    SPECIALIZED_TABLE: str = Field(...)
+
     TEST_POSTGRES_DB: str = Field(...)
     TEST_POSTGRES_USER: str = Field(...)
     TEST_POSTGRES_PASSWORD: str = Field(...)

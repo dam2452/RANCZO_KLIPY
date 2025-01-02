@@ -36,6 +36,9 @@ class BaseTest:
         sanitized = " ".join(sanitized.split())
         return sanitized.lower()
 
+    def get_tested_handler_name(self) -> str:
+        return self.__class__.__name__[4:]
+
     @staticmethod
     def remove_until_first_space(text: str) -> str:
         return text.split(' ', 1)[-1] if ' ' in text else text

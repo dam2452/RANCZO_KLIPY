@@ -1,11 +1,13 @@
 import pytest
 
+from bot.response_keys import ResponseKey as RK
+from bot.responses.bot_message_handler_responses import get_response
 import bot.responses.not_sending_videos.episode_list_handler_responses as msg
 from bot.tests.base_test import BaseTest
 
 
 @pytest.mark.usefixtures("db_pool", "telegram_client")
-class TestEpisodesListsCommand(BaseTest):
+class TestEpisodeListHandler(BaseTest):
 
     @pytest.mark.asyncio
     async def test_episodes_for_valid_season(self):
@@ -17,12 +19,29 @@ class TestEpisodesListsCommand(BaseTest):
     async def test_episodes_for_nonexistent_season(self):
         season_number = 99
         response = await self.send_command(f'/odcinki {season_number}')
-        self.assert_response_contains(response, [msg.get_no_episodes_found_message(season_number)])
+        self.assert_response_contains(
+            response,
+            [
+                await get_response(
+                RK.NO_EPISODES_FOUND,
+                self.get_tested_handler_name(),
+                args=[str(season_number)],
+                ),
+            ],
+        )
 
     @pytest.mark.asyncio
     async def test_episodes_invalid_arguments(self):
         response = await self.send_command('/odcinki')
-        self.assert_response_contains(response, [msg.get_invalid_args_count_message()])
+        self.assert_response_contains(
+            response,
+            [
+                await get_response(
+                    RK.INVALID_ARGS_COUNT,
+                    self.get_tested_handler_name(),
+                ),
+            ],
+        )
 
     @pytest.mark.asyncio
     async def test_episodes_long_list(self):
