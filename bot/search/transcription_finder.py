@@ -35,7 +35,7 @@ class TranscriptionFinder:
     async def find_segment_by_quote(
             quote: str, logger: logging.Logger, season_filter: Optional[int] = None,
             episode_filter: Optional[int] = None,
-            index: str = "ranczo-transcriptions", return_all: bool = False,
+            index: str = settings.ES_TRANSCRIPTION_INDEX, return_all: bool = False,
     ) -> Optional[Union[List[ObjectApiResponse], ObjectApiResponse]]:
         await log_system_message(
             logging.INFO,
@@ -102,7 +102,7 @@ class TranscriptionFinder:
     async def find_segment_with_context(
             quote: str, logger: logging.Logger, context_size: int = 30, season_filter: Optional[str] = None,
             episode_filter: Optional[str] = None,
-            index: str = "ranczo-transcriptions",
+            index: str = settings.ES_TRANSCRIPTION_INDEX,
     ) -> Optional[json]:
         await log_system_message(
             logging.INFO,
@@ -189,7 +189,7 @@ class TranscriptionFinder:
     @staticmethod
     async def find_video_path_by_episode(
             season: int, episode_number: int, logger: logging.Logger,
-            index: str = "ranczo-transcriptions",
+            index: str = settings.ES_TRANSCRIPTION_INDEX,
     ) -> Optional[str]:
         await log_system_message(
             logging.INFO,
@@ -227,7 +227,7 @@ class TranscriptionFinder:
         return None
 
     @staticmethod
-    async def find_episodes_by_season(season: int, logger: logging.Logger, index: str = "ranczo-transcriptions") -> Optional[List[json]]:
+    async def find_episodes_by_season(season: int, logger: logging.Logger, index: str = settings.ES_TRANSCRIPTION_INDEX) -> Optional[List[json]]:
         await log_system_message(logging.INFO, f"Searching for episodes in season {season}", logger)
         es = await ElasticSearchManager.connect_to_elasticsearch(logger)
 

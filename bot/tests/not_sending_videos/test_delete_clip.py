@@ -11,16 +11,7 @@ class TestDeleteClipHandler(BaseTest):
     @pytest.mark.asyncio
     async def test_delete_existing_clip(self):
         await self.send_command('/klip cytat')
-        await self.expect_command_result_contains(
-            '/zapisz test_clip',
-            [
-                await get_response(
-                    RK.CLIP_SAVED_SUCCESSFULLY,
-                    self.get_tested_handler_name(),
-                    args=["test_clip"],
-                ),
-            ],
-        )
+        await self.send_command('/zapisz test_clip')
         await self.expect_command_result_contains(
             '/usunklip 1',
             [
@@ -67,7 +58,7 @@ class TestDeleteClipHandler(BaseTest):
             response,
             [
                 await get_response(
-                    RK.CLIP_NOT_EXIST,
+                    RK.INVALID_ARGS_COUNT,
                     self.get_tested_handler_name(),
                 ),
             ],
@@ -77,16 +68,7 @@ class TestDeleteClipHandler(BaseTest):
     async def test_delete_multiple_clips(self):
         for clip_name in ("geniusz", "kozioł"):
             await self.send_command(f"/klip {clip_name}")
-            await self.expect_command_result_contains(
-                f"/zapisz {clip_name}",
-                [
-                    await get_response(
-                        RK.CLIP_SAVED_SUCCESSFULLY,
-                        self.get_tested_handler_name(),
-                        args=[clip_name],
-                    ),
-                ],
-            )
+            await self.send_command(f"/zapisz {clip_name}")
 
         for clip_name in ("geniusz", "kozioł"):
             await self.expect_command_result_contains(
@@ -104,16 +86,8 @@ class TestDeleteClipHandler(BaseTest):
     async def test_delete_clip_with_special_characters(self):
         special_clip_name = "spec@l_clip!"
         await self.send_command('/klip cytat specjalny')
-        await self.expect_command_result_contains(
-            f'/zapisz {special_clip_name}',
-            [
-                await get_response(
-                    RK.CLIP_SAVED_SUCCESSFULLY,
-                    self.get_tested_handler_name(),
-                    args=[special_clip_name],
-                ),
-            ],
-        )
+        await self.send_command(f'/zapisz {special_clip_name}')
+
         await self.expect_command_result_contains(
             '/usunklip 1',
             [

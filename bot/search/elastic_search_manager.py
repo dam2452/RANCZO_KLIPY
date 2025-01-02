@@ -44,7 +44,7 @@ class ElasticSearchManager:
     async def print_one_transcription(
         es: AsyncElasticsearch,
         logger: logging.Logger,
-        index: str = "ranczo-transcriptions",
+        index: str = settings.ES_TRANSCRIPTION_INDEX,
     ) -> None:
         response = await es.search(index=index, size=1)
         if response["hits"]["hits"]:
@@ -129,7 +129,7 @@ class ElasticSearchManager:
 
                 actions.append(
                     {
-                        "_index": "ranczo-transcriptions",
+                        "_index": settings.ES_TRANSCRIPTION_INDEX,
                         "_source": segment,
                     },
                 )

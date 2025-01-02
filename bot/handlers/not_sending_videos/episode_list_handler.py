@@ -7,11 +7,11 @@ from typing import (
 
 from aiogram.types import Message
 
+from bot.database.response_keys import ResponseKey as RK
 from bot.handlers.bot_message_handler import (
     BotMessageHandler,
     ValidatorFunctions,
 )
-from bot.database.response_keys import ResponseKey as RK
 from bot.responses.not_sending_videos.episode_list_handler_responses import (
     format_episode_list_response,
     get_log_episode_list_sent_message,
