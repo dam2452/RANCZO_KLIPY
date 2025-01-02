@@ -8,6 +8,7 @@ from typing import (
     Awaitable,
     Callable,
     List,
+    Optional,
 )
 
 from aiogram import (
@@ -77,6 +78,15 @@ class BotMessageHandler(ABC):
 
     def get_action_name(self) -> str:
         return self.__class__.__name__
+
+    async def get_response(self, key: str, args: Optional[List[str]] = None) -> str:
+        return await DatabaseManager.get_response(
+            key=key,
+            specialized_table=settings.SPECIALIZED_TABLE,
+            handler_name=self.get_action_name() ,
+            default_message=get_general_error_message() ,
+            args=args,
+        )
 
     @abstractmethod
     def get_commands(self) -> List[str]:

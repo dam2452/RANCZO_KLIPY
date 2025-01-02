@@ -8,6 +8,7 @@ from bot.handlers.bot_message_handler import (
     BotMessageHandler,
     ValidatorFunctions,
 )
+from bot.response_keys import ResponseKey as RK
 from bot.responses.not_sending_videos.delete_clip_handler_responses import (
     get_clip_deleted_message,
     get_clip_not_exist_message,
@@ -66,9 +67,9 @@ class DeleteClipHandler(BotMessageHandler):
         )
 
     async def __reply_invalid_args_count(self, message: Message) -> None:
-        await self._answer(message, get_invalid_args_count_message())
-        await self._log_system_message(logging.INFO, get_invalid_args_count_message())
+        await self._answer(message, await self.get_response(RK.INVALID_ARGS_COUNT))
+        await self._log_system_message(logging.INFO, await self.get_response(RK.INVALID_ARGS_COUNT))
 
     async def __reply_clip_not_exist(self, message: Message, clip_number: int) -> None:
-        await self._answer(message, get_clip_not_exist_message(clip_number))
+        await self._answer(message, await self.get_response(RK.CLIP_NOT_EXIST, args=[str(clip_number)]))
         await self._log_system_message(logging.INFO, get_log_clip_not_exist_message(clip_number, message.from_user.username))

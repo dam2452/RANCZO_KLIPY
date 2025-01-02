@@ -36,7 +36,7 @@ def get_invalid_args_count_message() -> str:
     return "📋 Podaj poprawną komendę w formacie: /odcinki <sezon>. Przykład: /odcinki 2"
 
 
-def get_season_11_petition_message() -> str:
+def get_season_11_petition_message() -> str: #TODO: dać to do bazy do specjalncyh
     return (
         "📢 Sezon 11 nie jest jeszcze dostępny. "
         "Podpisz petycję, aby pomóc go zrealizować! "

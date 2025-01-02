@@ -4,7 +4,9 @@ from datetime import (
     timedelta,
 )
 import json
+import logging
 from pathlib import Path
+import re
 from typing import (
     Dict,
     List,
@@ -691,3 +693,67 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
                     """,
                     user_id,
                 )
+
+    @staticmethod
+    async def get_response(
+            key: str,
+            specialized_table: str,
+            handler_name: str,
+            default_message: str,
+            args: List[str] = None,
+    ) -> str:
+        async with DatabaseManager.get_db_connection() as conn:
+            message = None
+
+            if specialized_table:
+                row = await conn.fetchrow(
+                    f"""
+                    SELECT message
+                    FROM {specialized_table}
+                    WHERE key = $1 AND handler_name = $2
+                    """,
+                    key,
+                    handler_name,
+                )
+                if row:
+                    message = row["message"]
+
+            if not message:
+                row = await conn.fetchrow(
+                    """
+                    SELECT message
+                    FROM common_messages
+                    WHERE key = $1 AND handler_name = $2
+                    """,
+                    key,
+                    handler_name,
+                )
+                if row:
+                    message = row["message"]
+
+        if not message:
+            logging.debug(
+                f"Message not found. key='{key}', handler_name='{handler_name}', specialized_table='{specialized_table}'",
+            )
+            return default_message
+
+        placeholder_count = len(re.findall(r"{}", message))
+        args = args or []
+
+        if len(args) != placeholder_count:
+            logging.debug(
+                f"Argument count mismatch for key='{key}', handler_name='{handler_name}'. "
+                f"Expected {placeholder_count}, got {len(args)}. Message: {message}",
+            )
+            return default_message
+
+        try:
+            final_message = message.format(*args)
+        except IndexError as e:
+            logging.debug(
+                f"Formatting error for key='{key}', handler_name='{handler_name}'. "
+                f"Message: {message}, Args: {args}, Error: {e}",
+            )
+            return default_message
+
+        return final_message

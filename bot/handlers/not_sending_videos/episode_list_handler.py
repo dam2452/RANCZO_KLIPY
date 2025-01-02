@@ -56,7 +56,7 @@ class EpisodeListHandler(BotMessageHandler):
         )
 
     async def __handle_season_11(self, message: Message) -> None:
-        image_path = Path("Ranczo_Sezon11.png")
+        image_path = Path("Ranczo_Sezon11.png") #TODO: dać to do bazy do bolba
         with image_path.open("rb") as image_file:
             image_bytes = image_file.read()
         await self._answer_photo(message, image_bytes, image_path, caption=get_season_11_petition_message())

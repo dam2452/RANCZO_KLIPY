@@ -36,6 +36,25 @@ CREATE TABLE IF NOT EXISTS user_logs_2023 PARTITION OF user_logs
 
 CREATE TABLE IF NOT EXISTS user_logs_2024 PARTITION OF user_logs
     FOR VALUES FROM ('2024-01-01') TO ('2024-12-31');
+
+CREATE TABLE IF NOT EXISTS user_logs_2025 PARTITION OF user_logs
+    FOR VALUES FROM ('2025-01-01') TO ('2025-12-31');
+
+CREATE TABLE IF NOT EXISTS user_logs_2026 PARTITION OF user_logs
+    FOR VALUES FROM ('2026-01-01') TO ('2026-12-31');
+
+CREATE TABLE IF NOT EXISTS user_logs_2027 PARTITION OF user_logs
+    FOR VALUES FROM ('2027-01-01') TO ('2027-12-31');
+
+CREATE TABLE IF NOT EXISTS user_logs_2028 PARTITION OF user_logs
+    FOR VALUES FROM ('2028-01-01') TO ('2028-12-31');
+
+CREATE TABLE IF NOT EXISTS user_logs_2029 PARTITION OF user_logs
+    FOR VALUES FROM ('2029-01-01') TO ('2029-12-31');
+
+CREATE TABLE IF NOT EXISTS user_logs_2030 PARTITION OF user_logs
+    FOR VALUES FROM ('2030-01-01') TO ('2030-12-31');
+
 CREATE INDEX IF NOT EXISTS idx_user_logs_user_id ON user_logs(user_id);
 
 CREATE TABLE IF NOT EXISTS system_logs (
@@ -119,6 +138,40 @@ CREATE TABLE IF NOT EXISTS subscription_keys (
 
 CREATE INDEX IF NOT EXISTS idx_subscription_keys_key ON subscription_keys(key);
 CREATE INDEX IF NOT EXISTS idx_subscription_keys_is_active ON subscription_keys(is_active);
+
+CREATE TABLE IF NOT EXISTS common_messages (
+    id SERIAL PRIMARY KEY,
+    handler_name TEXT NOT NULL,
+    key TEXT NOT NULL,
+    message TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS ranczo_messages (
+    id SERIAL PRIMARY KEY,
+    handler_name TEXT NOT NULL,
+    key TEXT NOT NULL,
+    message TEXT NOT NULL
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_common_messages_handler_key
+ON common_messages (handler_name, key);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_ranczo_messages_handler_key
+ON ranczo_messages (handler_name, key);
+
+CREATE INDEX IF NOT EXISTS idx_common_messages_key
+ON common_messages (key);
+
+CREATE INDEX IF NOT EXISTS idx_ranczo_messages_key
+ON ranczo_messages (key);
+
+CREATE INDEX IF NOT EXISTS idx_common_messages_handler_name
+ON common_messages (handler_name);
+
+CREATE INDEX IF NOT EXISTS idx_ranczo_messages_handler_name
+ON ranczo_messages (handler_name);
+
+
 
 
 CREATE OR REPLACE FUNCTION clean_old_last_clips() RETURNS trigger AS $$

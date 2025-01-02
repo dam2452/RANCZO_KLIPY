@@ -19,6 +19,8 @@ class Settings(BaseSettings):
     POSTGRES_PORT: int = Field(...)
     POSTGRES_DB: str = Field(...)
 
+    SPECIALIZED_TABLE: str = Field(...)
+
     ES_HOST: str = Field(...)
     ES_USER: str = Field(...)
     ES_PASS: str = Field(...)
