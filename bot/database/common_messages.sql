@@ -18,4 +18,5 @@ INSERT INTO common_messages (handler_name, key, message) VALUES
 ('SaveClipHandler', 'clip_name_length_exceeded', '❌ Przekroczono limit długości nazwy klipu.❌'),
 ('SaveClipHandler', 'clip_limit_exceeded', '❌ Przekroczono limit zapisanych klipów. Usuń kilka starych, aby móc zapisać nowy. ❌');
 
-
+INSERT INTO common_messages (handler_name, key, message) VALUES
+('MyClipsHandler','no_saved_clips', '📭 Nie masz zapisanych klipów. 📭');
