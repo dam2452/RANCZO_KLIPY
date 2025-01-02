@@ -646,8 +646,8 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
                 for table in tables:
                     valid_table = await conn.fetchval(
                         """
-                        SELECT COUNT(*) > 0 
-                        FROM information_schema.tables 
+                        SELECT COUNT(*) > 0
+                        FROM information_schema.tables
                         WHERE table_schema = $1 AND table_name = $2
                         """,
                         schema, table,
