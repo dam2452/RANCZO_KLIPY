@@ -8,7 +8,7 @@ from bot.handlers.bot_message_handler import (
     BotMessageHandler,
     ValidatorFunctions,
 )
-from bot.response_keys import ResponseKey as RK
+from bot.database.response_keys import ResponseKey as RK
 from bot.responses.not_sending_videos.delete_clip_handler_responses import (
     get_log_clip_deleted_message,
     get_log_clip_not_exist_message,

@@ -1,6 +1,6 @@
 import pytest
 
-from bot.response_keys import ResponseKey as RK
+from bot.database.response_keys import ResponseKey as RK
 from bot.responses.bot_message_handler_responses import get_response
 import bot.responses.not_sending_videos.episode_list_handler_responses as msg
 from bot.tests.base_test import BaseTest
