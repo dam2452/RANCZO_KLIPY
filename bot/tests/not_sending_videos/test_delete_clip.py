@@ -1,7 +1,6 @@
 import pytest
 
 from bot.database.response_keys import ResponseKey as RK
-from bot.responses.bot_message_handler_responses import get_response
 from bot.tests.base_test import BaseTest
 
 
@@ -15,9 +14,8 @@ class TestDeleteClipHandler(BaseTest):
         await self.expect_command_result_contains(
             '/usunklip 1',
             [
-                await get_response(
+                await self.get_response(
                     RK.CLIP_DELETED,
-                    self.get_tested_handler_name(),
                     args=["test_clip"],
                 ),
             ],
@@ -30,9 +28,8 @@ class TestDeleteClipHandler(BaseTest):
         self.assert_response_contains(
             response,
             [
-                await get_response(
+                await self.get_response(
                     RK.CLIP_NOT_EXIST,
-                    self.get_tested_handler_name(),
                     args=[str(clip_id)],
                 ),
             ],
@@ -44,9 +41,8 @@ class TestDeleteClipHandler(BaseTest):
         self.assert_response_contains(
             response,
             [
-                await get_response(
+                await self.get_response(
                     RK.INVALID_ARGS_COUNT,
-                    self.get_tested_handler_name(),
                 ),
             ],
         )
@@ -57,9 +53,8 @@ class TestDeleteClipHandler(BaseTest):
         self.assert_response_contains(
             response,
             [
-                await get_response(
+                await self.get_response(
                     RK.INVALID_ARGS_COUNT,
-                    self.get_tested_handler_name(),
                 ),
             ],
         )
@@ -74,9 +69,8 @@ class TestDeleteClipHandler(BaseTest):
             await self.expect_command_result_contains(
                 "/usunklip 1",
                 [
-                    await get_response(
+                    await self.get_response(
                         RK.CLIP_DELETED,
-                        self.get_tested_handler_name(),
                         args=[clip_name],
                     ),
                 ],
@@ -91,9 +85,8 @@ class TestDeleteClipHandler(BaseTest):
         await self.expect_command_result_contains(
             '/usunklip 1',
             [
-                await get_response(
+                await self.get_response(
                     RK.CLIP_DELETED,
-                    self.get_tested_handler_name(),
                     args=[special_clip_name],
                 ),
             ],
@@ -106,9 +99,8 @@ class TestDeleteClipHandler(BaseTest):
         self.assert_response_contains(
             response,
             [
-                await get_response(
+                await self.get_response(
                     RK.CLIP_NOT_EXIST,
-                    self.get_tested_handler_name(),
                     args=[str(clip_id)],
                 ),
             ],

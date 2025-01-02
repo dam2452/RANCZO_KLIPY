@@ -1,7 +1,6 @@
 import pytest
 
 from bot.database.response_keys import ResponseKey as RK
-from bot.responses.bot_message_handler_responses import get_response
 import bot.responses.not_sending_videos.episode_list_handler_responses as msg
 from bot.tests.base_test import BaseTest
 
@@ -22,9 +21,8 @@ class TestEpisodeListHandler(BaseTest):
         self.assert_response_contains(
             response,
             [
-                await get_response(
+                await self.get_response(
                 RK.NO_EPISODES_FOUND,
-                self.get_tested_handler_name(),
                 args=[str(season_number)],
                 ),
             ],
@@ -36,9 +34,8 @@ class TestEpisodeListHandler(BaseTest):
         self.assert_response_contains(
             response,
             [
-                await get_response(
+                await self.get_response(
                     RK.INVALID_ARGS_COUNT,
-                    self.get_tested_handler_name(),
                 ),
             ],
         )

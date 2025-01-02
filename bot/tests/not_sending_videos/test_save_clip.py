@@ -2,7 +2,6 @@ import pytest
 
 from bot.database.database_manager import DatabaseManager
 from bot.database.response_keys import ResponseKey as RK
-from bot.responses.bot_message_handler_responses import get_response
 import bot.responses.not_sending_videos.my_clips_handler_responses as myclips_msg
 from bot.settings import settings as sb
 from bot.tests.base_test import BaseTest
@@ -19,9 +18,8 @@ class TestSaveClipHandler(BaseTest):
         await self.expect_command_result_contains(
             f'/zapisz {clip_name}',
             [
-                await get_response(
+                await self.get_response(
                     RK.CLIP_SAVED_SUCCESSFULLY,
-                    self.get_tested_handler_name(),
                     args=[clip_name],
                 ),
             ],
@@ -37,9 +35,8 @@ class TestSaveClipHandler(BaseTest):
         await self.expect_command_result_contains(
             '/zapisz',
             [
-                await get_response(
+                await self.get_response(
                     RK.CLIP_NAME_NOT_PROVIDED,
-                    self.get_tested_handler_name(),
                 ),
             ],
         )
@@ -51,9 +48,8 @@ class TestSaveClipHandler(BaseTest):
         await self.expect_command_result_contains(
             f'/zapisz {clip_name}',
             [
-                await get_response(
+                await self.get_response(
                     RK.CLIP_SAVED_SUCCESSFULLY,
-                    self.get_tested_handler_name(),
                     args=[clip_name],
                 ),
             ],
@@ -71,9 +67,8 @@ class TestSaveClipHandler(BaseTest):
         await self.expect_command_result_contains(
             f'/zapisz {clip_name}',
             [
-                await get_response(
+                await self.get_response(
                     RK.CLIP_SAVED_SUCCESSFULLY,
-                    self.get_tested_handler_name(),
                     args=[clip_name],
                 ),
             ],
@@ -81,9 +76,8 @@ class TestSaveClipHandler(BaseTest):
         await self.expect_command_result_contains(
             f'/zapisz {clip_name}',
             [
-                await get_response(
+                await self.get_response(
                     RK.CLIP_NAME_EXISTS,
-                    self.get_tested_handler_name(),
                     args=[clip_name],
                 ),
             ],
@@ -95,9 +89,8 @@ class TestSaveClipHandler(BaseTest):
         self.assert_response_contains(
             response,
             [
-                await get_response(
+                await self.get_response(
                     RK.NO_SEGMENT_SELECTED,
-                    self.get_tested_handler_name(),
                 ),
             ],
         )
@@ -109,9 +102,8 @@ class TestSaveClipHandler(BaseTest):
         self.assert_response_contains(
             response,
             [
-                await get_response(
+                await self.get_response(
                     RK.CLIP_NAME_LENGTH_EXCEEDED,
-                    self.get_tested_handler_name(),
                 ),
             ],
         )

@@ -2,7 +2,6 @@ import pytest
 
 from bot.database.database_manager import DatabaseManager
 from bot.database.response_keys import ResponseKey as RK
-from bot.responses.bot_message_handler_responses import get_response
 import bot.responses.not_sending_videos.my_clips_handler_responses as msg
 from bot.tests.base_test import BaseTest
 from bot.tests.settings import settings as s
@@ -14,7 +13,7 @@ class TestMyClipsHandler(BaseTest):
     @pytest.mark.asyncio
     async def test_myclips_no_clips(self):
         response = await self.send_command('/mojeklipy')
-        self.assert_response_contains(response, [await get_response(RK.NO_SAVED_CLIPS, self.get_tested_handler_name())])
+        self.assert_response_contains(response, [await self.get_response(RK.NO_SAVED_CLIPS)])
 
     @pytest.mark.asyncio
     async def test_myclips_with_regular_clips(self):
