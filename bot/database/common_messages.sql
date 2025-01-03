@@ -50,4 +50,14 @@ INSERT INTO common_messages (handler_name, key, message) VALUES
 INSERT INTO common_messages (handler_name, key, message) VALUES
 ('ClipHandler', 'limit_exceeded_clip_duration', '❌ Przekroczono limit długości klipu.❌');
 
+INSERT INTO common_messages (handler_name, key, message) VALUES
+('CompileClipsHandler', 'invalid_args_count', '🔄 Proszę podać indeksy cytatów do skompilowania, zakres lub "wszystko" do kompilacji wszystkich segmentów.'),
+('CompileClipsHandler', 'invalid_range', '⚠️ Podano nieprawidłowy zakres cytatów: {index} ⚠️'),
+('CompileClipsHandler', 'invalid_index', '⚠️ Podano nieprawidłowy indeks cytatu: {index} ⚠️'),
+('CompileClipsHandler', 'no_previous_search_results', '🔍 Najpierw wykonaj wyszukiwanie za pomocą /szukaj.'),
+('CompileClipsHandler', 'no_matching_segments_found', '❌ Nie znaleziono pasujących cytatów do kompilacji.❌'),
+('CompileClipsHandler', 'max_clips_exceeded', '❌ Przekroczono maksymalną liczbę klipów do skompilowania.❌'),
+('CompileClipsHandler', 'clip_time_exceeded', '❌ Przekroczono maksymalny czas trwania kompilacji.❌');
+
+
 

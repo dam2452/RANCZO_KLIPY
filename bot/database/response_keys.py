@@ -26,3 +26,8 @@ class ResponseKey(str, Enum):
     NO_SEGMENTS_FOUND = "no_segments_found"
     MESSAGE_TOO_LONG = "message_too_long"
     LIMIT_EXCEEDED_CLIP_DURATION = "limit_exceeded_clip_duration"
+    INVALID_RANGE = "invalid_range"
+    INVALID_INDEX = "invalid_index"
+    NO_MATCHING_SEGMENTS_FOUND = "no_matching_segments_found"
+    MAX_CLIPS_EXCEEDED = "max_clips_exceeded"
+    CLIP_TIME_EXCEEDED = "clip_time_exceeded"
