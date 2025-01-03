@@ -42,3 +42,12 @@ INSERT INTO common_messages (handler_name, key, message) VALUES
 INSERT INTO common_messages (handler_name, key, message) VALUES
 ('AdjustVideoClipHandler', 'extraction_failure', '⚠️ Nie udało się zmienić klipu wideo.');
 
+INSERT INTO common_messages (handler_name, key, message) VALUES
+('ClipHandler', 'no_quote_provided', '🔎 Podaj cytat, który chcesz znaleźć. Przykład: /klip Nie szkoda panu tego pięknego gabinetu?'),
+('ClipHandler', 'no_segments_found', '❌ Nie znaleziono pasujących cytatów.❌'),
+('ClipHandler', 'message_too_long', '❌ Wiadomość jest zbyt długa.❌');
+
+INSERT INTO common_messages (handler_name, key, message) VALUES
+('ClipHandler', 'limit_exceeded_clip_duration', '❌ Przekroczono limit długości klipu.❌');
+
+

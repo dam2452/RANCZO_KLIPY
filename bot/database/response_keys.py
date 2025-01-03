@@ -23,3 +23,6 @@ class ResponseKey(str, Enum):
     MAX_EXTENSION_LIMIT = "max_extension_limit"
     MAX_CLIP_DURATION = "max_clip_duration"
     EXTRACTION_FAILURE = "extraction_failure"
+    NO_SEGMENTS_FOUND = "no_segments_found"
+    MESSAGE_TOO_LONG = "message_too_long"
+    LIMIT_EXCEEDED_CLIP_DURATION = "limit_exceeded_clip_duration"

@@ -1,9 +1,6 @@
 import pytest
 
-from bot.responses.sending_videos.clip_handler_responses import (
-    get_no_quote_provided_message,
-    get_no_segments_found_message,
-)
+from bot.database.response_keys import ResponseKey as RK
 from bot.tests.base_test import BaseTest
 
 
@@ -20,11 +17,11 @@ class TestClipHandler(BaseTest):
     @pytest.mark.asyncio
     async def test_clip_not_found(self):
         await self.expect_command_result_contains(
-            '/klip nieistniejący_cytat', [get_no_segments_found_message()],
+            '/klip nieistniejący_cytat', [await self.get_response(RK.NO_SEGMENTS_FOUND)],
         )
 
     @pytest.mark.asyncio
     async def test_no_quote_provided(self):
         await self.expect_command_result_contains(
-            '/klip', [get_no_quote_provided_message()],
+            '/klip', [await self.get_response(RK.NO_QUOTE_PROVIDED)],
         )
