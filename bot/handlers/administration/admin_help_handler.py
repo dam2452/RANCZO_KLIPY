@@ -1,6 +1,6 @@
 import logging
 from typing import List
-
+from bot.database.response_keys import ResponseKey as RK
 from aiogram.types import Message
 
 from bot.handlers.bot_message_handler import (
@@ -8,8 +8,6 @@ from bot.handlers.bot_message_handler import (
     ValidatorFunctions,
 )
 from bot.responses.administration.admin_help_handler_responses import (
-    get_admin_help_message,
-    get_admin_shortcuts_message,
     get_message_sent_log_message,
 )
 
@@ -29,9 +27,9 @@ class AdminHelpHandler(BotMessageHandler):
             await self.__reply_admin_help(message)
 
     async def __reply_admin_help(self, message: Message) -> None:
-        await self._answer_markdown(message, get_admin_help_message())
+        await self._answer_markdown(message, await self.get_response(RK.ADMIN_HELP))
         await self._log_system_message(logging.INFO, get_message_sent_log_message(message.from_user.username))
 
     async def __reply_admin_shortcuts(self, message: Message) -> None:
-        await self._answer_markdown(message , get_admin_shortcuts_message())
+        await self._answer_markdown(message , await self.get_response(RK.ADMIN_SHORTCUTS))
         await self._log_system_message(logging.INFO, f"Admin shortcuts sent to {message.from_user.username}")

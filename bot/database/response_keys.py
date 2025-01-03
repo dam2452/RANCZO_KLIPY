@@ -50,5 +50,6 @@ class ResponseKey(str, Enum):
     NO_USERNAME_PROVIDED = "no_username_provided"
     USER_ADDED = "user_added"
     USER_NOT_FOUND = "user_not_found"
-
+    ADMIN_HELP = "admin_help"
+    ADMIN_SHORTCUTS = "admin_shortcuts"
 
