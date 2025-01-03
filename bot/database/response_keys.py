@@ -55,3 +55,11 @@ class ResponseKey(str, Enum):
     CREATE_KEY_USAGE = "create_key_usage"
     CREATE_KEY_SUCCESS = "create_key_success"
     KEY_ALREADY_EXISTS = "key_already_exists"
+    REMOVE_KEY_USAGE = "remove_key_usage"
+    REMOVE_KEY_SUCCESS = "remove_key_success"
+    REMOVE_KEY_FAILURE = "remove_key_failure"
+
+
+
+
+

@@ -120,5 +120,16 @@ INSERT INTO common_messages (handler_name, key, message) VALUES
 
 
 
+INSERT INTO common_messages (handler_name, key, message) VALUES
+('RemoveKeyHandler', 'remove_key_usage', '❌ Podaj klucz, który chcesz usunąć. Przykład: /removekey some_secret_key'),
+('RemoveKeyHandler', 'remove_key_success', '✅ Klucz `{}` został usunięty. ✅'),
+('RemoveKeyHandler', 'remove_key_failure', '❌ Nie znaleziono klucza `{}`. ❌');
+
+
+
+
+
+
+
 
 
