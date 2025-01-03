@@ -98,3 +98,16 @@ INSERT INTO common_messages (handler_name, key, message) VALUES
 ('AddSubscriptionHandler', 'no_user_id_provided', '⚠️ Nie podano ID użytkownika ani ilości dni.⚠️'),
 ('AddSubscriptionHandler', 'subscription_extended', '✅ Subskrypcja dla użytkownika {} przedłużona do {}.✅'),
 ('AddSubscriptionHandler', 'subscription_error', '⚠️ Wystąpił błąd podczas przedłużania subskrypcji.⚠️');
+
+
+
+INSERT INTO common_messages (handler_name, key, message) VALUES
+('AddWhitelistHandler', 'no_user_id_provided', '⚠️ Nie podano ID użytkownika.⚠️'),
+('AddWhitelistHandler', 'no_username_provided', '✏️ Podaj ID użytkownika.✏️'),
+('AddWhitelistHandler', 'user_added', '✅ Dodano {} do whitelisty.✅'),
+('AddWhitelistHandler', 'user_not_found', '❌ Nie można znaleźć użytkownika. Upewnij się, że użytkownik rozpoczął rozmowę z botem. ❌');
+
+
+
+
+
