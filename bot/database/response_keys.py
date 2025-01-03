@@ -31,3 +31,10 @@ class ResponseKey(str, Enum):
     NO_MATCHING_SEGMENTS_FOUND = "no_matching_segments_found"
     MAX_CLIPS_EXCEEDED = "max_clips_exceeded"
     CLIP_TIME_EXCEEDED = "clip_time_exceeded"
+    NO_MATCHING_CLIPS_FOUND = "no_matching_clips_found"
+    CLIP_NOT_FOUND = "clip_not_found"
+
+
+
+
+

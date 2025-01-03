@@ -59,5 +59,13 @@ INSERT INTO common_messages (handler_name, key, message) VALUES
 ('CompileClipsHandler', 'max_clips_exceeded', '❌ Przekroczono maksymalną liczbę klipów do skompilowania.❌'),
 ('CompileClipsHandler', 'clip_time_exceeded', '❌ Przekroczono maksymalny czas trwania kompilacji.❌');
 
+INSERT INTO common_messages (handler_name, key, message) VALUES
+('CompileSelectedClipsHandler', 'invalid_args_count', '📄 Podaj numery klipów do skompilowania w odpowiedniej kolejności.'),
+('CompileSelectedClipsHandler', 'no_matching_clips_found', '❌ Nie znaleziono pasujących klipów do kompilacji.❌'),
+('CompileSelectedClipsHandler', 'clip_not_found', '❌ Nie znaleziono klipu o numerze {clip_number}.❌'),
+('CompileSelectedClipsHandler', 'max_clips_exceeded', '❌ Przekroczono maksymalną liczbę klipów do skompilowania.❌'),
+('CompileSelectedClipsHandler', 'clip_time_exceeded', '❌ Przekroczono maksymalny czas trwania kompilacji.❌');
+
+
 
 
