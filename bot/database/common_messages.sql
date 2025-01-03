@@ -26,3 +26,6 @@ INSERT INTO common_messages (handler_name, key, message) VALUES
 
 INSERT INTO common_messages (handler_name, key, message) VALUES
 ('SearchListHandler', 'no_previous_search_results', '🔍 Nie znaleziono wcześniejszych wyników wyszukiwania.🔍');
+
+INSERT INTO common_messages (handler_name, key, message) VALUES
+('TranscriptionHandler', 'no_quote_provided', '🔎 Podaj cytat, który chcesz znaleźć. Przykład: /transkrypcja Nie szkoda panu tego pięknego gabinetu?');

@@ -4,11 +4,6 @@ from typing import (
     Union,
 )
 
-
-def get_no_quote_provided_message() -> str:
-    return "🔎 Podaj cytat, który chcesz znaleźć. Przykład: /transkrypcja Nie szkoda panu tego pięknego gabinetu?"
-
-
 def get_transcription_response(
     quote: str, result: Dict[
         str, Union[
