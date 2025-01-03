@@ -7,6 +7,7 @@ from typing import List
 from aiogram.types import Message
 
 from bot.database.database_manager import DatabaseManager
+from bot.database.response_keys import ResponseKey as RK
 from bot.handlers.bot_message_handler import (
     BotMessageHandler,
     ValidatorFunctions,
@@ -16,7 +17,7 @@ from bot.responses.not_sending_videos.search_list_handler_responses import (
     get_log_no_previous_search_results_message,
     get_log_search_results_sent_message,
 )
-from bot.database.response_keys import ResponseKey as RK
+
 
 class SearchListHandler(BotMessageHandler):
 

@@ -29,3 +29,16 @@ INSERT INTO common_messages (handler_name, key, message) VALUES
 
 INSERT INTO common_messages (handler_name, key, message) VALUES
 ('TranscriptionHandler', 'no_quote_provided', '🔎 Podaj cytat, który chcesz znaleźć. Przykład: /transkrypcja Nie szkoda panu tego pięknego gabinetu?');
+
+INSERT INTO common_messages (handler_name, key, message) VALUES
+('AdjustVideoClipHandler', 'no_previous_searches', '🔍 Najpierw wykonaj wyszukiwanie za pomocą /szukaj.'),
+('AdjustVideoClipHandler', 'no_quotes_selected', '⚠️ Najpierw wybierz cytat za pomocą /klip.⚠️'),
+('AdjustVideoClipHandler', 'invalid_args_count', '📝 Podaj czas w formacie `<float> <float>` lub `<index> <float> <float>`. Przykład: /dostosuj 10.5 -15.2 lub /dostosuj 1 10.5 -15.2'),
+('AdjustVideoClipHandler', 'invalid_interval', '⚠️ Czas zakończenia musi być późniejszy niż czas rozpoczęcia.⚠️'),
+('AdjustVideoClipHandler', 'invalid_segment_index', '⚠️ Podano nieprawidłowy indeks cytatu.⚠️'),
+('AdjustVideoClipHandler', 'max_extension_limit', '❌ Przekroczono limit rozszerzenia dla komendy dostosuj. ❌'),
+('AdjustVideoClipHandler', 'max_clip_duration', '❌ Przekroczono maksymalny czas trwania klipu.❌');
+
+INSERT INTO common_messages (handler_name, key, message) VALUES
+('AdjustVideoClipHandler', 'extraction_failure', '⚠️ Nie udało się zmienić klipu wideo.');
+

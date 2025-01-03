@@ -3,6 +3,7 @@ from typing import List
 
 from aiogram.types import Message
 
+from bot.database.response_keys import ResponseKey as RK
 from bot.handlers.bot_message_handler import (
     BotMessageHandler,
     ValidatorFunctions,
@@ -16,7 +17,7 @@ from bot.responses.not_sending_videos.transcription_handler_responses import (
     get_transcription_response,
 )
 from bot.search.transcription_finder import TranscriptionFinder
-from bot.database.response_keys import ResponseKey as RK
+
 
 class TranscriptionHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:

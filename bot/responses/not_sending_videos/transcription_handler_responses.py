@@ -4,6 +4,7 @@ from typing import (
     Union,
 )
 
+
 def get_transcription_response(
     quote: str, result: Dict[
         str, Union[

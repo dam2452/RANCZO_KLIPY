@@ -3,6 +3,7 @@ from bot.utils.functions import (
     format_segment,
 )
 
+
 def format_search_response(unique_segments_count: int, segments, quote: str) -> str:
     emoji_count = convert_number_to_emoji(unique_segments_count)
     response = (
