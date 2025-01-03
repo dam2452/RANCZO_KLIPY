@@ -94,3 +94,7 @@ INSERT INTO common_messages (handler_name, key, message) VALUES
 ('SendClipHandler', 'limit_exceeded_clip_duration', '❌ Przekroczono limit długości klipu! ❌');
 
 
+INSERT INTO common_messages (handler_name, key, message) VALUES
+('AddSubscriptionHandler', 'no_user_id_provided', '⚠️ Nie podano ID użytkownika ani ilości dni.⚠️'),
+('AddSubscriptionHandler', 'subscription_extended', '✅ Subskrypcja dla użytkownika {} przedłużona do {}.✅'),
+('AddSubscriptionHandler', 'subscription_error', '⚠️ Wystąpił błąd podczas przedłużania subskrypcji.⚠️');

@@ -44,7 +44,9 @@ class ResponseKey(str, Enum):
     EMPTY_CLIP_FILE = "empty_clip_file"
     EMPTY_FILE_ERROR = "empty_file_error"
     GIVE_CLIP_NAME = "give_clip_name"
-
+    NO_USER_ID_PROVIDED = "no_user_id_provided"
+    SUBSCRIPTION_EXTENDED = "subscription_extended"
+    SUBSCRIPTION_ERROR = "subscription_error"
 
 
 
