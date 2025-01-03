@@ -20,3 +20,7 @@ INSERT INTO common_messages (handler_name, key, message) VALUES
 
 INSERT INTO common_messages (handler_name, key, message) VALUES
 ('MyClipsHandler','no_saved_clips', '📭 Nie masz zapisanych klipów. 📭');
+
+INSERT INTO common_messages (handler_name, key, message) VALUES
+('SearchHandler', 'invalid_args_count', '🔍 Podaj cytat, który chcesz znaleźć. Przykład: /szukaj geniusz')
+
