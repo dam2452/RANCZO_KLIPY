@@ -15,17 +15,14 @@ from bot.responses.bot_message_handler_responses import (
     get_log_extraction_failure_message,
 )
 from bot.responses.sending_videos.select_clip_handler_responses import (
-    get_invalid_args_count_message,
-    get_invalid_segment_number_message,
     get_log_invalid_segment_number_message,
     get_log_no_previous_search_message,
     get_log_segment_selected_message,
-    get_no_previous_search_message,
 )
 from bot.settings import settings
 from bot.video.clips_extractor import ClipsExtractor
 from bot.video.utils import FFMpegException
-
+from bot.database.response_keys import ResponseKey as RK
 
 class SelectClipHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
@@ -38,7 +35,7 @@ class SelectClipHandler(BotMessageHandler):
         ]
 
     async def __check_argument_count(self, message: Message) -> bool:
-        return await self._validate_argument_count(message, 2, get_invalid_args_count_message())
+        return await self._validate_argument_count(message, 2, await self.get_response(RK.INVALID_ARGS_COUNT))
 
 
     # pylint: enable=duplicate-code
@@ -85,7 +82,7 @@ class SelectClipHandler(BotMessageHandler):
         )
 
     async def __reply_no_previous_search(self, message: Message) -> None:
-        await self._answer(message,get_no_previous_search_message())
+        await self._answer(message,await self.get_response(RK.NO_PREVIOUS_SEARCH))
         await self._log_system_message(logging.INFO, get_log_no_previous_search_message())
 
     async def __reply_extraction_failure(self, message: Message, exception: FFMpegException) -> None:
@@ -93,5 +90,5 @@ class SelectClipHandler(BotMessageHandler):
         await self._log_system_message(logging.ERROR, get_log_extraction_failure_message(exception))
 
     async def __reply_invalid_segment_number(self, message: Message, segment_number: int) -> None:
-        await self._answer(message,get_invalid_segment_number_message())
+        await self._answer(message,await self.get_response(RK.INVALID_SEGMENT_NUMBER))
         await self._log_system_message(logging.WARNING, get_log_invalid_segment_number_message(segment_number))

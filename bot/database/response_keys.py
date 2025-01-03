@@ -37,6 +37,8 @@ class ResponseKey(str, Enum):
     VIDEO_FILE_NOT_EXIST = "video_file_not_exist"
     INCORRECT_TIME_FORMAT = "incorrect_time_format"
     END_TIME_EARLIER_THAN_START = "end_time_earlier_than_start"
+    NO_PREVIOUS_SEARCH = "no_previous_search"
+    INVALID_SEGMENT_NUMBER = "invalid_segment_number"
 
 
 

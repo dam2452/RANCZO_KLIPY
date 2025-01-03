@@ -79,3 +79,12 @@ INSERT INTO common_messages (handler_name, key, message) VALUES
 ('BotMessageHandler', 'limit_exceeded_clip_duration', '❌ Przekroczono limit długości klipu! ❌');
 
 
+INSERT INTO common_messages (handler_name, key, message) VALUES
+('SelectClipHandler', 'invalid_args_count', '📋 Podaj numer cytatu, który chcesz wybrać. Przykład: /wybierz 1'),
+('SelectClipHandler', 'no_previous_search', '🔍 Najpierw wykonaj wyszukiwanie za pomocą /szukaj.'),
+('SelectClipHandler', 'invalid_segment_number', '❌ Nieprawidłowy numer cytatu.❌'),
+('SelectClipHandler', 'limit_exceeded_clip_duration', '❌ Przekroczono limit długości klipu.❌');
+
+
+
+
