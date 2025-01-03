@@ -64,7 +64,16 @@ class ResponseKey(str, Enum):
     NO_REPORT_CONTENT = "no_report_content"
     REPORT_RECEIVED = "report_received"
     LIMIT_EXCEEDED_REPORT_LENGTH = "limit_exceeded_report_length"
-
+    BASIC_MESSAGE = "basic_message"
+    LIST_MESSAGE = "list_message"
+    ALL_MESSAGE = "all_message"
+    SEARCH_MESSAGE = "search_message"
+    EDIT_MESSAGE = "edit_message"
+    MANAGEMENT_MESSAGE = "management_message"
+    REPORTING_MESSAGE = "reporting_message"
+    SUBSCRIPTIONS_MESSAGE = "subscriptions_message"
+    SHORTCUTS_MESSAGE = "shortcuts_message"
+    INVALID_COMMAND_MESSAGE = "invalid_command_message"
 
 
 
