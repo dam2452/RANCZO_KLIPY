@@ -133,8 +133,17 @@ INSERT INTO common_messages (handler_name, key, message) VALUES
 
 
 
+INSERT INTO common_messages (handler_name, key, message) VALUES
+('RemoveWhitelistHandler', 'user_removed', '✅ Usunięto {} z whitelisty.✅'),
+('RemoveWhitelistHandler', 'user_not_in_whitelist', '⚠️ Użytkownik {} nie znajduje się na whitelist.⚠️'),
+('RemoveWhitelistHandler', 'no_user_id_provided', '⚠️ Nie podano ID użytkownika.⚠️');
 
 
+
+INSERT INTO common_messages (handler_name, key, message) VALUES
+('ReportIssueHandler', 'no_report_content', '❌ Podaj treść raportu.❌'),
+('ReportIssueHandler', 'report_received', '✅ Dziękujemy za zgłoszenie.✅'),
+('ReportIssueHandler', 'limit_exceeded_report_length', '❌ Przekroczono limit długości raportu.❌');
 
 
 

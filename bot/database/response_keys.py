@@ -59,6 +59,12 @@ class ResponseKey(str, Enum):
     REMOVE_KEY_SUCCESS = "remove_key_success"
     REMOVE_KEY_FAILURE = "remove_key_failure"
     SUBSCRIPTION_REMOVED = "subscription_removed"
+    USER_REMOVED = "user_removed"
+    USER_NOT_IN_WHITELIST = "user_not_in_whitelist"
+    NO_REPORT_CONTENT = "no_report_content"
+    REPORT_RECEIVED = "report_received"
+    LIMIT_EXCEEDED_REPORT_LENGTH = "limit_exceeded_report_length"
+
 
 
 
