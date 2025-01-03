@@ -9,15 +9,12 @@ from typing import (
 from aiogram.types import Message
 
 from bot.database.database_manager import DatabaseManager
+from bot.database.response_keys import ResponseKey as RK
 from bot.handlers.bot_message_handler import (
     BotMessageHandler,
     ValidatorFunctions,
 )
 from bot.responses.sending_videos.send_clip_handler_responses import (
-    get_clip_not_found_message,
-    get_empty_clip_file_message,
-    get_empty_file_error_message,
-    get_give_clip_name_message,
     get_log_clip_not_found_message,
     get_log_clip_sent_message,
     get_log_empty_clip_file_message,
@@ -56,7 +53,7 @@ class SendClipHandler(BotMessageHandler):
         return True
 
     async def __check_argument_count(self, message: Message) -> bool:
-        return await self._validate_argument_count(message, 2, get_give_clip_name_message())
+        return await self._validate_argument_count(message, 2, await self.get_response(RK.GIVE_CLIP_NAME))
 
     async def _do_handle(self, message: Message) -> None:
         content = message.text.split()
@@ -92,21 +89,25 @@ class SendClipHandler(BotMessageHandler):
         )
 
     async def __reply_clip_not_found(self, message: Message, clip_number: Optional[int]) -> None:
-        await self._answer(message,get_clip_not_found_message(clip_number))
+        if clip_number is not None:
+            response = await self.get_response(RK.CLIP_NOT_FOUND_NUMBER, [str(clip_number)])
+        else:
+            response = await self.get_response(RK.CLIP_NOT_FOUND_NAME)
+        await self._answer(message, response)
         await self._log_system_message(
             logging.INFO,
             get_log_clip_not_found_message(clip_number, message.from_user.username),
         )
 
     async def __reply_empty_clip_file(self, message: Message, clip_name: str) -> None:
-        await self._answer(message,get_empty_clip_file_message())
+        await self._answer(message,await self.get_response(RK.EMPTY_CLIP_FILE))
         await self._log_system_message(
             logging.WARNING,
             get_log_empty_clip_file_message(clip_name, message.from_user.username),
         )
 
     async def __reply_empty_file_error(self, message: Message, clip_name: str) -> None:
-        await self._answer(message,get_empty_file_error_message())
+        await self._answer(message,await self.get_response(RK.EMPTY_FILE_ERROR))
         await self._log_system_message(
             logging.ERROR,
             get_log_empty_file_error_message(clip_name, message.from_user.username),

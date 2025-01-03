@@ -39,6 +39,11 @@ class ResponseKey(str, Enum):
     END_TIME_EARLIER_THAN_START = "end_time_earlier_than_start"
     NO_PREVIOUS_SEARCH = "no_previous_search"
     INVALID_SEGMENT_NUMBER = "invalid_segment_number"
+    CLIP_NOT_FOUND_NUMBER = "clip_not_found_number"
+    CLIP_NOT_FOUND_NAME = "clip_not_found_name"
+    EMPTY_CLIP_FILE = "empty_clip_file"
+    EMPTY_FILE_ERROR = "empty_file_error"
+    GIVE_CLIP_NAME = "give_clip_name"
 
 
 

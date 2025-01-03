@@ -85,6 +85,12 @@ INSERT INTO common_messages (handler_name, key, message) VALUES
 ('SelectClipHandler', 'invalid_segment_number', '❌ Nieprawidłowy numer cytatu.❌'),
 ('SelectClipHandler', 'limit_exceeded_clip_duration', '❌ Przekroczono limit długości klipu.❌');
 
-
+INSERT INTO common_messages (handler_name, key, message) VALUES
+('SendClipHandler', 'clip_not_found_number', '❌ Nie znaleziono klipu o numerze "{}".❌'),
+('SendClipHandler', 'clip_not_found_name', '❌ Nie znaleziono klipu o podanej nazwie.❌'),
+('SendClipHandler', 'empty_clip_file', '⚠️ Plik klipu jest pusty.⚠️'),
+('SendClipHandler', 'empty_file_error', '⚠️ Wystąpił błąd podczas wysyłania klipu. Plik jest pusty.⚠️'),
+('SendClipHandler', 'give_clip_name', '📄 Podaj nazwę klipu. Przykład: /wyślij numer_klipu 📄'),
+('SendClipHandler', 'limit_exceeded_clip_duration', '❌ Przekroczono limit długości klipu! ❌');
 
 

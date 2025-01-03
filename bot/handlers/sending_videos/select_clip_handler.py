@@ -6,6 +6,7 @@ from aiogram.types import Message
 
 from bot.database.database_manager import DatabaseManager
 from bot.database.models import ClipType
+from bot.database.response_keys import ResponseKey as RK
 from bot.handlers.bot_message_handler import (
     BotMessageHandler,
     ValidatorFunctions,
@@ -22,7 +23,7 @@ from bot.responses.sending_videos.select_clip_handler_responses import (
 from bot.settings import settings
 from bot.video.clips_extractor import ClipsExtractor
 from bot.video.utils import FFMpegException
-from bot.database.response_keys import ResponseKey as RK
+
 
 class SelectClipHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
