@@ -23,6 +23,7 @@ from aiogram.types import (
 )
 
 from bot.database.database_manager import DatabaseManager
+from bot.database.response_keys import ResponseKey as RK
 from bot.responses.bot_message_handler_responses import (
     get_clip_size_exceed_log_message,
     get_clip_size_exceed_message,
@@ -33,7 +34,6 @@ from bot.responses.bot_message_handler_responses import (
     get_response,
     get_video_sent_log_message,
 )
-from bot.responses.sending_videos.manual_clip_handler_responses import get_limit_exceeded_clip_duration_message
 from bot.settings import settings
 from bot.utils.log import (
     log_system_message,
@@ -148,7 +148,7 @@ class BotMessageHandler(ABC):
         return []
     async def _handle_clip_duration_limit_exceeded(self, message: Message, clip_duration: float) -> bool:
         if not await DatabaseManager.is_admin_or_moderator(message.from_user.id) and clip_duration > settings.MAX_CLIP_DURATION:
-            await self._answer_markdown(message, get_limit_exceeded_clip_duration_message())
+            await self._answer_markdown(message, await self.get_response(RK.LIMIT_EXCEEDED_CLIP_DURATION))
             await self._log_system_message(logging.INFO, get_log_clip_duration_exceeded_message(message.from_user.id))
             return True
 

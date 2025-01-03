@@ -1,11 +1,11 @@
 import pytest
 
-import bot.responses.sending_videos.manual_clip_handler_responses as msg
+from bot.database.response_keys import ResponseKey as RK
 from bot.tests.base_test import BaseTest
 
 
 @pytest.mark.usefixtures("db_pool", "telegram_client")
-class TestManualClipCommand(BaseTest):
+class TestManualClipHandler(BaseTest):
 
     @pytest.mark.asyncio
     async def test_cut_clip_valid_range(self):
@@ -24,7 +24,7 @@ class TestManualClipCommand(BaseTest):
         start_time = "abc"
         end_time = "36:49.00"
 
-        expected_message = msg.get_incorrect_time_format_message()
+        expected_message = await self.get_response(RK.INCORRECT_TIME_FORMAT)
 
         command = f"/wytnij {episode} {start_time} {end_time}"
         response = await self.send_command(command)
@@ -36,7 +36,7 @@ class TestManualClipCommand(BaseTest):
         start_time = "00:00.00"
         end_time = "00:10.00"
 
-        expected_message = msg.get_video_file_not_exist_message()
+        expected_message = await self.get_response(RK.VIDEO_FILE_NOT_EXIST)
 
         command = f"/wytnij {episode} {start_time} {end_time}"
         response = await self.send_command(command)
@@ -61,7 +61,7 @@ class TestManualClipCommand(BaseTest):
         start_time = "36:49.00"
         end_time = "36:47.50"
 
-        expected_message = msg.get_end_time_earlier_than_start_message()
+        expected_message =  await self.get_response(RK.END_TIME_EARLIER_THAN_START)
 
         command = f"/wytnij {episode} {start_time} {end_time}"
         response = await self.send_command(command)
@@ -74,7 +74,7 @@ class TestManualClipCommand(BaseTest):
         start_time = "00:00.00"
         end_time = "45:00.00"
 
-        expected_message = msg.get_limit_exceeded_clip_duration_message()
+        expected_message = await self.get_response(RK.LIMIT_EXCEEDED_CLIP_DURATION)
         timeout = 30
 
         command = f"/wytnij {episode} {start_time} {end_time}"

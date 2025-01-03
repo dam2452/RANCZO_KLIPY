@@ -33,7 +33,10 @@ class ResponseKey(str, Enum):
     CLIP_TIME_EXCEEDED = "clip_time_exceeded"
     NO_MATCHING_CLIPS_FOUND = "no_matching_clips_found"
     CLIP_NOT_FOUND = "clip_not_found"
-
+    INCORRECT_SEASON_EPISODE_FORMAT = "incorrect_season_episode_format"
+    VIDEO_FILE_NOT_EXIST = "video_file_not_exist"
+    INCORRECT_TIME_FORMAT = "incorrect_time_format"
+    END_TIME_EARLIER_THAN_START = "end_time_earlier_than_start"
 
 
 

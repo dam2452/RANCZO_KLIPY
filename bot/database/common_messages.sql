@@ -67,5 +67,15 @@ INSERT INTO common_messages (handler_name, key, message) VALUES
 ('CompileSelectedClipsHandler', 'clip_time_exceeded', '❌ Przekroczono maksymalny czas trwania kompilacji.❌');
 
 
+INSERT INTO common_messages (handler_name, key, message) VALUES
+('ManualClipHandler', 'invalid_args_count', '📋 **Poprawne użycie komendy**: /wytnij `<sezon_odcinek>` `<czas_start>` `<czas_koniec>`.\nPrzykład: /wytnij S07E06 36:47.50 36:49.00\nUpewnij się, że podałeś poprawnie wszystkie trzy elementy: sezon_odcinek, czas_start i czas_koniec.'),
+('ManualClipHandler', 'incorrect_season_episode_format', '❌ **Błędny format sezonu i odcinka!** Użyj formatu **SxxEyy**.\nPrzykład: **S02E10**, gdzie **S02** oznacza sezon 2, a **E10** oznacza odcinek 10.\n🔎 **Zwróć uwagę na dwukropek** między literami S i E oraz na cyfry.'),
+('ManualClipHandler', 'video_file_not_exist', '❌ **Nie znaleziono pliku wideo** dla podanego sezonu i odcinka.\nSprawdź, czy podałeś poprawny sezon i odcinek, np. **S02E10**.'),
+('ManualClipHandler', 'incorrect_time_format', '❌ **Błędny format czasu!** Użyj formatu **MM:SS\u200B.ms**.\n\nPrzykład: **20:30.11**, gdzie **20:30.11** oznacza 20 minut, 30 sekund i 11 milisekund.\n\n🔎 **Zwróć uwagę na dwukropek** między minutami i sekundami oraz **kropkę** przed milisekundami.'),
+('ManualClipHandler', 'end_time_earlier_than_start', '❌ Czas zakończenia musi być późniejszy niż czas rozpoczęcia!\nUpewnij się, że czas_start jest wcześniejszy niż czas_koniec.\nPrzykład: 20:30.11 (czas_start) powinno być wcześniejsze niż 21:32.50 (czas_koniec).'),
+('ManualClipHandler', 'limit_exceeded_clip_duration', '❌ Przekroczono limit długości klipu! ❌');
+
+INSERT INTO common_messages (handler_name, key, message) VALUES
+('BotMessageHandler', 'limit_exceeded_clip_duration', '❌ Przekroczono limit długości klipu! ❌');
 
 
