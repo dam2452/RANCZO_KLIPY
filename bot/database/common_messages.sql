@@ -22,5 +22,7 @@ INSERT INTO common_messages (handler_name, key, message) VALUES
 ('MyClipsHandler','no_saved_clips', '📭 Nie masz zapisanych klipów. 📭');
 
 INSERT INTO common_messages (handler_name, key, message) VALUES
-('SearchHandler', 'invalid_args_count', '🔍 Podaj cytat, który chcesz znaleźć. Przykład: /szukaj geniusz')
+('SearchHandler', 'invalid_args_count', '🔍 Podaj cytat, który chcesz znaleźć. Przykład: /szukaj geniusz');
 
+INSERT INTO common_messages (handler_name, key, message) VALUES
+('SearchListHandler', 'no_previous_search_results', '🔍 Nie znaleziono wcześniejszych wyników wyszukiwania.🔍');

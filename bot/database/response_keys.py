@@ -14,3 +14,4 @@ class ResponseKey(str, Enum):
     CLIP_LIMIT_EXCEEDED = "clip_limit_exceeded"
     NO_EPISODES_FOUND = "no_episodes_found"
     NO_SAVED_CLIPS = "no_saved_clips"
+    NO_PREVIOUS_SEARCH_RESULTS = "no_previous_search_results"
