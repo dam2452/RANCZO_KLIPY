@@ -127,6 +127,11 @@ INSERT INTO common_messages (handler_name, key, message) VALUES
 
 
 
+INSERT INTO common_messages (handler_name, key, message) VALUES
+('RemoveSubscriptionHandler', 'no_user_id_provided', '⚠️ Nie podano ID użytkownika.⚠️'),
+('RemoveSubscriptionHandler', 'subscription_removed', '✅ Subskrypcja dla użytkownika {} została usunięta.✅');
+
+
 
 
 

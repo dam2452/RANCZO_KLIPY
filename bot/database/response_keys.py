@@ -58,7 +58,7 @@ class ResponseKey(str, Enum):
     REMOVE_KEY_USAGE = "remove_key_usage"
     REMOVE_KEY_SUCCESS = "remove_key_success"
     REMOVE_KEY_FAILURE = "remove_key_failure"
-
+    SUBSCRIPTION_REMOVED = "subscription_removed"
 
 
 
