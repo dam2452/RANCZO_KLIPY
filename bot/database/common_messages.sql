@@ -113,6 +113,10 @@ INSERT INTO common_messages (handler_name, key, message) VALUES
 ('AdminHelpHandler', 'admin_shortcuts', '🛠 Skróty Komend Admina 🛠\n\n═════════════════════\n📋 Skróty admin 📋\n═════════════════════\n➕ /addw, /addwhitelist <id> - Dodaje użytkownika do whitelisty.\n➖ /rmw, /removewhitelist <id> - Usuwa użytkownika z whitelisty.\n📃 /lw, /listwhitelist - Wyświetla listę użytkowników w whiteliście.\n📃 /la, /listadmins - Wyświetla listę adminów.\n📃 /lm, /listmoderators - Wyświetla listę moderatorów.\n🔑 /klucz, /key <key_content> - Zapisuje nowy klucz dla użytkownika.\n🔑 /lk, /listkey - Wyświetla listę kluczy.\n🔑 /addk, /addkey <days> <note> - Tworzy nowy klucz subskrypcji.\n🚫 /rmk, /removekey <key> - Usuwa istniejący klucz subskrypcji.\n➕ /addsub, /addsubscription <id> <days> - Dodaje subskrypcję użytkownikowi.\n🚫 /rmsub, /removesubscription <id> - Usuwa subskrypcję użytkownika.\n🔍 /t, /transkrypcja <cytat> - Wyszukuje cytat w transkrypcjach.\n');
 
 
+INSERT INTO common_messages (handler_name, key, message) VALUES
+('CreateKeyHandler', 'create_key_usage', '❌ Podaj liczbę dni i klucz. Przykład: /addkey 30 tajny_klucz ❌'),
+('CreateKeyHandler', 'create_key_success', '✅ Stworzono klucz: {} na {} dni. ✅'),
+('CreateKeyHandler', 'key_already_exists', '❌ Klucz {} już istnieje. ❌');
 
 
 

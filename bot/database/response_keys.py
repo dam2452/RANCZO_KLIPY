@@ -52,4 +52,6 @@ class ResponseKey(str, Enum):
     USER_NOT_FOUND = "user_not_found"
     ADMIN_HELP = "admin_help"
     ADMIN_SHORTCUTS = "admin_shortcuts"
-
+    CREATE_KEY_USAGE = "create_key_usage"
+    CREATE_KEY_SUCCESS = "create_key_success"
+    KEY_ALREADY_EXISTS = "key_already_exists"
