@@ -1,11 +1,11 @@
 import pytest
 
-import bot.responses.not_sending_videos.transcription_handler_responses as msg
+from bot.database.response_keys import ResponseKey as RK
 from bot.tests.base_test import BaseTest
 
 
 @pytest.mark.usefixtures("db_pool", "telegram_client")
-class TestTranscriptionCommand(BaseTest):
+class TestTranscriptionHandler(BaseTest):
 
     @pytest.mark.asyncio
     async def test_transcription_existing_quote(self):
@@ -22,7 +22,7 @@ class TestTranscriptionCommand(BaseTest):
         response = await self.send_command('/transkrypcja')
         self.assert_response_contains(
             response,
-            [msg.get_no_quote_provided_message()],
+            [await self.get_response(RK.NO_QUOTE_PROVIDED)],
         )
 
     @pytest.mark.asyncio

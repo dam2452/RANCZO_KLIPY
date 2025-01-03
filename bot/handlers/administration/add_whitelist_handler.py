@@ -4,16 +4,12 @@ from typing import List
 from aiogram.types import Message
 
 from bot.database.database_manager import DatabaseManager
+from bot.database.response_keys import ResponseKey as RK
 from bot.handlers.bot_message_handler import (
     BotMessageHandler,
     ValidatorFunctions,
 )
-from bot.responses.administration.add_whitelist_handler_responses import (
-    get_log_user_added_message,
-    get_no_user_id_provided_message,
-    get_no_username_provided_message,
-    get_user_added_message,
-)
+from bot.responses.administration.add_whitelist_handler_responses import get_log_user_added_message
 
 
 class AddWhitelistHandler(BotMessageHandler):
@@ -28,7 +24,7 @@ class AddWhitelistHandler(BotMessageHandler):
 
     async def __check_argument_count(self, message: Message) -> bool:
         return await self._validate_argument_count(
-            message, 2, get_no_username_provided_message(),
+            message, 2, await self.get_response(RK.NO_USERNAME_PROVIDED),
         )
 
     async def __check_user_id_is_digit(self, message: Message) -> bool:
@@ -50,12 +46,12 @@ class AddWhitelistHandler(BotMessageHandler):
         await self.__reply_user_added(message, user_input)
 
     async def __reply_user_added(self, message: Message, username: str) -> None:
-        await self._answer(message, get_user_added_message(username))
+        await self._answer(message, await self.get_response(RK.USER_ADDED, [username]))
         await self._log_system_message(
             logging.INFO,
             get_log_user_added_message(username, message.from_user.username),
         )
 
     async def __reply_user_not_found(self, message: Message) -> None:
-        await self._answer(message, get_no_user_id_provided_message())
-        await self._log_system_message(logging.INFO, get_no_user_id_provided_message())
+        await self._answer(message, await self.get_response(RK.NO_USER_ID_PROVIDED))
+        await self._log_system_message(logging.INFO, await self.get_response(RK.NO_USER_ID_PROVIDED))

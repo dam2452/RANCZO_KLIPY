@@ -5,6 +5,7 @@ from typing import List
 from aiogram.types import Message
 
 from bot.database.database_manager import DatabaseManager
+from bot.database.response_keys import ResponseKey as RK
 from bot.handlers.bot_message_handler import (
     BotMessageHandler,
     ValidatorFunctions,
@@ -16,7 +17,6 @@ from bot.responses.bot_message_handler_responses import (
 )
 from bot.responses.not_sending_videos.search_handler_responses import (
     format_search_response,
-    get_invalid_args_count_message,
     get_log_search_results_sent_message,
 )
 from bot.search.transcription_finder import TranscriptionFinder
@@ -34,7 +34,7 @@ class SearchHandler(BotMessageHandler):
         ]
 
     async def __check_argument_count(self, message: Message) -> bool:
-        return await self._validate_argument_count(message, 2, get_invalid_args_count_message())
+        return await self._validate_argument_count(message, 2, await self.get_response(RK.INVALID_ARGS_COUNT))
 
 
     async def __check_quote_length(self, message: Message) -> bool:

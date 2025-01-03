@@ -25,7 +25,7 @@ def format_myclips_response(clips: List[VideoClip], username: Union[str, None], 
         if clip.is_compilation:
             season_episode = "Kompilacja"
         else:
-            episode_number_mod = (clip.episode_number - 1) % 13 + 1 if clip.episode_number else "N/A"
+            episode_number_mod = (clip.episode_number - 1) % 13 + 1 if clip.episode_number else "N/A" #TODO: żeby działało dla innych seriali
             season_episode = f"S{clip.season:02d}E{episode_number_mod:02d}"
 
         clip_lines.append(
@@ -38,11 +38,6 @@ def format_myclips_response(clips: List[VideoClip], username: Union[str, None], 
         f"🎥 *Liczba klipów:* {convert_number_to_emoji(len(clips))} 🎥\n\n"
         f"```Użytkownik: {user_display_name} \n".replace(" ", "\u00A0") + "\n\n".join(clip_lines) + "\n```"
     )
-
-
-def get_no_saved_clips_message() -> str:
-    return "📭 Nie masz zapisanych klipów.📭"
-
 
 def get_log_no_saved_clips_message(username: str) -> str:
     return f"No saved clips found for user: {username}"

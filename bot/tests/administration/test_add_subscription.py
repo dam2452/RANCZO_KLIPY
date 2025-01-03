@@ -6,13 +6,13 @@ from datetime import (
 import pytest
 
 from bot.database.database_manager import DatabaseManager
-import bot.responses.administration.add_subscription_handler_responses as msg
+from bot.database.response_keys import ResponseKey as RK
 from bot.tests.base_test import BaseTest
 from bot.tests.settings import settings as s
 
 
 @pytest.mark.usefixtures("db_pool", "telegram_client")
-class TestAddSubscriptionCommand(BaseTest):
+class TestAddSubscriptionHandler(BaseTest):
 
     @pytest.mark.quick
     @pytest.mark.asyncio
@@ -32,7 +32,7 @@ class TestAddSubscriptionCommand(BaseTest):
 
         await self.expect_command_result_contains(
             f'/addsubscription {user_id} {days}',
-            [msg.get_subscription_extended_message(str(user_id), expected_end_date)],
+            [await self.get_response(RK.SUBSCRIPTION_EXTENDED, [str(user_id), str(expected_end_date)])],
         )
 
     @pytest.mark.asyncio
@@ -42,8 +42,9 @@ class TestAddSubscriptionCommand(BaseTest):
 
         await self.expect_command_result_contains(
             f'/addsubscription {s.DEFAULT_ADMIN} {days}',
-            [msg.get_subscription_extended_message(str(s.DEFAULT_ADMIN), expected_end_date)],
+            [await self.get_response(RK.SUBSCRIPTION_EXTENDED, [str(s.DEFAULT_ADMIN), str(expected_end_date)])],
         )
+
 
     @pytest.mark.quick
     @pytest.mark.asyncio
@@ -53,7 +54,7 @@ class TestAddSubscriptionCommand(BaseTest):
 
         await self.expect_command_result_contains(
             f'/addsubscription {user_id} {days}',
-            [msg.get_subscription_error_message()],
+            [await self.get_response(RK.SUBSCRIPTION_ERROR)],
         )
 
     @pytest.mark.long
@@ -64,7 +65,7 @@ class TestAddSubscriptionCommand(BaseTest):
 
         await self.expect_command_result_contains(
             f'/addsubscription {user_id} {invalid_days}',
-            [msg.get_no_user_id_provided_message()],
+            [await self.get_response(RK.NO_USER_ID_PROVIDED)],
         )
 
     @pytest.mark.long
@@ -75,7 +76,7 @@ class TestAddSubscriptionCommand(BaseTest):
 
         await self.expect_command_result_contains(
             f'/addsubscription {user_id_invalid} {days}',
-            [msg.get_no_user_id_provided_message()],
+            [await self.get_response(RK.NO_USER_ID_PROVIDED)],
         )
 
     @pytest.mark.long
@@ -86,5 +87,5 @@ class TestAddSubscriptionCommand(BaseTest):
 
         await self.expect_command_result_contains(
             f'/addsubscription {user_id} {negative_days}',
-            [msg.get_no_user_id_provided_message()],
+            [await self.get_response(RK.NO_USER_ID_PROVIDED)],
         )

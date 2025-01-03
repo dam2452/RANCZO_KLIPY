@@ -1,11 +1,11 @@
 import pytest
 
-import bot.responses.not_sending_videos.search_handler_responses as msg
+from bot.database.response_keys import ResponseKey as RK
 from bot.tests.base_test import BaseTest
 
 
 @pytest.mark.usefixtures("db_pool", "telegram_client")
-class TestSearchCommand(BaseTest):
+class TestSearchHandler(BaseTest):
 
     LONG_QUOTE_WORD_COUNT = 100
 
@@ -22,7 +22,7 @@ class TestSearchCommand(BaseTest):
     @pytest.mark.asyncio
     async def test_search_invalid_arguments(self):
         response = await self.send_command('/szukaj')
-        self.assert_response_contains(response, [msg.get_invalid_args_count_message()])
+        self.assert_response_contains(response, [await self.get_response(RK.INVALID_ARGS_COUNT)])
 
     @pytest.mark.asyncio
     async def test_search_long_quote_exceeds_limit(self):

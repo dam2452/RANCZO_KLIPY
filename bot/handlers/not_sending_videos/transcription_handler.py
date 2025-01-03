@@ -3,6 +3,7 @@ from typing import List
 
 from aiogram.types import Message
 
+from bot.database.response_keys import ResponseKey as RK
 from bot.handlers.bot_message_handler import (
     BotMessageHandler,
     ValidatorFunctions,
@@ -13,7 +14,6 @@ from bot.responses.bot_message_handler_responses import (
 )
 from bot.responses.not_sending_videos.transcription_handler_responses import (
     get_log_transcription_response_sent_message,
-    get_no_quote_provided_message,
     get_transcription_response,
 )
 from bot.search.transcription_finder import TranscriptionFinder
@@ -29,7 +29,7 @@ class TranscriptionHandler(BotMessageHandler):
         ]
 
     async def __check_argument_count(self, message: Message) -> bool:
-        return await self._validate_argument_count(message, 2, get_no_quote_provided_message())
+        return await self._validate_argument_count(message, 2, await self.get_response(RK.NO_QUOTE_PROVIDED))
 
 
     async def _do_handle(self, message: Message) -> None:

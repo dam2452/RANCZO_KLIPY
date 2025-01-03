@@ -19,9 +19,12 @@ class Settings(BaseSettings):
     POSTGRES_PORT: int = Field(...)
     POSTGRES_DB: str = Field(...)
 
+    SPECIALIZED_TABLE: str = Field(...)
+
     ES_HOST: str = Field(...)
     ES_USER: str = Field(...)
     ES_PASS: str = Field(...)
+    ES_TRANSCRIPTION_INDEX: str = Field(...)
 
     EXTEND_BEFORE: float = Field(5)
     EXTEND_AFTER: float = Field(5)

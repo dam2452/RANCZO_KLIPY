@@ -7,16 +7,15 @@ from typing import (
 
 from aiogram.types import Message
 
+from bot.database.response_keys import ResponseKey as RK
 from bot.handlers.bot_message_handler import (
     BotMessageHandler,
     ValidatorFunctions,
 )
 from bot.responses.not_sending_videos.episode_list_handler_responses import (
     format_episode_list_response,
-    get_invalid_args_count_message,
     get_log_episode_list_sent_message,
     get_log_no_episodes_found_message,
-    get_no_episodes_found_message,
     get_season_11_petition_message,
 )
 from bot.search.transcription_finder import TranscriptionFinder
@@ -32,7 +31,9 @@ class EpisodeListHandler(BotMessageHandler):
         ]
 
     async def __check_argument_count(self, message: Message) -> bool:
-        return await self._validate_argument_count(message, 2, get_invalid_args_count_message())
+        return await self._validate_argument_count(
+            message, 2, await self.get_response(RK.INVALID_ARGS_COUNT),
+        )
 
 
     async def _do_handle(self, message: Message) -> None:
@@ -56,7 +57,7 @@ class EpisodeListHandler(BotMessageHandler):
         )
 
     async def __handle_season_11(self, message: Message) -> None:
-        image_path = Path("Ranczo_Sezon11.png")
+        image_path = Path("Ranczo_Sezon11.png") #TODO: dać to do bazy do bolba
         with image_path.open("rb") as image_file:
             image_bytes = image_file.read()
         await self._answer_photo(message, image_bytes, image_path, caption=get_season_11_petition_message())
@@ -74,5 +75,7 @@ class EpisodeListHandler(BotMessageHandler):
         return parts
 
     async def __reply_no_episodes_found(self, message: Message, season: int) -> None:
-        await self._answer(message,get_no_episodes_found_message(season))
+        await self._answer(
+            message, await self.get_response(RK.NO_EPISODES_FOUND, args=[str(season)]),
+        )
         await self._log_system_message(logging.INFO, get_log_no_episodes_found_message(season))

@@ -7,6 +7,7 @@ from typing import List
 from aiogram.types import Message
 
 from bot.database.database_manager import DatabaseManager
+from bot.database.response_keys import ResponseKey as RK
 from bot.handlers.bot_message_handler import (
     BotMessageHandler,
     ValidatorFunctions,
@@ -15,7 +16,6 @@ from bot.responses.not_sending_videos.search_list_handler_responses import (
     format_search_list_response,
     get_log_no_previous_search_results_message,
     get_log_search_results_sent_message,
-    get_no_previous_search_results_message,
 )
 
 
@@ -69,7 +69,7 @@ class SearchListHandler(BotMessageHandler):
         )
 
     async def __reply_no_previous_search_results(self, message: Message) -> None:
-        await self._answer(message,get_no_previous_search_results_message())
+        await self._answer(message,await self.get_response(RK.NO_PREVIOUS_SEARCH_RESULTS))
         await self._log_system_message(logging.INFO, get_log_no_previous_search_results_message(message.chat.id))
 
     @staticmethod

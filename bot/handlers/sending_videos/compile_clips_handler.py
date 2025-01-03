@@ -10,24 +10,18 @@ from aiogram.types import Message
 
 from bot.database.database_manager import DatabaseManager
 from bot.database.models import ClipType
+from bot.database.response_keys import ResponseKey as RK
 from bot.handlers.bot_message_handler import (
     BotMessageHandler,
     ValidatorFunctions,
 )
 from bot.responses.sending_videos.compile_clips_handler_responses import (
-    get_clip_time_message,
-    get_invalid_args_count_message,
-    get_invalid_index_message,
-    get_invalid_range_message,
     get_log_compilation_success_message,
     get_log_compiled_clip_is_too_long_message,
     get_log_invalid_index_message,
     get_log_invalid_range_message,
     get_log_no_matching_segments_found_message,
     get_log_no_previous_search_results_message,
-    get_max_clips_exceeded_message,
-    get_no_matching_segments_found_message,
-    get_no_previous_search_results_message,
     get_selected_clip_message,
 )
 from bot.settings import settings
@@ -60,7 +54,7 @@ class CompileClipsHandler(BotMessageHandler):
         ]
 
     async def __check_argument_count(self, message: Message) -> bool:
-        return await self._validate_argument_count(message, 2, get_invalid_args_count_message())
+        return await self._validate_argument_count(message, 2, await self.get_response(RK.INVALID_ARGS_COUNT))
 
     async def _do_handle(self, message: Message) -> None:
         content = message.text.split()
@@ -70,7 +64,7 @@ class CompileClipsHandler(BotMessageHandler):
 
         segments = json.loads(last_search.segments)
         try:
-            selected_segments = self.__parse_segments(content[1:], segments)
+            selected_segments = await self.__parse_segments(content[1:], segments)
         except self.InvalidRangeException as e:
             return await self.__reply_invalid_range(message, str(e))
         except self.InvalidIndexException as e:
@@ -106,10 +100,10 @@ class CompileClipsHandler(BotMessageHandler):
         await process_compiled_clip(message, compiled_output, ClipType.COMPILED)
         await self._log_system_message(logging.INFO, get_log_compilation_success_message(message.from_user.username))
 
-    @staticmethod
-    def __parse_segments(
-        content: List[str],
-        segments: List[Dict[str, Union[str, float]]],
+    async def __parse_segments(
+        self ,
+            content: List[str],
+            segments: List[Dict[str, Union[str, float]]],
     ) -> List[Dict[str, Union[str, float]]]:
         selected_segments = []
         for arg in content:
@@ -124,29 +118,28 @@ class CompileClipsHandler(BotMessageHandler):
                 )
                 return selected_segments
             if "-" in arg:
-                selected_segments.extend(CompileClipsHandler.__parse_range(arg, segments))
+                selected_segments.extend(await self.__parse_range(arg, segments))
             else:
-                selected_segments.append(CompileClipsHandler.__parse_single(arg, segments))
+                selected_segments.append(await self.__parse_single(arg, segments))
         return selected_segments
 
-    @staticmethod
-    def __parse_range(index: str, segments: List[Dict[str, Union[str, float]]]) -> List[Dict[str, Union[str, float]]]:
+    async def __parse_range(self, index: str, segments: List[Dict[str, Union[str, float]]]) -> List[Dict[str, Union[str, float]]]:
         try:
             start_str, end_str = index.split("-")
         except ValueError as exc:
-            raise CompileClipsHandler.InvalidRangeException(get_invalid_range_message(index)) from exc
+            raise self.InvalidRangeException(await self.get_response(RK.INVALID_RANGE,[index])) from exc
 
         try:
             start, end = int(start_str), int(end_str)
         except ValueError as exc:
-            raise CompileClipsHandler.InvalidRangeException(get_invalid_range_message(index)) from exc
+            raise self.InvalidRangeException(await self.get_response(RK.INVALID_RANGE,[index])) from exc
 
         if start > end:
-            raise CompileClipsHandler.InvalidRangeException(get_invalid_range_message(index))
+            raise self.InvalidRangeException(await self.get_response(RK.INVALID_RANGE,[index]))
 
         num_of_clips = end - start + 1
         if num_of_clips > settings.MAX_CLIPS_PER_COMPILATION:
-            raise CompileClipsHandler.MaxClipsExceededException()
+            raise self.MaxClipsExceededException()
 
         collected = []
         for i in range(start, end + 1):
@@ -161,18 +154,18 @@ class CompileClipsHandler(BotMessageHandler):
                 pass
 
         if not collected:
-            raise CompileClipsHandler.NoMatchingSegmentsException()
+            raise self.NoMatchingSegmentsException()
         return collected
 
-    @staticmethod
-    def __parse_single(index_str: str, segments: List[Dict[str, Union[str, float]]]) -> Dict[str, Union[str, float]]:
+
+    async def __parse_single(self ,index_str: str, segments: List[Dict[str, Union[str, float]]]) -> Dict[str, Union[str, float]]:
         try:
             idx = int(index_str)
         except ValueError as exc:
-            raise CompileClipsHandler.InvalidIndexException(get_invalid_index_message(index_str)) from exc
+            raise self.InvalidIndexException(await self.get_response(RK.INVALID_INDEX,[index_str])) from exc
 
         if idx < 1 or idx > len(segments):
-            raise CompileClipsHandler.NoMatchingSegmentsException()
+            raise self.NoMatchingSegmentsException()
 
         segment = segments[idx - 1]
         return {
@@ -188,19 +181,18 @@ class CompileClipsHandler(BotMessageHandler):
         return total_duration > settings.LIMIT_DURATION
 
     async def __reply_no_previous_search_results(self, message: Message) -> None:
-        await self._answer(message, get_no_previous_search_results_message())
+        await self._answer(message,  await self.get_response(RK.NO_PREVIOUS_SEARCH_RESULTS))
         await self._log_system_message(logging.INFO, get_log_no_previous_search_results_message())
 
     async def __reply_no_matching_segments_found(self, message: Message) -> None:
-        await self._answer(message, get_no_matching_segments_found_message())
+        await self._answer(message, await self.get_response(RK.NO_MATCHING_SEGMENTS_FOUND))
         await self._log_system_message(logging.INFO, get_log_no_matching_segments_found_message())
 
     async def __reply_clip_duration_exceeded(self, message: Message) -> None:
-        await self._answer(message, get_clip_time_message())
+        await self._answer(message, await self.get_response(RK.CLIP_TIME_EXCEEDED))
         await self._log_system_message(
             logging.INFO, get_log_compiled_clip_is_too_long_message(message.from_user.username),
         )
-
     async def __reply_invalid_range(self, message: Message, err_msg: str) -> None:
         await self._answer(message, err_msg)
         await self._log_system_message(logging.INFO, get_log_invalid_range_message())
@@ -210,5 +202,5 @@ class CompileClipsHandler(BotMessageHandler):
         await self._log_system_message(logging.INFO, get_log_invalid_index_message())
 
     async def __reply_max_clips_exceeded(self, message: Message) -> None:
-        await self._answer(message, get_max_clips_exceeded_message())
-        await self._log_system_message(logging.INFO, get_max_clips_exceeded_message())
+        await self._answer(message, await self.get_response(RK.MAX_CLIPS_EXCEEDED))
+        await self._log_system_message(logging.INFO, await self.get_response(RK.MAX_CLIPS_EXCEEDED))

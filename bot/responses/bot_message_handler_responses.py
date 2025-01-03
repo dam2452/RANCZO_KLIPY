@@ -1,7 +1,14 @@
+import logging
 from pathlib import Path
-from typing import List
+import re
+from typing import (
+    List,
+    Optional,
+)
 
+from bot.database.database_manager import DatabaseManager
 from bot.database.models import UserProfile
+from bot.tests.settings import settings as s
 
 
 def get_general_error_message() -> str:
@@ -66,3 +73,68 @@ def get_clip_size_exceed_message() -> str:
 
 def get_video_sent_log_message(file_path: Path) -> str:
     return f"Wysłano plik wideo: {file_path}"
+
+#TODO do bazwy te komunikaty powyżej
+
+class MessageNotFoundError(Exception):
+    pass
+
+class MessageArgumentMismatchError(Exception):
+    pass
+
+class MessageFormattingError(Exception):
+    pass
+
+async def get_response(
+    key: str,
+    handler_name: str,
+    args: Optional[List[str]] = None,
+) -> str:
+    message = await DatabaseManager.get_message_from_specialized_table(
+        key, handler_name,
+    )
+    if not message:
+        message = await DatabaseManager.get_message_from_common_messages(
+            key, handler_name,
+        )
+
+    if not message:
+        logging.debug(get_log_message_not_found(key, handler_name, s.SPECIALIZED_TABLE))
+        raise MessageNotFoundError
+
+    placeholder_count = len(re.findall(r"{}", message))
+    args = args or []
+
+    if len(args) != placeholder_count:
+        logging.debug(get_log_argument_mismatch(key, handler_name, placeholder_count, len(args), message))
+        raise MessageArgumentMismatchError
+
+    try:
+        final_message = message.format(*args)
+    except IndexError as e:
+        logging.debug(get_log_formatting_error(key, handler_name, message, args, e))
+        raise MessageFormattingError(str(e))
+
+    return final_message
+
+def get_log_message_not_found(key: str, handler_name: str, specialized_table: str) -> str:
+    return (
+        f"Message not found. key='{key}', handler_name='{handler_name}', "
+        f"specialized_table='{specialized_table}'"
+    )
+
+def get_log_argument_mismatch(
+    key: str, handler_name: str, expected_count: int, actual_count: int, message: str,
+) -> str:
+    return (
+        f"Argument count mismatch for key='{key}', handler_name='{handler_name}'. "
+        f"Expected {expected_count}, got {actual_count}. Message: {message}"
+    )
+
+def get_log_formatting_error(
+    key: str, handler_name: str, message: str, args: List[str], error: Exception,
+) -> str:
+    return (
+        f"Formatting error for key='{key}', handler_name='{handler_name}'. "
+        f"Message: {message}, Args: {args}, Error: {error}"
+    )

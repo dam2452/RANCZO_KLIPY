@@ -6,15 +6,14 @@ from aiogram.types import Message
 
 from bot.database.database_manager import DatabaseManager
 from bot.database.models import ClipType
+from bot.database.response_keys import ResponseKey as RK
 from bot.handlers.bot_message_handler import (
     BotMessageHandler,
     ValidatorFunctions,
 )
 from bot.responses.sending_videos.compile_selected_clips_handler_responses import (
     get_compiled_clip_sent_message,
-    get_invalid_args_count_message,
     get_log_no_matching_clips_found_message,
-    get_no_matching_clips_found_message,
 )
 from bot.video.clips_compiler import (
     ClipsCompiler,
@@ -38,7 +37,7 @@ class CompileSelectedClipsHandler(BotMessageHandler):
         ]
 
     async def __check_argument_count(self, message: Message) -> bool:
-        return await self._validate_argument_count(message, 2, get_invalid_args_count_message())
+        return await self._validate_argument_count(message, 2, await self.get_response(RK.INVALID_ARGS_COUNT))
 
     async def __check_user_has_clips(self, message: Message) -> bool:
         user_clips = await DatabaseManager.get_saved_clips(message.from_user.id)
@@ -53,7 +52,7 @@ class CompileSelectedClipsHandler(BotMessageHandler):
         try:
             clip_numbers = [int(clip) for clip in content[1:]]
         except ValueError:
-            return await self._reply_invalid_args_count(message, get_invalid_args_count_message())
+            return await self._reply_invalid_args_count(message, await self.get_response(RK.INVALID_ARGS_COUNT))
 
         user_clips = await DatabaseManager.get_saved_clips(message.from_user.id)
 
@@ -62,7 +61,7 @@ class CompileSelectedClipsHandler(BotMessageHandler):
             if 1 <= clip_number <= len(user_clips):
                 selected_clips.append(user_clips[clip_number - 1])
             else:
-                return await self._reply_invalid_args_count(message, get_invalid_args_count_message())
+                return await self._reply_invalid_args_count(message, await self.get_response(RK.INVALID_ARGS_COUNT))
 
         if not selected_clips:
             return await self.__reply_no_matching_clips_found(message)
@@ -90,5 +89,5 @@ class CompileSelectedClipsHandler(BotMessageHandler):
         await self._log_system_message(logging.INFO, get_compiled_clip_sent_message(message.from_user.username))
 
     async def __reply_no_matching_clips_found(self, message: Message) -> None:
-        await self._answer(message,get_no_matching_clips_found_message())
+        await self._answer(message,await self.get_response(RK.NO_MATCHING_CLIPS_FOUND))
         await self._log_system_message(logging.INFO, get_log_no_matching_clips_found_message())

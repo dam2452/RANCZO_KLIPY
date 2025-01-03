@@ -18,20 +18,15 @@ from bot.database.models import (
     ClipType,
     LastClip,
 )
+from bot.database.response_keys import ResponseKey as RK
 from bot.handlers.bot_message_handler import (
     BotMessageHandler,
     ValidatorFunctions,
 )
 from bot.responses.not_sending_videos.save_clip_handler_responses import (
-    get_clip_limit_exceeded_message,
-    get_clip_name_exists_message,
-    get_clip_name_length_exceeded_message,
-    get_clip_name_not_provided_message,
-    get_clip_saved_successfully_message,
     get_log_clip_name_exists_message,
     get_log_clip_saved_successfully_message,
     get_log_no_segment_selected_message,
-    get_no_segment_selected_message,
 )
 from bot.settings import settings
 from bot.video.clips_extractor import ClipsExtractor
@@ -54,13 +49,16 @@ class SaveClipHandler(BotMessageHandler):
 
     async def __check_argument_count(self, message: Message) -> bool:
         return await self._validate_argument_count(
-            message, 2, get_clip_name_not_provided_message(),
+            message, 2, await self.get_response(RK.CLIP_NAME_NOT_PROVIDED),
         )
 
     async def __check_clip_name_length(self, message: Message) -> bool:
         clip_name = " ".join(message.text.split()[1:])
         if len(clip_name) > settings.MAX_CLIP_NAME_LENGTH:
-            await self._answer(message,get_clip_name_length_exceeded_message())
+            await self._answer(
+                message,
+                await self.get_response(RK.CLIP_NAME_LENGTH_EXCEEDED),
+            )
             return False
         return True
 
@@ -71,12 +69,15 @@ class SaveClipHandler(BotMessageHandler):
             return False
         return True
 
-    async def __check_clip_limit_not_exceeded(self ,message: Message) -> bool:
+    async def __check_clip_limit_not_exceeded(self, message: Message) -> bool:
         if (
-            not await DatabaseManager.is_admin_or_moderator(message.from_user.id)
-            and await DatabaseManager.get_user_clip_count(message.chat.id) >= settings.MAX_CLIPS_PER_USER
+                not await DatabaseManager.is_admin_or_moderator(message.from_user.id)
+                and await DatabaseManager.get_user_clip_count(message.chat.id) >= settings.MAX_CLIPS_PER_USER
         ):
-            await self._answer(message,get_clip_limit_exceeded_message())
+            await self._answer(
+                message,
+                await self.get_response(RK.CLIP_LIMIT_EXCEEDED),
+            )
             return False
         return True
 
@@ -248,21 +249,30 @@ class SaveClipHandler(BotMessageHandler):
         return output_filename
 
     async def __reply_clip_name_exists(self, message: Message, clip_name: str) -> None:
-        await self._answer(message,get_clip_name_exists_message(clip_name))
+        await self._answer(
+            message,
+            await self.get_response(RK.CLIP_NAME_EXISTS, args=[clip_name]),
+        )
         await self._log_system_message(
             logging.INFO,
             get_log_clip_name_exists_message(clip_name, message.from_user.username),
         )
 
     async def __reply_no_segment_selected(self, message: Message) -> None:
-        await self._answer(message,get_no_segment_selected_message())
+        await self._answer(
+            message,
+            await self.get_response(RK.NO_SEGMENT_SELECTED),
+        )
         await self._log_system_message(
             logging.INFO,
             get_log_no_segment_selected_message(),
         )
 
     async def __reply_clip_saved_successfully(self, message: Message, clip_name: str) -> None:
-        await self._answer(message,get_clip_saved_successfully_message(clip_name))
+        await self._answer(
+            message,
+            await self.get_response(RK.CLIP_SAVED_SUCCESSFULLY, args=[clip_name]),
+        )
         await self._log_system_message(
             logging.INFO,
             get_log_clip_saved_successfully_message(clip_name, message.from_user.username),

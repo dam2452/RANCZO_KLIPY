@@ -45,8 +45,20 @@ def telegram_client():
 
 @pytest.fixture(autouse=True)
 async def prepare_database():
-    await DatabaseManager.clear_test_db()
-    logger.info("The test database has been cleared.")
+    tables_to_clear = [
+        "user_profiles",
+        "user_roles",
+        "user_logs",
+        "system_logs",
+        "video_clips",
+        "reports",
+        "search_history",
+        "last_clips",
+        "subscription_keys",
+        "user_command_limits",
+    ]
+    await DatabaseManager.clear_test_db(tables=tables_to_clear)
+    logger.info("The specified test database tables have been cleared.")
 
     await DatabaseManager.set_default_admin(
         user_id=s.DEFAULT_ADMIN,

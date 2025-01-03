@@ -5,6 +5,7 @@ from aiogram.types import Message
 
 from bot.database.database_manager import DatabaseManager
 from bot.database.models import ClipType
+from bot.database.response_keys import ResponseKey as RK
 from bot.handlers.bot_message_handler import (
     BotMessageHandler,
     ValidatorFunctions,
@@ -17,9 +18,6 @@ from bot.responses.bot_message_handler_responses import (
 from bot.responses.sending_videos.clip_handler_responses import (
     get_log_clip_success_message,
     get_log_segment_saved_message,
-    get_message_too_long_message,
-    get_no_quote_provided_message,
-    get_no_segments_found_message,
 )
 from bot.search.transcription_finder import TranscriptionFinder
 from bot.settings import settings
@@ -38,7 +36,7 @@ class ClipHandler(BotMessageHandler):
         ]
 
     async def __check_argument_count(self, message: Message) -> bool:
-        return await self._validate_argument_count(message, 2, get_no_quote_provided_message())
+        return await self._validate_argument_count(message, 2, await self.get_response(RK.NO_QUOTE_PROVIDED))
 
     async def __check_message_length(self, message: Message) -> bool:
         return await self.__validate_user_permissions(message)
@@ -46,7 +44,7 @@ class ClipHandler(BotMessageHandler):
 
     async def __validate_user_permissions(self,message: Message) -> bool:
         if not await DatabaseManager.is_admin_or_moderator(message.from_user.id) and len(message.text) > settings.MAX_SEARCH_QUERY_LENGTH:
-            await self._answer(message,get_message_too_long_message())
+            await self._answer(message,await self.get_response(RK.MESSAGE_TOO_LONG))
             return False
         return True
 
@@ -86,7 +84,7 @@ class ClipHandler(BotMessageHandler):
         await self.__log_segment_and_clip_success(message.chat.id, message.from_user.username)
 
     async def __reply_no_segments_found(self, message: Message, quote: str) -> None:
-        await self._answer(message,get_no_segments_found_message())
+        await self._answer(message,await self.get_response(RK.NO_SEGMENTS_FOUND))
         await self._log_system_message(logging.INFO, get_log_no_segments_found_message(quote))
 
     async def __reply_extraction_failed(self, message: Message, exception: FFMpegException) -> None:
