@@ -112,7 +112,7 @@ async def get_response(
         final_message = message.format(*args)
     except IndexError as e:
         logging.debug(get_log_formatting_error(key, handler_name, message, args, e))
-        raise MessageFormattingError(str(e))
+        raise MessageFormattingError(str(e)) from e
 
     return final_message
 
