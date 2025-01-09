@@ -4,6 +4,7 @@ from typing import List
 from aiogram.types import Message
 
 from bot.database.database_manager import DatabaseManager
+from bot.database.response_keys import ResponseKey as RK
 from bot.handlers.bot_message_handler import (
     BotMessageHandler,
     ValidatorFunctions,
@@ -12,7 +13,7 @@ from bot.responses.administration.update_user_note_handler_responses import (
     get_log_invalid_user_id_message,
     get_log_note_updated_message,
 )
-from bot.database.response_keys import ResponseKey as RK
+
 
 class UpdateUserNoteHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:

@@ -79,5 +79,9 @@ class ResponseKey(str, Enum):
     NOTE_UPDATED = "note_updated"
     NO_NOTE_PROVIDED = "no_note_provided"
     INVALID_USER_ID = "invalid_user_id"
+    NO_KEY_PROVIDED = "no_key_provided"
+    MESSAGE_SAVED_CONFIRMATION = "message_saved_confirmation"
+    SUBSCRIPTION_REDEEMED = "subscription_redeemed"
+    INVALID_KEY = "invalid_key"
 
 

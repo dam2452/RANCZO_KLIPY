@@ -197,3 +197,13 @@ INSERT INTO common_messages (handler_name, key, message) VALUES
 ('UpdateUserNoteHandler', 'invalid_user_id', '❌ Nieprawidłowe ID użytkownika: {}.❌');
 
 
+INSERT INTO common_messages (handler_name, key, message) VALUES
+('SaveUserKeyHandler', 'no_key_provided', '⚠️ Nie podano klucza.⚠️ Przykład: /klucz tajny_klucz'),
+('SaveUserKeyHandler', 'message_saved_confirmation', '✅Twoja wiadomość została zapisana.✅'),
+('SaveUserKeyHandler', 'subscription_redeemed', '🎉 Subskrypcja przedłużona o {} dni! 🎉'),
+('SaveUserKeyHandler', 'invalid_key', '❌ Podany klucz jest niepoprawny lub został już wykorzystany. ❌');
+
+
+
+
+
