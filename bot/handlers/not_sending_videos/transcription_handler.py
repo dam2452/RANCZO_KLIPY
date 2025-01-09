@@ -8,10 +8,7 @@ from bot.handlers.bot_message_handler import (
     BotMessageHandler,
     ValidatorFunctions,
 )
-from bot.responses.bot_message_handler_responses import (
-    get_log_no_segments_found_message,
-    get_no_segments_found_message,
-)
+from bot.responses.bot_message_handler_responses import get_log_no_segments_found_message
 from bot.responses.not_sending_videos.transcription_handler_responses import (
     get_log_transcription_response_sent_message,
     get_transcription_response,
@@ -43,7 +40,7 @@ class TranscriptionHandler(BotMessageHandler):
         await self.__reply_transcription_response(message, response, quote)
 
     async def __reply_no_segments_found(self, message: Message, quote: str) -> None:
-        await self._answer_markdown(message, get_no_segments_found_message(quote))
+        await self._answer_markdown(message, await self.get_response(RK.NO_SEGMENTS_FOUND, [quote]))
         await self._log_system_message(logging.INFO, get_log_no_segments_found_message(quote))
 
     async def __reply_transcription_response(self, message: Message, response: str, quote: str) -> None:

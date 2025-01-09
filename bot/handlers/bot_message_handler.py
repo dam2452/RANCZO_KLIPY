@@ -26,7 +26,6 @@ from bot.database.database_manager import DatabaseManager
 from bot.database.response_keys import ResponseKey as RK
 from bot.responses.bot_message_handler_responses import (
     get_clip_size_exceed_log_message,
-    get_clip_size_exceed_message,
     get_clip_size_log_message,
     get_general_error_message,
     get_invalid_args_count_message,
@@ -123,7 +122,7 @@ class BotMessageHandler(ABC):
                 logging.WARNING,
                 get_clip_size_exceed_log_message(file_size, settings.TELEGRAM_FILE_SIZE_LIMIT_MB),
             )
-            await self._answer(message, get_clip_size_exceed_message())
+            await self._answer(message, await self.get_response(RK.CLIP_SIZE_EXCEEDED))
         else:
             await message.answer_video(
                 FSInputFile(file_path),

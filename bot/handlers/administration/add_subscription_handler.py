@@ -57,4 +57,3 @@ class AddSubscriptionHandler(BotMessageHandler):
     async def __reply_subscription_error(self, message: Message) -> None:
         await self._answer(message, await self.get_response(RK.SUBSCRIPTION_ERROR))
         await self._log_system_message(logging.ERROR, get_subscription_error_log_message())
-

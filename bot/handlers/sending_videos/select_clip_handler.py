@@ -11,10 +11,7 @@ from bot.handlers.bot_message_handler import (
     BotMessageHandler,
     ValidatorFunctions,
 )
-from bot.responses.bot_message_handler_responses import (
-    get_extraction_failure_message,
-    get_log_extraction_failure_message,
-)
+from bot.responses.bot_message_handler_responses import get_log_extraction_failure_message
 from bot.responses.sending_videos.select_clip_handler_responses import (
     get_log_invalid_segment_number_message,
     get_log_no_previous_search_message,
@@ -87,7 +84,7 @@ class SelectClipHandler(BotMessageHandler):
         await self._log_system_message(logging.INFO, get_log_no_previous_search_message())
 
     async def __reply_extraction_failure(self, message: Message, exception: FFMpegException) -> None:
-        await self._answer(message,get_extraction_failure_message())
+        await self._answer(message,await self.get_response(RK.EXTRACTION_FAILURE))
         await self._log_system_message(logging.ERROR, get_log_extraction_failure_message(exception))
 
     async def __reply_invalid_segment_number(self, message: Message, segment_number: int) -> None:

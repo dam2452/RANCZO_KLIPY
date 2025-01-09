@@ -4,4 +4,3 @@ def get_log_segment_saved_message(chat_id: int) -> str:
 
 def get_log_clip_success_message(username: str) -> str:
     return f"Video clip extracted successfully for user '{username}'."
-

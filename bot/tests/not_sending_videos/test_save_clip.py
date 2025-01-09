@@ -63,7 +63,7 @@ class TestSaveClipHandler(BaseTest):
     @pytest.mark.asyncio
     async def test_save_clip_duplicate_name(self):
         clip_name = "traktor"
-        await self.send_command(f"/klip geniusz")
+        await self.send_command("/klip geniusz")
         await self.expect_command_result_contains(
             f'/zapisz {clip_name}',
             [

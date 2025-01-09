@@ -19,5 +19,3 @@ def get_log_end_time_earlier_than_start_message() -> str:
 
 def get_log_clip_extracted_message(episode: Episode, start_seconds: float, end_seconds: float) -> str:
     return f"Clip extracted and sent for command: /wytnij {episode} {start_seconds} {end_seconds}"
-
-

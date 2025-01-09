@@ -14,7 +14,7 @@ def get_invalid_segment_log() -> str:
     return "Invalid segment index provided by user."
 
 def get_extraction_failure_log() -> str:
-    return f"Failed to adjust video clip:"
+    return "Failed to adjust video clip:"
 
 def get_updated_segment_info_log(chat_id: int) -> str:
     return f"Updated segment info for chat ID '{chat_id}'"

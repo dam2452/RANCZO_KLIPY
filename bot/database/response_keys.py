@@ -83,5 +83,7 @@ class ResponseKey(str, Enum):
     MESSAGE_SAVED_CONFIRMATION = "message_saved_confirmation"
     SUBSCRIPTION_REDEEMED = "subscription_redeemed"
     INVALID_KEY = "invalid_key"
-
-
+    GENERAL_ERROR = "general_error"
+    LIMIT_EXCEEDED = "limit_exceeded"
+    CLIP_SIZE_EXCEEDED = "clip_size_exceeded"
+    USER_PROFILE = "user_profile"

@@ -62,5 +62,6 @@ class CreateKeyHandler(BotMessageHandler):
         await self._log_system_message(logging.INFO, await self.get_response(RK.CREATE_KEY_USAGE))
 
     async def __reply_key_already_exists(self, message: Message, key: str) -> None:
-        await self._answer(message, await self.get_response(RK.KEY_ALREADY_EXISTS, [key]))
+        await self._answer(message, await self.get_response(RK.KEY_ALREADY_EXISTS, [key])) #TODO: czemu to i w
+        # wielu mijscach nie ma róznych funkcji do logów tylko są te same funkcje co do usera
         await self._log_system_message(logging.INFO, await self.get_response(RK.KEY_ALREADY_EXISTS, [key]))

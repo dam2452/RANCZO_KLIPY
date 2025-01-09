@@ -10,11 +10,7 @@ from bot.handlers.bot_message_handler import (
     BotMessageHandler,
     ValidatorFunctions,
 )
-from bot.responses.bot_message_handler_responses import (
-    get_log_no_segments_found_message,
-    get_message_too_long_message,
-    get_no_segments_found_message,
-)
+from bot.responses.bot_message_handler_responses import get_log_no_segments_found_message
 from bot.responses.not_sending_videos.search_handler_responses import (
     format_search_response,
     get_log_search_results_sent_message,
@@ -40,7 +36,7 @@ class SearchHandler(BotMessageHandler):
     async def __check_quote_length(self, message: Message) -> bool:
         quote = " ".join(message.text.split()[1:])
         if not await DatabaseManager.is_admin_or_moderator(message.from_user.id) and len(quote) > settings.MAX_SEARCH_QUERY_LENGTH:
-            await self._answer(message,get_message_too_long_message())
+            await self._answer(message,await self.get_response(RK.MESSAGE_TOO_LONG))
             return False
         return True
 
@@ -64,7 +60,7 @@ class SearchHandler(BotMessageHandler):
         await self.__send_search_results(message, response, quote)
 
     async def __reply_no_segments_found(self, message: Message, quote: str) -> None:
-        await self._answer(message,get_no_segments_found_message(quote))
+        await self._answer(message,await self.get_response(RK.NO_SEGMENTS_FOUND, [quote]))
         await self._log_system_message(logging.INFO, get_log_no_segments_found_message(quote))
 
     async def __send_search_results(self, message: Message, response: str, quote: str) -> None:

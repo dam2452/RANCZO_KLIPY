@@ -205,5 +205,15 @@ INSERT INTO common_messages (handler_name, key, message) VALUES
 
 
 
+-- INSERT INTO common_messages (handler_name, key, message) VALUES
+-- ('UserHandler', 'user_profile', '👤 ID: {}\n👤 Username: {}\n📛 Full Name: {}\n🔒 Subscription End: {}\n📝 Note: {}\n');
+INSERT INTO common_messages (handler_name, key, message) VALUES
+('BotMessageHandler', 'general_error', '⚠️ Wystąpił błąd podczas przetwarzania żądania. Prosimy spróbować ponownie później.⚠️'),
+('BotMessageHandler', 'invalid_args_count', 'Incorrect command ({}) format provided by user {}.'),
+('BotMessageHandler', 'no_segments_found', '❌ Nie znaleziono pasujących cytatów dla: {}.❌'),
+('BotMessageHandler', 'extraction_failure', '⚠️ Nie udało się wyodrębnić klipu wideo.⚠️'),
+('BotMessageHandler', 'limit_exceeded', '❌ Przekroczono limit wiadomości. Spróbuj ponownie później.❌'),
+('BotMessageHandler', 'message_too_long', '❌ Wiadomość jest zbyt długa.❌'),
+('BotMessageHandler', 'clip_size_exceeded', '❌ Wyodrębniony klip jest za duży, aby go wysłać przez Telegram. Maksymalny rozmiar pliku to 50 MB.❌');
 
 
