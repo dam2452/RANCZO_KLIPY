@@ -710,27 +710,30 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
                 )
 
     @staticmethod
-    async def get_message_from_specialized_table(
-        key: str, handler_name: str,
+    async def __get_message_from_message_table(
+        table: str, key: str, handler_name: str
     ) -> Optional[str]:
         async with DatabaseManager.get_db_connection() as conn:
             query = f"""
                 SELECT message
-                FROM {settings.SPECIALIZED_TABLE}
+                FROM {table}
                 WHERE handler_name = $1 AND key = $2
             """
             row = await conn.fetchrow(query, handler_name, key)
             return row["message"] if row else None
 
     @staticmethod
-    async def get_message_from_common_messages(
-        key: str, handler_name: str,
+    async def get_message_from_specialized_table(
+        key: str, handler_name: str
     ) -> Optional[str]:
-        async with DatabaseManager.get_db_connection() as conn:
-            query = """
-                SELECT message
-                FROM common_messages
-                WHERE handler_name = $1 AND key = $2
-            """
-            row = await conn.fetchrow(query, handler_name, key)
-            return row["message"] if row else None
+        return await DatabaseManager.__get_message_from_message_table(
+            settings.SPECIALIZED_TABLE, key, handler_name
+        )
+
+    @staticmethod
+    async def get_message_from_common_messages(
+        key: str, handler_name: str
+    ) -> Optional[str]:
+        return await DatabaseManager.__get_message_from_message_table(
+            "common_messages", key, handler_name
+        )
