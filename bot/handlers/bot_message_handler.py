@@ -80,11 +80,7 @@ class BotMessageHandler(ABC):
         return self.__class__.__name__
 
     async def get_response(self, key: str, args: Optional[List[str]] = None) -> str:
-        return await get_response(
-            key=key,
-            handler_name=self.get_action_name() ,
-            args=args,
-        )
+        return await get_response(key=key, handler_name=self.get_action_name(), args=args)
 
     @abstractmethod
     def get_commands(self) -> List[str]:
