@@ -189,3 +189,11 @@ INSERT INTO common_messages (handler_name, key, message) VALUES
 
 Dzięki za wsparcie projektu! 🎉
 ');
+
+
+INSERT INTO common_messages (handler_name, key, message) VALUES
+('UpdateUserNoteHandler', 'note_updated', '✅ Notatka została zaktualizowana.✅'),
+('UpdateUserNoteHandler', 'no_note_provided', '❌ Proszę podać ID użytkownika oraz treść notatki.❌'),
+('UpdateUserNoteHandler', 'invalid_user_id', '❌ Nieprawidłowe ID użytkownika: {}.❌');
+
+
