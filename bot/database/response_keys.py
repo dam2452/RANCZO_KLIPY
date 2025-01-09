@@ -74,7 +74,8 @@ class ResponseKey(str, Enum):
     SUBSCRIPTIONS_MESSAGE = "subscriptions_message"
     SHORTCUTS_MESSAGE = "shortcuts_message"
     INVALID_COMMAND_MESSAGE = "invalid_command_message"
-
+    NO_SUBSCRIPTION = "no_subscription"
+    SUBSCRIPTION_STATUS = "subscription_status"
 
 
 

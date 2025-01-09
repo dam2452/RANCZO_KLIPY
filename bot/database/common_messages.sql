@@ -178,3 +178,14 @@ INSERT INTO common_messages (handler_name, key, message) VALUES
 ('StartHandler', 'invalid_command_message', '❌ Niepoprawna komenda w menu startowym. Użyj /start, aby zobaczyć dostępne opcje. ❌');
 
 
+INSERT INTO common_messages (handler_name, key, message) VALUES
+('SubscriptionStatusHandler', 'no_subscription', '🚫 Nie masz aktywnej subskrypcji.🚫'),
+('SubscriptionStatusHandler', 'subscription_status', '
+✨ **Status Twojej subskrypcji** ✨
+
+👤 **Użytkownik:** {}
+📅 **Data zakończenia:** {}
+⏳ **Pozostało dni:** {}
+
+Dzięki za wsparcie projektu! 🎉
+');

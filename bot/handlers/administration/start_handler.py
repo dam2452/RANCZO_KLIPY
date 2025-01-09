@@ -27,6 +27,7 @@ from bot.responses.administration.start_handler_responses import (
     get_subscriptions_message,
 )
 from bot.utils.functions import remove_diacritics_and_lowercase
+
 #TODO: start response
 
 class StartHandler(BotMessageHandler):

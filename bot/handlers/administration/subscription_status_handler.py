@@ -9,15 +9,14 @@ from typing import (
 from aiogram.types import Message
 
 from bot.database.database_manager import DatabaseManager
+from bot.database.response_keys import ResponseKey as RK
 from bot.handlers.bot_message_handler import (
     BotMessageHandler,
     ValidatorFunctions,
 )
 from bot.responses.administration.subscription_status_handler_responses import (
-    format_subscription_status_response,
     get_log_no_active_subscription_message,
     get_log_subscription_status_sent_message,
-    get_no_subscription_message,
 )
 
 
@@ -36,7 +35,7 @@ class SubscriptionStatusHandler(BotMessageHandler):
 
         subscription_end, days_remaining = subscription_status
         user_name = message.from_user.username or message.from_user.full_name
-        response = format_subscription_status_response(user_name, subscription_end, days_remaining)
+        response = await self.get_response(RK.SUBSCRIPTION_STATUS, [user_name, str(subscription_end), str(days_remaining)])
 
         await self._answer_markdown(message , response)
         await self._log_system_message(logging.INFO, get_log_subscription_status_sent_message(user_name))
@@ -52,5 +51,5 @@ class SubscriptionStatusHandler(BotMessageHandler):
 
     async def __reply_no_subscription(self, message: Message) -> None:
         user_name = message.from_user.username or message.from_user.full_name
-        await self._answer(message,get_no_subscription_message())
+        await self._answer(message,await self.get_response(RK.NO_SUBSCRIPTION))
         await self._log_system_message(logging.INFO, get_log_no_active_subscription_message(user_name))
