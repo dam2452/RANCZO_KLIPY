@@ -711,7 +711,7 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
 
     @staticmethod
     async def __get_message_from_message_table(
-        table: str, key: str, handler_name: str
+        table: str, key: str, handler_name: str,
     ) -> Optional[str]:
         async with DatabaseManager.get_db_connection() as conn:
             query = f"""
@@ -724,16 +724,16 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
 
     @staticmethod
     async def get_message_from_specialized_table(
-        key: str, handler_name: str
+        key: str, handler_name: str,
     ) -> Optional[str]:
         return await DatabaseManager.__get_message_from_message_table(
-            settings.SPECIALIZED_TABLE, key, handler_name
+            settings.SPECIALIZED_TABLE, key, handler_name,
         )
 
     @staticmethod
     async def get_message_from_common_messages(
-        key: str, handler_name: str
+        key: str, handler_name: str,
     ) -> Optional[str]:
         return await DatabaseManager.__get_message_from_message_table(
-            "common_messages", key, handler_name
+            "common_messages", key, handler_name,
         )
