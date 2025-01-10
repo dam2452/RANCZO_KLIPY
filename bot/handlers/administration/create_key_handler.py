@@ -9,6 +9,11 @@ from bot.handlers.bot_message_handler import (
     BotMessageHandler,
     ValidatorFunctions,
 )
+from bot.responses.administration.create_key_handler_responses import (
+    get_key_added_message,
+    get_log_key_name_exists_message,
+    get_wrong_argument_message,
+)
 
 
 class CreateKeyHandler(BotMessageHandler):
@@ -54,14 +59,13 @@ class CreateKeyHandler(BotMessageHandler):
     async def __reply_key_added(self, message: Message, days: int, key: str) -> None:
         await self._answer(message, await self.get_response(RK.CREATE_KEY_SUCCESS, [key, days]))
         await self._log_system_message(
-            logging.INFO, await self.get_response(RK.CREATE_KEY_SUCCESS, [key, days]),
+            logging.INFO, get_key_added_message(key, days),
         )
 
     async def __reply_wrong_argument(self, message: Message) -> None:
         await self._answer(message, await self.get_response(RK.CREATE_KEY_USAGE))
-        await self._log_system_message(logging.INFO, await self.get_response(RK.CREATE_KEY_USAGE))
+        await self._log_system_message(logging.INFO, get_wrong_argument_message())
 
     async def __reply_key_already_exists(self, message: Message, key: str) -> None:
-        await self._answer(message, await self.get_response(RK.KEY_ALREADY_EXISTS, [key])) #TODO: czemu to i w
-        # wielu mijscach nie ma róznych funkcji do logów tylko są te same funkcje co do usera
-        await self._log_system_message(logging.INFO, await self.get_response(RK.KEY_ALREADY_EXISTS, [key]))
+        await self._answer(message, await self.get_response(RK.KEY_ALREADY_EXISTS, [key]))
+        await self._log_system_message(logging.INFO, get_log_key_name_exists_message(key))

@@ -13,7 +13,6 @@ async def format_myclips_response(clips: List[VideoClip], username: Union[str, N
 
     user_display_name = f"@{username}" if username else full_name
 
-    print(season_info)
     for idx, clip in enumerate(clips, start=1):
         if clip.duration:
             minutes, seconds = divmod(clip.duration, 60)
@@ -27,8 +26,8 @@ async def format_myclips_response(clips: List[VideoClip], username: Union[str, N
         if clip.is_compilation:
             season_episode = "Kompilacja"
         else:
-            episode_in_season = season_info[str(clip.season)]
-            episode_number_mod = (clip.episode_number - 1) % episode_in_season + 1 if clip.episode_number else "N/A"
+            episodes_in_season = season_info[str(clip.season)]
+            episode_number_mod = (clip.episode_number - 1) % episodes_in_season + 1 if clip.episode_number else "N/A"
             season_episode = f"S{clip.season:02d}E{episode_number_mod:02d}"
 
         clip_lines.append(

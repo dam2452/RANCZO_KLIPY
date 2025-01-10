@@ -40,6 +40,10 @@ class EpisodeListHandler(BotMessageHandler):
     async def _do_handle(self, message: Message) -> None:
         season = int(message.text.split()[1])
 
+        season_info = await TranscriptionFinder.get_season_details_from_elastic(
+            logger=self._logger,
+        )
+
         #ester egg
         if season == 11 and s.SPECIALIZED_TABLE == "ranczo_messages":
             return await self.__handle_season_11(message)
@@ -48,7 +52,7 @@ class EpisodeListHandler(BotMessageHandler):
         if not episodes:
             return await self.__reply_no_episodes_found(message, season)
 
-        response_parts = self.__split_message(format_episode_list_response(season, episodes))
+        response_parts = self.__split_message(format_episode_list_response(season, episodes, season_info))
 
         for part in response_parts:
             await self._answer_markdown(message , part)
@@ -59,7 +63,7 @@ class EpisodeListHandler(BotMessageHandler):
         )
 
     async def __handle_season_11(self, message: Message) -> None:
-        image_path = Path("Ranczo_Sezon11.png") #TODO: dać to do bazy do bolba
+        image_path = Path("Ranczo_Sezon11.png") #Mabye we should store this in database or in base64 anyway
         with image_path.open("rb") as image_file:
             image_bytes = image_file.read()
         await self._answer_photo(message, image_bytes, image_path, caption=get_season_11_petition_message())
