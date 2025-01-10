@@ -1,42 +1,44 @@
 import argparse
 import os
+from pathlib import Path
 import subprocess
 
 
-def przetworz_folder(folder_wejsciowy: str, folder_wyjsciowy: str) -> None:
-    model = "large-v3"
-    jezyk = "Polish"
-    urzadzenie = "cuda"
+def process_audio_files(input_folder: str, output_folder: str, model: str = "large-v3", language: str = "Polish", device: str = "cuda") -> None:
+    input_folder = Path(input_folder)
+    output_folder = Path(output_folder)
 
-    for sciezka_katalogu, _, lista_plikow in os.walk(folder_wejsciowy):
-        for plik in lista_plikow:
-            if plik.endswith((".wav", ".mp3")):
-                sciezka_wejsciowa = os.path.join(sciezka_katalogu, plik)
-                nazwa_pliku_wyjsciowego = plik.split(".")[0] + "_przetworzone.wav"
-                sciezka_wyjsciowa = os.path.join(
-                    folder_wyjsciowy, os.path.relpath(sciezka_katalogu, folder_wejsciowy),
-                    nazwa_pliku_wyjsciowego,
-                )
+    for file_path in input_folder.rglob("*"):
+        if file_path.suffix.lower() in [".wav", ".mp3"]:
+            relative_path = file_path.relative_to(input_folder)
+            output_path = output_folder / relative_path.with_suffix("_processed.wav")
 
-                if not os.path.exists(os.path.dirname(sciezka_wyjsciowa)):
-                    os.makedirs(os.path.dirname(sciezka_wyjsciowa))
+            output_path.parent.mkdir(parents=True, exist_ok=True)
 
+            try:
                 subprocess.run(
                     [
-                        "whisper", sciezka_wejsciowa, "--model", model, "--language", jezyk, "--device", urzadzenie,
-                        "--output_dir", folder_wyjsciowy,
-                    ], check=True,
+                        "whisper", str(file_path), "--model", model, "--language", language, "--device", device,
+                        "--output_dir", str(output_path.parent),
+                    ],
+                    check=True,
                 )
+                print(f"Processed: {file_path} -> {output_path}")
+            except subprocess.CalledProcessError as e:
+                print(f"Error processing {file_path}: {e}")
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Przetwarzanie plików .wav i .mp3 za pomocą modelu whisper")
-    parser.add_argument("folder_wejsciowy", type=str, help="Ścieżka do folderu wejściowego")
-    parser.add_argument("folder_wyjsciowy", type=str, help="Ścieżka do folderu wyjściowego")
+    parser = argparse.ArgumentParser(description="Process .wav and .mp3 files using Whisper model.")
+    parser.add_argument("input_folder", type=str, help="Path to the input folder")
+    parser.add_argument("output_folder", type=str, help="Path to the output folder")
+    parser.add_argument("--model", type=str, default="large-v3", help="Whisper model to use (default: 'large-v3')")
+    parser.add_argument("--language", type=str, default="Polish", help="Language to use (default: 'Polish')")
+    parser.add_argument("--device", type=str, default="cuda", help="Device to use (default: 'cuda')")
 
     args = parser.parse_args()
 
-    przetworz_folder(args.folder_wejsciowy, args.folder_wyjsciowy)
+    process_audio_files(args.input_folder, args.output_folder, args.model, args.language, args.device)
 
 
 if __name__ == "__main__":
