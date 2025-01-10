@@ -8,6 +8,7 @@ from typing import (
 from aiogram import Bot
 from aiogram.types import Message
 
+from bot.database.response_keys import ResponseKey as RK
 from bot.handlers.bot_message_handler import (
     BotMessageHandler,
     ValidatorFunctions,
@@ -17,8 +18,6 @@ from bot.responses.administration.start_handler_responses import (
     get_log_start_message_sent,
 )
 from bot.utils.functions import remove_diacritics_and_lowercase
-from bot.database.response_keys import ResponseKey as RK
-
 
 
 class StartHandler(BotMessageHandler):
@@ -66,8 +65,10 @@ class StartHandler(BotMessageHandler):
 
     async def _do_handle(self, message: Message) -> None:
         content = message.text.split()
-        await self._log_system_message(logging.INFO,
-                                       get_log_received_start_command(message.from_user.username, message.text))
+        await self._log_system_message(
+            logging.INFO,
+            get_log_received_start_command(message.from_user.username, message.text),
+        )
 
         if len(content) == 1:
             text = await self.get_response(RK.BASIC_MESSAGE)

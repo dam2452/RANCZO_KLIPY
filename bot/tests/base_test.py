@@ -19,6 +19,7 @@ from telethon.tl.custom.message import Message
 
 from bot.database.database_manager import DatabaseManager
 from bot.responses.bot_message_handler_responses import get_response
+from bot.search.transcription_finder import TranscriptionFinder
 import bot.tests.messages as msg
 from bot.tests.settings import settings as s
 
@@ -240,3 +241,10 @@ class BaseTest:
             expected_key=expected_key,
             expected_hashes_file=expected_hashes_file,
         )
+
+    @staticmethod
+    async def get_season_info() -> Dict[str, int]:
+        season_info = await TranscriptionFinder.get_season_details_from_elastic(
+            logger=logger,
+        )
+        return season_info

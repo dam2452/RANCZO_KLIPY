@@ -19,6 +19,7 @@ from bot.responses.not_sending_videos.episode_list_handler_responses import (
     get_season_11_petition_message,
 )
 from bot.search.transcription_finder import TranscriptionFinder
+from bot.settings import settings as s
 
 
 class EpisodeListHandler(BotMessageHandler):
@@ -39,7 +40,8 @@ class EpisodeListHandler(BotMessageHandler):
     async def _do_handle(self, message: Message) -> None:
         season = int(message.text.split()[1])
 
-        if season == 11:
+        #ester egg
+        if season == 11 and s.SPECIALIZED_TABLE == "ranczo_messages":
             return await self.__handle_season_11(message)
 
         episodes = await TranscriptionFinder.find_episodes_by_season(season, self._logger)

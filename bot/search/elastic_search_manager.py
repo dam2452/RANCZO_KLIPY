@@ -150,6 +150,7 @@ async def main(logger: logging.Logger) -> None:
         await es_client.close()
 
 
+
 if __name__ == "__main__":
     import asyncio
 

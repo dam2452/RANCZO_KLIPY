@@ -1,7 +1,7 @@
 import pytest
 
-from bot.tests.base_test import BaseTest
 from bot.database.response_keys import ResponseKey as RK
+from bot.tests.base_test import BaseTest
 
 
 @pytest.mark.usefixtures("db_pool", "telegram_client")

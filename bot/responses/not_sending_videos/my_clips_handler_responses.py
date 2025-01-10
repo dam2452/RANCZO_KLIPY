@@ -1,4 +1,5 @@
 from typing import (
+    Dict,
     List,
     Union,
 )
@@ -7,11 +8,12 @@ from bot.database.models import VideoClip
 from bot.utils.functions import convert_number_to_emoji
 
 
-def format_myclips_response(clips: List[VideoClip], username: Union[str, None], full_name: Union[str, None]) -> str:
+async def format_myclips_response(clips: List[VideoClip], username: Union[str, None], full_name: Union[str, None], season_info: Dict[str, int]) -> str:
     clip_lines = []
 
     user_display_name = f"@{username}" if username else full_name
 
+    print(season_info)
     for idx, clip in enumerate(clips, start=1):
         if clip.duration:
             minutes, seconds = divmod(clip.duration, 60)
@@ -25,7 +27,8 @@ def format_myclips_response(clips: List[VideoClip], username: Union[str, None], 
         if clip.is_compilation:
             season_episode = "Kompilacja"
         else:
-            episode_number_mod = (clip.episode_number - 1) % 13 + 1 if clip.episode_number else "N/A" #TODO: żeby działało dla innych seriali
+            episode_in_season = season_info[str(clip.season)]
+            episode_number_mod = (clip.episode_number - 1) % episode_in_season + 1 if clip.episode_number else "N/A"
             season_episode = f"S{clip.season:02d}E{episode_number_mod:02d}"
 
         clip_lines.append(

@@ -14,6 +14,7 @@ from bot.responses.not_sending_videos.my_clips_handler_responses import (
     get_log_no_saved_clips_message,
     get_log_saved_clips_sent_message,
 )
+from bot.search.transcription_finder import TranscriptionFinder
 
 
 class MyClipsHandler(BotMessageHandler):
@@ -27,7 +28,18 @@ class MyClipsHandler(BotMessageHandler):
         if not clips:
             return await self.__reply_no_saved_clips(message)
 
-        await self._answer_markdown(message , format_myclips_response(clips, message.from_user.username, message.from_user.full_name))
+        season_info = await TranscriptionFinder.get_season_details_from_elastic(
+            logger=self._logger,
+        )
+
+        await self._answer_markdown(
+            message , await format_myclips_response(
+                clips=clips,
+                username=message.from_user.username,
+                full_name=message.from_user.full_name,
+                season_info=season_info,
+            ),
+        )
         await self._log_system_message(logging.INFO, get_log_saved_clips_sent_message(message.from_user.username))
 
     async def __reply_no_saved_clips(self, message: Message) -> None:

@@ -284,3 +284,43 @@ class TranscriptionFinder:
 
         await log_system_message(logging.INFO, f"Found {len(episodes)} episodes for season {season}.", logger)
         return episodes
+
+    @staticmethod
+    async def get_season_details_from_elastic(
+            logger: logging.Logger,
+            index: str = settings.ES_TRANSCRIPTION_INDEX,
+    ) -> Dict[str, int]:
+        es = await ElasticSearchManager.connect_to_elasticsearch(logger)
+
+        agg_query = {
+            "size": 0,
+            "aggs": {
+                "seasons": {
+                    "terms": {
+                        "field": "episode_info.season",
+                        "size": 1000,
+                        "order": {"_key": "asc"},
+                    },
+                    "aggs": {
+                        "unique_episodes": {
+                            "cardinality": {
+                                "field": "episode_info.episode_number",
+                            },
+                        },
+                    },
+                },
+            },
+        }
+
+        await log_system_message(logging.INFO, "Fetching season details via Elasticsearch aggregation.", logger)
+        response = await es.search(index=index, body=agg_query)
+        buckets = response["aggregations"]["seasons"]["buckets"]
+
+        season_dict: Dict[str, int] = {}
+        for bucket in buckets:
+            season_key = str(bucket["key"])
+            episodes_count = bucket["unique_episodes"]["value"]
+            season_dict[season_key] = episodes_count
+
+        await log_system_message(logging.INFO, f"Season details: {season_dict}", logger)
+        return season_dict

@@ -27,7 +27,7 @@ def get_log_episode_list_sent_message(season: int, username: str) -> str:
     return f"Sent episode list for season {season} to user '{username}'."
 
 
-def get_season_11_petition_message() -> str: #TODO: dać to do bazy do specjalncyh
+def get_season_11_petition_message() -> str:
     return (
         "📢 Sezon 11 nie jest jeszcze dostępny. "
         "Podpisz petycję, aby pomóc go zrealizować! "
