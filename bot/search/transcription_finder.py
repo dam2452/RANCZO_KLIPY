@@ -106,7 +106,7 @@ class TranscriptionFinder:
     ) -> Optional[json]:
         await log_system_message(
             logging.INFO,
-            f"🔍 Searching for quote: '{quote}' with context size: {context_size}. Season: {season_filter}, Episode: {episode_filter}",
+            f"Searching for quote: '{quote}' with context size: {context_size}. Season: {season_filter}, Episode: {episode_filter}",
             logger,
         )
         es = await ElasticSearchManager.connect_to_elasticsearch(logger)

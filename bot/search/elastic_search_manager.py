@@ -255,11 +255,6 @@ async def main(logger: logging.Logger) -> None:
         help="Name of the Elasticsearch index (e.g., 'kiepscy-transcriptions').",
     )
     parser.add_argument(
-        "--delete-existing",
-        action="store_true",
-        help="Delete the specified Elasticsearch index before indexing.",
-    )
-    parser.add_argument(
         "--dry-run",
         action="store_true",
         help="Validate data without sending to Elasticsearch.",
@@ -275,8 +270,7 @@ async def main(logger: logging.Logger) -> None:
 
     es_client = await ElasticSearchManager.connect_to_elasticsearch(logger)
     try:
-        if args.delete_existing:
-            await ElasticSearchManager.delete_index(es_client, index_name, logger)
+        await ElasticSearchManager.delete_index(es_client, index_name, logger)
 
         await ElasticSearchManager.create_index(es_client, index_name, logger)
 
