@@ -6,7 +6,11 @@ from typing import List
 
 from elasticsearch import (
     AsyncElasticsearch,
-    helpers,
+    exceptions as es_exceptions,
+)
+from elasticsearch.helpers import (
+    BulkIndexError,
+    async_bulk,
 )
 import urllib3
 
@@ -25,23 +29,27 @@ class ElasticSearchManager:
             basic_auth=(s.ES_USER, s.ES_PASS),
             verify_certs=False,
         )
-        if not await es.ping():
-            raise ConnectionError("Failed to connect to Elasticsearch.")
-        await log_system_message(logging.INFO, "Connected to Elasticsearch.", logger)
-        return es
+        try:
+            if not await es.ping():
+                raise es_exceptions.ConnectionError("Failed to connect to Elasticsearch.")
+            await log_system_message(logging.INFO, "Connected to Elasticsearch.", logger)
+            return es
+        except es_exceptions.ConnectionError as e:
+            await log_system_message(logging.ERROR, f"Connection error: {str(e)}", logger)
+            raise
 
     @staticmethod
     async def create_index(es: AsyncElasticsearch, index_name: str, logger: logging.Logger) -> None:
         mapping = {
             "mappings": {
                 "properties": {
-                    # "episode_info": {"type": "object"},  # Zakomentowane
+                    "episode_info": {"type": "object"},
                     "text": {"type": "text"},
                     "start": {"type": "float"},
                     "end": {"type": "float"},
                     "video_path": {"type": "keyword"},
-                }
-            }
+                },
+            },
         }
 
         try:
@@ -50,47 +58,27 @@ class ElasticSearchManager:
                 await log_system_message(logging.INFO, f"Index '{index_name}' created.", logger)
             else:
                 await log_system_message(logging.INFO, f"Index '{index_name}' already exists.", logger)
-        except Exception as e:
+        except es_exceptions.RequestError as e:
             await log_system_message(logging.ERROR, f"Error creating index '{index_name}': {str(e)}", logger)
+            raise
+        except es_exceptions.ConnectionError as e:
+            await log_system_message(logging.ERROR, f"Connection error: {str(e)}", logger)
+            raise
 
     @staticmethod
-    async def delete_all_indices(es: AsyncElasticsearch, logger: logging.Logger) -> None:
-        all_indices = await es.indices.get(index="_all")
-        if not all_indices:
-            await log_system_message(logging.INFO, "No indices to delete.", logger)
-            return
-
-        for index in all_indices:
-            await es.indices.delete(index=index)
-            await log_system_message(logging.INFO, f"Deleted index: {index}", logger)
-        await log_system_message(logging.INFO, "All indices have been deleted.", logger)
-
-    @staticmethod
-    async def print_one_transcription(
-        es: AsyncElasticsearch,
-        logger: logging.Logger,
-        index_name: str = s.ES_TRANSCRIPTION_INDEX,
-    ) -> None:
-        response = await es.search(index=index_name, size=1)
-        if response["hits"]["hits"]:
-            document = response["hits"]["hits"][0]["_source"]
-
-            if "video_path" in document and isinstance(document["video_path"], str):
-                document["video_path"] = document["video_path"].replace("\\", "/")
-
-            readable_output = (
-                f"Document ID: {response['hits']['hits'][0]['_id']}\n"
-                # Zakomentowane:
-                # f"Episode Info: {document.get('episode_info', {})}\n"
-                f"Video Path: {document.get('video_path', 'No video_path')}\n"
-                f"Segment Text: {document.get('text', 'No text available')}\n"
-                f"Timestamp: {document.get('timestamp', 'No timestamp available')}"
-            )
-            await log_system_message(
-                logging.INFO, "Retrieved document:\n" + readable_output, logger,
-            )
-        else:
-            await log_system_message(logging.INFO, "No documents found.", logger)
+    async def delete_index(es: AsyncElasticsearch, index_name: str, logger: logging.Logger) -> None:
+        try:
+            if await es.indices.exists(index=index_name):
+                await es.indices.delete(index=index_name)
+                await log_system_message(logging.INFO, f"Deleted index: {index_name}", logger)
+            else:
+                await log_system_message(logging.INFO, f"Index '{index_name}' does not exist. No action taken.", logger)
+        except es_exceptions.RequestError as e:
+            await log_system_message(logging.ERROR, f"Error deleting index '{index_name}': {str(e)}", logger)
+            raise
+        except es_exceptions.ConnectionError as e:
+            await log_system_message(logging.ERROR, f"Connection error: {str(e)}", logger)
+            raise
 
     @staticmethod
     async def index_transcriptions(
@@ -98,7 +86,8 @@ class ElasticSearchManager:
         video_base_path: Path,
         es: AsyncElasticsearch,
         logger: logging.Logger,
-        index_name: str = s.ES_TRANSCRIPTION_INDEX,
+        index_name: str,
+        dry_run: bool = False,
     ) -> None:
         actions = await ElasticSearchManager.__load_all_seasons_actions(
             base_path=base_path,
@@ -110,13 +99,23 @@ class ElasticSearchManager:
         if actions:
             await log_system_message(
                 logging.INFO,
-                f"Indexing {len(actions)} segments into '{index_name}'.",
+                f"Prepared {len(actions)} segments for indexing into '{index_name}'.",
                 logger,
             )
-            await helpers.async_bulk(es, actions)
-            await log_system_message(
-                logging.INFO, "Data indexed successfully.", logger,
-            )
+
+            if dry_run:
+                for action in actions:
+                    logger.info(f"Prepared action: {json.dumps(action, indent=2)}")
+                logger.info("Dry-run complete. No data sent to Elasticsearch.")
+                return
+
+            try:
+                await async_bulk(es, actions)
+                await log_system_message(logging.INFO, "Data indexed successfully.", logger)
+            except BulkIndexError as e:
+                logger.error(f"Bulk indexing failed: {len(e.errors)} errors.")
+                for error in e.errors:
+                    logger.error(f"Failed document: {json.dumps(error, indent=2)}")
         else:
             await log_system_message(logging.INFO, "No data to index.", logger)
 
@@ -170,35 +169,69 @@ class ElasticSearchManager:
 
     @staticmethod
     async def __load_episode(
-            episode_file: Path,
-            season_dir: str,
-            video_base_path: Path,
-            index_name: str,
+        episode_file: Path,
+        season_dir: str,
+        video_base_path: Path,
+        index_name: str,
     ) -> List[json]:
         actions = []
         with episode_file.open("r", encoding="utf-8") as f:
             data = json.load(f)
+            episode_info = data.get("episode_info", {})
 
-            # Tymczasowo zakomentowane
-            # episode_info = data.get("episode_info", {})
             video_file_name = episode_file.stem + ".mp4"
-
             video_path = video_base_path / season_dir / video_file_name
             video_path_str = video_path.as_posix()
 
             for segment in data.get("segments", []):
-                # Tymczasowo zakomentowane
-                # segment["episode_info"] = episode_info
-                segment["video_path"] = video_path_str
+                if not all(key in segment for key in ("text", "start", "end")):
+                    logging.warning(f"Skipping invalid segment in {episode_file}")
+                    continue
 
                 actions.append(
                     {
                         "_index": index_name,
-                        "_source": segment,
+                        "_source": {
+                            "episode_info": episode_info,
+                            "text": segment.get("text"),
+                            "start": segment.get("start"),
+                            "end": segment.get("end"),
+                            "id": segment.get("id"),
+                            "seek": segment.get("seek"),
+                            "author": segment.get("author", ""),
+                            "comment": segment.get("comment", ""),
+                            "tags": segment.get("tags", []),
+                            "location": segment.get("location", ""),
+                            "actors": segment.get("actors", []),
+                            "video_path": video_path_str,
+                        },
                     },
                 )
 
         return actions
+
+    @staticmethod
+    async def print_one_transcription(
+            es: AsyncElasticsearch,
+            logger: logging.Logger,
+            index_name: str = s.ES_TRANSCRIPTION_INDEX,
+    ) -> None:
+        response = await es.search(index=index_name, size=1)
+        if response["hits"]["hits"]:
+            document = response["hits"]["hits"][0]["_source"]
+            document["video_path"] = document["video_path"].replace("\\", "/")
+            readable_output = (
+                f"Document ID: {response['hits']['hits'][0]['_id']}\n"
+                f"Episode Info: {document['episode_info']}\n"
+                f"Video Path: {document['video_path']}\n"
+                f"Segment Text: {document.get('text', 'No text available')}\n"
+                f"Timestamp: {document.get('timestamp', 'No timestamp available')}"
+            )
+            await log_system_message(
+                logging.INFO, "Retrieved document:\n" + readable_output, logger,
+            )
+        else:
+            await log_system_message(logging.INFO, "No documents found.", logger)
 
 
 async def main(logger: logging.Logger) -> None:
@@ -207,24 +240,29 @@ async def main(logger: logging.Logger) -> None:
         "--base-path",
         required=True,
         type=str,
-        help="Path to the directory containing transcription JSON files (e.g., '../RANCZO-TRANSKRYPCJE').",
+        help="Path to the directory containing transcription JSON files (e.g., '../KIEPSCY-TRANSKRYPCJE').",
     )
     parser.add_argument(
         "--video-base-path",
         required=True,
         type=str,
-        help="Path to the directory containing video files (e.g., '../RANCZO-WIDEO').",
+        help="Path to the directory containing video files (e.g., '../KIEPSCY-WIDEO').",
     )
     parser.add_argument(
         "--index-name",
         required=True,
         type=str,
-        help="Name of the Elasticsearch index (e.g., 'ranczo-transcriptions').",
+        help="Name of the Elasticsearch index (e.g., 'kiepscy-transcriptions').",
     )
     parser.add_argument(
         "--delete-existing",
         action="store_true",
-        help="Delete existing Elasticsearch indices before indexing.",
+        help="Delete the specified Elasticsearch index before indexing.",
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Validate data without sending to Elasticsearch.",
     )
 
     args = parser.parse_args()
@@ -238,7 +276,7 @@ async def main(logger: logging.Logger) -> None:
     es_client = await ElasticSearchManager.connect_to_elasticsearch(logger)
     try:
         if args.delete_existing:
-            await ElasticSearchManager.delete_all_indices(es_client, logger)
+            await ElasticSearchManager.delete_index(es_client, index_name, logger)
 
         await ElasticSearchManager.create_index(es_client, index_name, logger)
 
@@ -248,13 +286,15 @@ async def main(logger: logging.Logger) -> None:
             es=es_client,
             logger=logger,
             index_name=index_name,
+            dry_run=args.dry_run,
         )
 
-        await ElasticSearchManager.print_one_transcription(
-            es=es_client,
-            logger=logger,
-            index_name=index_name,
-        )
+        if not args.dry_run:
+            await ElasticSearchManager.print_one_transcription(
+                es=es_client,
+                logger=logger,
+                index_name=index_name,
+            )
     finally:
         await es_client.close()
 

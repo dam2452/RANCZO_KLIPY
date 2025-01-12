@@ -20,7 +20,7 @@ class TestAdjustVideoClipHandler(BaseTest):
     @pytest.mark.asyncio
     async def test_invalid_args_count(self):
         video_name = "geniusz"
-        await self.assert_command_result_file_matches(await self.send_command(f"/klip {video_name}"), "clip_geniusz.mp4")
+        await self.assert_command_result_file_matches(await self.send_command(f"/klip {video_name}"), f"clip_{video_name}.mp4")
         response = await self.send_command("/dostosuj -abc 1.2")
         self.assert_response_contains(response, [await self.get_response(RK.INVALID_ARGS_COUNT)])
 

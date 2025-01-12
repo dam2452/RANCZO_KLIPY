@@ -3,105 +3,161 @@ import json
 import logging
 from pathlib import Path
 import subprocess
+from typing import Tuple
 
 
-def get_video_resolution(video_path: Path) -> tuple[int, int]:
-    cmd = [
-        "ffprobe", "-v", "error",
-        "-select_streams", "v:0",
-        "-show_entries", "stream=width,height",
-        "-of", "json",
-        str(video_path),
-    ]
-    try:
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
-        probe_data = json.loads(result.stdout)
-        streams = probe_data.get("streams", [])
-        if not streams:
-            raise ValueError(f"No video streams found in {video_path}")
-        width = streams[0].get("width")
-        height = streams[0].get("height")
-        if width is None or height is None:
-            raise ValueError(f"Could not parse width/height from {video_path}")
-        return width, height
-    except subprocess.CalledProcessError as e:
-        logging.error(f"ffprobe error: {e}")
-        raise
-    except json.JSONDecodeError as e:
-        logging.error(f"JSON decode error: {e}")
-        raise
+class VideoConverter:
+    DEFAULT_CODEC = "h264_nvenc"
+    DEFAULT_PRESET = "slow"
+    DEFAULT_CRF = 31
+    DEFAULT_GOP_SIZE = 0.5
+    DEFAULT_RESOLUTIONS = {
+        "1080p": (1920, 1080),
+        "720p": (1280, 720),
+        "480p": (854, 480),
+    }
 
+    def __init__(self):
+        self.logger = self.setup_logger()
 
-def convert_video(
+    # pylint: disable=duplicate-code
+    @staticmethod
+    def setup_logger() -> logging.Logger:
+        logger = logging.getLogger("VideoConverter")
+        logger.setLevel(logging.INFO)
+        handler = logging.StreamHandler()
+        formatter = logging.Formatter("%(asctime)s | %(levelname)s | %(message)s")
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+        return logger
+
+    # pylint: enable=duplicate-code
+    def get_video_properties(self, video_path: Path) -> float:
+        cmd = [
+            "ffprobe", "-v", "error",
+            "-select_streams", "v:0",
+            "-show_entries", "stream=r_frame_rate",
+            "-of", "json",
+            str(video_path),
+        ]
+        try:
+            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            probe_data = json.loads(result.stdout)
+            streams = probe_data.get("streams", [])
+            if not streams:
+                raise ValueError(f"No video streams found in {video_path}")
+
+            r_frame_rate = streams[0].get("r_frame_rate")
+            if not r_frame_rate:
+                raise ValueError(f"Frame rate not found in {video_path}")
+
+            num, denom = (int(x) for x in r_frame_rate.split('/'))
+            return num / denom
+        except subprocess.CalledProcessError as e:
+            self.logger.error(f"ffprobe error for {video_path}: {e}")
+            raise
+        except json.JSONDecodeError as e:
+            self.logger.error(f"JSON decode error for {video_path}: {e}")
+            raise
+        except ValueError as e:
+            self.logger.error(f"Value error for {video_path}: {e}")
+            raise
+
+    def convert_video(
+        self,
         input_file: Path,
         output_file: Path,
-        codec: str = "h264_nvenc",
-        preset: str = "slow",
-        crf: int = 31,
-) -> None:
-    width, height = get_video_resolution(input_file)
+        target_resolution: Tuple[int, int],
+        codec: str,
+        preset: str,
+        crf: int,
+        gop_size: float,
+    ) -> None:
+        try:
+            fps = self.get_video_properties(input_file)
+            width, height = target_resolution
+            vf_filter = (
+                f"scale={width}:{height}:force_original_aspect_ratio=decrease,"
+                f"pad={width}:{height}:(ow-iw)/2:(oh-ih)/2:black"
+            )
+            gop = int(fps * gop_size)
 
-    if height < 1080:
-        vf_filter = "yadif=0:-1:0"
-    else:
-        vf_filter = "yadif=0:-1:0,scale=-2:1080"
+            command = [
+                "ffmpeg",
+                "-y",
+                "-i", str(input_file),
+                "-c:v", codec,
+                "-preset", preset,
+                "-profile:v", "main",
+                "-cq:v", str(crf),
+                "-g", str(gop),
+                "-c:a", "aac",
+                "-b:a", "128k",
+                "-ac", "2",
+                "-vf", vf_filter,
+                "-movflags", "+faststart",
+                str(output_file),
+            ]
 
-    command = [
-        "ffmpeg",
-        "-y",
-        "-i", str(input_file),
-        "-c:v", codec,
-        "-preset", preset,
-        "-profile:v", "main",
-        "-cq:v", str(crf),
-        "-c:a", "aac",
-        "-b:a", "128k",
-        "-ac", "2",
-        "-vf", vf_filter,
-        "-movflags", "+faststart",
-        str(output_file),
-    ]
+            self.logger.info(f"Processing: {input_file} -> {output_file} with resolution {width}x{height}")
+            subprocess.run(command, check=True)
+        except subprocess.CalledProcessError as e:
+            self.logger.error(f"Error processing {input_file}: {e}")
 
-    logging.info(f"Processing: {input_file} -> {output_file}")
-    try:
-        subprocess.run(command, check=True)
-    except subprocess.CalledProcessError as e:
-        logging.error(f"Error processing {input_file}: {e}")
-
-
-def convert_videos(
+    def convert_videos(
+        self,
         input_dir: Path,
         output_dir: Path,
-        codec: str = "h264_nvenc",
-        preset: str = "slow",
-        crf: int = 31,
-) -> None:
-    if not input_dir.is_dir():
-        logging.error(f"Invalid input directory: {input_dir}")
-        return
+        target_resolution: Tuple[int, int],
+        codec: str,
+        preset: str,
+        crf: int,
+        gop_size: float,
+    ) -> None:
+        if not input_dir.is_dir():
+            raise ValueError(f"Invalid input directory: {input_dir}")
 
-    for video_file in input_dir.rglob("*.mp4"):
-        relative_path = video_file.relative_to(input_dir)
-        output_path = output_dir / relative_path
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-        convert_video(video_file, output_path, codec, preset, crf)
+        for video_file in input_dir.rglob("*.mp4"):
+            relative_path = video_file.relative_to(input_dir)
+            output_path = output_dir / relative_path
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            self.convert_video(video_file, output_path, target_resolution, codec, preset, crf, gop_size)
+
+    def parse_resolution(self, resolution: str) -> Tuple[int, int]:
+        if resolution not in self.DEFAULT_RESOLUTIONS:
+            raise ValueError(f"Invalid resolution {resolution}. Choose from: {list(self.DEFAULT_RESOLUTIONS.keys())}")
+        return self.DEFAULT_RESOLUTIONS[resolution]
+
+    def run(self, args: argparse.Namespace) -> None:
+        input_dir = Path(args.input_directory)
+        output_dir = Path(args.output_directory)
+        target_resolution = self.parse_resolution(args.resolution)
+
+        self.logger.info("Starting video conversion...")
+        self.convert_videos(input_dir, output_dir, target_resolution, args.codec, args.preset, args.crf, args.gop_size)
+        self.logger.info("Video conversion completed.")
 
 
 def main() -> None:
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
-
-    parser = argparse.ArgumentParser(description="Convert .mp4 videos to h264_nvenc with optional scaling to 1080p.")
+    parser = argparse.ArgumentParser(description="Convert .mp4 videos to a specific resolution with black bars.")
     parser.add_argument("input_directory", type=str, help="Path to the input directory containing videos.")
     parser.add_argument("output_directory", type=str, help="Path to the output directory for converted videos.")
-    parser.add_argument("--codec", type=str, default="h264_nvenc", help="Video codec (default: h264_nvenc).")
-    parser.add_argument("--preset", type=str, default="slow", help="FFmpeg preset (default: slow).")
-    parser.add_argument("--crf", type=int, default=31, help="Quality (default: 31, lower = better).")
+    parser.add_argument(
+        "--resolution",
+        type=str,
+        default="1080p",
+        choices=VideoConverter.DEFAULT_RESOLUTIONS.keys(),
+        help="Target resolution for all videos.",
+    )
+    parser.add_argument("--codec", type=str, default=VideoConverter.DEFAULT_CODEC, help="Video codec.")
+    parser.add_argument("--preset", type=str, default=VideoConverter.DEFAULT_PRESET, help="FFmpeg preset.")
+    parser.add_argument("--crf", type=int, default=VideoConverter.DEFAULT_CRF, help="Quality (lower = better).")
+    parser.add_argument("--gop-size", type=float, default=VideoConverter.DEFAULT_GOP_SIZE, help="Keyframe interval in seconds.")
 
     args = parser.parse_args()
-    input_dir = Path(args.input_directory)
-    output_dir = Path(args.output_directory)
 
-    convert_videos(input_dir, output_dir, args.codec, args.preset, args.crf)
+    converter = VideoConverter()
+    converter.run(args)
 
 
 if __name__ == "__main__":

@@ -1,6 +1,5 @@
 import logging
 from typing import (
-    Callable,
     Dict,
     List,
 )
@@ -17,43 +16,44 @@ from bot.responses.administration.start_handler_responses import (
     get_log_received_start_command,
     get_log_start_message_sent,
 )
+from bot.responses.not_sending_videos.episode_list_handler_responses import get_invalid_argument_count_log_message
 from bot.utils.functions import remove_diacritics_and_lowercase
 
 
 class StartHandler(BotMessageHandler):
     def __init__(self, bot: Bot, logger: logging.Logger):
-        self.__RESPONSES: Dict[str, Callable[[], str]] = {
-            "lista": lambda: RK.LIST_MESSAGE,
-            "list": lambda: RK.LIST_MESSAGE,
-            "l": lambda: RK.LIST_MESSAGE,
+        self.__RESPONSES: Dict[str, str] = {
+            "lista": RK.LIST_MESSAGE,
+            "list": RK.LIST_MESSAGE,
+            "l": RK.LIST_MESSAGE,
 
-            "wszystko": lambda: RK.ALL_MESSAGE,
-            "all": lambda: RK.ALL_MESSAGE,
-            "a": lambda: RK.ALL_MESSAGE,
+            "wszystko": RK.ALL_MESSAGE,
+            "all": RK.ALL_MESSAGE,
+            "a": RK.ALL_MESSAGE,
 
-            "wyszukiwanie": lambda: RK.SEARCH_MESSAGE,
-            "search": lambda: RK.SEARCH_MESSAGE,
-            "s": lambda: RK.SEARCH_MESSAGE,
+            "wyszukiwanie": RK.SEARCH_MESSAGE,
+            "search": RK.SEARCH_MESSAGE,
+            "s": RK.SEARCH_MESSAGE,
 
-            "edycja": lambda: RK.EDIT_MESSAGE,
-            "edit": lambda: RK.EDIT_MESSAGE,
-            "e": lambda: RK.EDIT_MESSAGE,
+            "edycja": RK.EDIT_MESSAGE,
+            "edit": RK.EDIT_MESSAGE,
+            "e": RK.EDIT_MESSAGE,
 
-            "zarzadzanie": lambda: RK.MANAGEMENT_MESSAGE,
-            "management": lambda: RK.MANAGEMENT_MESSAGE,
-            "m": lambda: RK.MANAGEMENT_MESSAGE,
+            "zarzadzanie": RK.MANAGEMENT_MESSAGE,
+            "management": RK.MANAGEMENT_MESSAGE,
+            "m": RK.MANAGEMENT_MESSAGE,
 
-            "raportowanie": lambda: RK.REPORTING_MESSAGE,
-            "reporting": lambda: RK.REPORTING_MESSAGE,
-            "r": lambda: RK.REPORTING_MESSAGE,
+            "raportowanie": RK.REPORTING_MESSAGE,
+            "reporting": RK.REPORTING_MESSAGE,
+            "r": RK.REPORTING_MESSAGE,
 
-            "subskrypcje": lambda: RK.SUBSCRIPTIONS_MESSAGE,
-            "subscriptions": lambda: RK.SUBSCRIPTIONS_MESSAGE,
-            "sub": lambda: RK.SUBSCRIPTIONS_MESSAGE,
+            "subskrypcje": RK.SUBSCRIPTIONS_MESSAGE,
+            "subscriptions": RK.SUBSCRIPTIONS_MESSAGE,
+            "sub": RK.SUBSCRIPTIONS_MESSAGE,
 
-            "skroty": lambda: RK.SHORTCUTS_MESSAGE,
-            "shortcuts": lambda: RK.SHORTCUTS_MESSAGE,
-            "sh": lambda: RK.SHORTCUTS_MESSAGE,
+            "skroty": RK.SHORTCUTS_MESSAGE,
+            "shortcuts": RK.SHORTCUTS_MESSAGE,
+            "sh": RK.SHORTCUTS_MESSAGE,
         }
         super().__init__(bot, logger)
 
@@ -61,7 +61,23 @@ class StartHandler(BotMessageHandler):
         return ["start", "s", "help", "h", "pomoc"]
 
     def _get_validator_functions(self) -> ValidatorFunctions:
-        return []
+        return [self._validate_specific_argument_count]
+
+    async def _validate_specific_argument_count(self, message: Message) -> bool:
+        if not await self._validate_argument_count(message, 1, await self.get_response(RK.INVALID_COMMAND_MESSAGE)):
+            return False
+
+        content = message.text.split()
+        if len(content) not in {1, 2}:
+            text = await self.get_response(RK.INVALID_COMMAND_MESSAGE)
+            await self._answer_markdown(message, text)
+            await self._log_system_message(
+                logging.WARNING,
+                get_invalid_argument_count_log_message(message.from_user.id, message.text),
+            )
+            return False
+
+        return True
 
     async def _do_handle(self, message: Message) -> None:
         content = message.text.split()
@@ -78,12 +94,12 @@ class StartHandler(BotMessageHandler):
             clean_command = remove_diacritics_and_lowercase(command)
             response_key = self.__RESPONSES.get(clean_command)
             if response_key:
-                text = await self.get_response(response_key())
+                text = await self.get_response(response_key)
                 await self.__send_message(message, text)
             else:
                 text = await self.get_response(RK.INVALID_COMMAND_MESSAGE)
                 await self.__send_message(message, text)
 
     async def __send_message(self, message: Message, text: str) -> None:
-        await self._answer_markdown(message , text)
+        await self._answer_markdown(message, text)
         await self._log_system_message(logging.INFO, get_log_start_message_sent(message.from_user.username))

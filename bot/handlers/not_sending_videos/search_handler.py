@@ -56,7 +56,6 @@ class SearchHandler(BotMessageHandler):
         )
 
         response = format_search_response(len(segments), segments, quote)
-
         await self.__send_search_results(message, response, quote)
 
     async def __reply_no_segments_found(self, message: Message, quote: str) -> None:

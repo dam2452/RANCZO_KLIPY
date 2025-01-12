@@ -89,7 +89,7 @@ class SendClipHandler(BotMessageHandler):
         )
 
     async def __reply_clip_not_found(self, message: Message, clip_number: Optional[int]) -> None:
-        if clip_number is not None:
+        if clip_number:
             response = await self.get_response(RK.CLIP_NOT_FOUND_NUMBER, [str(clip_number)])
         else:
             response = await self.get_response(RK.CLIP_NOT_FOUND_NAME)

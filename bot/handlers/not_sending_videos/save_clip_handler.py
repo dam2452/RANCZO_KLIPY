@@ -70,16 +70,17 @@ class SaveClipHandler(BotMessageHandler):
         return True
 
     async def __check_clip_limit_not_exceeded(self, message: Message) -> bool:
-        if (
-                not await DatabaseManager.is_admin_or_moderator(message.from_user.id)
-                and await DatabaseManager.get_user_clip_count(message.chat.id) >= settings.MAX_CLIPS_PER_USER
-        ):
-            await self._answer(
-                message,
-                await self.get_response(RK.CLIP_LIMIT_EXCEEDED),
-            )
-            return False
-        return True
+        is_admin_or_moderator = await DatabaseManager.is_admin_or_moderator(message.from_user.id)
+        user_clip_count = await DatabaseManager.get_user_clip_count(message.chat.id)
+
+        if is_admin_or_moderator or user_clip_count < settings.MAX_CLIPS_PER_USER:
+            return True
+
+        await self._answer(
+            message,
+            await self.get_response(RK.CLIP_LIMIT_EXCEEDED),
+        )
+        return False
 
     async def __check_last_clip_exists(self, message: Message) -> bool:
         last_clip = await DatabaseManager.get_last_clip_by_chat_id(message.chat.id)
