@@ -135,7 +135,7 @@ class AdjustVideoClipHandler(BotMessageHandler):
         await self._log_system_message(logging.INFO, get_invalid_segment_log())
 
     async def __reply_extraction_failure(self, message: Message) -> None:
-        await self._answer(message, await self.get_response(RK.EXTRACTION_FAILURE))
+        await self._answer(message, await self.get_response(RK.EXTRACTION_FAILURE,as_parent=True))
         await self._log_system_message(logging.ERROR, get_extraction_failure_log())
 
     @staticmethod

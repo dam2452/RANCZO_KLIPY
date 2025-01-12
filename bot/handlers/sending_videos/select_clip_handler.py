@@ -84,7 +84,7 @@ class SelectClipHandler(BotMessageHandler):
         await self._log_system_message(logging.INFO, get_log_no_previous_search_message())
 
     async def __reply_extraction_failure(self, message: Message, exception: FFMpegException) -> None:
-        await self._answer(message,await self.get_response(RK.EXTRACTION_FAILURE))
+        await self._answer(message,await self.get_response(RK.EXTRACTION_FAILURE,as_parent=True))
         await self._log_system_message(logging.ERROR, get_log_extraction_failure_message(exception))
 
     async def __reply_invalid_segment_number(self, message: Message, segment_number: int) -> None:

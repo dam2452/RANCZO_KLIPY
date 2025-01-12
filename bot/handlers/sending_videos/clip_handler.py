@@ -87,7 +87,7 @@ class ClipHandler(BotMessageHandler):
         await self._log_system_message(logging.INFO, get_log_no_segments_found_message(quote))
 
     async def __reply_extraction_failed(self, message: Message, exception: FFMpegException) -> None:
-        await self._answer(message,await self.get_response(RK.EXTRACTION_FAILURE))
+        await self._answer(message,await self.get_response(RK.EXTRACTION_FAILURE,as_parent=True))
         await self._log_system_message(logging.ERROR, get_log_extraction_failure_message(exception))
 
     async def __log_segment_and_clip_success(self, chat_id: int, username: str) -> None:
