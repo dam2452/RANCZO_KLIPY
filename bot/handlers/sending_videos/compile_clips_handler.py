@@ -64,7 +64,7 @@ class CompileClipsHandler(BotMessageHandler):
 
         segments = json.loads(last_search.segments)
         try:
-            selected_segments = await self.__parse_segments(content[1:], segments)
+            selected_segments = await self.__parse_segments(content[1:], segments, message)
         except self.InvalidRangeException as e:
             return await self.__reply_invalid_range(message, str(e))
         except self.InvalidIndexException as e:
@@ -103,7 +103,7 @@ class CompileClipsHandler(BotMessageHandler):
     async def __parse_segments(
         self ,
             content: List[str],
-            segments: List[Dict[str, Union[str, float]]],
+            segments: List[Dict[str, Union[str, float]]], message: Message,
     ) -> List[Dict[str, Union[str, float]]]:
         selected_segments = []
         for arg in content:
@@ -118,12 +118,12 @@ class CompileClipsHandler(BotMessageHandler):
                 )
                 return selected_segments
             if "-" in arg:
-                selected_segments.extend(await self.__parse_range(arg, segments))
+                selected_segments.extend(await self.__parse_range(arg, segments, message))
             else:
                 selected_segments.append(await self.__parse_single(arg, segments))
         return selected_segments
 
-    async def __parse_range(self, index: str, segments: List[Dict[str, Union[str, float]]]) -> List[Dict[str, Union[str, float]]]:
+    async def __parse_range(self, index: str, segments: List[Dict[str, Union[str, float]]], message: Message) -> List[Dict[str, Union[str, float]]]:
         try:
             start_str, end_str = index.split("-")
         except ValueError as exc:
@@ -138,7 +138,7 @@ class CompileClipsHandler(BotMessageHandler):
             raise self.InvalidRangeException(await self.get_response(RK.INVALID_RANGE,[index]))
 
         num_of_clips = end - start + 1
-        if num_of_clips > settings.MAX_CLIPS_PER_COMPILATION:
+        if not await DatabaseManager.is_admin_or_moderator(message.from_user.id) and num_of_clips > settings.MAX_CLIPS_PER_COMPILATION:
             raise self.MaxClipsExceededException()
 
         collected = []
