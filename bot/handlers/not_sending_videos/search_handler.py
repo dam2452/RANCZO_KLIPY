@@ -59,7 +59,7 @@ class SearchHandler(BotMessageHandler):
         await self.__send_search_results(message, response, quote)
 
     async def __reply_no_segments_found(self, message: Message, quote: str) -> None:
-        await self._answer(message,await self.get_response(RK.NO_SEGMENTS_FOUND, [quote]))
+        await self._answer(message,await self.get_response(RK.NO_SEGMENTS_FOUND, [quote],True))
         await self._log_system_message(logging.INFO, get_log_no_segments_found_message(quote))
 
     async def __send_search_results(self, message: Message, response: str, quote: str) -> None:
