@@ -2,7 +2,7 @@ import argparse
 import json
 from pathlib import Path
 import sys
-from typing import Optional
+from typing import Optional, List
 
 import ffmpeg
 
@@ -11,7 +11,7 @@ from Preprocessing.utils import setup_logger
 
 
 class AudioNormalizer:
-    SUPPORTED_EXTENSIONS = [".mp4", ".mkv", ".avi"]
+    SUPPORTED_EXTENSIONS: List[str] = [".mp4", ".mkv", ".avi"]
 
     def __init__(self, input_folder: str, output_folder: str):
         self.input_folder = Path(input_folder)
