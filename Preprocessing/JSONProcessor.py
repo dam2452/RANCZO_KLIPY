@@ -1,11 +1,14 @@
 import argparse
 import json
-import logging
 from pathlib import Path
+import sys
 from typing import (
     Dict,
     List,
 )
+
+from Preprocessing.ErrorLogger import ErrorLogger
+from Preprocessing.utils import setup_logger
 
 
 class JSONProcessor:
@@ -22,20 +25,9 @@ class JSONProcessor:
         self.input_folder = Path(input_folder)
         self.output_folder = Path(output_folder)
         self.keys_to_remove = self.DEFAULT_KEYS_TO_REMOVE + extra_keys_to_remove
-        self.logger = self.setup_logger()
+        self.logger = setup_logger(self.__class__.__name__)
+        self.error_logger = ErrorLogger(self.logger)
 
-    # pylint: disable=duplicate-code
-    @staticmethod
-    def setup_logger() -> logging.Logger:
-        logger = logging.getLogger("JSONProcessor")
-        logger.setLevel(logging.INFO)
-        handler = logging.StreamHandler()
-        formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-        handler.setFormatter(formatter)
-        logger.addHandler(handler)
-        return logger
-
-    # pylint: enable=duplicate-code
     @staticmethod
     def replace_unicode_chars(text: str) -> str:
         for unicode_char, char in JSONProcessor.UNICODE_TO_POLISH_MAP.items():
@@ -65,16 +57,18 @@ class JSONProcessor:
             if "segments" in data:
                 data["segments"] = [self.process_segment(segment) for segment in data["segments"]]
 
+            output_file_path.parent.mkdir(parents=True, exist_ok=True)
             with output_file_path.open('w', encoding='utf-8') as file:
                 json.dump({"segments": data["segments"]}, file, ensure_ascii=False, indent=4)
 
             self.logger.info(f"Processed file: {file_path}")
+
         except FileNotFoundError:
-            self.logger.error(f"File not found: {file_path}")
+            self.error_logger.log_error(f"File not found: {file_path}")
         except json.JSONDecodeError as e:
-            self.logger.error(f"JSON decoding error in file {file_path}: {e}")
+            self.error_logger.log_error(f"JSON decoding error in file {file_path}: {e}")
         except PermissionError:
-            self.logger.error(f"Permission error while accessing file: {file_path}")
+            self.error_logger.log_error(f"Permission error while accessing file: {file_path}")
 
     def copy_and_process_hierarchy(self) -> None:
         for item in self.input_folder.rglob('*'):
@@ -88,13 +82,14 @@ class JSONProcessor:
             else:
                 self.logger.warning(f"Skipping unsupported file: {item}")
 
-    def run(self) -> None:
-        if self.input_folder.exists() and self.input_folder.is_dir():
-            self.output_folder.mkdir(parents=True, exist_ok=True)
-            self.copy_and_process_hierarchy()
-            self.logger.info("Processing completed.")
-        else:
-            self.logger.error(f"Invalid input folder path: {self.input_folder}")
+    def run(self) -> int:
+        if not self.input_folder.exists() or not self.input_folder.is_dir():
+            self.error_logger.log_error(f"Invalid input folder path: {self.input_folder}")
+            return 2
+
+        self.output_folder.mkdir(parents=True, exist_ok=True)
+        self.copy_and_process_hierarchy()
+        return self.error_logger.finalize()
 
 
 def main() -> None:
@@ -106,7 +101,8 @@ def main() -> None:
     args = parser.parse_args()
 
     processor = JSONProcessor(args.input_folder, args.output_folder, args.extra_keys_to_remove)
-    processor.run()
+    exit_code = processor.run()
+    sys.exit(exit_code)
 
 
 if __name__ == "__main__":

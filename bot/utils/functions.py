@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import json
 import logging
 from typing import (
@@ -10,6 +11,17 @@ from bot.database.database_manager import UserProfile
 from bot.database.models import FormattedSegmentInfo
 
 logger = logging.getLogger(__name__)
+
+@dataclass
+class Resolution:
+    width: int
+    height: int
+
+RESOLUTIONS: Dict[str, Resolution] = {
+    "1080p": Resolution(1920, 1080),
+    "720p": Resolution(1280, 720),
+    "480p": Resolution(854, 480),
+}
 
 class InvalidTimeStringException(Exception):
     def __init__(self, time: str) -> None:

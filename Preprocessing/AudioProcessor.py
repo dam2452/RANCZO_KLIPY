@@ -1,7 +1,10 @@
 import argparse
-import logging
 from pathlib import Path
 import subprocess
+import sys
+
+from Preprocessing.ErrorLogger import ErrorLogger
+from Preprocessing.utils import setup_logger
 
 
 class AudioProcessor:
@@ -16,20 +19,9 @@ class AudioProcessor:
         self.model = model or self.DEFAULT_MODEL
         self.language = language or self.DEFAULT_LANGUAGE
         self.device = device or self.DEFAULT_DEVICE
-        self.logger = self.setup_logger()
+        self.logger = setup_logger(self.__class__.__name__)
+        self.error_logger = ErrorLogger(self.logger)
 
-    # pylint: disable=duplicate-code
-    @staticmethod
-    def setup_logger() -> logging.Logger:
-        logger = logging.getLogger("AudioProcessor")
-        logger.setLevel(logging.INFO)
-        handler = logging.StreamHandler()
-        formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-        handler.setFormatter(formatter)
-        logger.addHandler(handler)
-        return logger
-
-    # pylint: enable=duplicate-code
     def process_audio_file(self, file_path: Path) -> None:
         relative_path = file_path.relative_to(self.input_folder)
         output_path = self.output_folder / relative_path.with_suffix("_processed.wav")
@@ -45,25 +37,25 @@ class AudioProcessor:
             )
             self.logger.info(f"Processed: {file_path} -> {output_path}")
         except subprocess.CalledProcessError as e:
-            self.logger.error(f"Subprocess error while processing {file_path}: {e}")
+            self.error_logger.log_error(f"Subprocess error while processing {file_path}: {e}")
         except FileNotFoundError as e:
-            self.logger.error(f"Command not found for {file_path}: {e}")
+            self.error_logger.log_error(f"Command not found for {file_path}: {e}")
         except PermissionError as e:
-            self.logger.error(f"Permission error with file {file_path}: {e}")
+            self.error_logger.log_error(f"Permission error with file {file_path}: {e}")
 
     def process_folder(self) -> None:
         if not self.input_folder.exists() or not self.input_folder.is_dir():
-            self.logger.error(f"Invalid input folder path: {self.input_folder}")
-            raise ValueError(f"Invalid input folder path: {self.input_folder}")
+            self.error_logger.log_error(f"Invalid input folder path: {self.input_folder}")
+            return
 
         for file_path in self.input_folder.rglob("*"):
             if file_path.suffix.lower() in self.SUPPORTED_EXTENSIONS:
                 self.process_audio_file(file_path)
 
-    def run(self) -> None:
+    def run(self) -> int:
         self.logger.info("Starting audio processing...")
         self.process_folder()
-        self.logger.info("Audio processing completed.")
+        return self.error_logger.finalize()
 
 
 def main() -> None:
@@ -83,7 +75,8 @@ def main() -> None:
         language=args.language,
         device=args.device,
     )
-    processor.run()
+    exit_code = processor.run()
+    sys.exit(exit_code)
 
 
 if __name__ == "__main__":

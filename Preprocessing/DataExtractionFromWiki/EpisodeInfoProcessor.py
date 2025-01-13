@@ -1,13 +1,16 @@
 import argparse
 import json
-import logging
 from pathlib import Path
 import re
+import sys
 from typing import (
     Any,
     Dict,
     Optional,
 )
+
+from Preprocessing.ErrorLogger import ErrorLogger
+from Preprocessing.utils import setup_logger
 
 
 class EpisodeInfoProcessor:
@@ -15,25 +18,18 @@ class EpisodeInfoProcessor:
         self.base_path = Path(base_path)
         self.episode_info_path = Path(episode_info_path)
         self.output_path = Path(output_path)
-        self.logger = self.setup_logger()
-
-    @staticmethod
-    def setup_logger() -> logging.Logger:
-        logger = logging.getLogger("EpisodeInfoProcessor")
-        logger.setLevel(logging.INFO)
-        handler = logging.StreamHandler()
-        formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-        handler.setFormatter(formatter)
-        logger.addHandler(handler)
-        return logger
+        self.logger = setup_logger(self.__class__.__name__)
+        self.error_logger = ErrorLogger(self.logger)
 
     def load_episode_info(self) -> Dict[str, Any]:
         try:
             with self.episode_info_path.open("r", encoding="utf-8") as file:
                 return json.load(file)
         except FileNotFoundError as exc:
+            self.error_logger.log_error(f"Episode info file not found: {self.episode_info_path}")
             raise ValueError(f"Episode info file not found: {self.episode_info_path}") from exc
         except json.JSONDecodeError as exc:
+            self.error_logger.log_error(f"Error decoding JSON in episode info file {self.episode_info_path}: {exc}")
             raise ValueError(f"Error decoding JSON in episode info file {self.episode_info_path}: {exc}") from exc
 
     @staticmethod
@@ -65,12 +61,12 @@ class EpisodeInfoProcessor:
 
         episode_number = self.parse_episode_info(file_path.name)
         if not episode_number:
-            self.logger.error(f"Filename does not match episode pattern: {file_path.name}")
+            self.error_logger.log_error(f"Filename does not match episode pattern: {file_path.name}")
             return
 
         episode_info_data = self.find_episode_info(episode_info, episode_number)
         if not episode_info_data:
-            self.logger.error(f"No episode info for Episode {episode_number}. Skipping...")
+            self.error_logger.log_error(f"No episode info for Episode {episode_number}. Skipping...")
             return
 
         try:
@@ -88,31 +84,28 @@ class EpisodeInfoProcessor:
 
             self.logger.info(f"Created file: {output_file_path}")
 
-        except FileNotFoundError as exc:
-            self.logger.error(f"File not found: {file_path}. Error: {exc}")
-            raise ValueError(f"File not found: {file_path}") from exc
+        except FileNotFoundError:
+            self.error_logger.log_error(f"File not found: {file_path}")
         except json.JSONDecodeError as exc:
-            self.logger.error(f"Error decoding JSON in file {file_path}: {exc}")
-            raise ValueError(f"Error decoding JSON in file {file_path}: {exc}") from exc
-        except PermissionError as exc:
-            self.logger.error(f"Permission denied when accessing file: {file_path}. Error: {exc}")
-            raise ValueError(f"Permission denied when accessing file: {file_path}") from exc
+            self.error_logger.log_error(f"Error decoding JSON in file {file_path}: {exc}")
+        except PermissionError:
+            self.error_logger.log_error(f"Permission denied when accessing file: {file_path}")
 
-    def run(self) -> None:
+    def run(self) -> int:
         try:
             episode_info = self.load_episode_info()
         except ValueError as e:
             self.logger.error(e)
-            return
+            return 2
 
         if not self.base_path.is_dir():
-            self.logger.error(f"Invalid base path: {self.base_path}")
-            return
+            self.error_logger.log_error(f"Invalid base path: {self.base_path}")
+            return 2
 
         for file_path in self.base_path.rglob("*.json"):
             self.process_file(file_path, episode_info)
 
-        self.logger.info("Processing completed.")
+        return self.error_logger.finalize()
 
 
 def main():
@@ -124,7 +117,8 @@ def main():
     args = parser.parse_args()
 
     processor = EpisodeInfoProcessor(args.base_path, args.episode_info_path, args.output_path)
-    processor.run()
+    exit_code = processor.run()
+    sys.exit(exit_code)
 
 
 if __name__ == "__main__":

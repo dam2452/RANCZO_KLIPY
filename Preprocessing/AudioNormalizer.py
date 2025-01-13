@@ -1,10 +1,13 @@
 import argparse
 import json
-import logging
 from pathlib import Path
+import sys
 from typing import Optional
 
 import ffmpeg
+
+from Preprocessing.ErrorLogger import ErrorLogger
+from Preprocessing.utils import setup_logger
 
 
 class AudioNormalizer:
@@ -13,31 +16,20 @@ class AudioNormalizer:
     def __init__(self, input_folder: str, output_folder: str):
         self.input_folder = Path(input_folder)
         self.output_folder = Path(output_folder)
-        self.logger = self.setup_logger()
+        self.logger = setup_logger(self.__class__.__name__)
+        self.error_logger = ErrorLogger(self.logger)
 
-    # pylint: disable=duplicate-code
-    @staticmethod
-    def setup_logger() -> logging.Logger:
-        logger = logging.getLogger("AudioNormalizer")
-        logger.setLevel(logging.INFO)
-        handler = logging.StreamHandler()
-        formatter = logging.Formatter("%(asctime)s | %(levelname)s | %(message)s")
-        handler.setFormatter(formatter)
-        logger.addHandler(handler)
-        return logger
-
-    # pylint: enable=duplicate-code
     def get_best_audio_stream(self, video_file: str) -> Optional[int]:
         try:
             probe = ffmpeg.probe(video_file, select_streams="a", show_streams=True)
             streams = probe.get("streams", [])
             if not streams:
-                self.logger.warning(f"No audio streams found in file: {video_file}")
+                self.error_logger.log_error(f"No audio streams found in file: {video_file}")
                 return None
             best_stream = max(streams, key=lambda s: int(s.get("bit_rate", 0)))
             return best_stream["index"]
         except (ffmpeg.Error, KeyError, json.JSONDecodeError) as e:
-            self.logger.error(f"Error determining the best audio stream for file {video_file}: {e}")
+            self.error_logger.log_error(f"Error determining the best audio stream for file {video_file}: {e}")
             return None
 
     def convert_and_normalize_audio(self, video_file: str, audio_index: int, output_audio_file: str) -> None:
@@ -54,9 +46,9 @@ class AudioNormalizer:
             Path(temp_output_audio_file).replace(output_audio_file)
             self.logger.info(f"Replaced original file with normalized audio: {output_audio_file}")
         except ffmpeg.Error as e:
-            self.logger.error(f"Error during audio conversion or normalization for file {video_file}: {e}")
+            self.error_logger.log_error(f"Error during audio conversion or normalization for file {video_file}: {e}")
         except OSError as e:
-            self.logger.error(f"File operation error: {e}")
+            self.error_logger.log_error(f"File operation error: {e}")
 
     def process_video_file(self, video_path: Path) -> None:
         audio_index = self.get_best_audio_stream(str(video_path))
@@ -72,17 +64,21 @@ class AudioNormalizer:
 
     def process_folder(self) -> None:
         if not self.input_folder.is_dir():
-            self.logger.error(f"Invalid input folder: {self.input_folder}")
+            self.error_logger.log_error(f"Invalid input folder: {self.input_folder}")
             raise ValueError(f"Invalid input folder: {self.input_folder}")
 
         for video_file in self.input_folder.rglob("*"):
             if video_file.suffix.lower() in self.SUPPORTED_EXTENSIONS:
                 self.process_video_file(video_file)
 
-    def run(self) -> None:
+    def run(self) -> int:
         self.logger.info("Starting audio normalization...")
-        self.process_folder()
-        self.logger.info("Audio normalization completed.")
+        try:
+            self.process_folder()
+        except ValueError as e:
+            self.logger.error(f"Critical error: {e}")
+            return 2
+        return self.error_logger.finalize()
 
 
 def main() -> None:
@@ -93,7 +89,8 @@ def main() -> None:
     args = parser.parse_args()
 
     normalizer = AudioNormalizer(input_folder=args.input_folder, output_folder=args.output_folder)
-    normalizer.run()
+    exit_code = normalizer.run()
+    sys.exit(exit_code)
 
 
 if __name__ == "__main__":

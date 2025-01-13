@@ -1,9 +1,11 @@
 import argparse
 import json
-import logging
 from pathlib import Path
 import subprocess
-from typing import Tuple
+import sys
+
+from Preprocessing.utils import setup_logger
+from bot.utils.functions import RESOLUTIONS
 
 
 class VideoConverter:
@@ -11,27 +13,11 @@ class VideoConverter:
     DEFAULT_PRESET = "slow"
     DEFAULT_CRF = 31
     DEFAULT_GOP_SIZE = 0.5
-    DEFAULT_RESOLUTIONS = {
-        "1080p": (1920, 1080),
-        "720p": (1280, 720),
-        "480p": (854, 480),
-    }
 
     def __init__(self):
-        self.logger = self.setup_logger()
+        self.logger = setup_logger(self.__class__.__name__)
+        self.errors = []
 
-    # pylint: disable=duplicate-code
-    @staticmethod
-    def setup_logger() -> logging.Logger:
-        logger = logging.getLogger("VideoConverter")
-        logger.setLevel(logging.INFO)
-        handler = logging.StreamHandler()
-        formatter = logging.Formatter("%(asctime)s | %(levelname)s | %(message)s")
-        handler.setFormatter(formatter)
-        logger.addHandler(handler)
-        return logger
-
-    # pylint: enable=duplicate-code
     def get_video_properties(self, video_path: Path) -> float:
         cmd = [
             "ffprobe", "-v", "error",
@@ -53,21 +39,16 @@ class VideoConverter:
 
             num, denom = (int(x) for x in r_frame_rate.split('/'))
             return num / denom
-        except subprocess.CalledProcessError as e:
-            self.logger.error(f"ffprobe error for {video_path}: {e}")
-            raise
-        except json.JSONDecodeError as e:
-            self.logger.error(f"JSON decode error for {video_path}: {e}")
-            raise
-        except ValueError as e:
-            self.logger.error(f"Value error for {video_path}: {e}")
+        except (subprocess.CalledProcessError, json.JSONDecodeError) as e:
+            self.logger.error(f"Error retrieving video properties for {video_path}: {e}")
+            self.errors.append(f"{video_path}: {e}")
             raise
 
     def convert_video(
         self,
         input_file: Path,
         output_file: Path,
-        target_resolution: Tuple[int, int],
+        target_resolution: RESOLUTIONS,
         codec: str,
         preset: str,
         crf: int,
@@ -102,40 +83,62 @@ class VideoConverter:
             self.logger.info(f"Processing: {input_file} -> {output_file} with resolution {width}x{height}")
             subprocess.run(command, check=True)
         except subprocess.CalledProcessError as e:
-            self.logger.error(f"Error processing {input_file}: {e}")
+            error_message = f"Error processing {input_file}: {e}"
+            self.logger.error(error_message)
+            self.errors.append(error_message)
 
     def convert_videos(
         self,
         input_dir: Path,
         output_dir: Path,
-        target_resolution: Tuple[int, int],
+        target_resolution: RESOLUTIONS,
         codec: str,
         preset: str,
         crf: int,
         gop_size: float,
     ) -> None:
         if not input_dir.is_dir():
-            raise ValueError(f"Invalid input directory: {input_dir}")
+            error_message = f"Invalid input directory: {input_dir}"
+            self.logger.error(error_message)
+            self.errors.append(error_message)
+            return
 
         for video_file in input_dir.rglob("*.mp4"):
             relative_path = video_file.relative_to(input_dir)
             output_path = output_dir / relative_path
             output_path.parent.mkdir(parents=True, exist_ok=True)
-            self.convert_video(video_file, output_path, target_resolution, codec, preset, crf, gop_size)
+            try:
+                self.convert_video(video_file, output_path, target_resolution, codec, preset, crf, gop_size)
+            except ValueError as e:
+                self.logger.error(f"Error processing video {video_file}: {e}")
+                self.errors.append(f"{video_file}: {e}")
 
-    def parse_resolution(self, resolution: str) -> Tuple[int, int]:
-        if resolution not in self.DEFAULT_RESOLUTIONS:
-            raise ValueError(f"Invalid resolution {resolution}. Choose from: {list(self.DEFAULT_RESOLUTIONS.keys())}")
-        return self.DEFAULT_RESOLUTIONS[resolution]
+    @staticmethod
+    def parse_resolution(resolution: str) -> RESOLUTIONS:
+        if resolution not in RESOLUTIONS:
+            raise ValueError(f"Invalid resolution {resolution}. Choose from: {list(RESOLUTIONS.keys())}")
+        return RESOLUTIONS[resolution]
 
-    def run(self, args: argparse.Namespace) -> None:
+    def run(self, args: argparse.Namespace) -> int:
         input_dir = Path(args.input_directory)
         output_dir = Path(args.output_directory)
-        target_resolution = self.parse_resolution(args.resolution)
+        try:
+            target_resolution = self.parse_resolution(args.resolution)
+        except ValueError as e:
+            self.logger.error(e)
+            return 2
 
         self.logger.info("Starting video conversion...")
         self.convert_videos(input_dir, output_dir, target_resolution, args.codec, args.preset, args.crf, args.gop_size)
-        self.logger.info("Video conversion completed.")
+
+        if self.errors:
+            self.logger.error("Video conversion completed with errors:")
+            for error in self.errors:
+                self.logger.error(f"- {error}")
+            return 1
+
+        self.logger.info("Video conversion completed successfully.")
+        return 0
 
 
 def main() -> None:
@@ -146,7 +149,7 @@ def main() -> None:
         "--resolution",
         type=str,
         default="1080p",
-        choices=VideoConverter.DEFAULT_RESOLUTIONS.keys(),
+        choices=RESOLUTIONS.keys(),
         help="Target resolution for all videos.",
     )
     parser.add_argument("--codec", type=str, default=VideoConverter.DEFAULT_CODEC, help="Video codec.")
@@ -157,7 +160,8 @@ def main() -> None:
     args = parser.parse_args()
 
     converter = VideoConverter()
-    converter.run(args)
+    exit_code = converter.run(args)
+    sys.exit(exit_code)
 
 
 if __name__ == "__main__":

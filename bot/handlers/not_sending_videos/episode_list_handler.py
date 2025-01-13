@@ -7,6 +7,7 @@ from typing import (
     Dict,
     List,
     Optional,
+    Tuple,
 )
 
 from aiogram.types import Message
@@ -25,8 +26,8 @@ from bot.responses.not_sending_videos.episode_list_handler_responses import (
 from bot.search.transcription_finder import TranscriptionFinder
 from bot.settings import settings as s
 
-Predicate = Callable[[Dict[str, Any]], bool]
-Callback = Callable[[Message], Awaitable[None]]
+SeasonPredicateFn = Callable[[Dict[str, Any]], bool]
+SeasonCallbackFn = Callable[[Message], Awaitable[None]]
 
 class EpisodeListHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
@@ -84,22 +85,22 @@ class EpisodeListHandler(BotMessageHandler):
         parts.append(message)
         return parts
 
-    async def __handle_season_11(self, message: Message) -> None:
+    async def __handle_ranczo_season_11(self, message: Message) -> None:
         image_path = Path("Ranczo_Sezon11.png")
         with image_path.open("rb") as image_file:
             image_bytes = image_file.read()
         await self._answer_photo(message, image_bytes, image_path, caption=get_season_11_petition_message())
 
     @staticmethod
-    def __season_11_predicate(context: Dict[str, Any]) -> bool:
+    def __is_ranczo_season_11(context: Dict[str, Any]) -> bool:
         return (
             context["season"] == 11
             and context["specialized_table"] == "ranczo_messages"
         )
 
-    def __get_easter_eggs(self) -> List[tuple[Predicate, Callback]]:
+    def __get_easter_eggs(self) -> List[Tuple[SeasonPredicateFn, SeasonCallbackFn]]:
         return [
-            (self.__season_11_predicate, self.__handle_season_11),
+            (self.__is_ranczo_season_11, self.__handle_ranczo_season_11),
         ]
 
     async def __check_easter_eggs(self, context: Dict[str, Any], message: Message) -> bool:

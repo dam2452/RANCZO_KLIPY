@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     TELEGRAM_FILE_SIZE_LIMIT_MB: int = Field(50)
     TELEGRAM_BOT_TOKEN: str = Field(...)
     DEFAULT_ADMIN: str = Field(...)
+    DEFAULT_RESOLUTION_KEY: str = Field("1080p")
 
     POSTGRES_USER: str = Field(...)
     POSTGRES_PASSWORD: str = Field(...)
