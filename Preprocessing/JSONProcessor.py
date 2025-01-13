@@ -3,7 +3,6 @@ import json
 from pathlib import Path
 import sys
 from typing import (
-    Dict,
     List,
 )
 
@@ -34,7 +33,7 @@ class JSONProcessor:
             text = text.replace(unicode_char, char)
         return text
 
-    def process_segment(self, segment: Dict[str, any]) -> Dict[str, any]:
+    def process_segment(self, segment: json) -> json:
         for key in self.keys_to_remove:
             segment.pop(key, None)
 

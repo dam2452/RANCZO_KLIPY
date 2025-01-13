@@ -123,7 +123,7 @@ class SaveClipHandler(BotMessageHandler):
         await self.__reply_clip_saved_successfully(message, clip_name)
 
     async def __prepare_clip(self, last_clip: LastClip) -> ClipInfo:
-        segment_json: Dict[str, any] = json.loads(last_clip.segment)
+        segment_json: json = json.loads(last_clip.segment)
         episode_info: Dict[str, Optional[int]] = segment_json.get("episode_info", {})
         season: Optional[int] = episode_info.get("season")
         episode_number: Optional[int] = episode_info.get("episode_number")
@@ -167,7 +167,7 @@ class SaveClipHandler(BotMessageHandler):
         )
 
     async def __handle_adjusted_clip(
-        self, last_clip: LastClip, segment_json: Dict[str, any],
+        self, last_clip: LastClip, segment_json: json,
         season: Optional[int], episode_number: Optional[int],
     ) -> ClipInfo:
         output_filename = await ClipsExtractor.extract_clip(
@@ -184,7 +184,7 @@ class SaveClipHandler(BotMessageHandler):
         )
 
     async def __handle_manual_clip(
-        self, segment_json: Dict[str, any],
+        self, segment_json: json,
         season: Optional[int], episode_number: Optional[int],
     ) -> ClipInfo:
         start_time = segment_json.get("start")
@@ -204,7 +204,7 @@ class SaveClipHandler(BotMessageHandler):
         )
 
     async def __handle_selected_clip(
-        self, last_clip: LastClip, segment_json: Dict[str, any],
+        self, last_clip: LastClip, segment_json: json,
         season: Optional[int], episode_number: Optional[int],
     ) -> ClipInfo:
         output_filename = await ClipsExtractor.extract_clip(
@@ -222,7 +222,7 @@ class SaveClipHandler(BotMessageHandler):
         )
 
     async def __handle_single_clip(
-            self, last_clip: LastClip, segment_json: Dict[str, any],
+            self, last_clip: LastClip, segment_json: json,
             season: Optional[int], episode_number: Optional[int],
     ) -> ClipInfo:
         extracted_clip_path = await ClipsExtractor.extract_clip(
