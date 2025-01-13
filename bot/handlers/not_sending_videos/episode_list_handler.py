@@ -26,8 +26,8 @@ from bot.responses.not_sending_videos.episode_list_handler_responses import (
 from bot.search.transcription_finder import TranscriptionFinder
 from bot.settings import settings as s
 
-SeasonPredicateFn = Callable[[Dict[str, Any]], bool]
-SeasonCallbackFn = Callable[[Message], Awaitable[None]]
+isSeasonCustomFn = Callable[[Dict[str, Any]], bool]
+onCustomSeasonFn = Callable[[Message], Awaitable[None]]
 
 class EpisodeListHandler(BotMessageHandler):
     def get_commands(self) -> List[str]:
@@ -98,7 +98,7 @@ class EpisodeListHandler(BotMessageHandler):
             and context["specialized_table"] == "ranczo_messages"
         )
 
-    def __get_easter_eggs(self) -> List[Tuple[SeasonPredicateFn, SeasonCallbackFn]]:
+    def __get_easter_eggs(self) -> List[Tuple[isSeasonCustomFn, onCustomSeasonFn]]:
         return [
             (self.__is_ranczo_season_11, self.__handle_ranczo_season_11),
         ]
