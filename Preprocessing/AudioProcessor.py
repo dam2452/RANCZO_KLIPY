@@ -3,7 +3,7 @@ from pathlib import Path
 import subprocess
 import sys
 
-from Preprocessing.ErrorLogger import ErrorLogger
+from Preprocessing.ErrorHandlingLogger import ErrorHandlingLogger
 from Preprocessing.utils import setup_logger
 
 
@@ -13,21 +13,43 @@ class AudioProcessor:
     DEFAULT_DEVICE = "cuda"
     SUPPORTED_EXTENSIONS = {".wav", ".mp3"}
 
-    def __init__(self, input_folder: str, output_folder: str, model: str = None, language: str = None, device: str = None):
+    def __init__(self, input_folder: str, output_folder: str, model: str, language: str, device: str):
         self.input_folder = Path(input_folder)
         self.output_folder = Path(output_folder)
-        self.model = model or self.DEFAULT_MODEL
-        self.language = language or self.DEFAULT_LANGUAGE
-        self.device = device or self.DEFAULT_DEVICE
-        self.logger = setup_logger(self.__class__.__name__)
-        self.error_logger = ErrorLogger(self.logger)
+        self.model = model
+        self.language = language
+        self.device = device
+        self.logger = ErrorHandlingLogger(
+            class_name=self.__class__.__name__,
+            logger=setup_logger(self.__class__.__name__),
+        )
+
+    def run(self) -> int:
+        self.logger.info("Starting audio processing...")
+        try:
+            self.process_folder()
+        except Exception as e:
+            self.logger.error(f"Unexpected critical error in run: {e}")
+        return self.logger.finalize()
+
+    def process_folder(self) -> None:
+        try:
+            if not self.input_folder.exists() or not self.input_folder.is_dir():
+                self.logger.error(f"Invalid input folder path: {self.input_folder}")
+                return
+
+            for file_path in self.input_folder.rglob("*"):
+                if file_path.suffix.lower() in self.SUPPORTED_EXTENSIONS:
+                    self.process_audio_file(file_path)
+        except Exception as e:
+            self.logger.error(f"Unexpected error in process_folder: {e}")
 
     def process_audio_file(self, file_path: Path) -> None:
-        relative_path = file_path.relative_to(self.input_folder)
-        output_path = self.output_folder / relative_path.with_suffix("_processed.wav")
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-
         try:
+            relative_path = file_path.relative_to(self.input_folder)
+            output_path = self.output_folder / relative_path.with_suffix("_processed.wav")
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+
             subprocess.run(
                 [
                     "whisper", str(file_path), "--model", self.model, "--language", self.language, "--device", self.device,
@@ -37,25 +59,13 @@ class AudioProcessor:
             )
             self.logger.info(f"Processed: {file_path} -> {output_path}")
         except subprocess.CalledProcessError as e:
-            self.error_logger.log_error(f"Subprocess error while processing {file_path}: {e}")
+            self.logger.error(f"Subprocess error while processing {file_path}: {e}")
         except FileNotFoundError as e:
-            self.error_logger.log_error(f"Command not found for {file_path}: {e}")
+            self.logger.error(f"Command not found for {file_path}: {e}")
         except PermissionError as e:
-            self.error_logger.log_error(f"Permission error with file {file_path}: {e}")
-
-    def process_folder(self) -> None:
-        if not self.input_folder.exists() or not self.input_folder.is_dir():
-            self.error_logger.log_error(f"Invalid input folder path: {self.input_folder}")
-            return
-
-        for file_path in self.input_folder.rglob("*"):
-            if file_path.suffix.lower() in self.SUPPORTED_EXTENSIONS:
-                self.process_audio_file(file_path)
-
-    def run(self) -> int:
-        self.logger.info("Starting audio processing...")
-        self.process_folder()
-        return self.error_logger.finalize()
+            self.logger.error(f"Permission error with file {file_path}: {e}")
+        except Exception as e:
+            self.logger.error(f"Unexpected error in process_audio_file for {file_path}: {e}")
 
 
 def main() -> None:

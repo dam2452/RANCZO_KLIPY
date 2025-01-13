@@ -2,11 +2,9 @@ import argparse
 import json
 from pathlib import Path
 import sys
-from typing import (
-    List,
-)
+from typing import List
 
-from Preprocessing.ErrorLogger import ErrorLogger
+from Preprocessing.ErrorHandlingLogger import ErrorHandlingLogger
 from Preprocessing.utils import setup_logger
 
 
@@ -24,29 +22,38 @@ class JSONProcessor:
         self.input_folder = Path(input_folder)
         self.output_folder = Path(output_folder)
         self.keys_to_remove = self.DEFAULT_KEYS_TO_REMOVE + extra_keys_to_remove
-        self.logger = setup_logger(self.__class__.__name__)
-        self.error_logger = ErrorLogger(self.logger)
+        self.logger = ErrorHandlingLogger(
+            class_name=self.__class__.__name__,
+            logger=setup_logger(self.__class__.__name__),
+        )
 
-    @staticmethod
-    def replace_unicode_chars(text: str) -> str:
-        for unicode_char, char in JSONProcessor.UNICODE_TO_POLISH_MAP.items():
-            text = text.replace(unicode_char, char)
-        return text
+    def run(self) -> int:
+        self.logger.info("Starting JSON processing...")
+        try:
+            if not self.input_folder.exists() or not self.input_folder.is_dir():
+                self.logger.error(f"Invalid input folder path: {self.input_folder}")
+                return 2
 
-    def process_segment(self, segment: json) -> json:
-        for key in self.keys_to_remove:
-            segment.pop(key, None)
+            self.output_folder.mkdir(parents=True, exist_ok=True)
+            self.copy_and_process_hierarchy()
+        except Exception as e:
+            self.logger.error(f"Unexpected critical error in run: {e}")
+        return self.logger.finalize()
 
-        segment["text"] = self.replace_unicode_chars(segment.get("text", ""))
-        segment.update({
-            "author": "",
-            "comment": "",
-            "tags": ["", ""],
-            "location": "",
-            "actors": ["", ""],
-        })
+    def copy_and_process_hierarchy(self) -> None:
+        try:
+            for item in self.input_folder.rglob('*'):
+                relative_path = item.relative_to(self.input_folder)
+                target_path = self.output_folder / relative_path
 
-        return segment
+                if item.is_dir():
+                    target_path.mkdir(parents=True, exist_ok=True)
+                elif item.is_file() and item.suffix == ".json":
+                    self.process_json_file(item, target_path)
+                else:
+                    self.logger.info(f"Skipping unsupported file: {item}")
+        except Exception as e:
+            self.logger.error(f"Unexpected error during folder processing: {e}")
 
     def process_json_file(self, file_path: Path, output_file_path: Path) -> None:
         try:
@@ -63,32 +70,35 @@ class JSONProcessor:
             self.logger.info(f"Processed file: {file_path}")
 
         except FileNotFoundError:
-            self.error_logger.log_error(f"File not found: {file_path}")
+            self.logger.error(f"File not found: {file_path}")
         except json.JSONDecodeError as e:
-            self.error_logger.log_error(f"JSON decoding error in file {file_path}: {e}")
+            self.logger.error(f"JSON decoding error in file {file_path}: {e}")
         except PermissionError:
-            self.error_logger.log_error(f"Permission error while accessing file: {file_path}")
+            self.logger.error(f"Permission error while accessing file: {file_path}")
+        except Exception as e:
+            self.logger.error(f"Unexpected error processing file {file_path}: {e}")
 
-    def copy_and_process_hierarchy(self) -> None:
-        for item in self.input_folder.rglob('*'):
-            relative_path = item.relative_to(self.input_folder)
-            target_path = self.output_folder / relative_path
+    def process_segment(self, segment: dict) -> dict:
 
-            if item.is_dir():
-                target_path.mkdir(parents=True, exist_ok=True)
-            elif item.is_file() and item.suffix == ".json":
-                self.process_json_file(item, target_path)
-            else:
-                self.logger.warning(f"Skipping unsupported file: {item}")
+        for key in self.keys_to_remove:
+            segment.pop(key, None)
 
-    def run(self) -> int:
-        if not self.input_folder.exists() or not self.input_folder.is_dir():
-            self.error_logger.log_error(f"Invalid input folder path: {self.input_folder}")
-            return 2
+        segment["text"] = self.replace_unicode_chars(segment.get("text", ""))
+        segment.update({
+            "author": "",
+            "comment": "",
+            "tags": ["", ""],
+            "location": "",
+            "actors": ["", ""],
+        })
 
-        self.output_folder.mkdir(parents=True, exist_ok=True)
-        self.copy_and_process_hierarchy()
-        return self.error_logger.finalize()
+        return segment
+
+    @staticmethod
+    def replace_unicode_chars(text: str) -> str:
+        for unicode_char, char in JSONProcessor.UNICODE_TO_POLISH_MAP.items():
+            text = text.replace(unicode_char, char)
+        return text
 
 
 def main() -> None:

@@ -3,7 +3,9 @@ import json
 from pathlib import Path
 import subprocess
 import sys
+from typing import Any
 
+from Preprocessing.ErrorHandlingLogger import ErrorHandlingLogger
 from Preprocessing.utils import setup_logger
 from bot.utils.functions import RESOLUTIONS
 
@@ -15,40 +17,55 @@ class VideoConverter:
     DEFAULT_GOP_SIZE = 0.5
 
     def __init__(self):
-        self.logger = setup_logger(self.__class__.__name__)
-        self.errors = []
+        self.logger = ErrorHandlingLogger(
+            class_name=self.__class__.__name__,
+            logger=setup_logger(self.__class__.__name__),
+        )
 
-    def get_video_properties(self, video_path: Path) -> float:
-        cmd = [
-            "ffprobe", "-v", "error",
-            "-select_streams", "v:0",
-            "-show_entries", "stream=r_frame_rate",
-            "-of", "json",
-            str(video_path),
-        ]
+    def run(self, args: argparse.Namespace) -> int:
         try:
-            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
-            probe_data = json.loads(result.stdout)
-            streams = probe_data.get("streams", [])
-            if not streams:
-                raise ValueError(f"No video streams found in {video_path}")
+            input_dir = Path(args.input_directory)
+            output_dir = Path(args.output_directory)
+            target_resolution = self.parse_resolution(args.resolution)
 
-            r_frame_rate = streams[0].get("r_frame_rate")
-            if not r_frame_rate:
-                raise ValueError(f"Frame rate not found in {video_path}")
+            self.logger.info("Starting video conversion...")
+            self.convert_videos(input_dir, output_dir, target_resolution, args.codec, args.preset, args.crf, args.gop_size)
+        except Exception as e:
+            self.logger.error(f"Critical error during run: {e}")
+        return self.logger.finalize()
 
-            num, denom = (int(x) for x in r_frame_rate.split('/'))
-            return num / denom
-        except (subprocess.CalledProcessError, json.JSONDecodeError) as e:
-            self.logger.error(f"Error retrieving video properties for {video_path}: {e}")
-            self.errors.append(f"{video_path}: {e}")
-            raise
+    def convert_videos(
+        self,
+        input_dir: Path,
+        output_dir: Path,
+        target_resolution: Any,
+        codec: str,
+        preset: str,
+        crf: int,
+        gop_size: float,
+    ) -> None:
+        try:
+            if not input_dir.is_dir():
+                self.logger.error(f"Invalid input directory: {input_dir}")
+                return
+
+            for video_file in input_dir.rglob("*.mp4"):
+                relative_path = video_file.relative_to(input_dir)
+                output_path = output_dir / relative_path
+                output_path.parent.mkdir(parents=True, exist_ok=True)
+
+                try:
+                    self.convert_video(video_file, output_path, target_resolution, codec, preset, crf, gop_size)
+                except Exception as e:
+                    self.logger.error(f"Unexpected error processing video {video_file}: {e}")
+        except Exception as e:
+            self.logger.error(f"Unexpected error during folder processing: {e}")
 
     def convert_video(
         self,
         input_file: Path,
         output_file: Path,
-        target_resolution: RESOLUTIONS,
+        target_resolution: Any,
         codec: str,
         preset: str,
         crf: int,
@@ -83,62 +100,43 @@ class VideoConverter:
             self.logger.info(f"Processing: {input_file} -> {output_file} with resolution {width}x{height}")
             subprocess.run(command, check=True)
         except subprocess.CalledProcessError as e:
-            error_message = f"Error processing {input_file}: {e}"
-            self.logger.error(error_message)
-            self.errors.append(error_message)
+            self.logger.error(f"Error processing {input_file}: {e}")
+        except Exception as e:
+            self.logger.error(f"Unexpected error in convert_video for {input_file}: {e}")
 
-    def convert_videos(
-        self,
-        input_dir: Path,
-        output_dir: Path,
-        target_resolution: RESOLUTIONS,
-        codec: str,
-        preset: str,
-        crf: int,
-        gop_size: float,
-    ) -> None:
-        if not input_dir.is_dir():
-            error_message = f"Invalid input directory: {input_dir}"
-            self.logger.error(error_message)
-            self.errors.append(error_message)
-            return
+    def get_video_properties(self, video_path: Path) -> float:
+        cmd = [
+            "ffprobe", "-v", "error",
+            "-select_streams", "v:0",
+            "-show_entries", "stream=r_frame_rate",
+            "-of", "json",
+            str(video_path),
+        ]
+        try:
+            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            probe_data = json.loads(result.stdout)
+            streams = probe_data.get("streams", [])
+            if not streams:
+                raise ValueError(f"No video streams found in {video_path}")
 
-        for video_file in input_dir.rglob("*.mp4"):
-            relative_path = video_file.relative_to(input_dir)
-            output_path = output_dir / relative_path
-            output_path.parent.mkdir(parents=True, exist_ok=True)
-            try:
-                self.convert_video(video_file, output_path, target_resolution, codec, preset, crf, gop_size)
-            except ValueError as e:
-                self.logger.error(f"Error processing video {video_file}: {e}")
-                self.errors.append(f"{video_file}: {e}")
+            r_frame_rate = streams[0].get("r_frame_rate")
+            if not r_frame_rate:
+                raise ValueError(f"Frame rate not found in {video_path}")
+
+            num, denom = (int(x) for x in r_frame_rate.split('/'))
+            return num / denom
+        except (subprocess.CalledProcessError, json.JSONDecodeError) as e:
+            self.logger.error(f"Error retrieving video properties for {video_path}: {e}")
+            raise
+        except Exception as e:
+            self.logger.error(f"Unexpected error in get_video_properties for {video_path}: {e}")
+            raise
 
     @staticmethod
-    def parse_resolution(resolution: str) -> RESOLUTIONS:
+    def parse_resolution(resolution: str) -> Any:
         if resolution not in RESOLUTIONS:
             raise ValueError(f"Invalid resolution {resolution}. Choose from: {list(RESOLUTIONS.keys())}")
         return RESOLUTIONS[resolution]
-
-    def run(self, args: argparse.Namespace) -> int:
-        input_dir = Path(args.input_directory)
-        output_dir = Path(args.output_directory)
-        try:
-            target_resolution = self.parse_resolution(args.resolution)
-        except ValueError as e:
-            self.logger.error(e)
-            return 2
-
-        self.logger.info("Starting video conversion...")
-        self.convert_videos(input_dir, output_dir, target_resolution, args.codec, args.preset, args.crf, args.gop_size)
-
-        if self.errors:
-            self.logger.error("Video conversion completed with errors:")
-            for error in self.errors:
-                self.logger.error(f"- {error}")
-            return 1
-
-        self.logger.info("Video conversion completed successfully.")
-        return 0
 
 
 def main() -> None:
