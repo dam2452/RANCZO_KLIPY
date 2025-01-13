@@ -17,11 +17,13 @@ from bot.responses.not_sending_videos.search_list_handler_responses import (
     get_log_no_previous_search_results_message,
     get_log_search_results_sent_message,
 )
+from bot.search.transcription_finder import TranscriptionFinder
+from bot.settings import settings as s
 
 
 class SearchListHandler(BotMessageHandler):
 
-    FILE_NAME_TEMPLATE = "RanczoKlipy_Lista_{sanitized_search_term}.txt"
+    FILE_NAME_TEMPLATE = s.BOT_USERNAME[1:] + "_Lista_{sanitized_search_term}.txt"
 
     def get_commands(self) -> List[str]:
         return ["lista", "list", "l"]
@@ -50,7 +52,9 @@ class SearchListHandler(BotMessageHandler):
         if not segments or not search_term:
             return await self.__reply_no_previous_search_results(message)
 
-        response = format_search_list_response(search_term, segments)
+        season_info = await TranscriptionFinder.get_season_details_from_elastic(logger=self._logger)
+
+        response = format_search_list_response(search_term, segments, season_info)
         temp_dir = Path(tempfile.gettempdir())
 
         sanitized_search_term = self.__sanitize_search_term(search_term)

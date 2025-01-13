@@ -13,18 +13,21 @@ def format_episode_list_response(season: int, episodes: List[Dict[str, Union[str
     )
 
     for episode in episodes:
-        absolute_episode_number = episode["episode_number"] - episodes_in_previous_seasons
+        absolute_episode_number = episode["episode_number"]
+        season_episode_number = absolute_episode_number - episodes_in_previous_seasons
 
         viewership = episode.get("viewership")
         formatted_viewership = (
             f"{viewership:,}".replace(",", ".") if viewership is not None else "N/A"
         )
 
-        response += f"🎬 {episode["title"]}: S{season:02d}E{absolute_episode_number:02d} ({episode["episode_number"]}) \n"
-        response += f"📅 Data premiery: {episode["premiere_date"]}\n"
+        response += f"🎬 {episode['title']}: S{season:02d}E{season_episode_number:02d} ({absolute_episode_number}) \n"
+        response += f"📅 Data premiery: {episode['premiere_date']}\n"
         response += f"👀 Oglądalność: {formatted_viewership}\n\n"
+
     response += "```"
     return response
+
 
 def get_log_no_episodes_found_message(season: int) -> str:
     return f"No episodes found for season {season}."

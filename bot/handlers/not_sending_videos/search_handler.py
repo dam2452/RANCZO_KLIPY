@@ -54,8 +54,8 @@ class SearchHandler(BotMessageHandler):
             quote=quote,
             segments=segments_json,
         )
-
-        response = format_search_response(len(segments), segments, quote)
+        season_info = await TranscriptionFinder.get_season_details_from_elastic(logger=self._logger)
+        response = format_search_response(len(segments), segments, quote, season_info)
         await self.__send_search_results(message, response, quote)
 
     async def __reply_no_segments_found(self, message: Message, quote: str) -> None:

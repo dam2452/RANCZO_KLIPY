@@ -1,10 +1,15 @@
+from typing import (
+    Any,
+    Dict,
+)
+
 from bot.utils.functions import (
     convert_number_to_emoji,
     format_segment,
 )
 
 
-def format_search_response(unique_segments_count: int, segments, quote: str) -> str:
+def format_search_response(unique_segments_count: int, segments, quote: str, season_info: Dict[str, Any]) -> str:
     emoji_count = convert_number_to_emoji(unique_segments_count)
     response = (
         f"🔍 *Wyniki wyszukiwania* 🔍\n"
@@ -13,7 +18,7 @@ def format_search_response(unique_segments_count: int, segments, quote: str) -> 
     segment_lines = []
 
     for i, segment in enumerate(segments[:5], start=1):
-        segment_info = format_segment(segment)
+        segment_info = format_segment(segment, season_info)
         line = (
             f"{convert_number_to_emoji(i)}  | 📺 {segment_info.episode_formatted} | 🕒 {segment_info.time_formatted}\n"
             f"   👉  {segment_info.episode_title}"
