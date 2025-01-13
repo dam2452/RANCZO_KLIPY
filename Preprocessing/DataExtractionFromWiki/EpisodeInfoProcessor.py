@@ -92,14 +92,15 @@ class EpisodeInfoProcessor:
             self.error_logger.log_error(f"Permission denied when accessing file: {file_path}")
 
     def run(self) -> int:
+
+        if not self.base_path.is_dir():
+            self.error_logger.log_error(f"Invalid base path: {self.base_path}")
+            return 2
+
         try:
             episode_info = self.load_episode_info()
         except ValueError as e:
             self.logger.error(e)
-            return 2
-
-        if not self.base_path.is_dir():
-            self.error_logger.log_error(f"Invalid base path: {self.base_path}")
             return 2
 
         for file_path in self.base_path.rglob("*.json"):

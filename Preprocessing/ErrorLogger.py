@@ -1,5 +1,8 @@
+import logging
+
+
 class ErrorLogger:
-    def __init__(self, logger):
+    def __init__(self, logger: logging.Logger):
         self.logger = logger
         self.errors = []
 
