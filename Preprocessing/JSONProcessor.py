@@ -34,12 +34,11 @@ class JSONProcessor:
     def run(self) -> int:
         self.logger.info("Starting JSON processing...")
         try:
-            if not self.input_folder.exists() or not self.input_folder.is_dir():
+            if self.input_folder.exists() and self.input_folder.is_dir():
+                self.output_folder.mkdir(parents=True, exist_ok=True)
+                self.copy_and_process_hierarchy()
+            else:
                 self.logger.error(f"Invalid input folder path: {self.input_folder}")
-                return 2
-
-            self.output_folder.mkdir(parents=True, exist_ok=True)
-            self.copy_and_process_hierarchy()
         except Exception as e:
             self.logger.error(f"Unexpected critical error in run: {e}")
         return self.logger.finalize()

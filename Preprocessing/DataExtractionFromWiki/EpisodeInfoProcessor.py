@@ -25,14 +25,12 @@ class EpisodeInfoProcessor:
 
     def run(self) -> int:
         try:
-            if not self.base_path.is_dir():
+            if self.base_path.is_dir():
+                episode_info = self.load_episode_info()
+                for file_path in self.base_path.rglob("*.json"):
+                    self.process_file(file_path, episode_info)
+            else:
                 self.logger.error(f"Invalid base path: {self.base_path}")
-                return 2
-
-            episode_info = self.load_episode_info()
-
-            for file_path in self.base_path.rglob("*.json"):
-                self.process_file(file_path, episode_info)
         except Exception as exc:
             self.logger.error(f"Critical error in processing: {exc}")
         return self.logger.finalize()
@@ -92,7 +90,6 @@ class EpisodeInfoProcessor:
         match = re.search(pattern, file_name, re.IGNORECASE)
         if match:
             return int(match.group("episode"))
-        return None
 
     @staticmethod
     def find_episode_info(episode_info: Dict[str, Any], episode_number: int) -> Optional[Dict[str, Any]]:
@@ -107,7 +104,6 @@ class EpisodeInfoProcessor:
                         "title": ep_data.get("title"),
                         "viewership": ep_data.get("viewership"),
                     }
-        return None
 
 
 def main():

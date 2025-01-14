@@ -5,14 +5,11 @@ from typing import (
 )
 
 
-class LoggerNotFinalizedException(Exception):
-
-    def __init__(self, errors: List[str]) -> None:
-        super().__init__("Logger destroyed without finalize() being called.")
-        self.errors: List[str] = errors
-
-
 class ErrorHandlingLogger:
+    class LoggerNotFinalizedException(Exception):
+        def __init__(self):
+            super().__init__("Logger destroyed without finalize() being called.")
+
 
     CLASS_EXIT_CODES: Dict[str, int] = {
         "AudioNormalizer": 1,
@@ -40,7 +37,7 @@ class ErrorHandlingLogger:
                 self.logger.error("Logged errors:")
                 for error in self.errors:
                     self.logger.error(f"- {error}")
-            raise LoggerNotFinalizedException(self.errors)
+            raise self.LoggerNotFinalizedException
 
     def info(self, message: str) -> None:
         self.logger.info(message)
