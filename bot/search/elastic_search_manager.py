@@ -239,13 +239,13 @@ async def main(logger: logging.Logger) -> None:
     parser.add_argument(
         "--base-path",
         required=True,
-        type=str,
+        type=Path,
         help="Path to the directory containing transcription JSON files (e.g., '../KIEPSCY-TRANSKRYPCJE').",
     )
     parser.add_argument(
         "--video-base-path",
         required=True,
-        type=str,
+        type=Path,
         help="Path to the directory containing video files (e.g., '../KIEPSCY-WIDEO').",
     )
     parser.add_argument(
