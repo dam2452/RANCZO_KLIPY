@@ -2,24 +2,25 @@ import argparse
 from pathlib import Path
 import subprocess
 import sys
+from typing import List
 
 from Preprocessing.ErrorHandlingLogger import ErrorHandlingLogger
 from Preprocessing.utils import setup_logger
 
 
 class AudioProcessor:
-    DEFAULT_MODEL = "large-v3"
-    DEFAULT_LANGUAGE = "Polish"
-    DEFAULT_DEVICE = "cuda"
-    SUPPORTED_EXTENSIONS = {".wav", ".mp3"}
+    DEFAULT_MODEL: str = "large-v3"
+    DEFAULT_LANGUAGE: str = "Polish"
+    DEFAULT_DEVICE: str = "cuda"
+    SUPPORTED_EXTENSIONS: List[str] = {".wav", ".mp3"}
 
     def __init__(self, input_folder: str, output_folder: str, model: str, language: str, device: str):
-        self.input_folder = Path(input_folder)
-        self.output_folder = Path(output_folder)
-        self.model = model
-        self.language = language
-        self.device = device
-        self.logger = ErrorHandlingLogger(
+        self.input_folder: Path = Path(input_folder)
+        self.output_folder: Path = Path(output_folder)
+        self.model: str = model
+        self.language: str = language
+        self.device: str = device
+        self.logger: ErrorHandlingLogger = ErrorHandlingLogger(
             class_name=self.__class__.__name__,
             logger=setup_logger(self.__class__.__name__),
         )

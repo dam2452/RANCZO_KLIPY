@@ -2,15 +2,19 @@ import argparse
 import json
 from pathlib import Path
 import sys
-from typing import List
+from typing import (
+    Any,
+    Dict,
+    List,
+)
 
 from Preprocessing.ErrorHandlingLogger import ErrorHandlingLogger
 from Preprocessing.utils import setup_logger
 
 
 class JSONProcessor:
-    DEFAULT_KEYS_TO_REMOVE = ["tokens", "no_speech_prob", "compression_ratio", "avg_logprob", "temperature"]
-    UNICODE_TO_POLISH_MAP = {
+    DEFAULT_KEYS_TO_REMOVE: List[str] = ["tokens", "no_speech_prob", "compression_ratio", "avg_logprob", "temperature"]
+    UNICODE_TO_POLISH_MAP: Dict[str, str] = {
         '\\u0105': 'ą', '\\u0107': 'ć', '\\u0119': 'ę', '\\u0142': 'ł',
         '\\u0144': 'ń', '\\u00F3': 'ó', '\\u015B': 'ś', '\\u017A': 'ź',
         '\\u017C': 'ż', '\\u0104': 'Ą', '\\u0106': 'Ć', '\\u0118': 'Ę',
@@ -19,10 +23,10 @@ class JSONProcessor:
     }
 
     def __init__(self, input_folder: str, output_folder: str, extra_keys_to_remove: List[str]):
-        self.input_folder = Path(input_folder)
-        self.output_folder = Path(output_folder)
-        self.keys_to_remove = self.DEFAULT_KEYS_TO_REMOVE + extra_keys_to_remove
-        self.logger = ErrorHandlingLogger(
+        self.input_folder: Path = Path(input_folder)
+        self.output_folder: Path = Path(output_folder)
+        self.keys_to_remove: List[str] = self.DEFAULT_KEYS_TO_REMOVE + extra_keys_to_remove
+        self.logger: ErrorHandlingLogger = ErrorHandlingLogger(
             class_name=self.__class__.__name__,
             logger=setup_logger(self.__class__.__name__),
         )
@@ -78,7 +82,7 @@ class JSONProcessor:
         except Exception as e:
             self.logger.error(f"Unexpected error processing file {file_path}: {e}")
 
-    def process_segment(self, segment: dict) -> dict:
+    def process_segment(self, segment: Dict[str, Any]) -> Dict[str, Any]:
 
         for key in self.keys_to_remove:
             segment.pop(key, None)

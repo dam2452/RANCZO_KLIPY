@@ -15,10 +15,10 @@ from Preprocessing.utils import setup_logger
 
 class EpisodeInfoProcessor:
     def __init__(self, base_path: str, episode_info_path: str, output_path: str):
-        self.base_path = Path(base_path)
-        self.episode_info_path = Path(episode_info_path)
-        self.output_path = Path(output_path)
-        self.logger = ErrorHandlingLogger(
+        self.base_path: Path = Path(base_path)
+        self.episode_info_path: Path = Path(episode_info_path)
+        self.output_path: Path = Path(output_path)
+        self.logger: ErrorHandlingLogger = ErrorHandlingLogger(
             class_name=self.__class__.__name__,
             logger=setup_logger(self.__class__.__name__),
         )

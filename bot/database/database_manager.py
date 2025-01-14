@@ -6,6 +6,7 @@ from datetime import (
 import json
 from pathlib import Path
 from typing import (
+    Any,
     Dict,
     List,
     Optional,
@@ -458,7 +459,7 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
     @staticmethod
     async def insert_last_clip(
             chat_id: int,
-            segment: dict,
+            segment: Dict[str, Any],
             compiled_clip: Optional[bytes],
             clip_type: ClipType,
             adjusted_start_time: Optional[float],

@@ -16,9 +16,9 @@ class AudioNormalizer:
     SUPPORTED_EXTENSIONS: List[str] = [".mp4", ".mkv", ".avi"]
 
     def __init__(self, input_folder: str, output_folder: str):
-        self.input_folder = Path(input_folder)
-        self.output_folder = Path(output_folder)
-        self.logger = ErrorHandlingLogger(
+        self.input_folder: Path = Path(input_folder)
+        self.output_folder: Path = Path(output_folder)
+        self.logger: ErrorHandlingLogger = ErrorHandlingLogger(
             class_name=self.__class__.__name__,
             logger=setup_logger(self.__class__.__name__),
         )

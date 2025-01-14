@@ -11,13 +11,13 @@ from bot.utils.functions import RESOLUTIONS
 
 
 class VideoConverter:
-    DEFAULT_CODEC = "h264_nvenc"
-    DEFAULT_PRESET = "slow"
-    DEFAULT_CRF = 31
-    DEFAULT_GOP_SIZE = 0.5
+    DEFAULT_CODEC: str = "h264_nvenc"
+    DEFAULT_PRESET: str = "slow"
+    DEFAULT_CRF: int = 31
+    DEFAULT_GOP_SIZE: float = 0.5
 
     def __init__(self):
-        self.logger = ErrorHandlingLogger(
+        self.logger: ErrorHandlingLogger= ErrorHandlingLogger(
             class_name=self.__class__.__name__,
             logger=setup_logger(self.__class__.__name__),
         )

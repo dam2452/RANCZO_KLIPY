@@ -1,16 +1,20 @@
 import logging
+from typing import (
+    Dict,
+    List,
+)
 
 
 class LoggerNotFinalizedException(Exception):
 
-    def __init__(self, errors):
+    def __init__(self, errors: List[str]) -> None:
         super().__init__("Logger destroyed without finalize() being called.")
-        self.errors = errors
+        self.errors: List[str] = errors
 
 
 class ErrorHandlingLogger:
 
-    CLASS_EXIT_CODES = {
+    CLASS_EXIT_CODES: Dict[str, int] = {
         "AudioNormalizer": 1,
         "AudioProcessor": 2,
         "JSONProcessor": 3,
@@ -19,15 +23,15 @@ class ErrorHandlingLogger:
     }
 
     def __init__(self, logger: logging.Logger, class_name: str) -> None:
-        self.logger = logger
-        self.class_name = class_name
+        self.logger: logger = logger
+        self.class_name: str = class_name
 
         if class_name not in self.CLASS_EXIT_CODES:
             raise ValueError(f"Class name '{class_name}' not found in CLASS_EXIT_CODES mapping.")
 
-        self.error_exit_code = self.CLASS_EXIT_CODES[class_name]
-        self.errors = []
-        self.__is_finalized = False
+        self.error_exit_code: int = self.CLASS_EXIT_CODES[class_name]
+        self.errors: List[str] = []
+        self.__is_finalized: bool = False
 
     def __del__(self) -> None:
         if not self.__is_finalized:
