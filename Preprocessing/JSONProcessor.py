@@ -107,8 +107,8 @@ class JSONProcessor:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Process JSON files recursively and remove specified keys.")
-    parser.add_argument("--input-folder", required=True, type=str, help="Path to the folder containing JSON files.")
-    parser.add_argument("--output-folder", required=True, type=str, help="Path to the folder where output will be saved.")
+    parser.add_argument("--input-folder", required=True, type=Path, help="Path to the folder containing JSON files.")
+    parser.add_argument("--output-folder", required=True, type=Path, help="Path to the folder where output will be saved.")
     parser.add_argument("--extra-keys-to-remove", type=str, nargs="*", default=[], help="Additional keys to remove.")
 
     args = parser.parse_args()

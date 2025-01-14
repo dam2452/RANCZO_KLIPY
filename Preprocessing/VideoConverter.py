@@ -141,8 +141,8 @@ class VideoConverter:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Convert .mp4 videos to a specific resolution with black bars.")
-    parser.add_argument("input_directory", type=str, help="Path to the input directory containing videos.")
-    parser.add_argument("output_directory", type=str, help="Path to the output directory for converted videos.")
+    parser.add_argument("input_directory", type=Path, help="Path to the input directory containing videos.")
+    parser.add_argument("output_directory", type=Path, help="Path to the output directory for converted videos.")
     parser.add_argument(
         "--resolution",
         type=str,

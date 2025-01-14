@@ -71,8 +71,8 @@ class AudioProcessor:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Process .wav and .mp3 files using Whisper model.")
-    parser.add_argument("input_folder", type=str, help="Path to the input folder")
-    parser.add_argument("output_folder", type=str, help="Path to the output folder")
+    parser.add_argument("input_folder", type=Path, help="Path to the input folder")
+    parser.add_argument("output_folder", type=Path, help="Path to the output folder")
     parser.add_argument("--model", type=str, default=AudioProcessor.DEFAULT_MODEL, help="Whisper model to use")
     parser.add_argument("--language", type=str, default=AudioProcessor.DEFAULT_LANGUAGE, help="Language to use")
     parser.add_argument("--device", type=str, default=AudioProcessor.DEFAULT_DEVICE, help="Device to use")

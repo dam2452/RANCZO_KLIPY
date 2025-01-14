@@ -90,8 +90,8 @@ class AudioNormalizer:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Process video files by converting and normalizing audio to WAV.")
-    parser.add_argument("input_folder", type=str, help="Path to the input folder containing video files.")
-    parser.add_argument("output_folder", type=str, help="Path to the output folder for processed audio files.")
+    parser.add_argument("input_folder", type=Path, help="Path to the input folder containing video files.")
+    parser.add_argument("output_folder", type=Path, help="Path to the output folder for processed audio files.")
 
     args = parser.parse_args()
 

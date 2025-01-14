@@ -112,9 +112,9 @@ class EpisodeInfoProcessor:
 
 def main():
     parser = argparse.ArgumentParser(description="Add episode info (including 'season') to transcription files.")
-    parser.add_argument("--base-path", required=True, type=str, help="Base path to transcription files.")
-    parser.add_argument("--episode-info-path", required=True, type=str, help="Path to the EpisodeInfo.json file.")
-    parser.add_argument("--output-path", required=True, type=str, help="Path for the modified transcription files.")
+    parser.add_argument("--base-path", required=True, type=Path, help="Base path to transcription files.")
+    parser.add_argument("--episode-info-path", required=True, type=Path, help="Path to the EpisodeInfo.json file.")
+    parser.add_argument("--output-path", required=True, type=Path, help="Path for the modified transcription files.")
 
     args = parser.parse_args()
 
