@@ -82,7 +82,7 @@ def format_segment(segment: json, season_info: Dict[str, int]) -> FormattedSegme
     season_number = 1
     episodes_in_previous_seasons = 0
     for season, episode_count in season_info.items():
-        if total_episode_number <= episodes_in_previous_seasons + episode_count:
+        if total_episode_number <= (episodes_in_previous_seasons + episode_count):
             break
         episodes_in_previous_seasons += episode_count
         season_number += 1
