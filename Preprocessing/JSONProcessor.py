@@ -34,29 +34,26 @@ class JSONProcessor:
     def run(self) -> int:
         self.logger.info("Starting JSON processing...")
         try:
-            if self.input_folder.exists() and self.input_folder.is_dir():
-                self.output_folder.mkdir(parents=True, exist_ok=True)
-                self.copy_and_process_hierarchy()
-            else:
+            if not (self.input_folder.exists() and self.input_folder.is_dir()):
                 self.logger.error(f"Invalid input folder path: {self.input_folder}")
-        except Exception as e:
-            self.logger.error(f"Unexpected critical error in run: {e}")
+                return 1
+            self.output_folder.mkdir(parents=True, exist_ok=True)
+            self.copy_and_process_hierarchy()
+        except Exception as e: # pylint: disable=broad-exception-caught
+            self.logger.error(f"Critical error in run: {e}")
         return self.logger.finalize()
 
     def copy_and_process_hierarchy(self) -> None:
-        try:
-            for item in self.input_folder.rglob('*'):
-                relative_path = item.relative_to(self.input_folder)
-                target_path = self.output_folder / relative_path
+        for item in self.input_folder.rglob('*'):
+            relative_path = item.relative_to(self.input_folder)
+            target_path = self.output_folder / relative_path
 
-                if item.is_dir():
-                    target_path.mkdir(parents=True, exist_ok=True)
-                elif item.is_file() and item.suffix == ".json":
-                    self.process_json_file(item, target_path)
-                else:
-                    self.logger.info(f"Skipping unsupported file: {item}")
-        except Exception as e:
-            self.logger.error(f"Unexpected error during folder processing: {e}")
+            if item.is_dir():
+                target_path.mkdir(parents=True, exist_ok=True)
+            elif item.is_file() and item.suffix == ".json":
+                self.process_json_file(item, target_path)
+            else:
+                self.logger.info(f"Skipping unsupported file: {item}")
 
     def process_json_file(self, file_path: Path, output_file_path: Path) -> None:
         try:
@@ -71,18 +68,10 @@ class JSONProcessor:
                 json.dump({"segments": data["segments"]}, file, ensure_ascii=False, indent=4)
 
             self.logger.info(f"Processed file: {file_path}")
-
-        except FileNotFoundError:
-            self.logger.error(f"File not found: {file_path}")
-        except json.JSONDecodeError as e:
-            self.logger.error(f"JSON decoding error in file {file_path}: {e}")
-        except PermissionError:
-            self.logger.error(f"Permission error while accessing file: {file_path}")
-        except Exception as e:
-            self.logger.error(f"Unexpected error processing file {file_path}: {e}")
+        except Exception as e: # pylint: disable=broad-exception-caught
+            self.logger.error(f"Error processing file {file_path}: {e}")
 
     def process_segment(self, segment: Dict[str, Any]) -> Dict[str, Any]:
-
         for key in self.keys_to_remove:
             segment.pop(key, None)
 
@@ -94,7 +83,6 @@ class JSONProcessor:
             "location": "",
             "actors": ["", ""],
         })
-
         return segment
 
     @staticmethod

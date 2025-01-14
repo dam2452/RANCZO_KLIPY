@@ -17,7 +17,7 @@ class VideoConverter:
     DEFAULT_GOP_SIZE: float = 0.5
 
     def __init__(self):
-        self.logger: ErrorHandlingLogger= ErrorHandlingLogger(
+        self.logger: ErrorHandlingLogger = ErrorHandlingLogger(
             class_name=self.__class__.__name__,
             logger=setup_logger(self.__class__.__name__),
         )
@@ -30,7 +30,7 @@ class VideoConverter:
 
             self.logger.info("Starting video conversion...")
             self.convert_videos(input_dir, output_dir, target_resolution, args.codec, args.preset, args.crf, args.gop_size)
-        except Exception as e:
+        except Exception as e: # pylint: disable=broad-exception-caught
             self.logger.error(f"Critical error during run: {e}")
         return self.logger.finalize()
 
@@ -44,22 +44,19 @@ class VideoConverter:
         crf: int,
         gop_size: float,
     ) -> None:
-        try:
-            if not input_dir.is_dir():
-                self.logger.error(f"Invalid input directory: {input_dir}")
-                return
+        if not input_dir.is_dir():
+            self.logger.error(f"Invalid input directory: {input_dir}")
+            return
 
-            for video_file in input_dir.rglob("*.mp4"):
-                relative_path = video_file.relative_to(input_dir)
-                output_path = output_dir / relative_path
-                output_path.parent.mkdir(parents=True, exist_ok=True)
+        for video_file in input_dir.rglob("*.mp4"):
+            relative_path = video_file.relative_to(input_dir)
+            output_path = output_dir / relative_path
+            output_path.parent.mkdir(parents=True, exist_ok=True)
 
-                try:
-                    self.convert_video(video_file, output_path, target_resolution, codec, preset, crf, gop_size)
-                except Exception as e:
-                    self.logger.error(f"Unexpected error processing video {video_file}: {e}")
-        except Exception as e:
-            self.logger.error(f"Unexpected error during folder processing: {e}")
+            try:
+                self.convert_video(video_file, output_path, target_resolution, codec, preset, crf, gop_size)
+            except Exception as e: # pylint: disable=broad-exception-caught
+                self.logger.error(f"Error processing video {video_file}: {e}")
 
     def convert_video(
         self,
@@ -71,40 +68,36 @@ class VideoConverter:
         crf: int,
         gop_size: float,
     ) -> None:
-        try:
-            fps = self.get_video_properties(input_file)
-            width, height = target_resolution
-            vf_filter = (
-                f"scale={width}:{height}:force_original_aspect_ratio=decrease,"
-                f"pad={width}:{height}:(ow-iw)/2:(oh-ih)/2:black"
-            )
-            gop = int(fps * gop_size)
+        fps = self.get_video_properties(input_file)
+        width, height = target_resolution
+        vf_filter = (
+            f"scale={width}:{height}:force_original_aspect_ratio=decrease,"
+            f"pad={width}:{height}:(ow-iw)/2:(oh-ih)/2:black"
+        )
+        gop = int(fps * gop_size)
 
-            command = [
-                "ffmpeg",
-                "-y",
-                "-i", str(input_file),
-                "-c:v", codec,
-                "-preset", preset,
-                "-profile:v", "main",
-                "-cq:v", str(crf),
-                "-g", str(gop),
-                "-c:a", "aac",
-                "-b:a", "128k",
-                "-ac", "2",
-                "-vf", vf_filter,
-                "-movflags", "+faststart",
-                str(output_file),
-            ]
+        command = [
+            "ffmpeg",
+            "-y",
+            "-i", str(input_file),
+            "-c:v", codec,
+            "-preset", preset,
+            "-profile:v", "main",
+            "-cq:v", str(crf),
+            "-g", str(gop),
+            "-c:a", "aac",
+            "-b:a", "128k",
+            "-ac", "2",
+            "-vf", vf_filter,
+            "-movflags", "+faststart",
+            str(output_file),
+        ]
 
-            self.logger.info(f"Processing: {input_file} -> {output_file} with resolution {width}x{height}")
-            subprocess.run(command, check=True)
-        except subprocess.CalledProcessError as e:
-            self.logger.error(f"Error processing {input_file}: {e}")
-        except Exception as e:
-            self.logger.error(f"Unexpected error in convert_video for {input_file}: {e}")
+        self.logger.info(f"Processing: {input_file} -> {output_file} with resolution {width}x{height}")
+        subprocess.run(command, check=True)
 
-    def get_video_properties(self, video_path: Path) -> float:
+    @staticmethod
+    def get_video_properties(video_path: Path) -> float:
         cmd = [
             "ffprobe", "-v", "error",
             "-select_streams", "v:0",
@@ -112,25 +105,18 @@ class VideoConverter:
             "-of", "json",
             str(video_path),
         ]
-        try:
-            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
-            probe_data = json.loads(result.stdout)
-            streams = probe_data.get("streams", [])
-            if not streams:
-                raise ValueError(f"No video streams found in {video_path}")
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        probe_data = json.loads(result.stdout)
+        streams = probe_data.get("streams", [])
+        if not streams:
+            raise ValueError(f"No video streams found in {video_path}")
 
-            r_frame_rate = streams[0].get("r_frame_rate")
-            if not r_frame_rate:
-                raise ValueError(f"Frame rate not found in {video_path}")
+        r_frame_rate = streams[0].get("r_frame_rate")
+        if not r_frame_rate:
+            raise ValueError(f"Frame rate not found in {video_path}")
 
-            num, denom = (int(x) for x in r_frame_rate.split('/'))
-            return num / denom
-        except (subprocess.CalledProcessError, json.JSONDecodeError) as e:
-            self.logger.error(f"Error retrieving video properties for {video_path}: {e}")
-            raise
-        except Exception as e:
-            self.logger.error(f"Unexpected error in get_video_properties for {video_path}: {e}")
-            raise
+        num, denom = (int(x) for x in r_frame_rate.split('/'))
+        return num / denom
 
     @staticmethod
     def parse_resolution(resolution: str) -> Any:
