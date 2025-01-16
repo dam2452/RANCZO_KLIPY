@@ -9,24 +9,18 @@ from bot.database.models import (
     ClipType,
     SearchHistory,
 )
+from bot.database.response_keys import ResponseKey as RK
 from bot.handlers.bot_message_handler import (
     BotMessageHandler,
     ValidatorFunctions,
 )
 from bot.responses.sending_videos.adjust_video_clip_handler_responses import (
     get_extraction_failure_log,
-    get_extraction_failure_message,
     get_invalid_args_count_log,
-    get_invalid_args_count_message,
     get_invalid_interval_log,
-    get_invalid_interval_message,
-    get_invalid_segment_index_message,
     get_invalid_segment_log,
-    get_max_extension_limit_message,
     get_no_previous_searches_log,
-    get_no_previous_searches_message,
     get_no_quotes_selected_log,
-    get_no_quotes_selected_message,
     get_successful_adjustment_message,
     get_updated_segment_info_log,
 )
@@ -48,7 +42,7 @@ class AdjustVideoClipHandler(BotMessageHandler):
         ]
 
     async def __check_argument_count(self, message: Message) -> bool:
-        return await self._validate_argument_count(message, 3, get_invalid_args_count_message())
+        return await self._validate_argument_count(message, 3, await self.get_response(RK.INVALID_ARGS_COUNT))
 
 
     async def _do_handle(self, message: Message) -> None:
@@ -89,7 +83,7 @@ class AdjustVideoClipHandler(BotMessageHandler):
         await self._log_system_message(logging.INFO, f"Additional_end_offset: {abs(additional_end_offset)}")
 
         if await self._is_adjustment_exceeding_limits(message.from_user.id, additional_start_offset, additional_end_offset):
-            await self._answer(message,get_max_extension_limit_message())
+            await self._answer(message,await self.get_response(RK.MAX_EXTENSION_LIMIT))
             return
 
         start_time = max(0.0, original_start_time - additional_start_offset - settings.EXTEND_BEFORE)
@@ -114,35 +108,35 @@ class AdjustVideoClipHandler(BotMessageHandler):
         except ValueError:
             return await self.__reply_invalid_interval(message)
 
-        except FFMpegException as e:
-            return await self.__reply_extraction_failure(message, e)
+        except FFMpegException:
+            return await self.__reply_extraction_failure(message)
 
         await self._log_system_message(logging.INFO, get_updated_segment_info_log(message.chat.id))
         await self._log_system_message(logging.INFO, get_successful_adjustment_message(message.from_user.username))
 
     async def __reply_no_previous_searches(self, message: Message) -> None:
-        await self._answer(message,get_no_previous_searches_message())
+        await self._answer(message, await self.get_response(RK.NO_PREVIOUS_SEARCHES))
         await self._log_system_message(logging.INFO, get_no_previous_searches_log())
 
     async def __reply_no_quotes_selected(self, message: Message) -> None:
-        await self._answer(message,get_no_quotes_selected_message())
+        await self._answer(message, await self.get_response(RK.NO_QUOTES_SELECTED))
         await self._log_system_message(logging.INFO, get_no_quotes_selected_log())
 
     async def __reply_invalid_args_count(self, message: Message) -> None:
-        await self._answer(message,get_invalid_args_count_message())
+        await self._answer(message, await self.get_response(RK.INVALID_ARGS_COUNT))
         await self._log_system_message(logging.INFO, get_invalid_args_count_log())
 
     async def __reply_invalid_interval(self, message: Message) -> None:
-        await self._answer(message,get_invalid_interval_message())
+        await self._answer(message, await self.get_response(RK.INVALID_INTERVAL))
         await self._log_system_message(logging.INFO, get_invalid_interval_log())
 
     async def __reply_invalid_segment_index(self, message: Message) -> None:
-        await self._answer(message,get_invalid_segment_index_message())
+        await self._answer(message, await self.get_response(RK.INVALID_SEGMENT_INDEX))
         await self._log_system_message(logging.INFO, get_invalid_segment_log())
 
-    async def __reply_extraction_failure(self, message: Message, exception: FFMpegException) -> None:
-        await self._answer(message,get_extraction_failure_message(exception))
-        await self._log_system_message(logging.ERROR, get_extraction_failure_log(exception))
+    async def __reply_extraction_failure(self, message: Message) -> None:
+        await self._answer(message, await self.get_response(RK.EXTRACTION_FAILURE,as_parent=True))
+        await self._log_system_message(logging.ERROR, get_extraction_failure_log())
 
     @staticmethod
     async def _is_adjustment_exceeding_limits(

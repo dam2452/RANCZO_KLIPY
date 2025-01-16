@@ -11,7 +11,9 @@ env_path = load_env_file()
 class Settings(BaseSettings):
     TELEGRAM_FILE_SIZE_LIMIT_MB: int = Field(50)
     TELEGRAM_BOT_TOKEN: str = Field(...)
+    BOT_USERNAME: str = Field(...)
     DEFAULT_ADMIN: str = Field(...)
+    DEFAULT_RESOLUTION_KEY: str = Field("1080p")
 
     POSTGRES_USER: str = Field(...)
     POSTGRES_PASSWORD: str = Field(...)
@@ -19,9 +21,12 @@ class Settings(BaseSettings):
     POSTGRES_PORT: int = Field(...)
     POSTGRES_DB: str = Field(...)
 
+    SPECIALIZED_TABLE: str = Field(...)
+
     ES_HOST: str = Field(...)
     ES_USER: str = Field(...)
     ES_PASS: str = Field(...)
+    ES_TRANSCRIPTION_INDEX: str = Field(...)
 
     EXTEND_BEFORE: float = Field(5)
     EXTEND_AFTER: float = Field(5)

@@ -1,11 +1,11 @@
 import pytest
 
-import bot.responses.administration.create_key_handler_responses as create_key_msg
+from bot.database.response_keys import ResponseKey as RK
 from bot.tests.base_test import BaseTest
 
 
 @pytest.mark.usefixtures("db_pool", "telegram_client")
-class TestAddKeyCommand(BaseTest):
+class TestCreateKeyHandler(BaseTest):
 
     @pytest.mark.quick
     @pytest.mark.asyncio
@@ -15,7 +15,7 @@ class TestAddKeyCommand(BaseTest):
 
         await self.expect_command_result_contains(
             f'/addkey {days} {key_name}',
-            [create_key_msg.get_create_key_success_message(days, key_name)],
+            [await self.get_response(RK.CREATE_KEY_SUCCESS, [key_name, days])],
         )
 
     @pytest.mark.quick
@@ -26,7 +26,7 @@ class TestAddKeyCommand(BaseTest):
 
         await self.expect_command_result_contains(
             f'/addkey {days} {key_name}',
-            [create_key_msg.get_create_key_success_message(days, key_name)],
+            [await self.get_response(RK.CREATE_KEY_SUCCESS, [key_name, days])],
         )
 
     @pytest.mark.quick
@@ -38,7 +38,7 @@ class TestAddKeyCommand(BaseTest):
         await self.send_command(f'/removekey {key_name}')
         await self.expect_command_result_contains(
             f'/addkey {days} {key_name}',
-            [create_key_msg.get_create_key_usage_message()],
+            [await self.get_response(RK.CREATE_KEY_USAGE)],
         )
 
     @pytest.mark.quick
@@ -49,7 +49,7 @@ class TestAddKeyCommand(BaseTest):
 
         await self.expect_command_result_contains(
             f'/addkey {invalid_days} {key_name}',
-            [create_key_msg.get_create_key_usage_message()],
+            [await self.get_response(RK.CREATE_KEY_USAGE)],
         )
 
     @pytest.mark.quick
@@ -59,7 +59,7 @@ class TestAddKeyCommand(BaseTest):
 
         await self.expect_command_result_contains(
             f'/addkey {days}',
-            [create_key_msg.get_create_key_usage_message()],
+            [await self.get_response(RK.CREATE_KEY_USAGE)],
         )
 
     @pytest.mark.quick
@@ -70,7 +70,7 @@ class TestAddKeyCommand(BaseTest):
 
         await self.expect_command_result_contains(
             f'/addkey {days} {key_name}',
-            [create_key_msg.get_create_key_success_message(days, key_name)],
+            [await self.get_response(RK.CREATE_KEY_SUCCESS, [key_name, days])],
         )
 
     @pytest.mark.quick
@@ -81,10 +81,10 @@ class TestAddKeyCommand(BaseTest):
 
         await self.expect_command_result_contains(
             f'/addkey {days} {key_name}',
-            [create_key_msg.get_create_key_success_message(days, key_name)],
+            [await self.get_response(RK.CREATE_KEY_SUCCESS, [key_name, days])],
         )
 
         await self.expect_command_result_contains(
             f'/addkey {days} {key_name}',
-            [create_key_msg.get_key_already_exists_message(key_name)],
+            [await self.get_response(RK.KEY_ALREADY_EXISTS, [key_name])],
         )

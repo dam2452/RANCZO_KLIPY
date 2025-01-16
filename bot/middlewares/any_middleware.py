@@ -1,9 +1,8 @@
-
+import json
 from typing import (
     Any,
     Awaitable,
     Callable,
-    Dict,
     Optional,
 )
 
@@ -18,9 +17,9 @@ from bot.middlewares.bot_middleware import BotMiddleware
 class AnyMiddleware(BotMiddleware):
     async def handle(
             self,
-            handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
+            handler: Callable[[TelegramObject, json], Awaitable[Any]],
             event: TelegramObject,
-            data: Dict[str, Any],
+            data: json,
     ) -> Optional[Any]:
         if isinstance(event, Message):
             command = self.get_command_without_initial_slash(event)

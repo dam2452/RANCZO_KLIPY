@@ -18,20 +18,15 @@ from bot.database.models import (
     ClipType,
     LastClip,
 )
+from bot.database.response_keys import ResponseKey as RK
 from bot.handlers.bot_message_handler import (
     BotMessageHandler,
     ValidatorFunctions,
 )
 from bot.responses.not_sending_videos.save_clip_handler_responses import (
-    get_clip_limit_exceeded_message,
-    get_clip_name_exists_message,
-    get_clip_name_length_exceeded_message,
-    get_clip_name_not_provided_message,
-    get_clip_saved_successfully_message,
     get_log_clip_name_exists_message,
     get_log_clip_saved_successfully_message,
     get_log_no_segment_selected_message,
-    get_no_segment_selected_message,
 )
 from bot.settings import settings
 from bot.video.clips_extractor import ClipsExtractor
@@ -54,13 +49,16 @@ class SaveClipHandler(BotMessageHandler):
 
     async def __check_argument_count(self, message: Message) -> bool:
         return await self._validate_argument_count(
-            message, 2, get_clip_name_not_provided_message(),
+            message, 2, await self.get_response(RK.CLIP_NAME_NOT_PROVIDED),
         )
 
     async def __check_clip_name_length(self, message: Message) -> bool:
         clip_name = " ".join(message.text.split()[1:])
         if len(clip_name) > settings.MAX_CLIP_NAME_LENGTH:
-            await self._answer(message,get_clip_name_length_exceeded_message())
+            await self._answer(
+                message,
+                await self.get_response(RK.CLIP_NAME_LENGTH_EXCEEDED),
+            )
             return False
         return True
 
@@ -71,14 +69,18 @@ class SaveClipHandler(BotMessageHandler):
             return False
         return True
 
-    async def __check_clip_limit_not_exceeded(self ,message: Message) -> bool:
-        if (
-            not await DatabaseManager.is_admin_or_moderator(message.from_user.id)
-            and await DatabaseManager.get_user_clip_count(message.chat.id) >= settings.MAX_CLIPS_PER_USER
-        ):
-            await self._answer(message,get_clip_limit_exceeded_message())
-            return False
-        return True
+    async def __check_clip_limit_not_exceeded(self, message: Message) -> bool:
+        is_admin_or_moderator = await DatabaseManager.is_admin_or_moderator(message.from_user.id)
+        user_clip_count = await DatabaseManager.get_user_clip_count(message.chat.id)
+
+        if is_admin_or_moderator or user_clip_count < settings.MAX_CLIPS_PER_USER:
+            return True
+
+        await self._answer(
+            message,
+            await self.get_response(RK.CLIP_LIMIT_EXCEEDED),
+        )
+        return False
 
     async def __check_last_clip_exists(self, message: Message) -> bool:
         last_clip = await DatabaseManager.get_last_clip_by_chat_id(message.chat.id)
@@ -121,7 +123,7 @@ class SaveClipHandler(BotMessageHandler):
         await self.__reply_clip_saved_successfully(message, clip_name)
 
     async def __prepare_clip(self, last_clip: LastClip) -> ClipInfo:
-        segment_json: Dict[str, any] = json.loads(last_clip.segment)
+        segment_json: json = json.loads(last_clip.segment)
         episode_info: Dict[str, Optional[int]] = segment_json.get("episode_info", {})
         season: Optional[int] = episode_info.get("season")
         episode_number: Optional[int] = episode_info.get("episode_number")
@@ -165,7 +167,7 @@ class SaveClipHandler(BotMessageHandler):
         )
 
     async def __handle_adjusted_clip(
-        self, last_clip: LastClip, segment_json: Dict[str, any],
+        self, last_clip: LastClip, segment_json: json,
         season: Optional[int], episode_number: Optional[int],
     ) -> ClipInfo:
         output_filename = await ClipsExtractor.extract_clip(
@@ -182,7 +184,7 @@ class SaveClipHandler(BotMessageHandler):
         )
 
     async def __handle_manual_clip(
-        self, segment_json: Dict[str, any],
+        self, segment_json: json,
         season: Optional[int], episode_number: Optional[int],
     ) -> ClipInfo:
         start_time = segment_json.get("start")
@@ -202,7 +204,7 @@ class SaveClipHandler(BotMessageHandler):
         )
 
     async def __handle_selected_clip(
-        self, last_clip: LastClip, segment_json: Dict[str, any],
+        self, last_clip: LastClip, segment_json: json,
         season: Optional[int], episode_number: Optional[int],
     ) -> ClipInfo:
         output_filename = await ClipsExtractor.extract_clip(
@@ -220,7 +222,7 @@ class SaveClipHandler(BotMessageHandler):
         )
 
     async def __handle_single_clip(
-            self, last_clip: LastClip, segment_json: Dict[str, any],
+            self, last_clip: LastClip, segment_json: json,
             season: Optional[int], episode_number: Optional[int],
     ) -> ClipInfo:
         extracted_clip_path = await ClipsExtractor.extract_clip(
@@ -248,21 +250,30 @@ class SaveClipHandler(BotMessageHandler):
         return output_filename
 
     async def __reply_clip_name_exists(self, message: Message, clip_name: str) -> None:
-        await self._answer(message,get_clip_name_exists_message(clip_name))
+        await self._answer(
+            message,
+            await self.get_response(RK.CLIP_NAME_EXISTS, args=[clip_name]),
+        )
         await self._log_system_message(
             logging.INFO,
             get_log_clip_name_exists_message(clip_name, message.from_user.username),
         )
 
     async def __reply_no_segment_selected(self, message: Message) -> None:
-        await self._answer(message,get_no_segment_selected_message())
+        await self._answer(
+            message,
+            await self.get_response(RK.NO_SEGMENT_SELECTED),
+        )
         await self._log_system_message(
             logging.INFO,
             get_log_no_segment_selected_message(),
         )
 
     async def __reply_clip_saved_successfully(self, message: Message, clip_name: str) -> None:
-        await self._answer(message,get_clip_saved_successfully_message(clip_name))
+        await self._answer(
+            message,
+            await self.get_response(RK.CLIP_SAVED_SUCCESSFULLY, args=[clip_name]),
+        )
         await self._log_system_message(
             logging.INFO,
             get_log_clip_saved_successfully_message(clip_name, message.from_user.username),

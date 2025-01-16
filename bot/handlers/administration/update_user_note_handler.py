@@ -4,16 +4,14 @@ from typing import List
 from aiogram.types import Message
 
 from bot.database.database_manager import DatabaseManager
+from bot.database.response_keys import ResponseKey as RK
 from bot.handlers.bot_message_handler import (
     BotMessageHandler,
     ValidatorFunctions,
 )
 from bot.responses.administration.update_user_note_handler_responses import (
-    get_invalid_user_id_message,
     get_log_invalid_user_id_message,
     get_log_note_updated_message,
-    get_no_note_provided_message,
-    get_note_updated_message,
 )
 
 
@@ -29,7 +27,7 @@ class UpdateUserNoteHandler(BotMessageHandler):
 
     async def __check_argument_count(self, message: Message) -> bool:
         return await self._validate_argument_count(
-            message, 3, get_no_note_provided_message(),
+            message, 3, await self.get_response(RK.NO_NOTE_PROVIDED),
         )
 
     async def __check_user_id(self, message: Message) -> bool:
@@ -47,10 +45,10 @@ class UpdateUserNoteHandler(BotMessageHandler):
         await self.__update_user_note(message, user_id, note)
 
     async def __reply_invalid_user_id(self, message: Message, user_id_str: str) -> None:
-        await self._answer(message,get_invalid_user_id_message(user_id_str))
+        await self._answer(message,await self.get_response(RK.INVALID_USER_ID, [user_id_str]))
         await self._log_system_message(logging.INFO, get_log_invalid_user_id_message(message.from_user.username, user_id_str))
 
     async def __update_user_note(self, message: Message, user_id: int, note: str) -> None:
         await DatabaseManager.update_user_note(user_id, note)
-        await self._answer(message,get_note_updated_message())
+        await self._answer(message,await self.get_response(RK.NOTE_UPDATED))
         await self._log_system_message(logging.INFO, get_log_note_updated_message(message.from_user.username, user_id, note))

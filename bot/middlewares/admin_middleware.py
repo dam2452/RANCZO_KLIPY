@@ -1,8 +1,8 @@
+import json
 from typing import (
     Any,
     Awaitable,
     Callable,
-    Dict,
     Optional,
 )
 
@@ -13,8 +13,8 @@ from bot.middlewares.bot_middleware import BotMiddleware
 
 class AdminMiddleware(BotMiddleware):
     async def handle(
-            self, handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]], event: TelegramObject,
-            data: Dict[str, Any],
+            self, handler: Callable[[TelegramObject, json], Awaitable[Any]], event: TelegramObject,
+            data: json,
     ) -> Optional[Awaitable]:
         if event.from_user and await self._does_user_have_admin_privileges(event.from_user.id):
             return await handler(event, data)

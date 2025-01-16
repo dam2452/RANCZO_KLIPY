@@ -458,7 +458,7 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
     @staticmethod
     async def insert_last_clip(
             chat_id: int,
-            segment: dict,
+            segment: json,
             compiled_clip: Optional[bytes],
             clip_type: ClipType,
             adjusted_start_time: Optional[float],
@@ -630,15 +630,32 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         return result
 
     @staticmethod
-    async def clear_test_db(schema: str = "public") -> None:
+    async def clear_test_db(tables: List[str], schema: str = "public") -> None:
+        if not tables:
+            raise ValueError("No tables specified for truncation.")
+
         async with DatabaseManager.get_db_connection() as conn:
             async with conn.transaction():
-                tables = await conn.fetch(
-                    "SELECT tablename FROM pg_tables WHERE schemaname = $1;", schema,
+                valid_schema = await conn.fetchval(
+                    "SELECT COUNT(*) > 0 FROM information_schema.schemata WHERE schema_name = $1",
+                    schema,
                 )
+                if not valid_schema:
+                    raise ValueError(f"Invalid schema: {schema}")
+
                 for table in tables:
-                    table_name = table["tablename"]
-                    await conn.execute(f'TRUNCATE TABLE "{schema}"."{table_name}" CASCADE;')
+                    valid_table = await conn.fetchval(
+                        """
+                        SELECT COUNT(*) > 0
+                        FROM information_schema.tables
+                        WHERE table_schema = $1 AND table_name = $2
+                        """,
+                        schema, table,
+                    )
+                    if not valid_table:
+                        raise ValueError(f"Invalid table: {table}")
+
+                    await conn.execute(f'TRUNCATE TABLE "{schema}"."{table}" CASCADE;')
 
     @staticmethod
     async def set_user_as_moderator(user_id: int) -> None:
@@ -691,3 +708,32 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
                     """,
                     user_id,
                 )
+
+    @staticmethod
+    async def __get_message_from_message_table(
+        table: str, key: str, handler_name: str,
+    ) -> Optional[str]:
+        async with DatabaseManager.get_db_connection() as conn:
+            query = f"""
+                SELECT message
+                FROM {table}
+                WHERE handler_name = $1 AND key = $2
+            """
+            row = await conn.fetchrow(query, handler_name, key)
+            return row["message"] if row else None
+
+    @staticmethod
+    async def get_message_from_specialized_table(
+        key: str, handler_name: str,
+    ) -> Optional[str]:
+        return await DatabaseManager.__get_message_from_message_table(
+            settings.SPECIALIZED_TABLE, key, handler_name,
+        )
+
+    @staticmethod
+    async def get_message_from_common_messages(
+        key: str, handler_name: str,
+    ) -> Optional[str]:
+        return await DatabaseManager.__get_message_from_message_table(
+            "common_messages", key, handler_name,
+        )

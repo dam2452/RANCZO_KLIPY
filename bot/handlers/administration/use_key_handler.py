@@ -4,16 +4,12 @@ from typing import List
 from aiogram.types import Message
 
 from bot.database.database_manager import DatabaseManager
+from bot.database.response_keys import ResponseKey as RK
 from bot.handlers.bot_message_handler import (
     BotMessageHandler,
     ValidatorFunctions,
 )
-from bot.responses.administration.use_key_handler_responses import (
-    get_invalid_key_message,
-    get_log_message_saved,
-    get_no_message_provided_message,
-    get_subscription_redeemed_message,
-)
+from bot.responses.administration.use_key_handler_responses import get_log_message_saved
 
 
 class SaveUserKeyHandler(BotMessageHandler):
@@ -27,7 +23,7 @@ class SaveUserKeyHandler(BotMessageHandler):
 
     async def __check_argument_count(self, message: Message) -> bool:
         return await self._validate_argument_count(
-            message, 2, get_no_message_provided_message(),
+            message, 2, await self.get_response(RK.NO_KEY_PROVIDED),
         )
 
     async def _do_handle(self, message: Message) -> None:
@@ -41,8 +37,12 @@ class SaveUserKeyHandler(BotMessageHandler):
             )
             await DatabaseManager.add_subscription(message.from_user.id, subscription_days)
             await DatabaseManager.remove_subscription_key(key)
-            await self._answer(message,get_subscription_redeemed_message(subscription_days))
+            await self._answer(
+                message,await self.get_response(RK.SUBSCRIPTION_REDEEMED, [str(subscription_days)]),
+)
         else:
-            await self._answer(message,get_invalid_key_message())
+            await self._answer(
+                message,await self.get_response(RK.INVALID_KEY),
+)
 
         await self._log_system_message(logging.INFO, get_log_message_saved(message.from_user.id))

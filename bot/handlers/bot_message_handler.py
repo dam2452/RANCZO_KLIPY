@@ -8,6 +8,7 @@ from typing import (
     Awaitable,
     Callable,
     List,
+    Optional,
 )
 
 from aiogram import (
@@ -22,17 +23,18 @@ from aiogram.types import (
 )
 
 from bot.database.database_manager import DatabaseManager
+from bot.database.response_keys import ResponseKey as RK
 from bot.responses.bot_message_handler_responses import (
     get_clip_size_exceed_log_message,
-    get_clip_size_exceed_message,
     get_clip_size_log_message,
     get_general_error_message,
     get_invalid_args_count_message,
     get_log_clip_duration_exceeded_message,
+    get_response,
     get_video_sent_log_message,
 )
-from bot.responses.sending_videos.manual_clip_handler_responses import get_limit_exceeded_clip_duration_message
 from bot.settings import settings
+from bot.utils.functions import RESOLUTIONS
 from bot.utils.log import (
     log_system_message,
     log_user_activity,
@@ -78,6 +80,14 @@ class BotMessageHandler(ABC):
     def get_action_name(self) -> str:
         return self.__class__.__name__
 
+    def get_parent_class_name(self) -> str:
+        return self.__class__.__bases__[0].__name__
+
+    async def get_response(self, key: str, args: Optional[List[str]] = None, as_parent: Optional[bool] = False) -> str:
+        if as_parent:
+            return await get_response(key=key, handler_name=self.get_parent_class_name(), args=args)
+        return await get_response(key=key, handler_name=self.get_action_name(), args=args)
+
     @abstractmethod
     def get_commands(self) -> List[str]:
         pass
@@ -114,13 +124,15 @@ class BotMessageHandler(ABC):
                 logging.WARNING,
                 get_clip_size_exceed_log_message(file_size, settings.TELEGRAM_FILE_SIZE_LIMIT_MB),
             )
-            await self._answer(message, get_clip_size_exceed_message())
+            await self._answer(message, await self.get_response(RK.CLIP_SIZE_EXCEEDED, as_parent=True))
         else:
+            resolution = RESOLUTIONS.get(settings.DEFAULT_RESOLUTION_KEY)
+
             await message.answer_video(
                 FSInputFile(file_path),
                 supports_streaming=True,
-                width=1920,
-                height=1080,
+                width=resolution.width,
+                height=resolution.height,
                 reply_to_message_id=message.message_id,
                 disable_notification = True,
             )
@@ -139,7 +151,7 @@ class BotMessageHandler(ABC):
         return []
     async def _handle_clip_duration_limit_exceeded(self, message: Message, clip_duration: float) -> bool:
         if not await DatabaseManager.is_admin_or_moderator(message.from_user.id) and clip_duration > settings.MAX_CLIP_DURATION:
-            await self._answer_markdown(message, get_limit_exceeded_clip_duration_message())
+            await self._answer_markdown(message, await self.get_response(RK.LIMIT_EXCEEDED_CLIP_DURATION, as_parent=True))
             await self._log_system_message(logging.INFO, get_log_clip_duration_exceeded_message(message.from_user.id))
             return True
 

@@ -1,7 +1,6 @@
 import json
 import logging
 from typing import (
-    Any,
     Dict,
     List,
     Optional,
@@ -18,8 +17,8 @@ from bot.utils.log import log_system_message
 class TranscriptionFinder:
     @staticmethod
     def is_segment_overlap(
-            previous_segment: Dict[str, Any],
-            segment: Dict[str, Any],
+            previous_segment: json,
+            segment: json,
             start_time: float,
     ) -> bool:
 
@@ -35,7 +34,7 @@ class TranscriptionFinder:
     async def find_segment_by_quote(
             quote: str, logger: logging.Logger, season_filter: Optional[int] = None,
             episode_filter: Optional[int] = None,
-            index: str = "ranczo-transcriptions", return_all: bool = False,
+            index: str = settings.ES_TRANSCRIPTION_INDEX, return_all: bool = False,
     ) -> Optional[Union[List[ObjectApiResponse], ObjectApiResponse]]:
         await log_system_message(
             logging.INFO,
@@ -102,11 +101,11 @@ class TranscriptionFinder:
     async def find_segment_with_context(
             quote: str, logger: logging.Logger, context_size: int = 30, season_filter: Optional[str] = None,
             episode_filter: Optional[str] = None,
-            index: str = "ranczo-transcriptions",
+            index: str = settings.ES_TRANSCRIPTION_INDEX,
     ) -> Optional[json]:
         await log_system_message(
             logging.INFO,
-            f"🔍 Searching for quote: '{quote}' with context size: {context_size}. Season: {season_filter}, Episode: {episode_filter}",
+            f"Searching for quote: '{quote}' with context size: {context_size}. Season: {season_filter}, Episode: {episode_filter}",
             logger,
         )
         es = await ElasticSearchManager.connect_to_elasticsearch(logger)
@@ -189,7 +188,7 @@ class TranscriptionFinder:
     @staticmethod
     async def find_video_path_by_episode(
             season: int, episode_number: int, logger: logging.Logger,
-            index: str = "ranczo-transcriptions",
+            index: str = settings.ES_TRANSCRIPTION_INDEX,
     ) -> Optional[str]:
         await log_system_message(
             logging.INFO,
@@ -227,7 +226,7 @@ class TranscriptionFinder:
         return None
 
     @staticmethod
-    async def find_episodes_by_season(season: int, logger: logging.Logger, index: str = "ranczo-transcriptions") -> Optional[List[json]]:
+    async def find_episodes_by_season(season: int, logger: logging.Logger, index: str = settings.ES_TRANSCRIPTION_INDEX) -> Optional[List[json]]:
         await log_system_message(logging.INFO, f"Searching for episodes in season {season}", logger)
         es = await ElasticSearchManager.connect_to_elasticsearch(logger)
 
@@ -284,3 +283,43 @@ class TranscriptionFinder:
 
         await log_system_message(logging.INFO, f"Found {len(episodes)} episodes for season {season}.", logger)
         return episodes
+
+    @staticmethod
+    async def get_season_details_from_elastic(
+            logger: logging.Logger,
+            index: str = settings.ES_TRANSCRIPTION_INDEX,
+    ) -> Dict[str, int]:
+        es = await ElasticSearchManager.connect_to_elasticsearch(logger)
+
+        agg_query = {
+            "size": 0,
+            "aggs": {
+                "seasons": {
+                    "terms": {
+                        "field": "episode_info.season",
+                        "size": 1000,
+                        "order": {"_key": "asc"},
+                    },
+                    "aggs": {
+                        "unique_episodes": {
+                            "cardinality": {
+                                "field": "episode_info.episode_number",
+                            },
+                        },
+                    },
+                },
+            },
+        }
+
+        await log_system_message(logging.INFO, "Fetching season details via Elasticsearch aggregation.", logger)
+        response = await es.search(index=index, body=agg_query)
+        buckets = response["aggregations"]["seasons"]["buckets"]
+
+        season_dict: Dict[str, int] = {}
+        for bucket in buckets:
+            season_key = str(bucket["key"])
+            episodes_count = bucket["unique_episodes"]["value"]
+            season_dict[season_key] = episodes_count
+
+        await log_system_message(logging.INFO, f"Season details: {season_dict}", logger)
+        return season_dict

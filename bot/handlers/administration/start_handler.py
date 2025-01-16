@@ -1,6 +1,5 @@
 import logging
 from typing import (
-    Callable,
     Dict,
     List,
 )
@@ -8,61 +7,53 @@ from typing import (
 from aiogram import Bot
 from aiogram.types import Message
 
+from bot.database.response_keys import ResponseKey as RK
 from bot.handlers.bot_message_handler import (
     BotMessageHandler,
     ValidatorFunctions,
 )
 from bot.responses.administration.start_handler_responses import (
-    get_all_message,
-    get_basic_message,
-    get_edit_message,
-    get_invalid_command_message,
-    get_list_message,
     get_log_received_start_command,
     get_log_start_message_sent,
-    get_menagement_message,
-    get_reporting_message,
-    get_search_message,
-    get_shortcuts_message,
-    get_subscriptions_message,
 )
+from bot.responses.not_sending_videos.episode_list_handler_responses import get_invalid_argument_count_log_message
 from bot.utils.functions import remove_diacritics_and_lowercase
 
 
 class StartHandler(BotMessageHandler):
     def __init__(self, bot: Bot, logger: logging.Logger):
-        self.__RESPONSES: Dict[str, Callable[[], str]] = {
-            "lista": get_list_message,
-            "list": get_list_message,
-            "l": get_list_message,
+        self.__RESPONSES: Dict[str, str] = {
+            "lista": RK.LIST_MESSAGE,
+            "list": RK.LIST_MESSAGE,
+            "l": RK.LIST_MESSAGE,
 
-            "wszystko": get_all_message,
-            "all": get_all_message,
-            "a": get_all_message,
+            "wszystko": RK.ALL_MESSAGE,
+            "all": RK.ALL_MESSAGE,
+            "a": RK.ALL_MESSAGE,
 
-            "wyszukiwanie": get_search_message,
-            "search": get_search_message,
-            "s": get_search_message,
+            "wyszukiwanie": RK.SEARCH_MESSAGE,
+            "search": RK.SEARCH_MESSAGE,
+            "s": RK.SEARCH_MESSAGE,
 
-            "edycja": get_edit_message,
-            "edit": get_edit_message,
-            "e": get_edit_message,
+            "edycja": RK.EDIT_MESSAGE,
+            "edit": RK.EDIT_MESSAGE,
+            "e": RK.EDIT_MESSAGE,
 
-            "zarzadzanie": get_menagement_message,
-            "management": get_menagement_message,
-            "m": get_menagement_message,
+            "zarzadzanie": RK.MANAGEMENT_MESSAGE,
+            "management": RK.MANAGEMENT_MESSAGE,
+            "m": RK.MANAGEMENT_MESSAGE,
 
-            "raportowanie": get_reporting_message,
-            "reporting": get_reporting_message,
-            "r": get_reporting_message,
+            "raportowanie": RK.REPORTING_MESSAGE,
+            "reporting": RK.REPORTING_MESSAGE,
+            "r": RK.REPORTING_MESSAGE,
 
-            "subskrypcje": get_subscriptions_message,
-            "subscriptions": get_subscriptions_message,
-            "sub": get_subscriptions_message,
+            "subskrypcje": RK.SUBSCRIPTIONS_MESSAGE,
+            "subscriptions": RK.SUBSCRIPTIONS_MESSAGE,
+            "sub": RK.SUBSCRIPTIONS_MESSAGE,
 
-            "skroty": get_shortcuts_message,
-            "shortcuts": get_shortcuts_message,
-            "sh": get_shortcuts_message,
+            "skroty": RK.SHORTCUTS_MESSAGE,
+            "shortcuts": RK.SHORTCUTS_MESSAGE,
+            "sh": RK.SHORTCUTS_MESSAGE,
         }
         super().__init__(bot, logger)
 
@@ -70,23 +61,45 @@ class StartHandler(BotMessageHandler):
         return ["start", "s", "help", "h", "pomoc"]
 
     def _get_validator_functions(self) -> ValidatorFunctions:
-        return []
+        return [self._validate_specific_argument_count]
+
+    async def _validate_specific_argument_count(self, message: Message) -> bool:
+        if not await self._validate_argument_count(message, 1, await self.get_response(RK.INVALID_COMMAND_MESSAGE)):
+            return False
+
+        content = message.text.split()
+        if len(content) not in {1, 2}:
+            text = await self.get_response(RK.INVALID_COMMAND_MESSAGE)
+            await self._answer_markdown(message, text)
+            await self._log_system_message(
+                logging.WARNING,
+                get_invalid_argument_count_log_message(message.from_user.id, message.text),
+            )
+            return False
+
+        return True
 
     async def _do_handle(self, message: Message) -> None:
         content = message.text.split()
-        await self._log_system_message(logging.INFO, get_log_received_start_command(message.from_user.username, message.text))
+        await self._log_system_message(
+            logging.INFO,
+            get_log_received_start_command(message.from_user.username, message.text),
+        )
 
         if len(content) == 1:
-            await self.__send_message(message, get_basic_message())
+            text = await self.get_response(RK.BASIC_MESSAGE)
+            await self.__send_message(message, text)
         elif len(content) == 2:
             command = content[1].lower()
             clean_command = remove_diacritics_and_lowercase(command)
-            response_func = self.__RESPONSES.get(clean_command)
-            if response_func:
-                await self.__send_message(message, response_func())
+            response_key = self.__RESPONSES.get(clean_command)
+            if response_key:
+                text = await self.get_response(response_key)
+                await self.__send_message(message, text)
             else:
-                await self.__send_message(message, get_invalid_command_message())
+                text = await self.get_response(RK.INVALID_COMMAND_MESSAGE)
+                await self.__send_message(message, text)
 
     async def __send_message(self, message: Message, text: str) -> None:
-        await self._answer_markdown(message , text)
+        await self._answer_markdown(message, text)
         await self._log_system_message(logging.INFO, get_log_start_message_sent(message.from_user.username))

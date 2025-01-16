@@ -4,16 +4,12 @@ from typing import List
 from aiogram.types import Message
 
 from bot.database.database_manager import DatabaseManager
+from bot.database.response_keys import ResponseKey as RK
 from bot.handlers.bot_message_handler import (
     BotMessageHandler,
     ValidatorFunctions,
 )
-from bot.responses.administration.report_issue_handler_responses import (
-    get_limit_exceeded_report_length_message,
-    get_log_report_received_message,
-    get_no_report_content_message,
-    get_report_received_message,
-)
+from bot.responses.administration.report_issue_handler_responses import get_log_report_received_message
 from bot.settings import settings
 
 
@@ -29,14 +25,14 @@ class ReportIssueHandler(BotMessageHandler):
 
     async def __check_argument_count(self, message: Message) -> bool:
         return await self._validate_argument_count(
-            message, 2, get_no_report_content_message(),
+            message, 2, await self.get_response(RK.NO_REPORT_CONTENT),
         )
 
 
     async def __check_report_length(self,message: Message) -> bool:
         report_content = message.text.split(maxsplit=1)
         if len(report_content[1]) > settings.MAX_REPORT_LENGTH:
-            await self._answer(message,get_limit_exceeded_report_length_message())
+            await self._answer(message,await self.get_response(RK.LIMIT_EXCEEDED_REPORT_LENGTH))
             return False
         return True
 
@@ -46,5 +42,5 @@ class ReportIssueHandler(BotMessageHandler):
 
     async def __handle_user_report_submission(self, message: Message, report: str) -> None:
         await DatabaseManager.add_report(message.from_user.id, report)
-        await self._answer(message,get_report_received_message())
+        await self._answer(message,await self.get_response(RK.REPORT_RECEIVED))
         await self._log_system_message(logging.INFO, get_log_report_received_message(message.from_user.username, report))

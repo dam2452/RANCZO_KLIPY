@@ -1,12 +1,12 @@
 import pytest
 
 from bot.database.database_manager import DatabaseManager
-import bot.responses.administration.use_key_handler_responses as use_key_msg
+from bot.database.response_keys import ResponseKey as RK
 from bot.tests.base_test import BaseTest
 
 
 @pytest.mark.usefixtures("db_pool", "telegram_client")
-class TestUseKeyCommand(BaseTest):
+class TestSaveUserKeyHandler(BaseTest):
 
     @pytest.mark.quick
     @pytest.mark.asyncio
@@ -17,11 +17,11 @@ class TestUseKeyCommand(BaseTest):
         await DatabaseManager.create_subscription_key(subscription_days, key)
         await self.expect_command_result_contains(
             f'/klucz {key}',
-            [use_key_msg.get_subscription_redeemed_message(subscription_days)],
+            [await self.get_response(RK.SUBSCRIPTION_REDEEMED, [str(subscription_days)])],
         )
         await self.expect_command_result_contains(
             f'/klucz {key}',
-            [use_key_msg.get_invalid_key_message()],
+            [await self.get_response(RK.INVALID_KEY)],
         )
         await DatabaseManager.remove_subscription_key(key)
 
@@ -31,7 +31,7 @@ class TestUseKeyCommand(BaseTest):
         key = "invalid_key"
 
         response = await self.send_command(f'/klucz {key}')
-        self.assert_response_contains(response, [use_key_msg.get_invalid_key_message()])
+        self.assert_response_contains(response, [await self.get_response(RK.INVALID_KEY)])
 
     @pytest.mark.quick
     @pytest.mark.asyncio
@@ -39,7 +39,7 @@ class TestUseKeyCommand(BaseTest):
         command = '/klucz'
 
         response = await self.send_command(command)
-        self.assert_response_contains(response, [use_key_msg.get_no_message_provided_message()])
+        self.assert_response_contains(response, [await self.get_response(RK.NO_KEY_PROVIDED)])
 
     @pytest.mark.long
     @pytest.mark.asyncio
@@ -50,11 +50,11 @@ class TestUseKeyCommand(BaseTest):
         await DatabaseManager.create_subscription_key(subscription_days, key)
         await self.expect_command_result_contains(
             f'/klucz {key}',
-            [use_key_msg.get_subscription_redeemed_message(subscription_days)],
+            [await self.get_response(RK.SUBSCRIPTION_REDEEMED, [str(subscription_days)])],
         )
         await self.expect_command_result_contains(
             f'/klucz {key}',
-            [use_key_msg.get_invalid_key_message()],
+            [await self.get_response(RK.INVALID_KEY)],
         )
         await DatabaseManager.remove_subscription_key(key)
 
@@ -67,11 +67,11 @@ class TestUseKeyCommand(BaseTest):
         await DatabaseManager.create_subscription_key(subscription_days, key)
         await self.expect_command_result_contains(
             f'/klucz {key}',
-            [use_key_msg.get_subscription_redeemed_message(subscription_days)],
+            [await self.get_response(RK.SUBSCRIPTION_REDEEMED, [str(subscription_days)])],
         )
         await self.expect_command_result_contains(
             f'/klucz {key}',
-            [use_key_msg.get_invalid_key_message()],
+            [await self.get_response(RK.INVALID_KEY)],
         )
         await DatabaseManager.remove_subscription_key(key)
 
@@ -84,10 +84,10 @@ class TestUseKeyCommand(BaseTest):
         await DatabaseManager.create_subscription_key(subscription_days, key)
         await self.expect_command_result_contains(
             f'/klucz {key}',
-            [use_key_msg.get_subscription_redeemed_message(subscription_days)],
+            [await self.get_response(RK.SUBSCRIPTION_REDEEMED, [str(subscription_days)])],
         )
         await self.expect_command_result_contains(
             f'/klucz {key}',
-            [use_key_msg.get_invalid_key_message()],
+            [await self.get_response(RK.INVALID_KEY)],
         )
         await DatabaseManager.remove_subscription_key(key)

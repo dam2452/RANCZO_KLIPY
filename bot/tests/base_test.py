@@ -18,6 +18,8 @@ from telethon.sync import TelegramClient
 from telethon.tl.custom.message import Message
 
 from bot.database.database_manager import DatabaseManager
+from bot.responses.bot_message_handler_responses import get_response
+from bot.search.transcription_finder import TranscriptionFinder
 import bot.tests.messages as msg
 from bot.tests.settings import settings as s
 
@@ -35,6 +37,16 @@ class BaseTest:
         sanitized = re.sub(r'[^\w\s]', '', text, flags=re.UNICODE)
         sanitized = " ".join(sanitized.split())
         return sanitized.lower()
+
+    def get_tested_handler_name(self) -> str:
+        return self.__class__.__name__[4:]
+
+    async def get_response(self, key: str, args: Optional[List[str]] = None) -> str:
+        return await get_response(
+            key=key,
+            handler_name=self.get_tested_handler_name() ,
+            args=args,
+        )
 
     @staticmethod
     def remove_until_first_space(text: str) -> str:
@@ -229,3 +241,10 @@ class BaseTest:
             expected_key=expected_key,
             expected_hashes_file=expected_hashes_file,
         )
+
+    @staticmethod
+    async def get_season_info() -> Dict[str, int]:
+        season_info = await TranscriptionFinder.get_season_details_from_elastic(
+            logger=logger,
+        )
+        return season_info
