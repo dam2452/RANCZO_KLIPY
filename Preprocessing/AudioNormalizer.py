@@ -28,8 +28,8 @@ class AudioNormalizer:
         try:
             if not self.input_folder.is_dir():
                 self.logger.error(f"Invalid input folder: {self.input_folder}")
-                return 1
-            self.process_folder()
+            else:
+                self.process_folder()
         except Exception as e: # pylint: disable=broad-exception-caught
             self.logger.error(f"Critical error in run: {e}")
         return self.logger.finalize()
