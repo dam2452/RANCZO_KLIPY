@@ -53,7 +53,7 @@ class JSONProcessor:
             elif item.is_file() and item.suffix == ".json":
                 self.process_json_file(item, target_path)
             else:
-                self.logger.info(f"Skipping unsupported file: {item}")
+                self.logger.error(f"Skipping unsupported file: {item}")
 
     def process_json_file(self, file_path: Path, output_file_path: Path) -> None:
         try:
