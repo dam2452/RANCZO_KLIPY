@@ -56,8 +56,6 @@ class AudioProcessor:
                 check=True,
             )
             self.logger.info(f"Processed: {file_path} -> {output_path}")
-        except subprocess.CalledProcessError as e:
-            self.logger.error(f"Error in subprocess for {file_path}: {e}")
         except Exception as e: # pylint: disable=broad-exception-caught
             self.logger.error(f"Error processing file {file_path}: {e}")
 
