@@ -3,7 +3,6 @@ import json
 from pathlib import Path
 import sys
 from typing import (
-    Any,
     Dict,
     List,
 )
@@ -71,7 +70,7 @@ class JSONProcessor:
         except Exception as e: # pylint: disable=broad-exception-caught
             self.logger.error(f"Error processing file {file_path}: {e}")
 
-    def process_segment(self, segment: Dict[str, Any]) -> Dict[str, Any]:
+    def process_segment(self, segment: json) -> json:
         for key in self.keys_to_remove:
             segment.pop(key, None)
 

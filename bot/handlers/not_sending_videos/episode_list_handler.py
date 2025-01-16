@@ -1,10 +1,9 @@
+import json
 import logging
 from pathlib import Path
 from typing import (
-    Any,
     Awaitable,
     Callable,
-    Dict,
     List,
     Optional,
     Tuple,
@@ -26,7 +25,7 @@ from bot.responses.not_sending_videos.episode_list_handler_responses import (
 from bot.search.transcription_finder import TranscriptionFinder
 from bot.settings import settings as s
 
-isSeasonCustomFn = Callable[[Dict[str, Any]], bool]
+isSeasonCustomFn = Callable[[json], bool]
 onCustomSeasonFn = Callable[[Message], Awaitable[None]]
 
 class EpisodeListHandler(BotMessageHandler):
@@ -92,7 +91,7 @@ class EpisodeListHandler(BotMessageHandler):
         await self._answer_photo(message, image_bytes, image_path, caption=get_season_11_petition_message())
 
     @staticmethod
-    def __is_ranczo_season_11(context: Dict[str, Any]) -> bool:
+    def __is_ranczo_season_11(context: json) -> bool:
         return (
             context["season"] == 11
             and context["specialized_table"] == "ranczo_messages"
@@ -103,7 +102,7 @@ class EpisodeListHandler(BotMessageHandler):
             (self.__is_ranczo_season_11, self.__handle_ranczo_season_11),
         ]
 
-    async def __check_easter_eggs(self, context: Dict[str, Any], message: Message) -> bool:
+    async def __check_easter_eggs(self, context: json, message: Message) -> bool:
         for predicate, callback in self.__get_easter_eggs():
             if predicate(context):
                 await callback(message)

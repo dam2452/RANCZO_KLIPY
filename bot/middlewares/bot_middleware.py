@@ -2,12 +2,12 @@ from abc import (
     ABC,
     abstractmethod,
 )
+import json
 import logging
 from typing import (
     Any,
     Awaitable,
     Callable,
-    Dict,
     List,
     Optional,
 )
@@ -32,9 +32,9 @@ class BotMiddleware(BaseMiddleware, ABC):
 
     async def __call__(
             self,
-            handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
+            handler: Callable[[TelegramObject, json], Awaitable[Any]],
             event: TelegramObject,
-            data: Dict[str, Any],
+            data: json,
     ) -> Optional[Awaitable]:
         if not isinstance(event, Message) or self.get_command_without_initial_slash(event) not in self._supported_commands:
             return await handler(event, data)
@@ -51,9 +51,9 @@ class BotMiddleware(BaseMiddleware, ABC):
     @abstractmethod
     async def handle(
             self,
-            handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
+            handler: Callable[[TelegramObject, json], Awaitable[Any]],
             event: TelegramObject,
-            data: Dict[str, Any],
+            data: json,
     ) -> Optional[Awaitable]:
         pass
 

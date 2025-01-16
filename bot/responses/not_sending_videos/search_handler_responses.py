@@ -1,7 +1,4 @@
-from typing import (
-    Any,
-    Dict,
-)
+import json
 
 from bot.utils.functions import (
     convert_number_to_emoji,
@@ -9,7 +6,7 @@ from bot.utils.functions import (
 )
 
 
-def format_search_response(unique_segments_count: int, segments, quote: str, season_info: Dict[str, Any]) -> str:
+def format_search_response(unique_segments_count: int, segments, quote: str, season_info: json) -> str:
     emoji_count = convert_number_to_emoji(unique_segments_count)
     response = (
         f"🔍 *Wyniki wyszukiwania* 🔍\n"

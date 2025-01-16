@@ -1,7 +1,6 @@
 import json
 import logging
 from typing import (
-    Any,
     Dict,
     List,
     Optional,
@@ -18,8 +17,8 @@ from bot.utils.log import log_system_message
 class TranscriptionFinder:
     @staticmethod
     def is_segment_overlap(
-            previous_segment: Dict[str, Any],
-            segment: Dict[str, Any],
+            previous_segment: json,
+            segment: json,
             start_time: float,
     ) -> bool:
 

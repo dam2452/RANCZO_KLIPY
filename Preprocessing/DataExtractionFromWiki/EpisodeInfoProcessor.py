@@ -3,11 +3,7 @@ import json
 from pathlib import Path
 import re
 import sys
-from typing import (
-    Any,
-    Dict,
-    Optional,
-)
+from typing import Optional
 
 from Preprocessing.ErrorHandlingLogger import ErrorHandlingLogger
 from Preprocessing.utils import setup_logger
@@ -35,11 +31,11 @@ class EpisodeInfoProcessor:
             self.logger.error(f"Critical error in processing: {exc}")
         return self.logger.finalize()
 
-    def load_episode_info(self) -> Dict[str, Any]:
+    def load_episode_info(self) -> json:
         with self.episode_info_path.open("r", encoding="utf-8") as file:
             return json.load(file)
 
-    def process_file(self, file_path: Path, episode_info: Dict[str, Any]) -> None:
+    def process_file(self, file_path: Path, episode_info: json) -> None:
         try: # pylint: disable=too-many-try-statements
             relative_path = file_path.relative_to(self.base_path)
             output_file_path = self.output_path / relative_path
@@ -80,7 +76,7 @@ class EpisodeInfoProcessor:
         return None
 
     @staticmethod
-    def find_episode_info(episode_info: Dict[str, Any], episode_number: int) -> Optional[Dict[str, Any]]:
+    def find_episode_info(episode_info: json, episode_number: int) -> Optional[json]:
         for season_str, data in episode_info.items():
             for ep_data in data.get("episodes", []):
                 if ep_data.get("episode_number") == episode_number:
