@@ -27,11 +27,10 @@ class EpisodeInfoProcessor:
         try:
             if not self.base_path.is_dir():
                 self.logger.error(f"Invalid base path: {self.base_path}")
-                return 1
-
-            episode_info = self.load_episode_info()
-            for file_path in self.base_path.rglob("*.json"):
-                self.process_file(file_path, episode_info)
+            else:
+                episode_info = self.load_episode_info()
+                for file_path in self.base_path.rglob("*.json"):
+                    self.process_file(file_path, episode_info)
         except Exception as exc: # pylint: disable=broad-exception-caught
             self.logger.error(f"Critical error in processing: {exc}")
         return self.logger.finalize()
