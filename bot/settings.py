@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     POSTGRES_HOST: str = Field(...)
     POSTGRES_PORT: int = Field(...)
     POSTGRES_DB: str = Field(...)
+    POSTGRES_SCHEMA: str = Field(...)
 
     SPECIALIZED_TABLE: str = Field(...)
 

@@ -1,7 +1,5 @@
 SET TIME ZONE 'GMT-2';
 
-CREATE EXTENSION IF NOT EXISTS pg_trgm;
-
 CREATE TABLE IF NOT EXISTS user_profiles (
     user_id BIGINT PRIMARY KEY,
     username TEXT UNIQUE,
@@ -101,7 +99,6 @@ CREATE TABLE IF NOT EXISTS search_history (
 );
 
 CREATE INDEX IF NOT EXISTS idx_search_history_timestamp ON search_history(timestamp);
-CREATE INDEX IF NOT EXISTS idx_search_history_quote ON search_history USING gin(quote gin_trgm_ops);
 
 CREATE TABLE IF NOT EXISTS last_clips (
     id SERIAL PRIMARY KEY,
@@ -159,6 +156,18 @@ ON common_messages (key);
 
 CREATE INDEX IF NOT EXISTS idx_ranczo_messages_key
 ON ranczo_messages (key);
+CREATE TABLE IF NOT EXISTS kiepscy_messages (
+    handler_name TEXT NOT NULL,
+    key TEXT NOT NULL,
+    message TEXT NOT NULL,
+    PRIMARY KEY (handler_name, key)
+);
+
+CREATE INDEX IF NOT EXISTS idx_kiepscy_messages_key
+ON kiepscy_messages (key);
+
+CREATE INDEX IF NOT EXISTS idx_kiepscy_messages_handler_name
+ON kiepscy_messages (handler_name);
 
 CREATE INDEX IF NOT EXISTS idx_common_messages_handler_name
 ON common_messages (handler_name);

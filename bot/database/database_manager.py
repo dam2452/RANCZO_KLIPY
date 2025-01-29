@@ -35,6 +35,7 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
         database: Optional[str] = None,
         user: Optional[str] = None,
         password: Optional[str] = None,
+        schema: Optional[str] = None,
     ):
         config = {
             "host": host or settings.POSTGRES_HOST,
@@ -42,9 +43,16 @@ class DatabaseManager:  # pylint: disable=too-many-public-methods
             "database": database or settings.POSTGRES_DB,
             "user": user or settings.POSTGRES_USER,
             "password": password or settings.POSTGRES_PASSWORD,
+                   "server_settings": {
+            "search_path": schema,
+                   },
+
         }
 
         DatabaseManager.pool = await asyncpg.create_pool(**config)
+
+
+
 
     @staticmethod
     def get_db_connection():

@@ -46,6 +46,7 @@ async def on_startup() -> None:
         database=settings.POSTGRES_DB,
         user=settings.POSTGRES_USER,
         password=settings.POSTGRES_PASSWORD,
+        schema=settings.POSTGRES_SCHEMA,
     )
     await DatabaseManager.init_db()
 
