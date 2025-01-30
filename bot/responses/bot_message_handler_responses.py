@@ -58,6 +58,8 @@ async def get_response(
     if not message:
         raise MessageNotFoundError(key, handler_name, s.SPECIALIZED_TABLE)
 
+    message = message.replace("\\u00A0", "\u00A0")
+
     placeholder_count = len(re.findall(r"{}", message))
     args = args or []
 
