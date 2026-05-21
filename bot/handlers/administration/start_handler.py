@@ -63,7 +63,8 @@ class StartHandler(BotMessageHandler):
             "sh": get_shortcuts_message,
         }
 
-    def get_commands(self) -> List[str]:
+    @classmethod
+    def get_commands(cls) -> List[str]:
         return ["start", "s", "help", "h", "pomoc"]
 
     async def _get_validator_functions(self) -> ValidatorFunctions:
@@ -86,7 +87,7 @@ class StartHandler(BotMessageHandler):
             await self.__send_message(get_basic_message())
         else:
             command = remove_diacritics_and_lowercase(content[1])
-            response = self.__RESPONSES.get(command, get_invalid_command_message())()
+            response = self.__RESPONSES.get(command, get_invalid_command_message)()
             await self.__send_message(response)
 
     async def __send_message(self, text: str) -> None:

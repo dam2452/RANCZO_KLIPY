@@ -13,13 +13,16 @@ from bot.search.text_segments_finder import TextSegmentsFinder
 
 
 class MyClipsHandler(BotMessageHandler):
-    def get_commands(self) -> List[str]:
+    @classmethod
+    def get_commands(cls) -> List[str]:
         return ["mojeklipy", "myclips", "mk"]
 
     async def _do_handle(self) -> None:
         user_id = self._message.get_user_id()
 
-        clips = await DatabaseManager.get_saved_clips(user_id)
+        parts = self._message.get_text().split(maxsplit=1)
+        filter_by_serial = len(parts) > 1 and parts[1].strip().lower() == "serial"
+        clips = await DatabaseManager.get_saved_clips(user_id, all_series=not filter_by_serial)
         if not clips:
             return await self.__reply_no_saved_clips()
 

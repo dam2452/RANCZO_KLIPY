@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     TELEGRAM_BOT_TOKEN: Optional[SecretStr] = None
     BOT_USERNAME: str = Field(...)
     DEFAULT_ADMIN: str = Field(...)
+    DEFAULT_ADMIN_PASSWORD: Optional[SecretStr] = None
     INLINE_CACHE_CHANNEL_ID: Optional[int] = Field(...)
     DEFAULT_RESOLUTION_KEY: str = Field("720p")
     DEFAULT_SERIES: str = Field("ranczo")
@@ -47,12 +48,13 @@ class Settings(BaseSettings):
     EXTEND_BEFORE_COMPILE: float = Field(0)
     EXTEND_AFTER_COMPILE: float = Field(0)
 
-    MESSAGE_LIMIT: int = Field(5)
+    MESSAGE_LIMIT: int = Field(30)
     LIMIT_DURATION: int = Field(30)
     MAX_CLIPS_PER_COMPILATION: int = Field(30)
     MAX_ADJUSTMENT_DURATION: int = Field(20)
     MAX_ES_RESULTS_LONG: int = Field(333)
     MAX_ES_RESULTS_QUICK: int = Field(10)
+    SEMANTIC_FRAMES_MERGE_GAP_SECONDS: float = Field(30.0)
     MAX_SEARCH_QUERY_LENGTH: int = Field(200)
     MAX_CLIP_DURATION: int = Field(60)
     MAX_CLIP_DURATION_HARD_LIMIT: int = Field(120)
@@ -79,6 +81,7 @@ class Settings(BaseSettings):
     REST_API_HOST: str = Field("0.0.0.0")
     REST_API_PORT: int = Field(8000)
     REST_API_APP_PATH: str = Field("bot.platforms.rest_runner:app")
+    REST_API_WORKERS: int = Field(4)
     DISABLE_RATE_LIMITING: bool = Field(False)
 
     VLLM_HOST: str = Field("http://localhost:11435")

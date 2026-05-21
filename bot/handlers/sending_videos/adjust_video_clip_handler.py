@@ -39,7 +39,8 @@ class AdjustVideoClipHandler(BotMessageHandler):
     __RELATIVE_COMMANDS: List[str] = ["dostosuj", "adjust", "d"]
     __ABSOLUTE_COMMANDS: List[str] = ["adostosuj", "aadjust", "ad"]
 
-    def get_commands(self) -> List[str]:
+    @classmethod
+    def get_commands(cls) -> List[str]:
         return (
             AdjustVideoClipHandler.__RELATIVE_COMMANDS
             + AdjustVideoClipHandler.__ABSOLUTE_COMMANDS
@@ -70,7 +71,11 @@ class AdjustVideoClipHandler(BotMessageHandler):
         if additional_start_offset is None:
             return None
 
-        is_consecutive_adjustment = command in AdjustVideoClipHandler.__RELATIVE_COMMANDS and last_clip and last_clip.is_adjusted
+        is_consecutive_adjustment = (
+            command in AdjustVideoClipHandler.__RELATIVE_COMMANDS
+            and last_clip is not None
+            and last_clip.is_adjusted
+        )
 
         if is_consecutive_adjustment:
             original_start_time = last_clip.adjusted_start_time or original_start_time

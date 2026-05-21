@@ -5,9 +5,13 @@ from typing import (
     Dict,
     List,
     Optional,
+    Tuple,
 )
 
-from bot.search.infra.elastic_search_manager import ElasticSearchManager
+from bot.search.infra.elastic_search_manager import (
+    ElasticSearchManager,
+    build_episode_restriction_filter,
+)
 from bot.search.video_frames.frames_finder import _build_index
 from bot.settings import settings
 from bot.types import (
@@ -29,6 +33,13 @@ from bot.utils.log import log_system_message
 
 
 class CharacterFinder:
+    __CHARACTER_SCENE_SOURCE_FIELDS = [
+        EpisodeMetadataKeys.EPISODE_METADATA,
+        VideoFrameKeys.TIMESTAMP,
+        SegmentKeys.VIDEO_PATH,
+        ActorKeys.ACTORS,
+    ]
+
     @staticmethod
     def __character_field(subfield: str) -> str:
         return f"{ActorKeys.ACTORS}.{subfield}"
@@ -106,7 +117,7 @@ class CharacterFinder:
                     ElasticsearchQueryKeys.PATH: ActorKeys.ACTORS,
                     ElasticsearchQueryKeys.FILTER: {
                         ElasticsearchQueryKeys.BOOL: {
-                            ElasticsearchQueryKeys.MUST: [
+                            ElasticsearchQueryKeys.FILTER: [
                                 CharacterFinder.__char_term(character_name),
                                 {
                                     ElasticsearchQueryKeys.TERM: {
@@ -172,7 +183,7 @@ class CharacterFinder:
             },
         }
 
-        response = await es.search(index=_build_index(series_name), body=query)
+        response = await es.search(index=_build_index(series_name), body=query, ignore_unavailable=True)
         buckets = (
             response[ElasticsearchKeys.AGGREGATIONS]
             [ElasticsearchAggregationKeys.ACTORS]
@@ -196,6 +207,7 @@ class CharacterFinder:
         logger: logging.Logger,
         size: int = settings.MAX_ES_RESULTS_LONG,
         seasons: Optional[List[int]] = None,
+        episodes: Optional[List[Tuple[int, int]]] = None,
     ) -> List[CharacterScene]:
         await log_system_message(
             logging.INFO,
@@ -207,6 +219,9 @@ class CharacterFinder:
         filter_clauses = [CharacterFinder.__nested_char_filter(character_name)]
         if seasons:
             filter_clauses.append({ElasticsearchQueryKeys.TERMS: {EpisodeMetadataKeys.SEASON_FIELD: seasons}})
+        episode_filter = build_episode_restriction_filter(episodes) if episodes else None
+        if episode_filter:
+            filter_clauses.append(episode_filter)
         query = {
             ElasticsearchQueryKeys.QUERY: {
                 ElasticsearchQueryKeys.BOOL: {
@@ -219,9 +234,10 @@ class CharacterFinder:
                 *CharacterFinder.__episode_sort(),
             ],
             ElasticsearchQueryKeys.SIZE: size,
+            ElasticsearchQueryKeys.SOURCE: CharacterFinder.__CHARACTER_SCENE_SOURCE_FIELDS,
         }
 
-        response = await es.search(index=_build_index(series_name), body=query)
+        response = await es.search(index=_build_index(series_name), body=query, ignore_unavailable=True)
         hits = response[ElasticsearchKeys.HITS][ElasticsearchKeys.HITS]
         scenes = [CharacterFinder.__parse_scene(h[ElasticsearchKeys.SOURCE], character_name) for h in hits]
         await log_system_message(logging.INFO, f"Found {len(scenes)} scenes for '{character_name}'.", logger)
@@ -235,6 +251,7 @@ class CharacterFinder:
         logger: logging.Logger,
         size: int = settings.MAX_ES_RESULTS_LONG,
         seasons: Optional[List[int]] = None,
+        episodes: Optional[List[Tuple[int, int]]] = None,
     ) -> List[CharacterScene]:
         await log_system_message(
             logging.INFO,
@@ -248,7 +265,7 @@ class CharacterFinder:
                 ElasticsearchQueryKeys.PATH: ActorKeys.ACTORS,
                 ElasticsearchQueryKeys.QUERY: {
                     ElasticsearchQueryKeys.BOOL: {
-                        ElasticsearchQueryKeys.MUST: [
+                        ElasticsearchQueryKeys.FILTER: [
                             CharacterFinder.__char_term(character_name),
                             {
                                 ElasticsearchQueryKeys.TERM: {
@@ -264,6 +281,9 @@ class CharacterFinder:
         filter_clauses = [char_and_emotion_nested]
         if seasons:
             filter_clauses.append({ElasticsearchQueryKeys.TERMS: {EpisodeMetadataKeys.SEASON_FIELD: seasons}})
+        episode_filter = build_episode_restriction_filter(episodes) if episodes else None
+        if episode_filter:
+            filter_clauses.append(episode_filter)
         query = {
             ElasticsearchQueryKeys.QUERY: {
                 ElasticsearchQueryKeys.BOOL: {
@@ -277,9 +297,10 @@ class CharacterFinder:
                 *CharacterFinder.__episode_sort(),
             ],
             ElasticsearchQueryKeys.SIZE: size,
+            ElasticsearchQueryKeys.SOURCE: CharacterFinder.__CHARACTER_SCENE_SOURCE_FIELDS,
         }
 
-        response = await es.search(index=_build_index(series_name), body=query)
+        response = await es.search(index=_build_index(series_name), body=query, ignore_unavailable=True)
         hits = response[ElasticsearchKeys.HITS][ElasticsearchKeys.HITS]
         scenes = [CharacterFinder.__parse_scene(h[ElasticsearchKeys.SOURCE], character_name) for h in hits]
         await log_system_message(
@@ -314,7 +335,7 @@ class CharacterFinder:
             },
         }
 
-        response = await es.search(index=_build_index(series_name), body=query)
+        response = await es.search(index=_build_index(series_name), body=query, ignore_unavailable=True)
         buckets = (
             response[ElasticsearchKeys.AGGREGATIONS]
             [ElasticsearchAggregationKeys.ACTORS]

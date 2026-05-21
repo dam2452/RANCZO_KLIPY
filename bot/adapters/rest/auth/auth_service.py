@@ -3,6 +3,8 @@ from datetime import (
     datetime,
     timedelta,
 )
+import secrets
+import string
 from typing import Optional
 
 from fastapi import HTTPException
@@ -32,6 +34,15 @@ def _verify_password(plain: str, hashed: str) -> bool:
     return pwd_context.verify(plain, hashed)
 
 
+def generate_verification_code() -> str:
+    return "".join(secrets.choice(string.digits) for _ in range(6))
+
+
+def generate_linking_token() -> str:
+    alphabet = string.ascii_uppercase + string.digits
+    return "".join(secrets.choice(alphabet) for _ in range(8))
+
+
 async def authenticate_user(username: str, password: str) -> Optional[UserProfile]:
     result = await DatabaseManager.get_credentials_with_profile_by_username(username)
     dummy_hash = "$2b$12$XEMBQhCuW2tw8rAIIoKV1ejU7nee6VDFZ5tRETJbkAQI2WCUDPqIm"
@@ -52,7 +63,7 @@ def create_access_token(user: UserProfile, expires_minutes: int = s.JWT_EXPIRE_M
     payload = {
         JwtPayloadKeys.USER_ID: user.user_id,
         JwtPayloadKeys.USERNAME: user.username,
-        JwtPayloadKeys.FULL_NAME: user.full_name,
+        JwtPayloadKeys.FULL_NAME: user.full_name or "",
         JwtPayloadKeys.EXP: expire.timestamp(),
         JwtPayloadKeys.IAT: now.timestamp(),
         JwtPayloadKeys.ISS: s.JWT_ISSUER,

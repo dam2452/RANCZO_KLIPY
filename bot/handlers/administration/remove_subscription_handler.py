@@ -14,7 +14,8 @@ from bot.responses.administration.remove_subscription_handler_responses import (
 
 
 class RemoveSubscriptionHandler(BotMessageHandler):
-    def get_commands(self) -> List[str]:
+    @classmethod
+    def get_commands(cls) -> List[str]:
         return ["removesubscription", "rmsub"]
 
     async def _get_validator_functions(self) -> ValidatorFunctions:
@@ -34,5 +35,8 @@ class RemoveSubscriptionHandler(BotMessageHandler):
 
         await DatabaseManager.remove_subscription(user_id)
 
-        await self._reply(get_subscription_removed_message(str(user_id)))
+        await self._reply(
+            get_subscription_removed_message(str(user_id)),
+            data={"user_id": user_id},
+        )
         await self._log_system_message(logging.INFO, get_log_subscription_removed_message(str(user_id), self._message.get_username()))

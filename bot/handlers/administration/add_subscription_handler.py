@@ -17,7 +17,8 @@ from bot.responses.administration.add_subscription_handler_responses import (
 
 
 class AddSubscriptionHandler(BotMessageHandler):
-    def get_commands(self) -> List[str]:
+    @classmethod
+    def get_commands(cls) -> List[str]:
         return ["addsubscription", "addsub"]
 
     async def _get_validator_functions(self) -> ValidatorFunctions:
@@ -54,7 +55,13 @@ class AddSubscriptionHandler(BotMessageHandler):
         await self.__reply_subscription_extended(user_id, new_end_date)
 
     async def __reply_subscription_extended(self, user_id: int, new_end_date: date) -> None:
-        await self._reply(get_subscription_extended_message(str(user_id), new_end_date))
+        await self._reply(
+            get_subscription_extended_message(str(user_id), new_end_date),
+            data={
+                "user_id": user_id,
+                "new_end_date": new_end_date.isoformat(),
+            },
+        )
         await self._log_system_message(
             logging.INFO,
             get_subscription_log_message(str(user_id), self._message.get_username()),

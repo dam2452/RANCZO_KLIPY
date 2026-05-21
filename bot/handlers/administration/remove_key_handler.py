@@ -13,7 +13,8 @@ from bot.responses.administration.remove_key_handler_responses import (
 
 
 class RemoveKeyHandler(BotMessageHandler):
-    def get_commands(self) -> List[str]:
+    @classmethod
+    def get_commands(cls) -> List[str]:
         return ["removekey", "rmk"]
 
     async def _get_validator_functions(self) -> ValidatorFunctions:
@@ -33,6 +34,12 @@ class RemoveKeyHandler(BotMessageHandler):
         success = await DatabaseManager.remove_subscription_key(key)
 
         if success:
-            await self._reply(get_remove_key_success_message(key))
+            await self._reply(
+                get_remove_key_success_message(key),
+                data={"key": key},
+            )
         else:
-            await self._reply_error(get_remove_key_failure_message(key))
+            await self._reply_error(
+                get_remove_key_failure_message(key),
+                data={"key": key},
+            )

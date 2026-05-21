@@ -1,8 +1,15 @@
 from contextlib import asynccontextmanager
+from datetime import (
+    datetime,
+    timedelta,
+    timezone,
+)
 import logging
 import re
 from typing import Annotated
 
+from aiogram import Bot
+from aiogram.exceptions import TelegramAPIError
 from fastapi import (
     APIRouter,
     Depends,
@@ -38,15 +45,27 @@ from bot.adapters.rest.auth.auth_service import (
     authenticate_user,
     create_access_token,
     create_refresh_token,
+    generate_linking_token,
+    generate_verification_code,
     revoke_all_user_refresh_tokens,
     revoke_refresh_token,
     verify_refresh_token,
 )
-from bot.adapters.rest.models import TextCompatibleCommandWrapper
+from bot.adapters.rest.batch_executor import execute_batch
+from bot.adapters.rest.models import (
+    AttachCredentialsRequest,
+    BatchRequest,
+    ForgotPasswordRequest,
+    RegisterRequest,
+    ResetPasswordRequest,
+    TextCompatibleCommandWrapper,
+)
 from bot.adapters.rest.rest_message import RestMessage
 from bot.adapters.rest.rest_responder import RestResponder
 from bot.database.database_manager import DatabaseManager
 from bot.factory import create_all_factories
+from bot.platforms.rest_registrar import RestRegistrar
+from bot.responses.bot_response import BotResponse
 from bot.settings import settings as s
 from bot.utils.constants import (
     AuthKeys,
@@ -58,7 +77,7 @@ from bot.utils.log import get_log_level
 logging.basicConfig(level=get_log_level())
 logger = logging.getLogger(__name__)
 
-command_handlers = {}
+command_handlers: dict = {}
 COMMAND_PATTERN = re.compile(r"^/?([a-zA-Z0-9_-]{1,30})\b")
 
 limiter = Limiter(
@@ -187,6 +206,249 @@ async def logout_all(data: LoginRequest, request: Request):
         "revoked_count": revoked_count,
     }
 
+@api_router.post("/auth/register", tags=["Authentication"])
+@limiter.limit("3/hour")
+async def register(data: RegisterRequest, request: Request, response: Response):
+    existing = await DatabaseManager.get_user_profile_by_username(data.username)
+
+    if existing:
+        profile, has_credentials = existing
+        if has_credentials:
+            raise HTTPException(status_code=409, detail="Username already taken")
+        raise HTTPException(
+            status_code=409,
+            detail="telegram_linked",
+            headers={"X-User-Id": str(profile.user_id)},
+        )
+
+    user = await DatabaseManager.create_rest_user(
+        username=data.username,
+        password=data.password,
+        full_name=data.full_name,
+    )
+
+    access_token = create_access_token(user)
+    refresh_token_value = await create_refresh_token(
+        user,
+        ip_address=request.client.host,
+        user_agent=request.headers.get(HttpHeaderKeys.USER_AGENT),
+    )
+
+    response.set_cookie(
+        AuthKeys.REFRESH_TOKEN_COOKIE,
+        refresh_token_value,
+        httponly=True,
+        secure=s.ENVIRONMENT == "production",
+        samesite="strict",
+        path="/api/v1/auth",
+    )
+    return {AuthKeys.ACCESS_TOKEN: access_token, AuthKeys.TOKEN_TYPE: AuthKeys.BEARER}
+
+@api_router.post("/auth/forgot-password", tags=["Authentication"])
+@limiter.limit("3/minute")
+async def forgot_password(data: ForgotPasswordRequest, request: Request):  # pylint: disable=unused-argument
+    existing = await DatabaseManager.get_user_profile_by_username(data.username)
+    if not existing:
+        return {"message": "If the account exists, a reset code has been sent."}
+
+    profile, _ = existing
+    if profile.user_id < 0:
+        raise HTTPException(status_code=400, detail="No Telegram account linked. Cannot send reset code.")
+
+    code = generate_verification_code()
+    expires_at = datetime.now(timezone.utc) + timedelta(minutes=15)
+    await DatabaseManager.store_verification_token(
+        user_id=profile.user_id,
+        token=code,
+        purpose="password_reset",
+        expires_at=expires_at,
+    )
+
+    if s.ENABLE_TELEGRAM and s.TELEGRAM_BOT_TOKEN:
+        bot_instance = None
+        try:
+            bot_instance = Bot(token=s.TELEGRAM_BOT_TOKEN.get_secret_value())
+            await bot_instance.send_message(
+                chat_id=profile.user_id,
+                text=BotResponse.info(
+                    "RESET HASŁA",
+                    f"Twój kod resetujący: {code}\n\nWażny przez 15 minut.",
+                ),
+                parse_mode="MarkdownV2",
+            )
+        except TelegramAPIError as exc:
+            logger.error(f"Failed to send reset code to Telegram user {profile.user_id}: {exc}")
+            raise HTTPException(status_code=500, detail="Failed to send reset code.") from exc
+        finally:
+            if bot_instance:
+                await bot_instance.session.close()
+    else:
+        raise HTTPException(status_code=400, detail="Telegram is not enabled. Cannot send reset code.")
+
+    return {"message": "If the account exists, a reset code has been sent."}
+
+@api_router.post("/auth/reset-password", tags=["Authentication"])
+@limiter.limit("5/minute")
+async def reset_password(data: ResetPasswordRequest, request: Request):  # pylint: disable=unused-argument
+    existing = await DatabaseManager.get_user_profile_by_username(data.username)
+    if not existing:
+        raise HTTPException(status_code=400, detail="Invalid username or code.")
+
+    profile, _ = existing
+    user_id = await DatabaseManager.consume_verification_token(
+        token=data.code,
+        purpose="password_reset",
+    )
+
+    if user_id is None or user_id != profile.user_id:
+        raise HTTPException(status_code=400, detail="Invalid or expired code.")
+
+    await DatabaseManager.update_user_password(profile.user_id, data.new_password)
+    return {"message": "Password has been reset successfully."}
+
+@api_router.post("/auth/attach-credentials", tags=["Authentication"])
+@limiter.limit("5/minute")
+async def attach_credentials(data: AttachCredentialsRequest, request: Request, response: Response):
+    user_id = await DatabaseManager.consume_verification_token(
+        token=data.token,
+        purpose="attach_credentials",
+    )
+    if user_id is None:
+        raise HTTPException(status_code=400, detail="Invalid or expired token.")
+
+    existing = await DatabaseManager.get_user_profile_by_username(data.username)
+    if existing:
+        profile, _ = existing
+        if profile.user_id != user_id:
+            raise HTTPException(status_code=409, detail="Username already taken.")
+
+    if not await DatabaseManager.get_user_by_id(user_id):
+        raise HTTPException(status_code=404, detail="User not found.")
+
+    if await DatabaseManager.has_credentials(user_id):
+        raise HTTPException(status_code=409, detail="Account already has credentials.")
+
+    await DatabaseManager.attach_rest_credentials(user_id, data.username, data.password)
+
+    user = await DatabaseManager.get_user_by_id(user_id)
+    access_token = create_access_token(user)
+    refresh_token_value = await create_refresh_token(
+        user,
+        ip_address=request.client.host,
+        user_agent=request.headers.get(HttpHeaderKeys.USER_AGENT),
+    )
+    response.set_cookie(
+        AuthKeys.REFRESH_TOKEN_COOKIE,
+        refresh_token_value,
+        httponly=True,
+        secure=s.ENVIRONMENT == "production",
+        samesite="strict",
+        path="/api/v1/auth",
+    )
+    return {AuthKeys.ACCESS_TOKEN: access_token, AuthKeys.TOKEN_TYPE: AuthKeys.BEARER}
+
+@api_router.post("/auth/link-telegram", tags=["Authentication"])
+@limiter.limit("5/minute")
+async def link_telegram(
+    request: Request,  # pylint: disable=unused-argument
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+):
+    try:
+        payload = jwt.decode(
+            credentials.credentials,
+            s.JWT_SECRET_KEY.get_secret_value(),
+            algorithms=[s.JWT_ALGORITHM],
+            issuer=s.JWT_ISSUER,
+            audience=s.JWT_AUDIENCE,
+        )
+        user_id = payload.get(JwtPayloadKeys.USER_ID)
+    except JWTError as exc:
+        raise HTTPException(status_code=401, detail="Invalid token") from exc
+
+    if user_id > 0:
+        raise HTTPException(status_code=400, detail="Account is already linked to Telegram.")
+
+    token = generate_linking_token()
+    expires_at = datetime.now(timezone.utc) + timedelta(minutes=30)
+    await DatabaseManager.store_verification_token(
+        user_id=user_id,
+        token=token,
+        purpose="telegram_link",
+        expires_at=expires_at,
+    )
+
+    return {
+        "linking_code": token,
+        "message": f"Send /link {token} to the bot on Telegram within 30 minutes.",
+    }
+
+
+class ChangePasswordRequest(BaseModel):
+    old_password: Annotated[str, StringConstraints(min_length=8, max_length=128)]
+    new_password: Annotated[str, StringConstraints(min_length=8, max_length=128)]
+
+
+@api_router.post("/auth/change-password", tags=["Authentication"])
+@limiter.limit("5/minute")
+async def change_password(
+    data: ChangePasswordRequest,
+    request: Request,  # pylint: disable=unused-argument
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+):
+    try:
+        payload = jwt.decode(
+            credentials.credentials,
+            s.JWT_SECRET_KEY.get_secret_value(),
+            algorithms=[s.JWT_ALGORITHM],
+            issuer=s.JWT_ISSUER,
+            audience=s.JWT_AUDIENCE,
+        )
+        user_id = payload.get(JwtPayloadKeys.USER_ID)
+        username = payload.get(JwtPayloadKeys.USERNAME)
+    except JWTError as exc:
+        raise HTTPException(status_code=401, detail="Invalid token") from exc
+
+    user = await authenticate_user(username, data.old_password)
+    if not user:
+        raise HTTPException(status_code=401, detail="Current password is incorrect.")
+
+    await DatabaseManager.update_user_password(user_id, data.new_password)
+    return {"message": "Password changed successfully."}
+
+
+@api_router.post("/batch", tags=["Commands"])
+@limiter.limit("10/minute")
+async def batch_handler(
+    request: Request,
+    data: BatchRequest,
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+):
+    try:
+        payload = jwt.decode(
+            credentials.credentials,
+            s.JWT_SECRET_KEY.get_secret_value(),
+            algorithms=[s.JWT_ALGORITHM],
+            issuer=s.JWT_ISSUER,
+            audience=s.JWT_AUDIENCE,
+        )
+        required_fields = {JwtPayloadKeys.USER_ID: int, JwtPayloadKeys.USERNAME: str, JwtPayloadKeys.FULL_NAME: str}
+        for field, expected_type in required_fields.items():
+            if field not in payload or not isinstance(payload[field], expected_type):
+                raise HTTPException(status_code=401, detail=f"Invalid payload field: {field}")
+    except JWTError as exc:
+        raise HTTPException(status_code=401, detail="Invalid token") from exc
+
+    middleware_adapter = getattr(request.app.state, 'middleware_adapter', None)
+
+    return await execute_batch(
+        commands=data.commands,
+        jwt_payload=payload,
+        command_handlers=command_handlers,
+        middleware_adapter=middleware_adapter,
+        logger=logger,
+    )
+
+
 @api_router.post("/{command_name}", tags=["Commands"])
 async def universal_handler(
     command_name: str = Path(..., regex=COMMAND_PATTERN.pattern),
@@ -240,10 +502,17 @@ async def universal_handler(
         raise HTTPException(status_code=400, detail="Invalid JSON payload or request structure.") from exc
 
     message = RestMessage(payload=command_request_obj, user_data=payload)
-    responder = RestResponder()
+    responder = RestResponder(prefer_json=reply_json)
 
-    handler = handler_cls(message, responder, logger)
-    await handler.handle()
+    async def _run_handler() -> None:
+        handler = handler_cls(message, responder, logger)
+        await handler.handle()
+
+    middleware_adapter = getattr(request.app.state, 'middleware_adapter', None)
+    if middleware_adapter:
+        await middleware_adapter.execute(message, responder, _run_handler)
+    else:
+        await _run_handler()
 
     return responder.get_response()
 
@@ -258,11 +527,12 @@ async def lifespan(app_instance: FastAPI):
     await DatabaseManager.ensure_db_initialized()
     logger.info("DB initialization process ensured by REST runner lifespan.")
 
-    factories = create_all_factories(logger, bot=None)
-    for factory_item in factories:
-        for command, handler_cls in factory_item.get_rest_handlers():
-            command_handlers[command] = handler_cls
-    logger.info(f"✅ REST handlers loaded by REST runner lifespan for commands: {list(command_handlers.keys())}")
+    registrar = RestRegistrar(create_all_factories(logger))
+    command_handlers.update(registrar.get_command_handlers())
+    logger.info(f"REST handlers loaded for commands: {list(command_handlers.keys())}")
+
+    app_instance.state.middleware_adapter = registrar.get_middleware_adapter()
+    logger.info("REST middlewares loaded.")
 
     yield
 
@@ -308,7 +578,7 @@ async def run_rest_api():
         s.REST_API_APP_PATH,
         host=s.REST_API_HOST,
         port=s.REST_API_PORT,
-        reload=s.ENVIRONMENT != "production",
+        workers=s.REST_API_WORKERS,
         log_level=s.LOG_LEVEL.lower(),
     )
     server = uvicorn.Server(config)

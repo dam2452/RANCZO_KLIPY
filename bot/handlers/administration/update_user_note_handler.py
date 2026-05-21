@@ -17,7 +17,8 @@ from bot.responses.administration.update_user_note_handler_responses import (
 
 
 class UpdateUserNoteHandler(BotMessageHandler):
-    def get_commands(self) -> List[str]:
+    @classmethod
+    def get_commands(cls) -> List[str]:
         return ["note"]
 
     async def _get_validator_functions(self) -> ValidatorFunctions:
@@ -54,5 +55,8 @@ class UpdateUserNoteHandler(BotMessageHandler):
 
     async def __update_user_note(self, user_id: int, note: str) -> None:
         await DatabaseManager.update_user_note(user_id, note)
-        await self._reply(get_note_updated_message())
+        await self._reply(
+            get_note_updated_message(),
+            data={"user_id": user_id, "note": note},
+        )
         await self._log_system_message(logging.INFO, get_log_note_updated_message(self._message.get_username(), user_id, note))

@@ -6,7 +6,6 @@ from typing import (
     Tuple,
 )
 
-from bot.database.database_manager import DatabaseManager
 from bot.handlers.bot_message_handler import (
     BotMessageHandler,
     ValidatorFunctions,
@@ -31,7 +30,8 @@ from bot.utils.constants import (
 
 
 class TranscriptionHandler(BotMessageHandler):
-    def get_commands(self) -> List[str]:
+    @classmethod
+    def get_commands(cls) -> List[str]:
         return ["transkrypcja", "transcription", "t"]
 
     async def _get_validator_functions(self) -> ValidatorFunctions:
@@ -48,10 +48,9 @@ class TranscriptionHandler(BotMessageHandler):
         quote = " ".join(args[1:])
 
         active_series = await self._get_user_active_series(self._message.get_user_id())
-        search_filter = await DatabaseManager.get_and_touch_user_filters(self._message.get_chat_id())
 
         result = await TextSegmentsFinder.find_segment_with_context(
-            quote, self._logger, active_series, context_size=15, search_filter=search_filter,
+            quote, self._logger, active_series, context_size=15,
         )
 
         if not result:
