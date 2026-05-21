@@ -14,6 +14,7 @@ from bot.interfaces.responder import AbstractResponder
 
 class SignalResponder(AbstractResponder):
     _MAX_MESSAGE_LENGTH = 2000
+    _ATTACHMENT_LIMIT_MB = 95
 
     __MD_UNESCAPE = re.compile(r'\\([*_`\[\]()~>#+=|{}.!\-])')
 
@@ -59,7 +60,7 @@ class SignalResponder(AbstractResponder):
     ) -> None:
         try:
             file_size_mb = file_path.stat().st_size / (1024 * 1024)
-            if file_size_mb > 95:
+            if file_size_mb > self._ATTACHMENT_LIMIT_MB:
                 raise VideoTooLargeException(duration=duration, suggestions=suggestions)
             await self.__client.send_file(self.__recipient, str(file_path))
         finally:
