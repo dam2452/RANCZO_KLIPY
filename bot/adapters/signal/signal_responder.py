@@ -13,7 +13,7 @@ from bot.interfaces.responder import AbstractResponder
 
 
 class SignalResponder(AbstractResponder):
-    _MAX_MESSAGE_LENGTH = 2000
+    _MAX_MESSAGE_LENGTH = 10000
     _ATTACHMENT_LIMIT_MB = 95
 
     __MD_UNESCAPE = re.compile(r'\\([*_`\[\]()~>#+=|{}.!\-])')
