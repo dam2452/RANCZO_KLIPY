@@ -8,34 +8,45 @@ from typing import (
 )
 
 from bot.adapters.signal.signal_http_client import SignalHttpClient
+from bot.exceptions.video_exceptions import VideoTooLargeException
 from bot.interfaces.responder import AbstractResponder
 
 
 class SignalResponder(AbstractResponder):
+    _MAX_MESSAGE_LENGTH = 2000
+
     __MD_UNESCAPE = re.compile(r'\\([*_`\[\]()~>#+=|{}.!\-])')
-    __MD_FORMAT = re.compile(r'[*_`~]')
 
     def __init__(self, client: SignalHttpClient, recipient: str) -> None:
         self.__client = client
         self.__recipient = recipient
 
     @staticmethod
+    def __unescape_markdown_v2(text: str) -> str:
+        return SignalResponder.__MD_UNESCAPE.sub(r'\1', text)
+
+    @staticmethod
     def __strip_markdown(text: str) -> str:
         text = SignalResponder.__MD_UNESCAPE.sub(r'\1', text)
-        return SignalResponder.__MD_FORMAT.sub('', text)
+        return re.sub(r'[*_`~]', '', text)
 
-    async def send_text(self, text: str) -> None:
-        await self.__client.send_text(self.__recipient, text)
-
-    async def send_markdown(self, text: str) -> None:
+    async def _send_text_part(self, text: str, reply_to_id: Optional[int] = None) -> Optional[int]:
         await self.__client.send_text(self.__recipient, self.__strip_markdown(text))
+        return None
 
-    async def send_photo(self, image_bytes: bytes, image_path: Path, caption: str) -> None:
-        image_path.write_bytes(image_bytes)
-        try:
-            await self.__client.send_file(self.__recipient, str(image_path), self.__strip_markdown(caption))
-        finally:
-            image_path.unlink(missing_ok=True)
+    async def _send_markdown_part(self, text: str, reply_to_id: Optional[int] = None) -> Optional[int]:
+        await self.__client.send_text(
+            self.__recipient, self.__unescape_markdown_v2(text), styled=True,
+        )
+        return None
+
+    async def send_photo(self, image_bytes: bytes, image_path: Path, caption: Optional[str] = None) -> None:
+        suffix = image_path.suffix.lower()
+        mime = "image/png" if suffix == ".png" else "image/jpeg"
+        await self.__client.send_attachment(
+            self.__recipient, image_bytes, image_path.name, mime,
+            self.__unescape_markdown_v2(caption) if caption else "",
+        )
 
     async def send_video(
         self,
@@ -47,6 +58,9 @@ class SignalResponder(AbstractResponder):
         suggestions: Optional[List[str]] = None,
     ) -> None:
         try:
+            file_size_mb = file_path.stat().st_size / (1024 * 1024)
+            if file_size_mb > 95:
+                raise VideoTooLargeException(duration=duration, suggestions=suggestions)
             await self.__client.send_file(self.__recipient, str(file_path))
         finally:
             if delete_after_send:
@@ -60,7 +74,9 @@ class SignalResponder(AbstractResponder):
         cleanup_dir: Optional[Path] = None,
     ) -> None:
         try:
-            await self.__client.send_file(self.__recipient, str(file_path), self.__strip_markdown(caption))
+            await self.__client.send_file(
+                self.__recipient, str(file_path), self.__unescape_markdown_v2(caption),
+            )
         finally:
             if cleanup_dir:
                 shutil.rmtree(cleanup_dir, ignore_errors=True)

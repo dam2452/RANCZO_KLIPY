@@ -2,10 +2,17 @@ from bot.interfaces.message import AbstractMessage
 
 
 class SignalMessage(AbstractMessage):
-    def __init__(self, source: str, text: str, user_id: int) -> None:
+    def __init__(
+        self,
+        source: str,
+        text: str,
+        user_id: int,
+        display_name: str = "",
+    ) -> None:
         self.__source = source
         self.__text = text
         self.__user_id = user_id
+        self.__display_name = display_name
 
     def get_user_id(self) -> int:
         return self.__user_id
@@ -23,7 +30,7 @@ class SignalMessage(AbstractMessage):
         return self.__user_id
 
     def get_full_name(self) -> str:
-        return self.__source
+        return self.__display_name or self.__source
 
     def should_reply_json(self) -> bool:
         return False

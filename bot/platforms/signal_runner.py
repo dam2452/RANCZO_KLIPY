@@ -44,7 +44,7 @@ async def _handle_incoming_event(
     command_handlers: Dict[str, Type[BotMessageHandler]],
     all_middlewares: List[BotMiddleware],
 ) -> None:
-    logger.warning(f"Signal raw event: {data}")
+    logger.warning("Signal raw event: %s", data)
 
     if data.get("exception"):
         return
@@ -52,27 +52,38 @@ async def _handle_incoming_event(
     envelope = data.get("envelope", {})
     data_msg = envelope.get("dataMessage")
     if not data_msg:
-        logger.warning(f"Signal: no dataMessage, envelope keys: {list(envelope.keys())}")
+        logger.warning("Signal: no dataMessage, envelope keys: %s", list(envelope.keys()))
         return
 
     text = (data_msg.get("message") or "").strip()
-    source = envelope.get("sourceNumber") or envelope.get("sourceUuid", "")
+    if not text:
+        return
 
-    logger.warning(f"Signal: source={source!r} text={text!r}")
+    source_uuid = envelope.get("sourceUuid", "")
+    source_number = envelope.get("sourceNumber") or source_uuid
+    source_name = envelope.get("sourceName", "")
 
-    if not source or not text.startswith("/"):
+    logger.warning("Signal: source=%s name=%s text=%r", source_number, source_name, text)
+
+    if not source_number or not text.startswith("/"):
         return
 
     command = text.split()[0].lstrip("/").lower()
     handler_cls = command_handlers.get(command)
 
     if handler_cls is None:
-        logger.debug(f"Signal: unknown command '/{command}' from {source}")
+        logger.debug("Signal: unknown command '/%s' from %s", command, source_number)
         return
 
-    user_id = await DatabaseManager.get_or_create_signal_user(source)
-    message = SignalMessage(source=source, text=text, user_id=user_id)
-    responder = SignalResponder(client=client, recipient=source)
+    user_id = await DatabaseManager.get_or_create_signal_user(source_number)
+    message = SignalMessage(
+        source=source_number,
+        text=text,
+        user_id=user_id,
+        display_name=source_name,
+    )
+    recipient = source_uuid or source_number
+    responder = SignalResponder(client=client, recipient=recipient)
 
     async def execute() -> None:
         handler = handler_cls(message, responder, logger)
@@ -87,16 +98,20 @@ async def run_signal_bot() -> None:
         phone=settings.SIGNAL_PHONE_NUMBER,
     )
 
-    factories = create_all_factories(logger, bot=None)
+    factories = create_all_factories(logger)
     command_handlers: Dict[str, Type[BotMessageHandler]] = {}
     all_middlewares: List[BotMiddleware] = []
 
     for factory in factories:
-        for command, handler_cls in factory.get_rest_handlers():
+        for command, handler_cls in factory.get_command_handler_pairs():
             command_handlers[command] = handler_cls
         all_middlewares.extend(factory.get_middlewares())
 
-    logger.info(f"Signal: {len(command_handlers)} commands registered, {len(all_middlewares)} middlewares loaded.")
+    logger.info(
+        "Signal: %d commands registered, %d middlewares loaded.",
+        len(command_handlers),
+        len(all_middlewares),
+    )
 
     await client.start()
 
@@ -104,11 +119,15 @@ async def run_signal_bot() -> None:
         try:
             await _handle_incoming_event(data, client, command_handlers, all_middlewares)
         except Exception as exc:
-            logger.exception(f"Signal: error handling event: {exc}")
+            logger.exception("Signal: error handling event: %s", exc)
 
     client.start_receiving(on_event)
 
-    logger.info(f"Signal bot listening on {settings.SIGNAL_PHONE_NUMBER} via {settings.SIGNAL_API_URL}.")
+    logger.info(
+        "Signal bot listening on %s via %s.",
+        settings.SIGNAL_PHONE_NUMBER,
+        settings.SIGNAL_API_URL,
+    )
 
     try:
         await asyncio.Event().wait()
