@@ -411,3 +411,18 @@ INSERT INTO user_series_context (user_id)
 SELECT user_id
 FROM user_profiles
 ON CONFLICT (user_id) DO NOTHING;
+
+
+-- ============================================================================
+-- Signal integration
+-- ============================================================================
+
+CREATE SEQUENCE IF NOT EXISTS signal_user_id_seq START WITH 9000000000000;
+
+CREATE TABLE IF NOT EXISTS signal_users (
+    phone_number  TEXT PRIMARY KEY,
+    user_id       BIGINT UNIQUE NOT NULL REFERENCES user_profiles(user_id) ON DELETE CASCADE,
+    registered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_signal_users_user_id ON signal_users(user_id);

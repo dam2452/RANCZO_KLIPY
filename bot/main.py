@@ -15,6 +15,7 @@ from aiogram.exceptions import TelegramAPIError
 
 from bot.database.database_manager import DatabaseManager
 from bot.platforms.rest_runner import run_rest_api
+from bot.platforms.signal_runner import run_signal_bot
 from bot.platforms.telegram_runner import run_telegram_bot
 from bot.search.infra.elastic_search_manager import ElasticSearchManager
 from bot.settings import settings as s
@@ -110,6 +111,11 @@ PLATFORM_REGISTRY: Tuple[PlatformConfig, ...] = (
         name="REST API",
         enabled=lambda: s.ENABLE_REST,
         runner=run_rest_api,
+    ),
+    PlatformConfig(
+        name="Signal bot",
+        enabled=lambda: s.ENABLE_SIGNAL,
+        runner=run_signal_bot,
     ),
 )
 
