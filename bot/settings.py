@@ -69,7 +69,7 @@ class Settings(BaseSettings):
     ENABLE_REST: bool = Field(False)
     ENABLE_SIGNAL: bool = Field(False)
     SIGNAL_PHONE_NUMBER: str = Field("")
-    SIGNAL_API_URL: str = Field("http://localhost:8080")
+    SIGNAL_API_URL: str = Field("")
 
     JWT_SECRET_KEY: Optional[SecretStr] = Field("tests")
     JWT_ALGORITHM: str = "HS256"
@@ -93,31 +93,18 @@ class Settings(BaseSettings):
 
     @model_validator(mode='after')
     def check_conditional_settings(self) -> 'Settings':
-        if not self.ENABLE_TELEGRAM and not self.ENABLE_REST and not self.ENABLE_SIGNAL:
-            raise ValueError(
-                "At least one platform must be enabled. "
-                "Set ENABLE_TELEGRAM=true, ENABLE_REST=true, or ENABLE_SIGNAL=true",
-            )
+        requirements = {
+            'ENABLE_TELEGRAM': self.TELEGRAM_BOT_TOKEN,
+            'ENABLE_REST': self.JWT_SECRET_KEY,
+            'ENABLE_SIGNAL': self.SIGNAL_PHONE_NUMBER and self.SIGNAL_API_URL,
+        }
 
-        if self.ENABLE_TELEGRAM and not self.TELEGRAM_BOT_TOKEN:
-            raise ValueError(
-                "TELEGRAM_BOT_TOKEN is required when ENABLE_TELEGRAM=true",
-            )
+        if not any(getattr(self, k) for k in requirements):
+            raise ValueError("At least one platform must be enabled.")
 
-        if self.ENABLE_REST and not self.JWT_SECRET_KEY:
-            raise ValueError(
-                "JWT_SECRET_KEY is required when ENABLE_REST=true",
-            )
-
-        if self.ENABLE_SIGNAL and not self.SIGNAL_PHONE_NUMBER:
-            raise ValueError(
-                "SIGNAL_PHONE_NUMBER is required when ENABLE_SIGNAL=true",
-            )
-
-        if self.ENABLE_SIGNAL and not self.SIGNAL_API_URL:
-            raise ValueError(
-                "SIGNAL_API_URL is required when ENABLE_SIGNAL=true",
-            )
+        for flag, value in requirements.items():
+            if getattr(self, flag) and not value:
+                raise ValueError(f"{flag}=true requires the corresponding settings to be set.")
 
         return self
 

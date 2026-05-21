@@ -9,6 +9,7 @@ from typing import (
     Dict,
     List,
     Optional,
+    Set,
 )
 
 import aiohttp
@@ -25,6 +26,7 @@ class SignalHttpClient:
         self.__phone = phone
         self.__session: Optional[aiohttp.ClientSession] = None
         self.__receive_task: Optional[asyncio.Task] = None
+        self.__pending: Set[asyncio.Task] = set()
 
     async def start(self) -> None:
         self.__session = aiohttp.ClientSession()
@@ -40,6 +42,8 @@ class SignalHttpClient:
             await self.__session.close()
 
     def start_receiving(self, handler: Callable[[Dict], Awaitable[None]]) -> None:
+        if self.__receive_task is not None:
+            raise RuntimeError("SignalHttpClient is already receiving")
         self.__receive_task = asyncio.create_task(self.__receive_loop(handler))
 
     async def send_text(
@@ -89,7 +93,7 @@ class SignalHttpClient:
         caption: str = "",
     ) -> None:
         path = Path(file_path)
-        data = path.read_bytes()
+        data = await asyncio.to_thread(path.read_bytes)
         file_size_mb = len(data) / (1024 * 1024)
         if file_size_mb > _ATTACHMENT_LIMIT_MB:
             raise RuntimeError(
@@ -169,17 +173,24 @@ class SignalHttpClient:
     async def __post(self, path: str, body: Dict) -> None:
         session = await self.__ensure_session()
         async with session.post(f"{self.__base_url}{path}", json=body) as resp:
-            resp.raise_for_status()
+            await self.__check_response(path, resp)
 
     async def __put(self, path: str, body: Dict) -> None:
         session = await self.__ensure_session()
         async with session.put(f"{self.__base_url}{path}", json=body) as resp:
-            resp.raise_for_status()
+            await self.__check_response(path, resp)
 
     async def __delete(self, path: str, body: Dict) -> None:
         session = await self.__ensure_session()
         async with session.delete(f"{self.__base_url}{path}", json=body) as resp:
-            resp.raise_for_status()
+            await self.__check_response(path, resp)
+
+    @staticmethod
+    async def __check_response(path: str, resp: aiohttp.ClientResponse) -> None:
+        if resp.status >= 400:
+            text = await resp.text()
+            logger.error("Signal API %d on %s: %s", resp.status, path, text[:500])
+        resp.raise_for_status()
 
     async def __receive_loop(self, handler: Callable[[Dict], Awaitable[None]]) -> None:
         url = f"{self.__base_url}/v1/receive/{self.__phone}"
@@ -193,7 +204,9 @@ class SignalHttpClient:
                     messages: List[Dict] = await resp.json(content_type=None)
 
                 for msg in messages:
-                    asyncio.ensure_future(handler(msg))
+                    task = asyncio.create_task(handler(msg))
+                    self.__pending.add(task)
+                    task.add_done_callback(self.__pending.discard)
 
             except Exception as exc:
                 logger.warning("Signal poll error: %s. Retrying in 5s...", exc)

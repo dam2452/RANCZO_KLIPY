@@ -44,7 +44,7 @@ async def _handle_incoming_event(
     command_handlers: Dict[str, Type[BotMessageHandler]],
     all_middlewares: List[BotMiddleware],
 ) -> None:
-    logger.warning("Signal raw event: %s", data)
+    logger.debug("Signal raw event: %s", data)
 
     if data.get("exception"):
         return
@@ -63,12 +63,12 @@ async def _handle_incoming_event(
     source_number = envelope.get("sourceNumber") or source_uuid
     source_name = envelope.get("sourceName", "")
 
-    logger.warning("Signal: source=%s name=%s text=%r", source_number, source_name, text)
+    logger.info("Signal: source=%s name=%s text=%r", source_number, source_name, text)
 
     if not source_number or not text.startswith("/"):
         return
 
-    command = text.split()[0].lstrip("/").lower()
+    command = text.split(maxsplit=1)[0].lstrip("/").lower()
     handler_cls = command_handlers.get(command)
 
     if handler_cls is None:
