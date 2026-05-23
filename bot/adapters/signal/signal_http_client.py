@@ -1,5 +1,6 @@
 import asyncio
 import base64
+import json
 import logging
 import mimetypes
 from pathlib import Path
@@ -7,7 +8,6 @@ from typing import (
     Awaitable,
     Callable,
     Dict,
-    List,
     Optional,
     Set,
 )
@@ -16,7 +16,7 @@ import aiohttp
 
 logger = logging.getLogger(__name__)
 
-_POLL_TIMEOUT = aiohttp.ClientTimeout(total=15)
+_WS_RECONNECT_DELAY = 5
 _ATTACHMENT_LIMIT_MB = 95
 
 
@@ -193,21 +193,27 @@ class SignalHttpClient:
         resp.raise_for_status()
 
     async def __receive_loop(self, handler: Callable[[Dict], Awaitable[None]]) -> None:
-        url = f"{self.__base_url}/v1/receive/{self.__phone}"
-        logger.info("Signal polling started: %s", url)
+        ws_url = f"{self.__base_url}/v1/receive/{self.__phone}"
+        logger.info("Signal WebSocket receiving started: %s", ws_url)
 
         while True:
             try:
                 session = await self.__ensure_session()
-                async with session.get(url, timeout=_POLL_TIMEOUT) as resp:
-                    resp.raise_for_status()
-                    messages: List[Dict] = await resp.json(content_type=None)
+                async with session.ws_connect(ws_url) as ws:
+                    logger.info("Signal WebSocket connected.")
+                    async for msg in ws:
+                        if msg.type == aiohttp.WSMsgType.TEXT:
+                            task = asyncio.create_task(handler(json.loads(msg.data)))
+                            self.__pending.add(task)
+                            task.add_done_callback(self.__pending.discard)
+                        elif msg.type in (
+                            aiohttp.WSMsgType.ERROR,
+                            aiohttp.WSMsgType.CLOSED,
+                        ):
+                            break
 
-                for msg in messages:
-                    task = asyncio.create_task(handler(msg))
-                    self.__pending.add(task)
-                    task.add_done_callback(self.__pending.discard)
-
+                logger.warning("Signal WebSocket closed. Reconnecting in %ds...", _WS_RECONNECT_DELAY)
             except Exception as exc:
-                logger.warning("Signal poll error: %s. Retrying in 5s...", exc)
-                await asyncio.sleep(5)
+                logger.warning("Signal WebSocket error: %s. Reconnecting in %ds...", exc, _WS_RECONNECT_DELAY)
+
+            await asyncio.sleep(_WS_RECONNECT_DELAY)
