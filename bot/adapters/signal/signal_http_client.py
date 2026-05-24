@@ -7,7 +7,6 @@ from typing import (
     Awaitable,
     Callable,
     Dict,
-    List,
     Optional,
     Set,
 )
@@ -16,7 +15,8 @@ import aiohttp
 
 logger = logging.getLogger(__name__)
 
-_POLL_TIMEOUT = aiohttp.ClientTimeout(total=15)
+_POLL_INTERVAL = 3
+_POLL_TIMEOUT = 10
 _ATTACHMENT_LIMIT_MB = 95
 
 
@@ -194,20 +194,23 @@ class SignalHttpClient:
 
     async def __receive_loop(self, handler: Callable[[Dict], Awaitable[None]]) -> None:
         url = f"{self.__base_url}/v1/receive/{self.__phone}"
-        logger.info("Signal polling started: %s", url)
+        timeout = aiohttp.ClientTimeout(total=_POLL_TIMEOUT)
+        logger.info("Signal HTTP polling started: %s (interval: %ds)", url, _POLL_INTERVAL)
 
         while True:
             try:
                 session = await self.__ensure_session()
-                async with session.get(url, timeout=_POLL_TIMEOUT) as resp:
+                async with session.get(url, timeout=timeout) as resp:
                     resp.raise_for_status()
-                    messages: List[Dict] = await resp.json(content_type=None)
-
-                for msg in messages:
-                    task = asyncio.create_task(handler(msg))
-                    self.__pending.add(task)
-                    task.add_done_callback(self.__pending.discard)
-
+                    events = await resp.json(content_type=None)
+                    if isinstance(events, list):
+                        for event in events:
+                            task = asyncio.create_task(handler(event))
+                            self.__pending.add(task)
+                            task.add_done_callback(self.__pending.discard)
             except Exception as exc:
-                logger.warning("Signal poll error: %s. Retrying in 5s...", exc)
-                await asyncio.sleep(5)
+                if isinstance(exc, asyncio.CancelledError):
+                    raise
+                logger.warning("Signal poll error: %s. Retrying in %ds...", exc, _POLL_INTERVAL)
+
+            await asyncio.sleep(_POLL_INTERVAL)
