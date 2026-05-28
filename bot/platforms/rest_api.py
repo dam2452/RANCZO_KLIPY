@@ -85,6 +85,8 @@ def _iter_file(file_path: Path, start: int, end: int):
 
 
 async def _get_active_series(user_id: int) -> str:
+    if s.INTERNAL_MODE:
+        return s.DEFAULT_SERIES
     series_names = await DatabaseManager.get_user_active_series_names(user_id)
     if series_names:
         return series_names[0]
@@ -349,15 +351,16 @@ async def create_clip(
     output_path = await ClipsExtractor.extract_clip(video_path, start, end, logger)
 
     segment_data = {SegmentKeys.VIDEO_PATH: video_path_raw, SegmentKeys.START_TIME: start, SegmentKeys.END_TIME: end}
-    await DatabaseManager.insert_last_clip(
-        chat_id=user.user_id,
-        segment=segment_data,
-        compiled_clip=None,
-        clip_type=ClipType.SINGLE,
-        adjusted_start_time=start,
-        adjusted_end_time=end,
-        is_adjusted=False,
-    )
+    if not s.INTERNAL_MODE:
+        await DatabaseManager.insert_last_clip(
+            chat_id=user.user_id,
+            segment=segment_data,
+            compiled_clip=None,
+            clip_type=ClipType.SINGLE,
+            adjusted_start_time=start,
+            adjusted_end_time=end,
+            is_adjusted=False,
+        )
 
     return ClipResponse(
         id=str(output_path),
@@ -407,15 +410,16 @@ async def cut_clip(
             EpisodeMetadataKeys.EPISODE_NUMBER: body.episode,
         },
     }
-    await DatabaseManager.insert_last_clip(
-        chat_id=user.user_id,
-        segment=segment_data,
-        compiled_clip=None,
-        clip_type=ClipType.MANUAL,
-        adjusted_start_time=start,
-        adjusted_end_time=end,
-        is_adjusted=False,
-    )
+    if not s.INTERNAL_MODE:
+        await DatabaseManager.insert_last_clip(
+            chat_id=user.user_id,
+            segment=segment_data,
+            compiled_clip=None,
+            clip_type=ClipType.MANUAL,
+            adjusted_start_time=start,
+            adjusted_end_time=end,
+            is_adjusted=False,
+        )
 
     return ClipResponse(
         id=str(output_path),
@@ -432,19 +436,26 @@ async def adjust_clip(
     body: ClipAdjustRequest,
     user: Annotated[WorkerUser, Depends(require_worker_auth)],
 ):
-    last_clip = await DatabaseManager.get_last_clip_by_chat_id(user.user_id)
-    if not last_clip:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No clip found to adjust.")
+    if s.INTERNAL_MODE:
+        if not body.clip_context:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="clip_context required in INTERNAL_MODE.")
+        video_path_raw = body.clip_context.video_path
+        current_start = body.clip_context.start_time
+        current_end = body.clip_context.end_time
+        segment = {SegmentKeys.VIDEO_PATH: video_path_raw, SegmentKeys.START_TIME: current_start, SegmentKeys.END_TIME: current_end}
+    else:
+        last_clip = await DatabaseManager.get_last_clip_by_chat_id(user.user_id)
+        if not last_clip:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No clip found to adjust.")
+        segment = json.loads(last_clip.segment) if isinstance(last_clip.segment, str) else last_clip.segment
+        video_path_raw = segment.get(SegmentKeys.VIDEO_PATH, "")
+        current_start = last_clip.adjusted_start_time or segment.get(SegmentKeys.START_TIME, 0)
+        current_end = last_clip.adjusted_end_time or segment.get(SegmentKeys.END_TIME, 0)
 
-    segment = json.loads(last_clip.segment) if isinstance(last_clip.segment, str) else last_clip.segment
-    video_path_raw = segment.get(SegmentKeys.VIDEO_PATH, "")
     if not video_path_raw:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Clip has no video path.")
 
     video_path = _resolve_video_path(video_path_raw)
-
-    current_start = last_clip.adjusted_start_time or segment.get(SegmentKeys.START_TIME, 0)
-    current_end = last_clip.adjusted_end_time or segment.get(SegmentKeys.END_TIME, 0)
 
     if body.absolute_start is not None and body.absolute_end is not None:
         new_start = body.absolute_start
@@ -463,15 +474,16 @@ async def adjust_clip(
 
     output_path = await ClipsExtractor.extract_clip(video_path, new_start, new_end, logger)
 
-    await DatabaseManager.insert_last_clip(
-        chat_id=user.user_id,
-        segment=segment,
-        compiled_clip=None,
-        clip_type=ClipType.ADJUSTED,
-        adjusted_start_time=new_start,
-        adjusted_end_time=new_end,
-        is_adjusted=True,
-    )
+    if not s.INTERNAL_MODE:
+        await DatabaseManager.insert_last_clip(
+            chat_id=user.user_id,
+            segment=segment,
+            compiled_clip=None,
+            clip_type=ClipType.ADJUSTED,
+            adjusted_start_time=new_start,
+            adjusted_end_time=new_end,
+            is_adjusted=True,
+        )
 
     return ClipResponse(
         id=str(output_path),
@@ -485,23 +497,31 @@ async def adjust_clip(
 
 @router.post("/clip/snap", response_model=ClipSnapResponse)
 async def snap_clip(
-    body: ClipSnapRequest,  # pylint: disable=unused-argument
+    body: ClipSnapRequest,
     user: Annotated[WorkerUser, Depends(require_worker_auth)],
 ):
-    last_clip = await DatabaseManager.get_last_clip_by_chat_id(user.user_id)
-    if not last_clip:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No clip found to snap.")
+    if s.INTERNAL_MODE:
+        if not body.clip_context or not body.episode_metadata:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="clip_context and episode_metadata required in INTERNAL_MODE.")
+        video_path_raw = body.clip_context.video_path
+        current_start = body.clip_context.start_time
+        current_end = body.clip_context.end_time
+        segment = {SegmentKeys.VIDEO_PATH: video_path_raw, SegmentKeys.START_TIME: current_start, SegmentKeys.END_TIME: current_end}
+        meta = body.episode_metadata
+    else:
+        last_clip = await DatabaseManager.get_last_clip_by_chat_id(user.user_id)
+        if not last_clip:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No clip found to snap.")
+        segment = json.loads(last_clip.segment) if isinstance(last_clip.segment, str) else last_clip.segment
+        video_path_raw = segment.get(SegmentKeys.VIDEO_PATH, "")
+        current_start = last_clip.adjusted_start_time or segment.get(SegmentKeys.START_TIME, 0)
+        current_end = last_clip.adjusted_end_time or segment.get(SegmentKeys.END_TIME, 0)
+        meta = json.loads(last_clip.segment).get("episode_metadata", {}) if isinstance(last_clip.segment, str) else segment.get("episode_metadata", {})
 
-    segment = json.loads(last_clip.segment) if isinstance(last_clip.segment, str) else last_clip.segment
-    video_path_raw = segment.get(SegmentKeys.VIDEO_PATH, "")
     if not video_path_raw:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Clip has no video path.")
 
-    current_start = last_clip.adjusted_start_time or segment.get(SegmentKeys.START_TIME, 0)
-    current_end = last_clip.adjusted_end_time or segment.get(SegmentKeys.END_TIME, 0)
-
     series_name = await _get_active_series(user.user_id)
-    meta = json.loads(last_clip.segment).get("episode_metadata", {}) if isinstance(last_clip.segment, str) else segment.get("episode_metadata", {})
     season = meta.get("season") if isinstance(meta, dict) else None
     episode = meta.get("episode_number") if isinstance(meta, dict) else None
 
@@ -523,15 +543,16 @@ async def snap_clip(
     output_path = await ClipsExtractor.extract_clip(video_path, snapped_start, snapped_end, logger)
 
     segment_data = {SegmentKeys.VIDEO_PATH: video_path_raw, SegmentKeys.START_TIME: snapped_start, SegmentKeys.END_TIME: snapped_end}
-    await DatabaseManager.insert_last_clip(
-        chat_id=user.user_id,
-        segment=segment_data,
-        compiled_clip=None,
-        clip_type=ClipType.ADJUSTED,
-        adjusted_start_time=snapped_start,
-        adjusted_end_time=snapped_end,
-        is_adjusted=True,
-    )
+    if not s.INTERNAL_MODE:
+        await DatabaseManager.insert_last_clip(
+            chat_id=user.user_id,
+            segment=segment_data,
+            compiled_clip=None,
+            clip_type=ClipType.ADJUSTED,
+            adjusted_start_time=snapped_start,
+            adjusted_end_time=snapped_end,
+            is_adjusted=True,
+        )
 
     clip_resp = ClipResponse(
         id=str(output_path),
@@ -618,19 +639,20 @@ async def compile_clips(
         await _concat_clips(temp_files, compiled_output)
 
         duration = sum(end - start for _, start, end, _ in resolved)
-        await DatabaseManager.insert_last_clip(
-            chat_id=user.user_id,
-            segment={
-                SegmentKeys.VIDEO_PATH: resolved[0][3],
-                SegmentKeys.START_TIME: resolved[0][1],
-                SegmentKeys.END_TIME: resolved[-1][2],
-            },
-            compiled_clip=None,
-            clip_type=ClipType.COMPILED,
-            adjusted_start_time=None,
-            adjusted_end_time=None,
-            is_adjusted=False,
-        )
+        if not s.INTERNAL_MODE:
+            await DatabaseManager.insert_last_clip(
+                chat_id=user.user_id,
+                segment={
+                    SegmentKeys.VIDEO_PATH: resolved[0][3],
+                    SegmentKeys.START_TIME: resolved[0][1],
+                    SegmentKeys.END_TIME: resolved[-1][2],
+                },
+                compiled_clip=None,
+                clip_type=ClipType.COMPILED,
+                adjusted_start_time=None,
+                adjusted_end_time=None,
+                is_adjusted=False,
+            )
 
         return ClipResponse(
             id=str(compiled_output),

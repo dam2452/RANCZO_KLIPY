@@ -529,8 +529,11 @@ async def lifespan(app_instance: FastAPI):
     app_instance.state.limiter = limiter
     app_instance.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-    await DatabaseManager.ensure_db_initialized()
-    logger.info("DB initialization process ensured by REST runner lifespan.")
+    if not s.INTERNAL_MODE:
+        await DatabaseManager.ensure_db_initialized()
+        logger.info("DB initialization process ensured by REST runner lifespan.")
+    else:
+        logger.info("INTERNAL_MODE: skipping DB initialization.")
 
     registrar = RestRegistrar(create_all_factories(logger))
     command_handlers.update(registrar.get_command_handlers())

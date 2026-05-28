@@ -80,16 +80,25 @@ class ClipCutRequest(BaseModel):
     series: Optional[str] = None
 
 
+class ClipContext(BaseModel):
+    video_path: str
+    start_time: float
+    end_time: float
+
+
 class ClipAdjustRequest(BaseModel):
     clip_id: Optional[str] = None
     start_adjust: Optional[float] = Field(None, ge=-300, le=300)
     end_adjust: Optional[float] = Field(None, ge=-300, le=300)
     absolute_start: Optional[float] = Field(None, ge=0)
     absolute_end: Optional[float] = Field(None, gt=0)
+    clip_context: Optional[ClipContext] = None
 
 
 class ClipSnapRequest(BaseModel):
     clip_id: str = "last"
+    clip_context: Optional[ClipContext] = None
+    episode_metadata: Optional[dict] = None
 
 
 class ClipCompileSegment(BaseModel):

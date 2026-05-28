@@ -26,14 +26,16 @@ class Settings(BaseSettings):
     DEFAULT_RESOLUTION_KEY: str = Field("720p")
     DEFAULT_SERIES: str = Field("ranczo")
 
-    POSTGRES_USER: str = Field(...)
-    POSTGRES_PASSWORD: SecretStr = Field(...)
-    POSTGRES_HOST: str = Field(...)
-    POSTGRES_PORT: int = Field(...)
-    POSTGRES_DB: str = Field(...)
-    POSTGRES_SCHEMA: str = Field(...)
+    INTERNAL_MODE: bool = Field(False)
 
-    SPECIALIZED_TABLE: str = Field(...)
+    POSTGRES_USER: Optional[str] = Field(None)
+    POSTGRES_PASSWORD: Optional[SecretStr] = Field(None)
+    POSTGRES_HOST: Optional[str] = Field(None)
+    POSTGRES_PORT: Optional[int] = Field(None)
+    POSTGRES_DB: Optional[str] = Field(None)
+    POSTGRES_SCHEMA: Optional[str] = Field(None)
+
+    SPECIALIZED_TABLE: Optional[str] = Field(None)
 
     ES_HOST: str = Field(...)
     ES_USER: str = Field(...)
