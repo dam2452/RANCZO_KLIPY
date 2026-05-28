@@ -1,6 +1,9 @@
+import asyncio
 import json
 import logging
+import os
 from pathlib import Path
+import tempfile
 from typing import (
     Annotated,
     Optional,
@@ -515,15 +518,109 @@ async def snap_clip(
     return ClipSnapResponse(snapped=True, clip=clip_resp)
 
 
+async def _resolve_segment(seg, series_name):
+    vp_raw = seg.video_path
+    if vp_raw:
+        video_path = _resolve_video_path(vp_raw)
+    else:
+        vp_raw = await TextSegmentsFinder.find_video_path_by_episode(
+            season=seg.season,
+            episode_number=seg.episode,
+            logger=logger,
+            index=f"{series_name}_text_segments",
+        )
+        if not vp_raw:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Episode not found: s{seg.season}e{seg.episode}",
+            )
+        video_path = _resolve_video_path(vp_raw)
+    start = max(0.0, seg.start_time)
+    end = seg.end_time
+    if end <= start:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid time range: {start}-{end}",
+        )
+    return video_path, start, end, vp_raw
+
+
+async def _concat_clips(temp_files, compiled_output):
+    with tempfile.NamedTemporaryFile(delete=False, mode="w", suffix=".txt") as cf:
+        concat_path = Path(cf.name)
+    try:
+        with concat_path.open("w", encoding="utf-8") as f:
+            for tmp_file in temp_files:
+                f.write(f"file '{tmp_file.as_posix()}'\n")
+        command = [
+            "ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", str(concat_path),
+            "-c", "copy", "-movflags", "+faststart", "-fflags", "+genpts",
+            "-avoid_negative_ts", "1", str(compiled_output),
+        ]
+        proc = await asyncio.create_subprocess_exec(
+            *command,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        _, stderr = await proc.communicate()
+        if proc.returncode != 0:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"FFmpeg compilation failed: {stderr.decode()}",
+            )
+    finally:
+        concat_path.unlink(missing_ok=True)
+
+
 @router.post("/clip/compile", response_model=ClipResponse)
 async def compile_clips(
     body: ClipCompileRequest,
     user: Annotated[WorkerUser, Depends(require_worker_auth)],
 ):
-    raise HTTPException(
-        status_code=status.HTTP_501_NOT_IMPLEMENTED,
-        detail="Clip compilation endpoint is not yet implemented in worker mode.",
-    )
+    series_name = body.series or await _get_active_series(user.user_id)
+    resolved = [await _resolve_segment(seg, series_name) for seg in body.segments]
+
+    temp_files = []
+    try:
+        for vp, start, end, _ in resolved:
+            temp_files.append(await ClipsExtractor.extract_clip(vp, start, end, logger))
+
+        fd, tmp_path = tempfile.mkstemp(suffix=".mp4")
+        os.close(fd)
+        compiled_output = Path(tmp_path)
+
+        await _concat_clips(temp_files, compiled_output)
+
+        duration = sum(end - start for _, start, end, _ in resolved)
+        await DatabaseManager.insert_last_clip(
+            chat_id=user.user_id,
+            segment={
+                SegmentKeys.VIDEO_PATH: resolved[0][3],
+                SegmentKeys.START_TIME: resolved[0][1],
+                SegmentKeys.END_TIME: resolved[-1][2],
+            },
+            compiled_clip=None,
+            clip_type=ClipType.COMPILED,
+            adjusted_start_time=None,
+            adjusted_end_time=None,
+            is_adjusted=False,
+        )
+
+        return ClipResponse(
+            id=str(compiled_output),
+            duration=round(duration, 2),
+            video_path=str(compiled_output),
+            thumbnail_path=None,
+            start_time=round(resolved[0][1], 2),
+            end_time=round(resolved[-1][2], 2),
+        )
+    finally:
+        for tmp_file in temp_files:
+            try:
+                if tmp_file.exists():
+                    tmp_file.unlink(missing_ok=True)
+            except OSError:
+                pass
 
 
 @router.get("/clip/{clip_id:path}/video")

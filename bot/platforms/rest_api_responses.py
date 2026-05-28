@@ -4,6 +4,7 @@ from typing import Optional
 from pydantic import (
     BaseModel,
     Field,
+    model_validator,
 )
 
 
@@ -92,14 +93,32 @@ class ClipSnapRequest(BaseModel):
 
 
 class ClipCompileSegment(BaseModel):
-    video_path: str = Field(..., min_length=1, max_length=512)
-    start_time: float = Field(..., ge=0)
-    end_time: float = Field(..., gt=0)
+    video_path: Optional[str] = Field(None, min_length=1, max_length=512)
+    start_time: Optional[float] = Field(None, ge=0)
+    end_time: Optional[float] = Field(None, gt=0)
+    season: Optional[int] = None
+    episode: Optional[int] = None
+
+    @model_validator(mode="after")
+    def validate_segment(self):
+        has_direct = self.video_path and self.start_time is not None and self.end_time is not None
+        has_episode = (
+            self.season is not None
+            and self.episode is not None
+            and self.start_time is not None
+            and self.end_time is not None
+        )
+        if not has_direct and not has_episode:
+            raise ValueError(
+                "Segment must have either video_path+start_time+end_time or season+episode+start_time+end_time",
+            )
+        return self
 
 
 class ClipCompileRequest(BaseModel):
     segments: list[ClipCompileSegment] = Field(..., min_length=2, max_length=30)
     series: Optional[str] = None
+    snap: bool = False
 
 
 class SearchResultItem(BaseModel):
