@@ -125,11 +125,15 @@ def _resolve_video_path(video_path: str) -> Path:
 
 
 def _validate_tmp_path(file_path: Path) -> Path:
+    if not file_path.is_absolute():
+        file_path = Path("/") / file_path
     resolved = file_path.resolve()
     if not resolved.exists():
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File not found.")
     if resolved.suffix.lower() not in {".mp4", ".webm", ".mkv", ".avi", ".jpg", ".jpeg", ".png"}:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid file type.")
+    if not str(resolved).startswith("/tmp/"):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied.")
     return resolved
 
 
@@ -234,7 +238,7 @@ async def list_objects(
     objects = await ObjectFinder.get_all_objects(series_name, logger)
     return {
         "objects": [
-            ObjectItem(name=o.get("name", ""), scene_count=o.get("scene_count", 0))
+            ObjectItem(name=o.get("class_name", ""), scene_count=o.get("scene_count", 0))
             for o in (objects or [])
         ],
     }
@@ -380,7 +384,15 @@ async def cut_clip(
 
     output_path = await ClipsExtractor.extract_clip(video_path, start, end, logger)
 
-    segment_data = {SegmentKeys.VIDEO_PATH: video_path_raw, SegmentKeys.START_TIME: start, SegmentKeys.END_TIME: end}
+    segment_data = {
+        SegmentKeys.VIDEO_PATH: video_path_raw,
+        SegmentKeys.START_TIME: start,
+        SegmentKeys.END_TIME: end,
+        EpisodeMetadataKeys.EPISODE_METADATA: {
+            EpisodeMetadataKeys.SEASON: body.season,
+            EpisodeMetadataKeys.EPISODE_NUMBER: body.episode,
+        },
+    }
     await DatabaseManager.insert_last_clip(
         chat_id=user.user_id,
         segment=segment_data,

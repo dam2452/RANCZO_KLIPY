@@ -81,7 +81,7 @@ class ClipCutRequest(BaseModel):
 
 
 class ClipAdjustRequest(BaseModel):
-    clip_id: str = Field(..., min_length=1, max_length=256)
+    clip_id: Optional[str] = None
     start_adjust: Optional[float] = Field(None, ge=-300, le=300)
     end_adjust: Optional[float] = Field(None, ge=-300, le=300)
     absolute_start: Optional[float] = Field(None, ge=0)
