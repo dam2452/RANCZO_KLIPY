@@ -18,6 +18,7 @@ from fastapi import (
     Response,
     status,
 )
+from fastapi.responses import StreamingResponse
 
 from bot.database.database_manager import DatabaseManager
 from bot.database.models import ClipType
@@ -45,7 +46,6 @@ from bot.platforms.rest_api_responses import (
     TranscriptRequest,
     TranscriptResponse,
 )
-from bot.platforms.rest_api_video import stream_video
 from bot.search.infra.elastic_search_manager import ElasticSearchManager
 from bot.search.scenes_finder import ScenesFinder
 from bot.search.semantic_segments_finder import (
@@ -68,6 +68,20 @@ from bot.video.keyframe_extractor import KeyframeExtractor
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/rest", tags=["REST Worker API"])
+
+_CHUNK_SIZE = 64 * 1024
+
+
+def _iter_file(file_path: Path, start: int, end: int):
+    with open(file_path, "rb") as f:
+        f.seek(start)
+        remaining = end - start + 1
+        while remaining > 0:
+            chunk = f.read(min(_CHUNK_SIZE, remaining))
+            if not chunk:
+                break
+            remaining -= len(chunk)
+            yield chunk
 
 
 async def _get_active_series(user_id: int) -> str:
@@ -643,7 +657,34 @@ async def get_clip_video(
 ):
     file_path = Path(clip_id)
     resolved = _validate_tmp_path(file_path)
-    return stream_video(resolved, request)
+    file_size = resolved.stat().st_size
+    range_header = request.headers.get("range")
+
+    if range_header and range_header.startswith("bytes="):
+        range_spec = range_header[6:]
+        parts = range_spec.split("-", 1)
+        start = int(parts[0]) if parts[0] else max(0, file_size - int(parts[1]))
+        end = int(parts[1]) if parts[1] else file_size - 1
+        return StreamingResponse(
+            _iter_file(resolved, start, end),
+            status_code=status.HTTP_206_PARTIAL_CONTENT,
+            headers={
+                "Content-Range": f"bytes {start}-{end}/{file_size}",
+                "Accept-Ranges": "bytes",
+                "Content-Length": str(end - start + 1),
+                "Content-Type": "video/mp4",
+            },
+        )
+
+    return StreamingResponse(
+        _iter_file(resolved, 0, file_size - 1),
+        status_code=status.HTTP_200_OK,
+        headers={
+            "Content-Length": str(file_size),
+            "Content-Type": "video/mp4",
+            "Accept-Ranges": "bytes",
+        },
+    )
 
 
 @router.get("/clip/{clip_id:path}/frame")
