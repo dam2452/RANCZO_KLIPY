@@ -31,6 +31,8 @@ services:
       VIDEO_DATA_DIR: ${VIDEO_DATA_DIR:-/app/bot/RanchBotData}
       VLLM_HOST: ${VLLM_HOST:-http://localhost:11435}
       VLLM_EMBEDDINGS_MODEL: ${VLLM_EMBEDDINGS_MODEL:-qwen3vl-embed}
+      WORKER_API_KEY: ${WORKER_API_KEY:-}
+      INTERNAL_MODE: ${INTERNAL_MODE:-false}
     restart: ${RESTART_POLICY:-unless-stopped}
     volumes:
       - /mnt/WD_RED_2TB_MIRROR/RanchBot:/app/bot/RanchBotData:ro
