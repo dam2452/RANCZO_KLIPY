@@ -16,6 +16,7 @@ from fastapi import (
 )
 
 from bot.database.database_manager import DatabaseManager
+from bot.database.models import ClipType
 from bot.platforms.rest_api_auth import (
     WorkerUser,
     require_worker_auth,
@@ -168,7 +169,7 @@ async def create_clip(
         chat_id=user.user_id,
         segment=segment_data,
         compiled_clip=None,
-        clip_type="single",
+        clip_type=ClipType.SINGLE,
         adjusted_start_time=start,
         adjusted_end_time=end,
         is_adjusted=False,
@@ -226,7 +227,7 @@ async def adjust_clip(
         chat_id=user.user_id,
         segment=segment,
         compiled_clip=None,
-        clip_type="adjusted",
+        clip_type=ClipType.ADJUSTED,
         adjusted_start_time=new_start,
         adjusted_end_time=new_end,
         is_adjusted=True,
