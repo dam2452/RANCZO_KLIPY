@@ -5,6 +5,7 @@ from datetime import (
     timezone,
 )
 import logging
+from pathlib import Path as FilePath
 import re
 from typing import Annotated
 
@@ -73,6 +74,10 @@ from bot.utils.constants import (
     JwtPayloadKeys,
 )
 from bot.utils.log import get_log_level
+
+rest_worker_router = None
+if s.ENABLE_REST:
+    from bot.platforms.rest_api import router as rest_worker_router
 
 logging.basicConfig(level=get_log_level())
 logger = logging.getLogger(__name__)
@@ -539,10 +544,13 @@ async def lifespan(app_instance: FastAPI):
     logger.info("🛑 API Shutdown logic initiated by REST runner lifespan...")
     logger.info("🛑 API Shutdown complete for REST runner.")
 
+_version_file = FilePath(__file__).resolve().parent.parent.parent / "VERSION"
+_version = _version_file.read_text().strip()
+
 app = FastAPI(
-    title="Ranczo Bot API v1",
+    title="Ranczo Bot API",
     description="API for Ranczo Bot operations and commands.",
-    version="1.0.0",
+    version=_version,
     lifespan=lifespan,
     openapi_url="/api/v1/openapi.json",
     docs_url="/api/v1/docs",
@@ -559,19 +567,23 @@ async def add_security_headers(request: Request, call_next):
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains; preload"
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Referrer-Policy"] = "no-referrer"
-    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, proxy-revalidate"
-    response.headers["Pragma"] = "no-cache"
-    response.headers["Expires"] = "0"
     response.headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none';"
     return response
 
 @app.get("/", tags=["Health Check"])
 @limiter.limit("60/minute")
-async def health_check(request: Request):
-    logger.info(f"Health check endpoint requested by {request.client.host}.")
-    return {"status": "ok", "message": "Welcome to the Ranchbot API!"}
+async def health_check(request: Request):  # pylint: disable=unused-argument
+    return {"status": "ok"}
 
-app.include_router(api_router, prefix="/api/v1")
+if s.ENABLE_TELEGRAM:
+    app.include_router(api_router, prefix="/api/v1/telegram")
+    logger.info("Telegram command endpoints mounted at /api/v1/telegram/")
+
+if rest_worker_router and s.WORKER_API_KEY:
+    app.include_router(rest_worker_router, prefix="/api/v1")
+    logger.info("REST worker endpoints mounted at /api/v1/rest/")
+elif s.ENABLE_REST and not s.WORKER_API_KEY:
+    logger.warning("REST enabled but WORKER_API_KEY not set — REST worker endpoints NOT mounted.")
 
 async def run_rest_api():
     config = uvicorn.Config(

@@ -84,6 +84,8 @@ class Settings(BaseSettings):
     REST_API_WORKERS: int = Field(4)
     DISABLE_RATE_LIMITING: bool = Field(False)
 
+    WORKER_API_KEY: Optional[SecretStr] = Field(None)
+
     VLLM_HOST: str = Field("http://localhost:11435")
     VLLM_EMBEDDINGS_MODEL: str = Field("qwen3vl-embed")
     VLLM_TIMEOUT_SECONDS: int = Field(30)
