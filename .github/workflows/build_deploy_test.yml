@@ -59,6 +59,8 @@ jobs:
       ENABLE_SIGNAL: ${{ secrets.ENABLE_SIGNAL }}
       SIGNAL_PHONE_NUMBER: ${{ secrets.SIGNAL_PHONE_NUMBER }}
       SIGNAL_API_URL: ${{ secrets.SIGNAL_API_URL }}
+      WORKER_API_KEY: ${{ secrets.WORKER_API_KEY }}
+      INTERNAL_MODE: ${{ secrets.INTERNAL_MODE }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
