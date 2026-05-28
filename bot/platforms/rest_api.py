@@ -1,6 +1,9 @@
+import asyncio
 import json
 import logging
+import os
 from pathlib import Path
+import tempfile
 from typing import (
     Annotated,
     Optional,
@@ -12,6 +15,7 @@ from fastapi import (
     HTTPException,
     Query,
     Request,
+    Response,
     status,
 )
 
@@ -22,27 +26,36 @@ from bot.platforms.rest_api_auth import (
     require_worker_auth,
 )
 from bot.platforms.rest_api_responses import (
+    CharacterItem,
     ClipAdjustRequest,
     ClipCompileRequest,
     ClipCreateRequest,
+    ClipCutRequest,
     ClipResponse,
-    DeleteResponse,
-    EpisodesResponse,
-    SavedClipCreateRequest,
-    SavedClipItem,
-    SavedClipsResponse,
+    ClipSnapRequest,
+    ClipSnapResponse,
+    EpisodeDetail,
+    ObjectItem,
+    SearchFilters,
+    SearchMode,
     SearchRequest,
     SearchResponse,
     SearchResultItem,
+    SeasonItem,
+    TranscriptRequest,
+    TranscriptResponse,
 )
-from bot.platforms.rest_api_video import (
-    serve_thumbnail,
-    stream_video,
-)
+from bot.platforms.rest_api_video import stream_video
 from bot.search.infra.elastic_search_manager import ElasticSearchManager
 from bot.search.scenes_finder import ScenesFinder
-from bot.search.semantic_segments_finder import SemanticSegmentsFinder
+from bot.search.semantic_segments_finder import (
+    SemanticSearchMode,
+    SemanticSegmentsFinder,
+)
 from bot.search.text_segments_finder import TextSegmentsFinder
+from bot.search.video_frames.character_finder import CharacterFinder
+from bot.search.video_frames.object_finder import ObjectFinder
+from bot.services.scene_snap.scene_snap_service import SceneSnapService
 from bot.settings import settings as s
 from bot.utils.constants import (
     ElasticsearchKeys,
@@ -62,6 +75,27 @@ async def _get_active_series(user_id: int) -> str:
     if series_names:
         return series_names[0]
     return s.DEFAULT_SERIES
+
+
+def _to_internal_filter(filters: Optional[SearchFilters]) -> Optional[dict]:
+    if not filters:
+        return None
+    sf = {}
+    if filters.seasons:
+        sf["seasons"] = filters.seasons
+    if filters.episodes:
+        sf["episodes"] = [{"season": e.season, "episode": e.episode} for e in filters.episodes]
+    if filters.episode_title:
+        sf["episode_title"] = filters.episode_title
+    if filters.characters:
+        sf["character_groups"] = [filters.characters]
+    if filters.emotions:
+        sf["emotions"] = filters.emotions
+    if filters.objects:
+        sf["object_groups"] = [
+            [{"name": o.name, "operator": o.operator, "value": o.value} for o in filters.objects],
+        ]
+    return sf if sf else None
 
 
 def _segment_to_result(seg: dict) -> SearchResultItem:
@@ -90,6 +124,16 @@ def _resolve_video_path(video_path: str) -> Path:
     return resolved
 
 
+def _validate_tmp_path(file_path: Path) -> Path:
+    resolved = file_path.resolve()
+    if not resolved.exists():
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File not found.")
+    if resolved.suffix.lower() not in {".mp4", ".webm", ".mkv", ".avi", ".jpg", ".jpeg", ".png"}:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid file type.")
+    return resolved
+
+
+
 @router.get("/health")
 async def health():
     return {"status": "ok"}
@@ -101,27 +145,151 @@ async def search(
     user: Annotated[WorkerUser, Depends(require_worker_auth)],
 ):
     series_name = body.series or await _get_active_series(user.user_id)
-    es = await ElasticSearchManager.connect_to_elasticsearch(logger)
+    search_filter = _to_internal_filter(body.filters)
 
-    if body.semantic:
-        segments = await SemanticSegmentsFinder.find_by_text(
-            query=body.query,
-            logger=logger,
-            series_name=series_name,
-            size=min(body.limit, s.MAX_ES_RESULTS_LONG),
-        )
-    else:
+    if body.mode == SearchMode.KEYWORD:
+        es = await ElasticSearchManager.connect_to_elasticsearch(logger)
         segments = await ScenesFinder.find_by_text_and_filter(
             es=es,
             series_names=[series_name],
             quote=body.query,
-            search_filter=None,
+            search_filter=search_filter,
             size=min(body.limit, s.MAX_ES_RESULTS_LONG),
             logger=logger,
         )
+    elif body.mode in (SearchMode.SEMANTIC_TEXT, SearchMode.SEMANTIC_FRAMES, SearchMode.SEMANTIC_EPISODE):
+        mode_map = {
+            SearchMode.SEMANTIC_TEXT: SemanticSearchMode.TEXT,
+            SearchMode.SEMANTIC_FRAMES: SemanticSearchMode.FRAMES,
+            SearchMode.SEMANTIC_EPISODE: SemanticSearchMode.EPISODE,
+        }
+        segments = await SemanticSegmentsFinder.find_by_text(
+            query=body.query,
+            logger=logger,
+            series_name=series_name,
+            mode=mode_map[body.mode],
+            size=min(body.limit, s.MAX_ES_RESULTS_LONG),
+        )
+    else:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid search mode.")
 
     results = [_segment_to_result(seg) for seg in (segments or [])]
     return SearchResponse(results=results[: body.limit], total=len(results), query=body.query)
+
+
+@router.post("/transcript", response_model=TranscriptResponse)
+async def get_transcript(
+    body: TranscriptRequest,
+    user: Annotated[WorkerUser, Depends(require_worker_auth)],
+):
+    series_name = body.series or await _get_active_series(user.user_id)
+
+    result = await TextSegmentsFinder.find_segment_with_context(
+        quote=body.query,
+        logger=logger,
+        series_name=series_name,
+        context_size=body.context_size,
+    )
+    if not result:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transcript not found.")
+
+    target = result.get("target", result)
+    context_lines = result.get("context", [])
+    surrounding_lines = [
+        {"time": str(line.get("start", "")), "speaker": line.get("speaker"), "text": line.get("text", "")}
+        for line in context_lines
+    ]
+
+    return TranscriptResponse(
+        segment_id=str(target.get("segment_id", target.get("id", ""))),
+        text=target.get("text", ""),
+        speaker=target.get("speaker"),
+        start_time=target.get("start_time", target.get("start", 0)),
+        end_time=target.get("end_time", target.get("end", 0)),
+        surrounding=surrounding_lines,
+    )
+
+
+@router.get("/catalogue/characters")
+async def list_characters(
+    user: Annotated[WorkerUser, Depends(require_worker_auth)],
+    series: Optional[str] = Query(None),
+):
+    series_name = series or await _get_active_series(user.user_id)
+    characters = await CharacterFinder.get_all_characters(series_name, logger)
+    return {
+        "characters": [
+            CharacterItem(name=c.get("name", ""), episode_count=c.get("episode_count", 0))
+            for c in (characters or [])
+        ],
+    }
+
+
+@router.get("/catalogue/objects")
+async def list_objects(
+    user: Annotated[WorkerUser, Depends(require_worker_auth)],
+    series: Optional[str] = Query(None),
+):
+    series_name = series or await _get_active_series(user.user_id)
+    objects = await ObjectFinder.get_all_objects(series_name, logger)
+    return {
+        "objects": [
+            ObjectItem(name=o.get("name", ""), scene_count=o.get("scene_count", 0))
+            for o in (objects or [])
+        ],
+    }
+
+
+@router.get("/catalogue/emotions")
+async def list_emotions(
+    user: Annotated[WorkerUser, Depends(require_worker_auth)],
+    series: Optional[str] = Query(None),
+):
+    series_name = series or await _get_active_series(user.user_id)
+    emotions = await CharacterFinder.get_all_emotions(series_name, logger)
+    return {"emotions": emotions or []}
+
+
+@router.get("/catalogue/seasons")
+async def list_seasons(
+    user: Annotated[WorkerUser, Depends(require_worker_auth)],
+    series: Optional[str] = Query(None),
+):
+    series_name = series or await _get_active_series(user.user_id)
+    seasons = await TextSegmentsFinder.get_season_details_from_elastic(
+        logger=logger,
+        series_name=series_name,
+    )
+    return {
+        "seasons": [
+            SeasonItem(season=int(s), episode_count=count)
+            for s, count in (seasons.items() if seasons else [])
+        ],
+    }
+
+
+@router.get("/catalogue/episodes")
+async def list_episodes(
+    user: Annotated[WorkerUser, Depends(require_worker_auth)],
+    series: Optional[str] = Query(None),
+    season: Optional[int] = Query(None),
+):
+    series_name = series or await _get_active_series(user.user_id)
+
+    if season is not None:
+        episodes = await TextSegmentsFinder.find_episodes_by_season(
+            season=season,
+            logger=logger,
+            index=f"{series_name}_text_segments",
+        )
+        return {
+            "episodes": [
+                EpisodeDetail(episode_number=ep.get("episode_number", 0), title=ep.get("title", ""))
+                for ep in (episodes or [])
+            ],
+        }
+
+    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="season parameter is required.")
 
 
 @router.post("/clip", response_model=ClipResponse)
@@ -162,14 +330,62 @@ async def create_clip(
 
     output_path = await ClipsExtractor.extract_clip(video_path, start, end, logger)
 
-    await KeyframeExtractor.extract_thumbnail_bytes(video_path, start, duration)
-
     segment_data = {SegmentKeys.VIDEO_PATH: video_path_raw, SegmentKeys.START_TIME: start, SegmentKeys.END_TIME: end}
     await DatabaseManager.insert_last_clip(
         chat_id=user.user_id,
         segment=segment_data,
         compiled_clip=None,
         clip_type=ClipType.SINGLE,
+        adjusted_start_time=start,
+        adjusted_end_time=end,
+        is_adjusted=False,
+    )
+
+    return ClipResponse(
+        id=str(output_path),
+        duration=round(end - start, 2),
+        video_path=str(output_path),
+        thumbnail_path=None,
+        start_time=round(start, 2),
+        end_time=round(end, 2),
+    )
+
+
+@router.post("/clip/cut", response_model=ClipResponse)
+async def cut_clip(
+    body: ClipCutRequest,
+    user: Annotated[WorkerUser, Depends(require_worker_auth)],
+):
+    duration = body.end_time - body.start_time
+    if duration <= 0:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="end_time must be greater than start_time.")
+    if duration > s.MAX_CLIP_DURATION_HARD_LIMIT:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Clip duration exceeds hard limit of {s.MAX_CLIP_DURATION_HARD_LIMIT}s.")
+
+    series_name = body.series or await _get_active_series(user.user_id)
+
+    video_path_raw = await TextSegmentsFinder.find_video_path_by_episode(
+        season=body.season,
+        episode_number=body.episode,
+        logger=logger,
+        index=f"{series_name}_text_segments",
+    )
+    if not video_path_raw:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Episode video not found.")
+
+    video_path = _resolve_video_path(video_path_raw)
+
+    start = max(0, body.start_time - s.EXTEND_BEFORE)
+    end = body.end_time + s.EXTEND_AFTER
+
+    output_path = await ClipsExtractor.extract_clip(video_path, start, end, logger)
+
+    segment_data = {SegmentKeys.VIDEO_PATH: video_path_raw, SegmentKeys.START_TIME: start, SegmentKeys.END_TIME: end}
+    await DatabaseManager.insert_last_clip(
+        chat_id=user.user_id,
+        segment=segment_data,
+        compiled_clip=None,
+        clip_type=ClipType.MANUAL,
         adjusted_start_time=start,
         adjusted_end_time=end,
         is_adjusted=False,
@@ -221,8 +437,6 @@ async def adjust_clip(
 
     output_path = await ClipsExtractor.extract_clip(video_path, new_start, new_end, logger)
 
-    await KeyframeExtractor.extract_thumbnail_bytes(video_path, new_start, duration)
-
     await DatabaseManager.insert_last_clip(
         chat_id=user.user_id,
         segment=segment,
@@ -243,15 +457,170 @@ async def adjust_clip(
     )
 
 
+@router.post("/clip/snap", response_model=ClipSnapResponse)
+async def snap_clip(
+    body: ClipSnapRequest,  # pylint: disable=unused-argument
+    user: Annotated[WorkerUser, Depends(require_worker_auth)],
+):
+    last_clip = await DatabaseManager.get_last_clip_by_chat_id(user.user_id)
+    if not last_clip:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No clip found to snap.")
+
+    segment = json.loads(last_clip.segment) if isinstance(last_clip.segment, str) else last_clip.segment
+    video_path_raw = segment.get(SegmentKeys.VIDEO_PATH, "")
+    if not video_path_raw:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Clip has no video path.")
+
+    current_start = last_clip.adjusted_start_time or segment.get(SegmentKeys.START_TIME, 0)
+    current_end = last_clip.adjusted_end_time or segment.get(SegmentKeys.END_TIME, 0)
+
+    series_name = await _get_active_series(user.user_id)
+    meta = json.loads(last_clip.segment).get("episode_metadata", {}) if isinstance(last_clip.segment, str) else segment.get("episode_metadata", {})
+    season = meta.get("season") if isinstance(meta, dict) else None
+    episode = meta.get("episode_number") if isinstance(meta, dict) else None
+
+    if season is None or episode is None:
+        return ClipSnapResponse(snapped=False, message="Cannot determine episode for scene snap.")
+
+    snapped_start, snapped_end = await SceneSnapService.snap_clip_times(
+        series_name=series_name,
+        segment=segment,
+        clip_start=current_start,
+        clip_end=current_end,
+        logger=logger,
+    )
+
+    if snapped_start == current_start and snapped_end == current_end:
+        return ClipSnapResponse(snapped=False, message="Clip already aligned to scene boundaries.")
+
+    video_path = _resolve_video_path(video_path_raw)
+    output_path = await ClipsExtractor.extract_clip(video_path, snapped_start, snapped_end, logger)
+
+    segment_data = {SegmentKeys.VIDEO_PATH: video_path_raw, SegmentKeys.START_TIME: snapped_start, SegmentKeys.END_TIME: snapped_end}
+    await DatabaseManager.insert_last_clip(
+        chat_id=user.user_id,
+        segment=segment_data,
+        compiled_clip=None,
+        clip_type=ClipType.ADJUSTED,
+        adjusted_start_time=snapped_start,
+        adjusted_end_time=snapped_end,
+        is_adjusted=True,
+    )
+
+    clip_resp = ClipResponse(
+        id=str(output_path),
+        duration=round(snapped_end - snapped_start, 2),
+        video_path=str(output_path),
+        thumbnail_path=None,
+        start_time=round(snapped_start, 2),
+        end_time=round(snapped_end, 2),
+    )
+    return ClipSnapResponse(snapped=True, clip=clip_resp)
+
+
+async def _resolve_segment(seg, series_name):
+    vp_raw = seg.video_path
+    if vp_raw:
+        video_path = _resolve_video_path(vp_raw)
+    else:
+        vp_raw = await TextSegmentsFinder.find_video_path_by_episode(
+            season=seg.season,
+            episode_number=seg.episode,
+            logger=logger,
+            index=f"{series_name}_text_segments",
+        )
+        if not vp_raw:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Episode not found: s{seg.season}e{seg.episode}",
+            )
+        video_path = _resolve_video_path(vp_raw)
+    start = max(0.0, seg.start_time)
+    end = seg.end_time
+    if end <= start:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid time range: {start}-{end}",
+        )
+    return video_path, start, end, vp_raw
+
+
+async def _concat_clips(temp_files, compiled_output):
+    with tempfile.NamedTemporaryFile(delete=False, mode="w", suffix=".txt") as cf:
+        concat_path = Path(cf.name)
+    try:
+        with concat_path.open("w", encoding="utf-8") as f:
+            for tmp_file in temp_files:
+                f.write(f"file '{tmp_file.as_posix()}'\n")
+        command = [
+            "ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", str(concat_path),
+            "-c", "copy", "-movflags", "+faststart", "-fflags", "+genpts",
+            "-avoid_negative_ts", "1", str(compiled_output),
+        ]
+        proc = await asyncio.create_subprocess_exec(
+            *command,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        _, stderr = await proc.communicate()
+        if proc.returncode != 0:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"FFmpeg compilation failed: {stderr.decode()}",
+            )
+    finally:
+        concat_path.unlink(missing_ok=True)
+
+
 @router.post("/clip/compile", response_model=ClipResponse)
 async def compile_clips(
     body: ClipCompileRequest,
     user: Annotated[WorkerUser, Depends(require_worker_auth)],
 ):
-    raise HTTPException(
-        status_code=status.HTTP_501_NOT_IMPLEMENTED,
-        detail="Clip compilation endpoint is not yet implemented in worker mode.",
-    )
+    series_name = body.series or await _get_active_series(user.user_id)
+    resolved = [await _resolve_segment(seg, series_name) for seg in body.segments]
+
+    temp_files = []
+    try:
+        for vp, start, end, _ in resolved:
+            temp_files.append(await ClipsExtractor.extract_clip(vp, start, end, logger))
+
+        fd, tmp_path = tempfile.mkstemp(suffix=".mp4")
+        os.close(fd)
+        compiled_output = Path(tmp_path)
+
+        await _concat_clips(temp_files, compiled_output)
+
+        duration = sum(end - start for _, start, end, _ in resolved)
+        await DatabaseManager.insert_last_clip(
+            chat_id=user.user_id,
+            segment={
+                SegmentKeys.VIDEO_PATH: resolved[0][3],
+                SegmentKeys.START_TIME: resolved[0][1],
+                SegmentKeys.END_TIME: resolved[-1][2],
+            },
+            compiled_clip=None,
+            clip_type=ClipType.COMPILED,
+            adjusted_start_time=None,
+            adjusted_end_time=None,
+            is_adjusted=False,
+        )
+
+        return ClipResponse(
+            id=str(compiled_output),
+            duration=round(duration, 2),
+            video_path=str(compiled_output),
+            thumbnail_path=None,
+            start_time=round(resolved[0][1], 2),
+            end_time=round(resolved[-1][2], 2),
+        )
+    finally:
+        for tmp_file in temp_files:
+            try:
+                if tmp_file.exists():
+                    tmp_file.unlink(missing_ok=True)
+            except OSError:
+                pass
 
 
 @router.get("/clip/{clip_id:path}/video")
@@ -261,117 +630,28 @@ async def get_clip_video(
     user: Annotated[WorkerUser, Depends(require_worker_auth)],  # pylint: disable=unused-argument
 ):
     file_path = Path(clip_id)
-
-    resolved = file_path.resolve()
-    if not resolved.exists():
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Clip video not found.")
-
-    if resolved.suffix.lower() not in {".mp4", ".webm", ".mkv", ".avi"}:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid file type.")
-
+    resolved = _validate_tmp_path(file_path)
     return stream_video(resolved, request)
 
 
-@router.get("/saved-clips", response_model=SavedClipsResponse)
-async def list_saved_clips(
-    user: Annotated[WorkerUser, Depends(require_worker_auth)],
-):
-    clips = await DatabaseManager.get_saved_clips(user.user_id)
-    items = [
-        SavedClipItem(
-            id=c.id,
-            name=c.clip_name,
-            duration=c.duration,
-            created_at=str(c.timestamp) if hasattr(c, "timestamp") else None,
-            season=c.season,
-            episode=c.episode_number,
-        )
-        for c in clips
-    ]
-    return SavedClipsResponse(clips=items)
-
-
-@router.post("/saved-clips")
-async def save_clip(
-    body: SavedClipCreateRequest,
-    user: Annotated[WorkerUser, Depends(require_worker_auth)],
-):
-    last_clip = await DatabaseManager.get_last_clip_by_chat_id(user.user_id)
-    if not last_clip:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No clip to save.")
-
-    segment = json.loads(last_clip.segment) if isinstance(last_clip.segment, str) else last_clip.segment
-
-    clip_path = Path(body.clip_id) if body.clip_id != "last" else None
-    video_data = b""
-    if clip_path and clip_path.exists():
-        video_data = clip_path.read_bytes()
-
-    start_time = last_clip.adjusted_start_time or segment.get(SegmentKeys.START_TIME, 0)
-    end_time = last_clip.adjusted_end_time or segment.get(SegmentKeys.END_TIME, 0)
-
-    await DatabaseManager.save_clip(
-        chat_id=user.user_id,
-        user_id=user.user_id,
-        clip_name=body.name,
-        video_data=video_data,
-        start_time=start_time,
-        end_time=end_time,
-        duration=round(end_time - start_time, 2),
-        is_compilation=False,
-    )
-
-    return {"saved": True, "name": body.name}
-
-
-@router.delete("/saved-clips/{clip_name:path}", response_model=DeleteResponse)
-async def delete_saved_clip(
-    clip_name: str,
-    user: Annotated[WorkerUser, Depends(require_worker_auth)],
-):
-    await DatabaseManager.delete_clip(user.user_id, clip_name)
-    return DeleteResponse(deleted=True)
-
-
-@router.get("/episodes", response_model=EpisodesResponse)
-async def list_episodes(
-    user: Annotated[WorkerUser, Depends(require_worker_auth)],
-    series: Optional[str] = Query(None),
-    season: Optional[int] = Query(None),
-):
-    series_name = series or await _get_active_series(user.user_id)
-
-    if season is not None:
-        episodes = await TextSegmentsFinder.find_episodes_by_season(
-            season=season,
-            logger=logger,
-            index=f"{series_name}_text_segments",
-        )
-        items = [
-            {"season": season, "episode": ep.get("episode_number", 0), "title": ep.get("title", "")}
-            for ep in (episodes or [])
-        ]
-    else:
-        seasons = await TextSegmentsFinder.get_season_details_from_elastic(
-            logger=logger,
-            series_name=series_name,
-        )
-        items = [
-            {"season": int(s), "episode": 0, "title": f"Sezon {s} ({count} odcinków)"}
-            for s, count in (seasons.items() if seasons else [])
-        ]
-
-    return EpisodesResponse(episodes=items)
-
-
-@router.get("/clip/{clip_id:path}/thumbnail")
-async def get_clip_thumbnail(
+@router.get("/clip/{clip_id:path}/frame")
+async def get_clip_frame(
     clip_id: str,
-    user: Annotated[WorkerUser, Depends(require_worker_auth)],
+    user: Annotated[WorkerUser, Depends(require_worker_auth)],  # pylint: disable=unused-argument
+    time: float = Query(..., ge=0),
 ):
-    clips = await DatabaseManager.get_saved_clips(user.user_id)
-    for clip in clips:
-        if clip.clip_name == clip_id and hasattr(clip, "thumbnail_data") and clip.thumbnail_data:
-            return serve_thumbnail(clip.thumbnail_data)
+    file_path = Path(clip_id)
+    resolved = _validate_tmp_path(file_path)
 
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Thumbnail not found.")
+    if resolved.suffix.lower() not in {".mp4", ".webm", ".mkv", ".avi"}:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid video file type.")
+
+    frame_path = await KeyframeExtractor.extract_keyframe(resolved, time)
+    if not frame_path or not frame_path.exists():
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to extract frame.")
+
+    return Response(
+        content=frame_path.read_bytes(),
+        media_type="image/jpeg",
+        headers={"Cache-Control": "private, max-age=86400"},
+    )
