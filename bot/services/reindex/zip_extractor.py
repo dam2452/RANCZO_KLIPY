@@ -27,7 +27,7 @@ class ZipExtractor:
                     content = zf.read(file_info.filename)
                     buffer = io.BytesIO(content)
 
-                    jsonl_type = self.__detect_type_from_filename(file_info.filename)
+                    jsonl_type = self.detect_type_from_filename(file_info.filename)
                     if jsonl_type:
                         extracted_files[jsonl_type] = buffer
 
@@ -53,7 +53,7 @@ class ZipExtractor:
         return documents
 
     @staticmethod
-    def __detect_type_from_filename(filename: str) -> Optional[str]:
+    def detect_type_from_filename(filename: str) -> Optional[str]:
         _type_mapping = {
             'text_segments': 'text_segments',
             'text_embeddings': 'text_embeddings',

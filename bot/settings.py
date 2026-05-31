@@ -28,6 +28,14 @@ class Settings(BaseSettings):
 
     INTERNAL_MODE: bool = Field(False)
 
+    STORAGE_BACKEND: str = Field("local")
+    S3_ENDPOINT_URL: Optional[str] = Field(None)
+    S3_BUCKET: Optional[str] = Field(None)
+    S3_ACCESS_KEY: Optional[str] = Field(None)
+    S3_SECRET_KEY: Optional[SecretStr] = Field(None)
+    S3_REGION: str = Field("us-east-1")
+    REINDEX_TASK_TIMEOUT_SECONDS: int = Field(3600)
+
     POSTGRES_USER: Optional[str] = Field(None)
     POSTGRES_PASSWORD: Optional[SecretStr] = Field(None)
     POSTGRES_HOST: Optional[str] = Field(None)
@@ -109,6 +117,19 @@ class Settings(BaseSettings):
         for flag, value in requirements.items():
             if getattr(self, flag) and not value:
                 raise ValueError(f"{flag}=true requires the corresponding settings to be set.")
+
+        if self.STORAGE_BACKEND == "s3":
+            missing = []
+            if not self.S3_BUCKET:
+                missing.append("S3_BUCKET")
+            if not self.S3_ACCESS_KEY:
+                missing.append("S3_ACCESS_KEY")
+            if not self.S3_SECRET_KEY:
+                missing.append("S3_SECRET_KEY")
+            if missing:
+                raise ValueError(
+                    f"STORAGE_BACKEND=s3 requires: {', '.join(missing)}",
+                )
 
         return self
 

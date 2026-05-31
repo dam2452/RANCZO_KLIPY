@@ -7,13 +7,15 @@ from fastapi import (
     Response,
     status,
 )
-from fastapi.responses import StreamingResponse
 
 from bot.settings import settings as s
+from bot.video.file_streaming import (
+    build_full_response,
+    build_range_response,
+)
 
 logger = logging.getLogger(__name__)
 
-_CHUNK_SIZE = 64 * 1024
 _MAX_VIDEO_SIZE = 500 * 1024 * 1024
 
 
@@ -62,51 +64,17 @@ def _parse_range(range_header: str, file_size: int) -> tuple[int, int]:
     return start, end
 
 
-def _iter_file(file_path: Path, start: int, end: int):
-    with open(file_path, "rb") as f:
-        f.seek(start)
-        remaining = end - start + 1
-        while remaining > 0:
-            chunk = f.read(min(_CHUNK_SIZE, remaining))
-            if not chunk:
-                break
-            remaining -= len(chunk)
-            yield chunk
-
-
 def stream_video(file_path: Path, request: Request) -> Response:
     resolved = _validate_video_path(file_path)
     file_size = resolved.stat().st_size
-    content_type = "video/mp4"
 
     range_header = request.headers.get("range")
 
     if range_header:
         start, end = _parse_range(range_header, file_size)
-        content_length = end - start + 1
+        return build_range_response(resolved, start, end, file_size)
 
-        return StreamingResponse(
-            _iter_file(resolved, start, end),
-            status_code=status.HTTP_206_PARTIAL_CONTENT,
-            headers={
-                "Content-Range": f"bytes {start}-{end}/{file_size}",
-                "Accept-Ranges": "bytes",
-                "Content-Length": str(content_length),
-                "Content-Type": content_type,
-                "Cache-Control": "private, max-age=3600",
-            },
-        )
-
-    return StreamingResponse(
-        _iter_file(resolved, 0, file_size - 1),
-        status_code=status.HTTP_200_OK,
-        headers={
-            "Content-Length": str(file_size),
-            "Content-Type": content_type,
-            "Accept-Ranges": "bytes",
-            "Cache-Control": "private, max-age=3600",
-        },
-    )
+    return build_full_response(resolved, file_size)
 
 
 def serve_thumbnail(thumbnail_data: bytes) -> Response:

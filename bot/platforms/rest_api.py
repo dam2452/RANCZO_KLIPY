@@ -18,10 +18,10 @@ from fastapi import (
     Response,
     status,
 )
-from fastapi.responses import StreamingResponse
 
 from bot.database.database_manager import DatabaseManager
 from bot.database.models import ClipType
+from bot.integrations.s3_client import S3Client
 from bot.platforms.rest_api_auth import (
     WorkerUser,
     require_worker_auth,
@@ -37,6 +37,9 @@ from bot.platforms.rest_api_responses import (
     ClipSnapResponse,
     EpisodeDetail,
     ObjectItem,
+    ReindexRequest,
+    ReindexResponse,
+    ReindexStatusResponse,
     SearchFilters,
     SearchMode,
     SearchRequest,
@@ -55,6 +58,8 @@ from bot.search.semantic_segments_finder import (
 from bot.search.text_segments_finder import TextSegmentsFinder
 from bot.search.video_frames.character_finder import CharacterFinder
 from bot.search.video_frames.object_finder import ObjectFinder
+from bot.services.reindex.reindex_service import ReindexService
+from bot.services.reindex.reindex_task_manager import task_manager
 from bot.services.scene_snap.scene_snap_service import SceneSnapService
 from bot.settings import settings as s
 from bot.utils.constants import (
@@ -63,25 +68,15 @@ from bot.utils.constants import (
     SegmentKeys,
 )
 from bot.video.clips_extractor import ClipsExtractor
+from bot.video.file_streaming import (
+    build_full_response,
+    build_range_response,
+)
 from bot.video.keyframe_extractor import KeyframeExtractor
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/rest", tags=["REST Worker API"])
-
-_CHUNK_SIZE = 64 * 1024
-
-
-def _iter_file(file_path: Path, start: int, end: int):
-    with open(file_path, "rb") as f:
-        f.seek(start)
-        remaining = end - start + 1
-        while remaining > 0:
-            chunk = f.read(min(_CHUNK_SIZE, remaining))
-            if not chunk:
-                break
-            remaining -= len(chunk)
-            yield chunk
 
 
 async def _get_active_series(user_id: int) -> str:
@@ -131,7 +126,12 @@ def _segment_to_result(seg: dict) -> SearchResultItem:
     )
 
 
-def _resolve_video_path(video_path: str) -> Path:
+async def _resolve_video_path(video_path: str) -> Path:
+    if s.STORAGE_BACKEND == "s3":
+        s3_client = S3Client()
+        temp_path = await s3_client.download_to_temp(video_path)
+        return temp_path
+
     resolved = Path(s.VIDEO_DATA_DIR) / video_path
     if not resolved.exists():
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Source video file not found.")
@@ -343,7 +343,7 @@ async def create_clip(
     if not video_path_raw:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Segment has no video path.")
 
-    video_path = _resolve_video_path(video_path_raw)
+    video_path = await _resolve_video_path(video_path_raw)
 
     start = max(0, body.start_time - s.EXTEND_BEFORE)
     end = body.end_time + s.EXTEND_AFTER
@@ -394,7 +394,7 @@ async def cut_clip(
     if not video_path_raw:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Episode video not found.")
 
-    video_path = _resolve_video_path(video_path_raw)
+    video_path = await _resolve_video_path(video_path_raw)
 
     start = max(0, body.start_time - s.EXTEND_BEFORE)
     end = body.end_time + s.EXTEND_AFTER
@@ -455,7 +455,7 @@ async def adjust_clip(
     if not video_path_raw:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Clip has no video path.")
 
-    video_path = _resolve_video_path(video_path_raw)
+    video_path = await _resolve_video_path(video_path_raw)
 
     if body.absolute_start is not None and body.absolute_end is not None:
         new_start = body.absolute_start
@@ -539,7 +539,7 @@ async def snap_clip(
     if snapped_start == current_start and snapped_end == current_end:
         return ClipSnapResponse(snapped=False, message="Clip already aligned to scene boundaries.")
 
-    video_path = _resolve_video_path(video_path_raw)
+    video_path = await _resolve_video_path(video_path_raw)
     output_path = await ClipsExtractor.extract_clip(video_path, snapped_start, snapped_end, logger)
 
     segment_data = {SegmentKeys.VIDEO_PATH: video_path_raw, SegmentKeys.START_TIME: snapped_start, SegmentKeys.END_TIME: snapped_end}
@@ -568,7 +568,7 @@ async def snap_clip(
 async def _resolve_segment(seg, series_name):
     vp_raw = seg.video_path
     if vp_raw:
-        video_path = _resolve_video_path(vp_raw)
+        video_path = await _resolve_video_path(vp_raw)
     else:
         vp_raw = await TextSegmentsFinder.find_video_path_by_episode(
             season=seg.season,
@@ -581,7 +581,7 @@ async def _resolve_segment(seg, series_name):
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Episode not found: s{seg.season}e{seg.episode}",
             )
-        video_path = _resolve_video_path(vp_raw)
+        video_path = await _resolve_video_path(vp_raw)
     start = max(0.0, seg.start_time)
     end = seg.end_time
     if end <= start:
@@ -687,26 +687,9 @@ async def get_clip_video(
         parts = range_spec.split("-", 1)
         start = int(parts[0]) if parts[0] else max(0, file_size - int(parts[1]))
         end = int(parts[1]) if parts[1] else file_size - 1
-        return StreamingResponse(
-            _iter_file(resolved, start, end),
-            status_code=status.HTTP_206_PARTIAL_CONTENT,
-            headers={
-                "Content-Range": f"bytes {start}-{end}/{file_size}",
-                "Accept-Ranges": "bytes",
-                "Content-Length": str(end - start + 1),
-                "Content-Type": "video/mp4",
-            },
-        )
+        return build_range_response(resolved, start, end, file_size)
 
-    return StreamingResponse(
-        _iter_file(resolved, 0, file_size - 1),
-        status_code=status.HTTP_200_OK,
-        headers={
-            "Content-Length": str(file_size),
-            "Content-Type": "video/mp4",
-            "Accept-Ranges": "bytes",
-        },
-    )
+    return build_full_response(resolved, file_size)
 
 
 @router.get("/clip/{clip_id:path}/frame")
@@ -730,3 +713,89 @@ async def get_clip_frame(
         media_type="image/jpeg",
         headers={"Cache-Control": "private, max-age=86400"},
     )
+
+
+@router.post("/reindex", response_model=ReindexResponse)
+async def trigger_reindex(
+    body: ReindexRequest,
+    user: Annotated[WorkerUser, Depends(require_worker_auth)],  # pylint: disable=unused-argument
+):
+    target = body.target
+    if target not in {"all", "all-new"} and not target.replace("_", "").replace("-", "").isalnum():
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid target format.")
+
+    task_id = await task_manager.create_task(target)
+
+    asyncio.create_task(_run_reindex(task_id, target))
+
+    return ReindexResponse(task_id=task_id, status="pending")
+
+
+@router.get("/reindex/{task_id}/status", response_model=ReindexStatusResponse)
+async def get_reindex_status(
+    task_id: str,
+    user: Annotated[WorkerUser, Depends(require_worker_auth)],  # pylint: disable=unused-argument
+):
+    task_status = await task_manager.get_status(task_id)
+    if not task_status:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found.")
+
+    result = None
+    if task_status.status == "completed":
+        result = {
+            "series_name": task_status.series_name,
+            "episodes_processed": task_status.episodes_processed,
+            "documents_indexed": task_status.documents_indexed,
+            "errors": task_status.errors,
+        }
+
+    return ReindexStatusResponse(
+        task_id=task_status.task_id,
+        target=task_status.target,
+        status=task_status.status,
+        created_at=task_status.created_at.isoformat(),
+        completed_at=task_status.completed_at.isoformat() if task_status.completed_at else None,
+        result=result,
+        error=task_status.error,
+    )
+
+
+async def _run_reindex(task_id: str, target: str) -> None:
+    await task_manager.start_task(task_id)
+    try:
+        async with ReindexService.create(logger) as service:
+            async def _silent_progress(message: str, current: int, total: int) -> None:
+                logger.info(f"Reindex {task_id}: {message} ({current}/{total})")
+
+            if target == "all":
+                results = await service.reindex_all(_silent_progress)
+                total_eps = sum(r.episodes_processed for r in results)
+                total_docs = sum(r.documents_indexed for r in results)
+                all_errors: list[str] = []
+                for r in results:
+                    all_errors.extend(r.errors)
+                await task_manager.complete_task_multi(
+                    task_id, total_eps, total_docs, all_errors,
+                )
+            elif target == "all-new":
+                results = await service.reindex_all_new(_silent_progress)
+                total_eps = sum(r.episodes_processed for r in results)
+                total_docs = sum(r.documents_indexed for r in results)
+                all_errors = []
+                for r in results:
+                    all_errors.extend(r.errors)
+                await task_manager.complete_task_multi(
+                    task_id, total_eps, total_docs, all_errors,
+                )
+            else:
+                result = await service.reindex_series(target, _silent_progress)
+                await task_manager.complete_task(
+                    task_id,
+                    result.series_name,
+                    result.episodes_processed,
+                    result.documents_indexed,
+                    result.errors,
+                )
+    except Exception as exc:
+        logger.error(f"Reindex task {task_id} failed: {exc}", exc_info=True)
+        await task_manager.fail_task(task_id, str(exc))

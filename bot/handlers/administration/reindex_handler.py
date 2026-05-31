@@ -19,7 +19,6 @@ from bot.responses.administration.reindex_handler_responses import (
     get_reindex_started_message,
 )
 from bot.services.reindex.reindex_service import ReindexService
-from bot.settings import settings
 
 
 class ReindexHandler(BotMessageHandler):
@@ -73,10 +72,8 @@ class ReindexHandler(BotMessageHandler):
 
         progress_callback = self.__create_progress_callback()
 
-        async with ReindexService(
+        async with ReindexService.create(
             self._logger,
-            frame_before=settings.EXTEND_BEFORE,
-            frame_after=settings.EXTEND_AFTER,
         ) as service:
             try:
                 if target == "delete":

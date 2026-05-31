@@ -18,11 +18,13 @@ from elasticsearch.helpers import (
     async_bulk,
 )
 
+from bot.integrations.s3_client import S3Client
 from bot.search.infra.elastic_search_manager import ElasticSearchManager
+from bot.services.reindex.local_storage_strategy import LocalStorageStrategy
+from bot.services.reindex.s3_storage_strategy import S3StorageStrategy
 from bot.services.reindex.scenes_merger import ScenesMerger
-from bot.services.reindex.series_scanner import SeriesScanner
-from bot.services.reindex.video_path_transformer import VideoPathTransformer
 from bot.services.reindex.zip_extractor import ZipExtractor
+from bot.settings import settings as s
 
 
 @dataclass
@@ -47,17 +49,31 @@ class ReindexService:
     def __init__(
         self,
         logger: logging.Logger,
+        storage_strategy: Any,
         frame_before: float = 0.0,
         frame_after: float = 0.0,
     ) -> None:
         self.__logger = logger
         self.__frame_before = frame_before
         self.__frame_after = frame_after
-        self.__scanner = SeriesScanner(logger)
-        self.__zip_extractor = ZipExtractor(logger)
-        self.__video_transformer = VideoPathTransformer(logger)
+        self.__strategy = storage_strategy
         self.__scenes_merger = ScenesMerger(logger)
+        self.__zip_extractor = ZipExtractor(logger)
         self.__es_manager: Optional[ElasticSearchManager] = None
+
+    @staticmethod
+    def create(logger: logging.Logger) -> "ReindexService":
+        if s.STORAGE_BACKEND == "s3":
+            s3_client = S3Client()
+            strategy = S3StorageStrategy(logger, s3_client)
+        else:
+            strategy = LocalStorageStrategy(logger)
+        return ReindexService(
+            logger,
+            strategy,
+            s.EXTEND_BEFORE,
+            s.EXTEND_AFTER,
+        )
 
     async def __aenter__(self) -> "ReindexService":
         return self
@@ -80,7 +96,7 @@ class ReindexService:
     ) -> List[ReindexResult]:
         await self.__init_elasticsearch()
 
-        all_series = self.__scanner.scan_all_series()
+        all_series = await self.__strategy.scan_all_series()
         results = []
 
         total_series = len(all_series)
@@ -102,7 +118,7 @@ class ReindexService:
     ) -> List[ReindexResult]:
         await self.__init_elasticsearch()
 
-        all_series = self.__scanner.scan_all_series()
+        all_series = await self.__strategy.scan_all_series()
         new_series = []
 
         for series_name in all_series:
@@ -140,26 +156,26 @@ class ReindexService:
 
         await progress_callback(f"Skanowanie {series_name}...", 0, 100)
 
-        zip_files = self.__scanner.scan_series_zips(series_name)
-        if not zip_files:
+        zip_keys = await self.__strategy.scan_series_zips(series_name)
+        if not zip_keys:
             raise ValueError(f"No zip files found for series: {series_name}")
 
-        mp4_map = self.__scanner.scan_series_mp4s(series_name)
+        mp4_map = await self.__strategy.scan_series_mp4s(series_name)
 
-        await progress_callback(f"Usuwanie starych indeksów dla {series_name}...", 5, 100)
+        await progress_callback(f"Usuwanie starych indeksow dla {series_name}...", 5, 100)
         await self.__delete_series_indices(series_name)
 
-        total_episodes = len(zip_files)
+        total_episodes = len(zip_keys)
         indexed_count = 0
         errors = []
 
-        for idx, zip_path in enumerate(zip_files):
+        for idx, zip_key in enumerate(zip_keys):
             try:
                 if idx > 0 and idx % 10 == 0:
                     await self.__refresh_elasticsearch_connection(series_name, idx)
 
                 _, indexed_in_episode = await self.__process_single_episode(
-                    zip_path,
+                    zip_key,
                     series_name,
                     mp4_map,
                     idx,
@@ -170,7 +186,7 @@ class ReindexService:
                 indexed_count += indexed_in_episode
 
             except Exception as e:
-                error_msg = f"Failed to process {zip_path.name}: {str(e)}"
+                error_msg = f"Failed to process {zip_key}: {str(e)}"
                 self.__logger.error(error_msg, exc_info=True)
                 errors.append(error_msg)
 
@@ -184,7 +200,7 @@ class ReindexService:
                     self.__es_manager = None
                     await self.__init_elasticsearch()
 
-        await progress_callback(f"Reindeksowanie {series_name} zakończone!", 100, 100)
+        await progress_callback(f"Reindeksowanie {series_name} zakonczone!", 100, 100)
 
         return ReindexResult(
             series_name=series_name,
@@ -295,14 +311,14 @@ class ReindexService:
 
     async def __process_single_episode(
         self,
-        zip_path: Path,
+        zip_key: str,
         series_name: str,
-        mp4_map: Dict[str, Path],
+        mp4_map: Dict[str, str],
         idx: int,
         total_episodes: int,
         progress_callback: Callable[[str, int, int], Awaitable[None]],
     ) -> Tuple[str, int]:
-        episode_code = self.__extract_episode_code(zip_path)
+        episode_code = self.__extract_episode_code(zip_key)
         progress_pct = 10 + int((idx / total_episodes) * 85)
 
         await progress_callback(
@@ -311,15 +327,15 @@ class ReindexService:
             100,
         )
 
-        mp4_path = mp4_map.get(episode_code)
-        jsonl_contents = self.__zip_extractor.extract_to_memory(zip_path)
+        mp4_key = mp4_map.get(episode_code)
+        jsonl_contents = await self.__strategy.read_zip_to_memory(zip_key)
         indexed_count = 0
 
         parsed: Dict[str, List[Dict[str, Any]]] = {}
         for jsonl_type, buffer in jsonl_contents.items():
             documents = self.__zip_extractor.parse_jsonl_from_memory(buffer)
             for doc in documents:
-                self.__video_transformer.transform_video_path(doc, mp4_path)
+                self.__strategy.resolve_video_path(doc, mp4_key)
             parsed[jsonl_type] = documents
 
             index_name = self.__get_index_name(series_name, jsonl_type)
@@ -358,8 +374,8 @@ class ReindexService:
         return f"{series_name}_{jsonl_type}"
 
     @staticmethod
-    def __extract_episode_code(zip_path: Path) -> str:
-        match = re.search(r'(S\d{2}E\d{2})', zip_path.name)
+    def __extract_episode_code(zip_key: str) -> str:
+        match = re.search(r'(S\d{2}E\d{2})', zip_key)
         if match:
             return match.group(1)
-        return zip_path.stem
+        return Path(zip_key).stem

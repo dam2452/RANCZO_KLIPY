@@ -240,3 +240,29 @@ class TranscriptResponse(BaseModel):
 
 class DeleteResponse(BaseModel):
     deleted: bool
+
+
+class ReindexRequest(BaseModel):
+    target: str = Field(..., min_length=1, max_length=64)
+
+
+class ReindexResponse(BaseModel):
+    task_id: str
+    status: str
+
+
+class ReindexResultResponse(BaseModel):
+    series_name: Optional[str] = None
+    episodes_processed: int = 0
+    documents_indexed: int = 0
+    errors: list[str] = []
+
+
+class ReindexStatusResponse(BaseModel):
+    task_id: str
+    target: str
+    status: str
+    created_at: str
+    completed_at: Optional[str] = None
+    result: Optional[ReindexResultResponse] = None
+    error: Optional[str] = None
