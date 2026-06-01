@@ -238,6 +238,24 @@ class TranscriptResponse(BaseModel):
     surrounding: list[TranscriptLine] = []
 
 
+class SubtitleLine(BaseModel):
+    start_time: float
+    end_time: float
+    speaker: Optional[str] = None
+    text: str
+
+
+class ClipSubtitlesRequest(BaseModel):
+    video_path: str = Field(..., min_length=1, max_length=512)
+    start_time: float = Field(..., ge=0)
+    end_time: float = Field(..., gt=0)
+    series: Optional[str] = None
+
+
+class ClipSubtitlesResponse(BaseModel):
+    lines: list[SubtitleLine]
+
+
 class DeleteResponse(BaseModel):
     deleted: bool
 

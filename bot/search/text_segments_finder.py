@@ -596,3 +596,52 @@ class TextSegmentsFinder:
 
         await log_system_message(logging.INFO, f"Season details: {season_dict}", logger)
         return season_dict
+
+    @staticmethod
+    async def find_segments_in_time_range(
+            video_path: str,
+            start_time: float,
+            end_time: float,
+            logger: logging.Logger,
+            series_name: str,
+    ) -> List[BaseSegment]:
+        await log_system_message(
+            logging.INFO,
+            f"Fetching segments for video_path='{video_path}' time=[{start_time}, {end_time}]",
+            logger,
+        )
+        es = await ElasticSearchManager.connect_to_elasticsearch(logger)
+        index = f"{series_name}{ElasticsearchIndexSuffixes.TEXT_SEGMENTS}"
+
+        query = {
+            ElasticsearchQueryKeys.QUERY: {
+                ElasticsearchQueryKeys.BOOL: {
+                    ElasticsearchQueryKeys.FILTER: [
+                        {ElasticsearchQueryKeys.TERM: {SegmentKeys.VIDEO_PATH: video_path}},
+                        {
+                            ElasticsearchQueryKeys.RANGE: {
+                                SegmentKeys.START_TIME: {
+                                    ElasticsearchQueryKeys.GTE: start_time,
+                                    ElasticsearchQueryKeys.LTE: end_time,
+                                },
+                            },
+                        },
+                    ],
+                },
+            },
+            ElasticsearchQueryKeys.SORT: [
+                {SegmentKeys.START_TIME: {ElasticsearchQueryKeys.ORDER: ElasticsearchQueryKeys.ASC}},
+            ],
+            ElasticsearchQueryKeys.SOURCE: [
+                SegmentKeys.START_TIME,
+                SegmentKeys.END_TIME,
+                SegmentKeys.TEXT,
+                "speaker",
+            ],
+        }
+
+        response = await es.search(index=index, body=query, size=1000, ignore_unavailable=True)
+        hits = response[ElasticsearchKeys.HITS][ElasticsearchKeys.HITS]
+
+        await log_system_message(logging.INFO, f"Found {len(hits)} segments in time range.", logger)
+        return [hit[ElasticsearchKeys.SOURCE] for hit in hits]

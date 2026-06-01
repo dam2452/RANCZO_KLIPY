@@ -35,6 +35,8 @@ from bot.platforms.rest_api_responses import (
     ClipResponse,
     ClipSnapRequest,
     ClipSnapResponse,
+    ClipSubtitlesRequest,
+    ClipSubtitlesResponse,
     EpisodeDetail,
     ObjectItem,
     ReindexRequest,
@@ -46,6 +48,7 @@ from bot.platforms.rest_api_responses import (
     SearchResponse,
     SearchResultItem,
     SeasonItem,
+    SubtitleLine,
     TranscriptRequest,
     TranscriptResponse,
 )
@@ -228,6 +231,31 @@ async def get_transcript(
         end_time=target.get("end_time", target.get("end", 0)),
         surrounding=surrounding_lines,
     )
+
+
+@router.post("/clip-subtitles", response_model=ClipSubtitlesResponse)
+async def get_clip_subtitles(
+    body: ClipSubtitlesRequest,
+    user: Annotated[WorkerUser, Depends(require_worker_auth)],
+):
+    series_name = body.series or await _get_active_series(user.user_id)
+    segments = await TextSegmentsFinder.find_segments_in_time_range(
+        video_path=body.video_path,
+        start_time=body.start_time,
+        end_time=body.end_time,
+        logger=logger,
+        series_name=series_name,
+    )
+    lines = [
+        SubtitleLine(
+            start_time=seg.get(SegmentKeys.START_TIME, seg.get("start", 0.0)),
+            end_time=seg.get(SegmentKeys.END_TIME, seg.get("end", 0.0)),
+            speaker=seg.get("speaker"),
+            text=seg.get(SegmentKeys.TEXT, ""),
+        )
+        for seg in segments
+    ]
+    return ClipSubtitlesResponse(lines=lines)
 
 
 @router.get("/catalogue/characters")
