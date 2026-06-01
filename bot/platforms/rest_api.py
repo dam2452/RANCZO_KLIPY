@@ -239,8 +239,22 @@ async def get_clip_subtitles(
     user: Annotated[WorkerUser, Depends(require_worker_auth)],
 ):
     series_name = body.series or await _get_active_series(user.user_id)
+
+    if body.video_path:
+        video_path = body.video_path
+    else:
+        video_path_raw = await TextSegmentsFinder.find_video_path_by_episode(
+            season=body.season,
+            episode_number=body.episode,
+            logger=logger,
+            index=f"{series_name}_text_segments",
+        )
+        if not video_path_raw:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Episode video not found.")
+        video_path = await _resolve_video_path(video_path_raw)
+
     segments = await TextSegmentsFinder.find_segments_in_time_range(
-        video_path=body.video_path,
+        video_path=video_path,
         start_time=body.start_time,
         end_time=body.end_time,
         logger=logger,

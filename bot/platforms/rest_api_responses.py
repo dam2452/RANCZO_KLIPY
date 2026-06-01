@@ -246,10 +246,20 @@ class SubtitleLine(BaseModel):
 
 
 class ClipSubtitlesRequest(BaseModel):
-    video_path: str = Field(..., min_length=1, max_length=512)
+    video_path: Optional[str] = Field(None, min_length=1, max_length=512)
+    season: Optional[int] = Field(None, ge=0)
+    episode: Optional[int] = Field(None, ge=1)
     start_time: float = Field(..., ge=0)
     end_time: float = Field(..., gt=0)
     series: Optional[str] = None
+
+    @model_validator(mode="after")
+    def _require_video_path_or_season_episode(self) -> "ClipSubtitlesRequest":
+        has_video_path = self.video_path is not None
+        has_episode = self.season is not None and self.episode is not None
+        if not has_video_path and not has_episode:
+            raise ValueError("Provide either video_path or both season and episode")
+        return self
 
 
 class ClipSubtitlesResponse(BaseModel):
