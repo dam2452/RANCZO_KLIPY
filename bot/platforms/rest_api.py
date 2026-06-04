@@ -52,6 +52,7 @@ from bot.platforms.rest_api_responses import (
     TranscriptRequest,
     TranscriptResponse,
 )
+from bot.platforms.rest_api_video import _parse_range
 from bot.search.infra.elastic_search_manager import ElasticSearchManager
 from bot.search.scenes_finder import ScenesFinder
 from bot.search.semantic_segments_finder import (
@@ -744,6 +745,44 @@ async def get_clip_frame(
 
     if resolved.suffix.lower() not in {".mp4", ".webm", ".mkv", ".avi"}:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid video file type.")
+
+    frame_path = await KeyframeExtractor.extract_keyframe(resolved, time)
+    if not frame_path or not frame_path.exists():
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to extract frame.")
+
+    return Response(
+        content=frame_path.read_bytes(),
+        media_type="image/jpeg",
+        headers={"Cache-Control": "private, max-age=86400"},
+    )
+
+
+# --- Source video operations ---
+
+@router.get("/video/stream")
+async def stream_source_video(
+    request: Request,
+    user: Annotated[WorkerUser, Depends(require_worker_auth)],  # pylint: disable=unused-argument
+    path: Annotated[str, Query(description="Relative path to source video")],
+):
+    resolved = await _resolve_video_path(path)
+    file_size = resolved.stat().st_size
+    range_header = request.headers.get("range")
+
+    if range_header:
+        start, end = _parse_range(range_header, file_size)
+        return build_range_response(resolved, start, end, file_size)
+
+    return build_full_response(resolved, file_size)
+
+
+@router.get("/video/frame")
+async def get_source_frame(
+    user: Annotated[WorkerUser, Depends(require_worker_auth)],  # pylint: disable=unused-argument
+    time: Annotated[float, Query(ge=0)],
+    path: Annotated[str, Query(description="Relative path to source video")],
+):
+    resolved = await _resolve_video_path(path)
 
     frame_path = await KeyframeExtractor.extract_keyframe(resolved, time)
     if not frame_path or not frame_path.exists():
