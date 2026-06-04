@@ -136,17 +136,10 @@ async def _resolve_video_path(video_path: str) -> Path:
         temp_path = await s3_client.download_to_temp(video_path)
         return temp_path
 
-    base = Path(s.VIDEO_DATA_DIR).resolve()
-    candidate = Path(video_path)
-
-    if candidate.is_absolute():
-        resolved = candidate.resolve()
-    else:
-        resolved = (base / video_path).resolve()
-
+    resolved = Path(s.VIDEO_DATA_DIR) / video_path
     if not resolved.exists():
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Source video file not found.")
-    if not str(resolved).startswith(str(base)):
+    if not str(resolved.resolve()).startswith(str(Path(s.VIDEO_DATA_DIR).resolve())):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied.")
     return resolved
 
