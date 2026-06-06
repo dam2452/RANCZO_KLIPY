@@ -38,6 +38,7 @@ from bot.platforms.rest_api_responses import (
     ClipSubtitlesRequest,
     ClipSubtitlesResponse,
     EpisodeDetail,
+    IndexStatsResponse,
     ObjectItem,
     ReindexRequest,
     ReindexResponse,
@@ -52,7 +53,7 @@ from bot.platforms.rest_api_responses import (
     TranscriptRequest,
     TranscriptResponse,
 )
-from bot.platforms.rest_api_video import _parse_range
+from bot.platforms.rest_api_video import _build_streaming_response
 from bot.search.infra.elastic_search_manager import ElasticSearchManager
 from bot.search.scenes_finder import ScenesFinder
 from bot.search.semantic_segments_finder import (
@@ -161,6 +162,22 @@ def _validate_tmp_path(file_path: Path) -> Path:
 @router.get("/health")
 async def health():
     return {"status": "ok"}
+
+
+@router.get("/stats", response_model=IndexStatsResponse)
+async def get_index_stats(
+    user: Annotated[WorkerUser, Depends(require_worker_auth)],
+    series: Optional[str] = Query(None),
+):
+    series_name = series or await _get_active_series(user.user_id)
+    stats = await TextSegmentsFinder.get_index_stats(logger, series_name)
+    return IndexStatsResponse(
+        total_segments=stats["total_segments"],
+        total_episodes=stats["total_episodes"],
+        total_seasons=stats["total_seasons"],
+        total_hours=stats["total_hours"],
+        series=[series_name],
+    )
 
 
 @router.post("/search", response_model=SearchResponse)
@@ -766,14 +783,7 @@ async def stream_source_video(
     path: Annotated[str, Query(description="Relative path to source video")],
 ):
     resolved = await _resolve_video_path(path)
-    file_size = resolved.stat().st_size
-    range_header = request.headers.get("range")
-
-    if range_header:
-        start, end = _parse_range(range_header, file_size)
-        return build_range_response(resolved, start, end, file_size)
-
-    return build_full_response(resolved, file_size)
+    return _build_streaming_response(resolved, request)
 
 
 @router.get("/video/frame")

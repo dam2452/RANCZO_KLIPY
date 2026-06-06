@@ -294,3 +294,11 @@ class ReindexStatusResponse(BaseModel):
     completed_at: Optional[str] = None
     result: Optional[ReindexResultResponse] = None
     error: Optional[str] = None
+
+
+class IndexStatsResponse(BaseModel):
+    total_segments: int
+    total_episodes: int
+    total_seasons: int
+    total_hours: float
+    series: list[str]

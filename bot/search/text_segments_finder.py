@@ -645,3 +645,64 @@ class TextSegmentsFinder:
 
         await log_system_message(logging.INFO, f"Found {len(hits)} segments in time range.", logger)
         return [hit[ElasticsearchKeys.SOURCE] for hit in hits]
+
+    @staticmethod
+    async def get_index_stats(logger: logging.Logger, series_name: str) -> Dict[str, Any]:
+        es = await ElasticSearchManager.connect_to_elasticsearch(logger)
+        index = f"{series_name}{ElasticsearchIndexSuffixes.TEXT_SEGMENTS}"
+
+        agg_query = {
+            ElasticsearchQueryKeys.SIZE: 0,
+            ElasticsearchQueryKeys.AGGS: {
+                "seasons": {
+                    ElasticsearchQueryKeys.TERMS: {
+                        ElasticsearchQueryKeys.FIELD: EpisodeMetadataKeys.SEASON_FIELD,
+                        ElasticsearchQueryKeys.SIZE: 1000,
+                    },
+                    ElasticsearchQueryKeys.AGGS: {
+                        "episodes": {
+                            ElasticsearchQueryKeys.TERMS: {
+                                ElasticsearchQueryKeys.FIELD: EpisodeMetadataKeys.EPISODE_NUMBER_FIELD,
+                                ElasticsearchQueryKeys.SIZE: 1000,
+                            },
+                            ElasticsearchQueryKeys.AGGS: {
+                                "max_end": {
+                                    ElasticsearchQueryKeys.MAX: {
+                                        ElasticsearchQueryKeys.FIELD: SegmentKeys.END_TIME,
+                                    },
+                                },
+                                "min_start": {
+                                    "min": {
+                                        ElasticsearchQueryKeys.FIELD: SegmentKeys.START_TIME,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        }
+
+        response = await es.search(index=index, body=agg_query, ignore_unavailable=True)
+        buckets = response[ElasticsearchKeys.AGGREGATIONS]["seasons"][ElasticsearchKeys.BUCKETS]
+
+        total_segments = response[ElasticsearchKeys.HITS][ElasticsearchKeys.TOTAL][ElasticsearchAggregationKeys.VALUE]
+        total_hours = 0.0
+        total_episodes = 0
+        total_seasons = len(buckets)
+
+        for season_bucket in buckets:
+            episode_buckets = season_bucket["episodes"][ElasticsearchKeys.BUCKETS]
+            total_episodes += len(episode_buckets)
+            for ep_bucket in episode_buckets:
+                duration = ep_bucket["max_end"][ElasticsearchAggregationKeys.VALUE] - ep_bucket["min_start"][ElasticsearchAggregationKeys.VALUE]
+                total_hours += max(0, duration)
+
+        total_hours /= 3600
+
+        return {
+            "total_segments": total_segments,
+            "total_episodes": total_episodes,
+            "total_seasons": total_seasons,
+            "total_hours": round(total_hours, 1),
+        }

@@ -64,8 +64,7 @@ def _parse_range(range_header: str, file_size: int) -> tuple[int, int]:
     return start, end
 
 
-def stream_video(file_path: Path, request: Request) -> Response:
-    resolved = _validate_video_path(file_path)
+def _build_streaming_response(resolved: Path, request: Request) -> Response:
     file_size = resolved.stat().st_size
 
     range_header = request.headers.get("range")
@@ -75,6 +74,11 @@ def stream_video(file_path: Path, request: Request) -> Response:
         return build_range_response(resolved, start, end, file_size)
 
     return build_full_response(resolved, file_size)
+
+
+def stream_video(file_path: Path, request: Request) -> Response:
+    resolved = _validate_video_path(file_path)
+    return _build_streaming_response(resolved, request)
 
 
 def serve_thumbnail(thumbnail_data: bytes) -> Response:
