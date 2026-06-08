@@ -187,8 +187,18 @@ async def search(
 ):
     series_name = body.series or await _get_active_series(user.user_id)
     search_filter = _to_internal_filter(body.filters)
+    has_query = bool(body.query and body.query.strip())
 
-    if body.mode == SearchMode.KEYWORD:
+    if not has_query and search_filter:
+        es = await ElasticSearchManager.connect_to_elasticsearch(logger)
+        segments = await ScenesFinder.find_by_filter(
+            es=es,
+            series_names=[series_name],
+            search_filter=search_filter,
+            size=min(body.limit, s.MAX_ES_RESULTS_LONG),
+            logger=logger,
+        )
+    elif body.mode == SearchMode.KEYWORD:
         es = await ElasticSearchManager.connect_to_elasticsearch(logger)
         segments = await ScenesFinder.find_by_text_and_filter(
             es=es,
@@ -215,7 +225,7 @@ async def search(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid search mode.")
 
     results = [_segment_to_result(seg) for seg in (segments or [])]
-    return SearchResponse(results=results[: body.limit], total=len(results), query=body.query)
+    return SearchResponse(results=results[: body.limit], total=len(results), query=body.query or "")
 
 
 @router.post("/transcript", response_model=TranscriptResponse)

@@ -36,11 +36,29 @@ class SearchFilters(BaseModel):
 
 
 class SearchRequest(BaseModel):
-    query: str = Field(..., min_length=1, max_length=200)
+    query: Optional[str] = Field(None, max_length=200)
     mode: SearchMode = SearchMode.KEYWORD
     series: Optional[str] = None
     limit: int = Field(20, ge=1, le=100)
     filters: Optional[SearchFilters] = None
+
+    @model_validator(mode="after")
+    def _require_query_or_filters(self) -> "SearchRequest":
+        has_query = bool(self.query and self.query.strip())
+        has_filters = bool(
+            self.filters
+            and (
+                self.filters.seasons
+                or self.filters.episodes
+                or self.filters.episode_title
+                or self.filters.characters
+                or self.filters.emotions
+                or self.filters.objects
+            ),
+        )
+        if not has_query and not has_filters:
+            raise ValueError("query or filters must be provided")
+        return self
 
 
 class CharacterSearchRequest(BaseModel):
