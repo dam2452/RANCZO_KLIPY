@@ -659,7 +659,10 @@ class FilterApplicator:
                     best = max(best, conf)
             return best
 
-        return sorted(segments, key=__best_confidence, reverse=True)
+        scored = sorted(segments, key=__best_confidence, reverse=True)
+        for seg in scored:
+            seg[ElasticsearchKeys.SCORE] = __best_confidence(seg)
+        return scored
 
     @staticmethod
     def __frame_passes_object_group(

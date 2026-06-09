@@ -6,6 +6,7 @@ from pathlib import Path
 import tempfile
 from typing import (
     Annotated,
+    Dict,
     Optional,
 )
 
@@ -55,6 +56,7 @@ from bot.platforms.rest_api_responses import (
     TranscriptResponse,
 )
 from bot.platforms.rest_api_video import _build_streaming_response
+from bot.search.filter_applicator import FilterApplicator
 from bot.search.infra.elastic_search_manager import ElasticSearchManager
 from bot.search.scenes_finder import ScenesFinder
 from bot.search.semantic_segments_finder import (
@@ -72,6 +74,10 @@ from bot.utils.constants import (
     ElasticsearchKeys,
     EpisodeMetadataKeys,
     SegmentKeys,
+)
+from bot.video.audio_extractor import (
+    SUPPORTED_AUDIO_FORMATS,
+    AudioExtractor,
 )
 from bot.video.clips_extractor import ClipsExtractor
 from bot.video.file_streaming import (
@@ -194,14 +200,35 @@ async def search(
     has_query = bool(body.query and body.query.strip())
 
     if not has_query and search_filter:
-        es = await ElasticSearchManager.connect_to_elasticsearch(logger)
-        segments = await ScenesFinder.find_by_filter(
-            es=es,
-            series_names=[series_name],
-            search_filter=search_filter,
-            size=min(body.limit, s.MAX_ES_RESULTS_LONG),
-            logger=logger,
+        has_frame_filters = bool(
+            search_filter.get("character_groups")
+            or search_filter.get("emotions")
+            or search_filter.get("object_groups"),
         )
+        if has_frame_filters:
+            episode_keys = await FilterApplicator.collect_eligible_episodes(search_filter, series_name, logger)
+            if episode_keys:
+                all_segments = await TextSegmentsFinder.find_segments_by_filter_only(
+                    logger=logger,
+                    series_name=series_name,
+                    search_filter=search_filter,
+                    size=s.MAX_ES_RESULTS_LONG,
+                    restrict_episode_keys=episode_keys,
+                )
+                segments = await FilterApplicator.apply_to_text_segments(
+                    all_segments, search_filter, series_name, logger,
+                )
+            else:
+                segments = []
+        else:
+            es = await ElasticSearchManager.connect_to_elasticsearch(logger)
+            segments = await ScenesFinder.find_by_filter(
+                es=es,
+                series_names=[series_name],
+                search_filter=search_filter,
+                size=min(body.limit, s.MAX_ES_RESULTS_LONG),
+                logger=logger,
+            )
     elif body.mode == SearchMode.KEYWORD:
         es = await ElasticSearchManager.connect_to_elasticsearch(logger)
         segments = await ScenesFinder.find_by_text_and_filter(
@@ -773,6 +800,47 @@ async def get_clip_video(
         return build_range_response(resolved, start, end, file_size)
 
     return build_full_response(resolved, file_size)
+
+
+_AUDIO_MIME: Dict[str, str] = {
+    "mp3": "audio/mpeg",
+    "wav": "audio/wav",
+    "ogg": "audio/ogg",
+    "flac": "audio/flac",
+}
+
+
+@router.get("/clip/{clip_id:path}/audio")
+async def get_clip_audio(
+    clip_id: str,
+    user: Annotated[WorkerUser, Depends(require_worker_auth)],  # pylint: disable=unused-argument
+    audio_format: Annotated[str, Query(alias="format")] = "mp3",
+):
+    if audio_format not in SUPPORTED_AUDIO_FORMATS:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Unsupported format '{audio_format}'. Supported: {SUPPORTED_AUDIO_FORMATS}",
+        )
+
+    file_path = Path(clip_id)
+    resolved = _validate_tmp_path(file_path)
+
+    if resolved.suffix.lower() not in {".mp4", ".webm", ".mkv", ".avi"}:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid video file type.")
+
+    audio_path = await AudioExtractor.extract_audio(resolved, audio_format, logger)
+    try:
+        audio_bytes = audio_path.read_bytes()
+        return Response(
+            content=audio_bytes,
+            media_type=_AUDIO_MIME[audio_format],
+            headers={
+                "Content-Length": str(len(audio_bytes)),
+                "Content-Disposition": f'attachment; filename="audio.{audio_format}"',
+            },
+        )
+    finally:
+        audio_path.unlink(missing_ok=True)
 
 
 @router.get("/clip/{clip_id:path}/frame")
