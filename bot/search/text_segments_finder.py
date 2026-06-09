@@ -247,45 +247,45 @@ class TextSegmentsFinder:
     ) -> Optional[Dict[str, Any]]:
         return build_episode_restriction_filter(episode_keys)
 
-    _FRAME_MERGE_GAP_SECONDS: float = 5.0
-    _MAX_CLAUSES_PER_QUERY: int = 200
+    _MAX_CLAUSES_PER_QUERY: int = 80
+    _SCENE_GAP_SECONDS: float = 30.0
 
     @staticmethod
-    def _merge_timestamps_to_intervals(
+    def _merge_timestamps_into_scenes(
         timestamps: List[float],
-        gap: float,
     ) -> List[Tuple[float, float]]:
-        sorted_ts = sorted(timestamps)
-        intervals: List[Tuple[float, float]] = []
-        start = sorted_ts[0]
-        end = sorted_ts[0]
+        sorted_ts = sorted(set(timestamps))
+        if not sorted_ts:
+            return []
+        scenes: List[Tuple[float, float]] = []
+        scene_start = sorted_ts[0]
+        scene_end = sorted_ts[0]
         for ts in sorted_ts[1:]:
-            if ts - end <= gap:
-                end = ts
+            if ts - scene_end <= TextSegmentsFinder._SCENE_GAP_SECONDS:
+                scene_end = ts
             else:
-                intervals.append((start, end))
-                start = ts
-                end = ts
-        intervals.append((start, end))
-        return intervals
+                scenes.append((scene_start, scene_end))
+                scene_start = ts
+                scene_end = ts
+        scenes.append((scene_start, scene_end))
+        return scenes
 
     @staticmethod
-    def _build_interval_clauses(
+    def _build_timestamp_clauses(
         episode_ts_map: Dict[Tuple[Optional[int], Optional[int]], List[float]],
-        gap: float,
     ) -> List[Dict[str, Any]]:
         clauses: List[Dict[str, Any]] = []
         for (season, episode), timestamps in episode_ts_map.items():
             if season is None or episode is None:
                 continue
-            for interval_start, interval_end in TextSegmentsFinder._merge_timestamps_to_intervals(timestamps, gap):
+            for scene_start, scene_end in TextSegmentsFinder._merge_timestamps_into_scenes(timestamps):
                 clauses.append({
                     ElasticsearchQueryKeys.BOOL: {
                         ElasticsearchQueryKeys.FILTER: [
                             {ElasticsearchQueryKeys.TERM: {EpisodeMetadataKeys.SEASON_FIELD: season}},
                             {ElasticsearchQueryKeys.TERM: {EpisodeMetadataKeys.EPISODE_NUMBER_FIELD: episode}},
-                            {ElasticsearchQueryKeys.RANGE: {SegmentKeys.START_TIME: {ElasticsearchQueryKeys.LTE: interval_end}}},
-                            {ElasticsearchQueryKeys.RANGE: {SegmentKeys.END_TIME: {ElasticsearchQueryKeys.GTE: interval_start}}},
+                            {ElasticsearchQueryKeys.RANGE: {SegmentKeys.START_TIME: {ElasticsearchQueryKeys.LTE: scene_end}}},
+                            {ElasticsearchQueryKeys.RANGE: {SegmentKeys.END_TIME: {ElasticsearchQueryKeys.GTE: scene_start}}},
                         ],
                     },
                 })
@@ -362,17 +362,14 @@ class TextSegmentsFinder:
         if not episode_ts_map:
             return []
 
-        all_clauses = TextSegmentsFinder._build_interval_clauses(
-            episode_ts_map,
-            TextSegmentsFinder._FRAME_MERGE_GAP_SECONDS,
-        )
+        all_clauses = TextSegmentsFinder._build_timestamp_clauses(episode_ts_map)
 
         if not all_clauses:
             return []
 
         await log_system_message(
             logging.INFO,
-            f"Frame timestamps merged into {len(all_clauses)} interval clauses for {len(episode_ts_map)} episodes.",
+            f"Built {len(all_clauses)} timestamp clauses for {len(episode_ts_map)} episodes.",
             logger,
         )
 
@@ -796,11 +793,22 @@ class TextSegmentsFinder:
             ],
         }
 
-        response = await es.search(index=index, body=query, size=1000, ignore_unavailable=True)
-        hits = response[ElasticsearchKeys.HITS][ElasticsearchKeys.HITS]
+        _PAGE_SIZE = 1000
+        all_hits = []
+        search_after = None
 
-        await log_system_message(logging.INFO, f"Found {len(hits)} segments in time range.", logger)
-        return [hit[ElasticsearchKeys.SOURCE] for hit in hits]
+        while True:
+            if search_after:
+                query[ElasticsearchQueryKeys.SEARCH_AFTER] = search_after
+            response = await es.search(index=index, body=query, size=_PAGE_SIZE, ignore_unavailable=True)
+            page_hits = response[ElasticsearchKeys.HITS][ElasticsearchKeys.HITS]
+            all_hits.extend(page_hits)
+            if len(page_hits) < _PAGE_SIZE:
+                break
+            search_after = page_hits[-1]["sort"]
+
+        await log_system_message(logging.INFO, f"Found {len(all_hits)} segments in time range.", logger)
+        return [hit[ElasticsearchKeys.SOURCE] for hit in all_hits]
 
     @staticmethod
     async def get_index_stats(logger: logging.Logger, series_name: str) -> Dict[str, Any]:
