@@ -159,6 +159,7 @@ class SearchResultItem(BaseModel):
     episode: Optional[int] = None
     episode_title: Optional[str] = None
     video_path: Optional[str] = None
+    episode_duration: Optional[float] = None
 
 
 class CharacterSearchResultItem(BaseModel):

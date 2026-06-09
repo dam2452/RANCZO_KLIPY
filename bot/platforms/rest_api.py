@@ -117,6 +117,8 @@ def _to_internal_filter(filters: Optional[SearchFilters]) -> Optional[dict]:
 def _segment_to_result(seg: dict) -> SearchResultItem:
     source = seg.get("_source", seg)
     meta = source.get(EpisodeMetadataKeys.EPISODE_METADATA, {}) or {}
+    scene_timestamps = source.get("scene_timestamps") or {}
+    episode_duration = (scene_timestamps.get("video_info") or {}).get("duration")
     return SearchResultItem(
         id=str(source.get(SegmentKeys.SEGMENT_ID, seg.get(ElasticsearchKeys.SCORE, ""))),
         text=source.get(SegmentKeys.TEXT, ""),
@@ -128,6 +130,7 @@ def _segment_to_result(seg: dict) -> SearchResultItem:
         episode=meta.get(EpisodeMetadataKeys.EPISODE_NUMBER),
         episode_title=meta.get("title"),
         video_path=source.get(SegmentKeys.VIDEO_PATH),
+        episode_duration=episode_duration,
     )
 
 
