@@ -834,10 +834,7 @@ async def get_clip_audio(
         return Response(
             content=audio_bytes,
             media_type=_AUDIO_MIME[audio_format],
-            headers={
-                "Content-Length": str(len(audio_bytes)),
-                "Content-Disposition": f'attachment; filename="audio.{audio_format}"',
-            },
+            headers={"Content-Length": str(len(audio_bytes))},
         )
     finally:
         audio_path.unlink(missing_ok=True)
