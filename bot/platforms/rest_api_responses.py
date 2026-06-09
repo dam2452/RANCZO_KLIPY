@@ -232,6 +232,11 @@ class ObjectItem(BaseModel):
     scene_count: int
 
 
+class EmotionItem(BaseModel):
+    label: str
+    count: int
+
+
 class SeasonItem(BaseModel):
     season: int
     episode_count: int
@@ -240,6 +245,8 @@ class SeasonItem(BaseModel):
 class EpisodeDetail(BaseModel):
     episode_number: int
     title: str
+    video_path: Optional[str] = None
+    duration: Optional[float] = None
 
 
 class TranscriptLine(BaseModel):

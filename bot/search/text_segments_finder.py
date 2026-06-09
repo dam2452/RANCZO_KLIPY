@@ -521,8 +521,14 @@ class TextSegmentsFinder:
                                         EpisodeMetadataKeys.PREMIERE_DATE_FIELD,
                                         EpisodeMetadataKeys.VIEWERSHIP_FIELD,
                                         EpisodeMetadataKeys.EPISODE_NUMBER_FIELD,
+                                        SegmentKeys.VIDEO_PATH,
                                     ],
                                 },
+                            },
+                        },
+                        ElasticsearchAggregationKeys.MAX_END_TIME: {
+                            ElasticsearchQueryKeys.MAX: {
+                                ElasticsearchQueryKeys.FIELD: SegmentKeys.END_TIME,
                             },
                         },
                     },
@@ -550,6 +556,8 @@ class TextSegmentsFinder:
                 EpisodeMetadataKeys.TITLE: episode_metadata.get(EpisodeMetadataKeys.TITLE, "Unknown"),
                 EpisodeMetadataKeys.PREMIERE_DATE: episode_metadata.get(EpisodeMetadataKeys.PREMIERE_DATE, "Unknown"),
                 EpisodeMetadataKeys.VIEWERSHIP: episode_metadata.get(EpisodeMetadataKeys.VIEWERSHIP, "Unknown"),
+                SegmentKeys.VIDEO_PATH: source_data.get(SegmentKeys.VIDEO_PATH),
+                "duration": bucket.get(ElasticsearchAggregationKeys.MAX_END_TIME, {}).get(ElasticsearchAggregationKeys.VALUE),
             }
             episodes.append(episode)
 

@@ -312,7 +312,7 @@ class CharacterFinder:
     async def get_all_emotions(
         series_name: str,
         logger: logging.Logger,
-    ) -> List[str]:
+    ) -> List[Dict[str, Any]]:
         await log_system_message(logging.INFO, f"Fetching all emotions for series '{series_name}'.", logger)
         es = await ElasticSearchManager.connect_to_elasticsearch(logger)
 
@@ -342,9 +342,12 @@ class CharacterFinder:
             [ElasticsearchAggregationKeys.EMOTION_LABELS]
             [ElasticsearchKeys.BUCKETS]
         )
-        labels = [b[ElasticsearchKeys.KEY] for b in buckets]
-        await log_system_message(logging.INFO, f"Found {len(labels)} unique emotion labels.", logger)
-        return labels
+        emotions = [
+            {"label": b[ElasticsearchKeys.KEY], "count": b[ElasticsearchKeys.DOC_COUNT]}
+            for b in buckets
+        ]
+        await log_system_message(logging.INFO, f"Found {len(emotions)} unique emotion labels.", logger)
+        return emotions
 
     @staticmethod
     def __query_candidates(query: str) -> List[str]:

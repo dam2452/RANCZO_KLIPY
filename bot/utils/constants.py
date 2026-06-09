@@ -43,6 +43,7 @@ class ElasticsearchKeys:
 
 class ElasticsearchAggregationKeys:
     UNIQUE_EPISODES: Final[str] = "unique_episodes"
+    MAX_END_TIME: Final[str] = "max_end_time"
     SEASONS: Final[str] = "seasons"
     VALUE: Final[str] = "value"
     ACTORS: Final[str] = "actors"

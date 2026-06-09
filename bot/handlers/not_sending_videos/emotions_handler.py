@@ -44,8 +44,8 @@ class EmotionsHandler(BotMessageHandler):
         )
 
         emotions = [
-            EmotionInfo(label_en=label, label_pl=map_emotion_to_pl(label))
-            for label in emotion_labels
+            EmotionInfo(label_en=e["label"], label_pl=map_emotion_to_pl(e["label"]))
+            for e in emotion_labels
         ]
         emotions.sort(key=lambda e: e["label_pl"])
 

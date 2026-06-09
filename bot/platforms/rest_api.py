@@ -37,6 +37,7 @@ from bot.platforms.rest_api_responses import (
     ClipSnapResponse,
     ClipSubtitlesRequest,
     ClipSubtitlesResponse,
+    EmotionItem,
     EpisodeDetail,
     IndexStatsResponse,
     ObjectItem,
@@ -339,7 +340,12 @@ async def list_emotions(
 ):
     series_name = series or await _get_active_series(user.user_id)
     emotions = await CharacterFinder.get_all_emotions(series_name, logger)
-    return {"emotions": emotions or []}
+    return {
+        "emotions": [
+            EmotionItem(label=e.get("label", ""), count=e.get("count", 0))
+            for e in (emotions or [])
+        ],
+    }
 
 
 @router.get("/catalogue/seasons")
@@ -376,7 +382,12 @@ async def list_episodes(
         )
         return {
             "episodes": [
-                EpisodeDetail(episode_number=ep.get("episode_number", 0), title=ep.get("title", ""))
+                EpisodeDetail(
+                    episode_number=ep.get("episode_number", 0),
+                    title=ep.get("title", ""),
+                    video_path=ep.get("video_path"),
+                    duration=ep.get("duration"),
+                )
                 for ep in (episodes or [])
             ],
         }
