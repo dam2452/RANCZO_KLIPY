@@ -225,6 +225,64 @@ class FilterApplicator:
         return episodes
 
     @staticmethod
+    async def collect_frame_keys(
+        search_filter: SearchFilter,
+        series_name: str,
+        logger: logging.Logger,
+    ) -> Tuple[Set[Tuple[Optional[int], Optional[int], float]], Dict[Tuple[Optional[int], Optional[int], float], float]]:
+        character_groups = search_filter.get("character_groups", [])
+        object_groups = search_filter.get("object_groups", [])
+        emotions = search_filter.get("emotions", [])
+
+        episode_intersect = await FilterApplicator.collect_eligible_episodes(search_filter, series_name, logger)
+        if episode_intersect is not None and not episode_intersect:
+            return set(), {}
+
+        scoped_episode_keys: Set[Tuple[Optional[int], Optional[int]]] = (
+            cast(Set[Tuple[Optional[int], Optional[int]]], episode_intersect)
+            if episode_intersect is not None
+            else set()
+        )
+
+        tasks = []
+        task_types: List[str] = []
+
+        for char_group in character_groups:
+            tasks.append(FilterApplicator._get_character_frame_keys(char_group, scoped_episode_keys, series_name, logger))
+            task_types.append("character")
+
+        if emotions:
+            tasks.append(FilterApplicator._get_emotion_frame_keys(emotions, scoped_episode_keys, series_name, logger))
+            task_types.append("emotion")
+
+        for obj_group in object_groups:
+            tasks.append(FilterApplicator._get_object_frame_keys(obj_group, scoped_episode_keys, series_name, logger))
+            task_types.append("object")
+
+        if not tasks:
+            return set(), {}
+
+        gathered = await asyncio.gather(*tasks)
+
+        all_frame_keys: Set[Tuple[Optional[int], Optional[int], float]] = set()
+        emotion_confidence_map: Dict[Tuple[Optional[int], Optional[int], float], float] = {}
+
+        for task_type, result in zip(task_types, gathered):
+            if task_type == "emotion":
+                keys, conf_map = result
+                all_frame_keys.update(keys)
+                emotion_confidence_map.update(conf_map)
+            else:
+                all_frame_keys.update(result)
+
+        await log_system_message(
+            logging.INFO,
+            f"FilterApplicator: collected {len(all_frame_keys)} frame keys across {len(tasks)} filter group(s).",
+            logger,
+        )
+        return all_frame_keys, emotion_confidence_map
+
+    @staticmethod
     async def collect_eligible_episodes(
         search_filter: SearchFilter,
         series_name: str,

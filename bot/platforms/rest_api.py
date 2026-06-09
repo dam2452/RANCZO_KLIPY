@@ -206,17 +206,14 @@ async def search(
             or search_filter.get("object_groups"),
         )
         if has_frame_filters:
-            episode_keys = await FilterApplicator.collect_eligible_episodes(search_filter, series_name, logger)
-            if episode_keys:
-                all_segments = await TextSegmentsFinder.find_segments_by_filter_only(
+            frame_keys, _ = await FilterApplicator.collect_frame_keys(search_filter, series_name, logger)
+            if frame_keys:
+                segments = await TextSegmentsFinder.find_segments_by_frame_timestamps(
                     logger=logger,
                     series_name=series_name,
+                    frame_keys=frame_keys,
                     search_filter=search_filter,
                     size=s.MAX_ES_RESULTS_LONG,
-                    restrict_episode_keys=episode_keys,
-                )
-                segments = await FilterApplicator.apply_to_text_segments(
-                    all_segments, search_filter, series_name, logger,
                 )
             else:
                 segments = []

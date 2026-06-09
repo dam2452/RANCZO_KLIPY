@@ -248,6 +248,85 @@ class TextSegmentsFinder:
         return build_episode_restriction_filter(episode_keys)
 
     @staticmethod
+    async def find_segments_by_frame_timestamps(
+            logger: logging.Logger,
+            series_name: str,
+            frame_keys: Iterable[Tuple[Optional[int], Optional[int], float]],
+            search_filter: SearchFilter,
+            size: int = 1000,
+    ) -> List[SegmentWithScore]:
+        await log_system_message(
+            logging.INFO,
+            f"Fetching text segments for series '{series_name}' by frame timestamps (ES-side filtering).",
+            logger,
+        )
+        es = await ElasticSearchManager.connect_to_elasticsearch(logger)
+        index = f"{series_name}{ElasticsearchIndexSuffixes.TEXT_SEGMENTS}"
+
+        episode_ts_map: Dict[Tuple[Optional[int], Optional[int]], List[float]] = {}
+        for season, episode, ts in frame_keys:
+            episode_ts_map.setdefault((season, episode), []).append(ts)
+
+        if not episode_ts_map:
+            return []
+
+        should_clauses: List[Dict[str, Any]] = []
+        for (season, episode), timestamps in episode_ts_map.items():
+            if season is None or episode is None:
+                continue
+            for ts in timestamps:
+                should_clauses.append({
+                    ElasticsearchQueryKeys.BOOL: {
+                        ElasticsearchQueryKeys.FILTER: [
+                            {ElasticsearchQueryKeys.TERM: {EpisodeMetadataKeys.SEASON_FIELD: season}},
+                            {ElasticsearchQueryKeys.TERM: {EpisodeMetadataKeys.EPISODE_NUMBER_FIELD: episode}},
+                            {ElasticsearchQueryKeys.RANGE: {SegmentKeys.START_TIME: {ElasticsearchQueryKeys.LTE: ts}}},
+                            {ElasticsearchQueryKeys.RANGE: {SegmentKeys.END_TIME: {ElasticsearchQueryKeys.GTE: ts}}},
+                        ],
+                    },
+                })
+
+        if not should_clauses:
+            return []
+
+        query: Dict[str, Any] = {
+            ElasticsearchQueryKeys.QUERY: {
+                ElasticsearchQueryKeys.BOOL: {
+                    ElasticsearchQueryKeys.FILTER: [
+                        {ElasticsearchQueryKeys.TERM: {EpisodeMetadataKeys.SERIES_NAME_FIELD: series_name}},
+                    ],
+                    ElasticsearchQueryKeys.SHOULD: should_clauses,
+                    ElasticsearchQueryKeys.MINIMUM_SHOULD_MATCH: 1,
+                },
+            },
+            ElasticsearchQueryKeys.SORT: [
+                {EpisodeMetadataKeys.SEASON_FIELD: {ElasticsearchQueryKeys.ORDER: ElasticsearchQueryKeys.ASC}},
+                {EpisodeMetadataKeys.EPISODE_NUMBER_FIELD: {ElasticsearchQueryKeys.ORDER: ElasticsearchQueryKeys.ASC}},
+                {SegmentKeys.START_TIME: {ElasticsearchQueryKeys.ORDER: ElasticsearchQueryKeys.ASC}},
+            ],
+            ElasticsearchQueryKeys.SOURCE: TextSegmentsFinder.__TEXT_SEGMENT_SOURCE_FIELDS,
+        }
+
+        TextSegmentsFinder.__apply_search_filter_to_query(query, search_filter)
+
+        hits = (await es.search(index=index, body=query, size=size, ignore_unavailable=True))[ElasticsearchKeys.HITS][ElasticsearchKeys.HITS]
+
+        if not hits:
+            await log_system_message(logging.INFO, "No segments found matching frame timestamps.", logger)
+            return []
+
+        for hit in hits:
+            hit[ElasticsearchKeys.SCORE] = TextSegmentsFinder.__hit_score(hit)
+
+        unique_segments = TextSegmentsFinder.__deduplicate_hits(hits)
+        await log_system_message(
+            logging.INFO,
+            f"Found {len(unique_segments)} unique segments by frame timestamps.",
+            logger,
+        )
+        return unique_segments
+
+    @staticmethod
     async def find_segments_by_filter_only(
             logger: logging.Logger,
             series_name: str,
