@@ -247,6 +247,98 @@ class TextSegmentsFinder:
     ) -> Optional[Dict[str, Any]]:
         return build_episode_restriction_filter(episode_keys)
 
+    _FRAME_MERGE_GAP_SECONDS: float = 5.0
+    _MAX_CLAUSES_PER_QUERY: int = 200
+
+    @staticmethod
+    def _merge_timestamps_to_intervals(
+        timestamps: List[float],
+        gap: float,
+    ) -> List[Tuple[float, float]]:
+        sorted_ts = sorted(timestamps)
+        intervals: List[Tuple[float, float]] = []
+        start = sorted_ts[0]
+        end = sorted_ts[0]
+        for ts in sorted_ts[1:]:
+            if ts - end <= gap:
+                end = ts
+            else:
+                intervals.append((start, end))
+                start = ts
+                end = ts
+        intervals.append((start, end))
+        return intervals
+
+    @staticmethod
+    def _build_interval_clauses(
+        episode_ts_map: Dict[Tuple[Optional[int], Optional[int]], List[float]],
+        gap: float,
+    ) -> List[Dict[str, Any]]:
+        clauses: List[Dict[str, Any]] = []
+        for (season, episode), timestamps in episode_ts_map.items():
+            if season is None or episode is None:
+                continue
+            for interval_start, interval_end in TextSegmentsFinder._merge_timestamps_to_intervals(timestamps, gap):
+                clauses.append({
+                    ElasticsearchQueryKeys.BOOL: {
+                        ElasticsearchQueryKeys.FILTER: [
+                            {ElasticsearchQueryKeys.TERM: {EpisodeMetadataKeys.SEASON_FIELD: season}},
+                            {ElasticsearchQueryKeys.TERM: {EpisodeMetadataKeys.EPISODE_NUMBER_FIELD: episode}},
+                            {ElasticsearchQueryKeys.RANGE: {SegmentKeys.START_TIME: {ElasticsearchQueryKeys.LTE: interval_end}}},
+                            {ElasticsearchQueryKeys.RANGE: {SegmentKeys.END_TIME: {ElasticsearchQueryKeys.GTE: interval_start}}},
+                        ],
+                    },
+                })
+        return clauses
+
+    @staticmethod
+    def _build_interval_batch_query(
+        series_name: str,
+        interval_clauses: List[Dict[str, Any]],
+        search_filter: SearchFilter,
+    ) -> Dict[str, Any]:
+        query: Dict[str, Any] = {
+            ElasticsearchQueryKeys.QUERY: {
+                ElasticsearchQueryKeys.BOOL: {
+                    ElasticsearchQueryKeys.FILTER: [
+                        {ElasticsearchQueryKeys.TERM: {EpisodeMetadataKeys.SERIES_NAME_FIELD: series_name}},
+                    ],
+                    ElasticsearchQueryKeys.SHOULD: interval_clauses,
+                    ElasticsearchQueryKeys.MINIMUM_SHOULD_MATCH: 1,
+                },
+            },
+            ElasticsearchQueryKeys.SORT: [
+                {EpisodeMetadataKeys.SEASON_FIELD: {ElasticsearchQueryKeys.ORDER: ElasticsearchQueryKeys.ASC}},
+                {EpisodeMetadataKeys.EPISODE_NUMBER_FIELD: {ElasticsearchQueryKeys.ORDER: ElasticsearchQueryKeys.ASC}},
+                {SegmentKeys.START_TIME: {ElasticsearchQueryKeys.ORDER: ElasticsearchQueryKeys.ASC}},
+            ],
+            ElasticsearchQueryKeys.SOURCE: TextSegmentsFinder.__TEXT_SEGMENT_SOURCE_FIELDS,
+        }
+        TextSegmentsFinder.__apply_search_filter_to_query(query, search_filter)
+        return query
+
+    @staticmethod
+    async def _search_batched_clauses(
+        es: Any,
+        index: str,
+        series_name: str,
+        all_clauses: List[Dict[str, Any]],
+        search_filter: SearchFilter,
+        size: int,
+    ) -> List[Dict[str, Any]]:
+        all_hits: List[Dict[str, Any]] = []
+        seen_ids: set = set()
+        for i in range(0, len(all_clauses), TextSegmentsFinder._MAX_CLAUSES_PER_QUERY):
+            batch = all_clauses[i:i + TextSegmentsFinder._MAX_CLAUSES_PER_QUERY]
+            query = TextSegmentsFinder._build_interval_batch_query(series_name, batch, search_filter)
+            batch_hits = (await es.search(index=index, body=query, size=size, ignore_unavailable=True))[ElasticsearchKeys.HITS][ElasticsearchKeys.HITS]
+            for hit in batch_hits:
+                hit_id = hit.get(ElasticsearchKeys.ID)
+                if hit_id not in seen_ids:
+                    seen_ids.add(hit_id)
+                    all_hits.append(hit)
+        return all_hits
+
     @staticmethod
     async def find_segments_by_frame_timestamps(
             logger: logging.Logger,
@@ -270,55 +362,32 @@ class TextSegmentsFinder:
         if not episode_ts_map:
             return []
 
-        should_clauses: List[Dict[str, Any]] = []
-        for (season, episode), timestamps in episode_ts_map.items():
-            if season is None or episode is None:
-                continue
-            for ts in timestamps:
-                should_clauses.append({
-                    ElasticsearchQueryKeys.BOOL: {
-                        ElasticsearchQueryKeys.FILTER: [
-                            {ElasticsearchQueryKeys.TERM: {EpisodeMetadataKeys.SEASON_FIELD: season}},
-                            {ElasticsearchQueryKeys.TERM: {EpisodeMetadataKeys.EPISODE_NUMBER_FIELD: episode}},
-                            {ElasticsearchQueryKeys.RANGE: {SegmentKeys.START_TIME: {ElasticsearchQueryKeys.LTE: ts}}},
-                            {ElasticsearchQueryKeys.RANGE: {SegmentKeys.END_TIME: {ElasticsearchQueryKeys.GTE: ts}}},
-                        ],
-                    },
-                })
+        all_clauses = TextSegmentsFinder._build_interval_clauses(
+            episode_ts_map,
+            TextSegmentsFinder._FRAME_MERGE_GAP_SECONDS,
+        )
 
-        if not should_clauses:
+        if not all_clauses:
             return []
 
-        query: Dict[str, Any] = {
-            ElasticsearchQueryKeys.QUERY: {
-                ElasticsearchQueryKeys.BOOL: {
-                    ElasticsearchQueryKeys.FILTER: [
-                        {ElasticsearchQueryKeys.TERM: {EpisodeMetadataKeys.SERIES_NAME_FIELD: series_name}},
-                    ],
-                    ElasticsearchQueryKeys.SHOULD: should_clauses,
-                    ElasticsearchQueryKeys.MINIMUM_SHOULD_MATCH: 1,
-                },
-            },
-            ElasticsearchQueryKeys.SORT: [
-                {EpisodeMetadataKeys.SEASON_FIELD: {ElasticsearchQueryKeys.ORDER: ElasticsearchQueryKeys.ASC}},
-                {EpisodeMetadataKeys.EPISODE_NUMBER_FIELD: {ElasticsearchQueryKeys.ORDER: ElasticsearchQueryKeys.ASC}},
-                {SegmentKeys.START_TIME: {ElasticsearchQueryKeys.ORDER: ElasticsearchQueryKeys.ASC}},
-            ],
-            ElasticsearchQueryKeys.SOURCE: TextSegmentsFinder.__TEXT_SEGMENT_SOURCE_FIELDS,
-        }
+        await log_system_message(
+            logging.INFO,
+            f"Frame timestamps merged into {len(all_clauses)} interval clauses for {len(episode_ts_map)} episodes.",
+            logger,
+        )
 
-        TextSegmentsFinder.__apply_search_filter_to_query(query, search_filter)
+        all_hits = await TextSegmentsFinder._search_batched_clauses(
+            es, index, series_name, all_clauses, search_filter, size,
+        )
 
-        hits = (await es.search(index=index, body=query, size=size, ignore_unavailable=True))[ElasticsearchKeys.HITS][ElasticsearchKeys.HITS]
-
-        if not hits:
+        if not all_hits:
             await log_system_message(logging.INFO, "No segments found matching frame timestamps.", logger)
             return []
 
-        for hit in hits:
+        for hit in all_hits:
             hit[ElasticsearchKeys.SCORE] = TextSegmentsFinder.__hit_score(hit)
 
-        unique_segments = TextSegmentsFinder.__deduplicate_hits(hits)
+        unique_segments = TextSegmentsFinder.__deduplicate_hits(all_hits)
         await log_system_message(
             logging.INFO,
             f"Found {len(unique_segments)} unique segments by frame timestamps.",

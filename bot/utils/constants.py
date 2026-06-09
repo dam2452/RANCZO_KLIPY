@@ -33,6 +33,7 @@ class EpisodeMetadataKeys:
 class ElasticsearchKeys:
     SOURCE: Final[str] = "_source"
     SCORE: Final[str] = "_score"
+    ID: Final[str] = "_id"
     HITS: Final[str] = "hits"
     TOTAL: Final[str] = "total"
     AGGREGATIONS: Final[str] = "aggregations"
