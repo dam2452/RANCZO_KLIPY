@@ -235,7 +235,7 @@ class SemanticSegmentsFinder:
         results = []
         for hit in hits:
             doc: Dict[str, Any] = hit[ElasticsearchKeys.SOURCE]
-            doc[ElasticsearchKeys.SCORE] = hit[ElasticsearchKeys.SCORE]
+            doc[ElasticsearchKeys.SCORE] = round(hit[ElasticsearchKeys.SCORE] * 100, 1)
             results.append(doc)
 
         await log_system_message(
