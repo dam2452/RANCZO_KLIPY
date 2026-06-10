@@ -249,6 +249,7 @@ class TextSegmentsFinder:
 
     _MAX_CLAUSES_PER_QUERY: int = 80
     _SCENE_GAP_SECONDS: float = 30.0
+    _BATCH_FETCH_SIZE: int = 10000
 
     @staticmethod
     def _merge_timestamps_into_scenes(
@@ -324,14 +325,17 @@ class TextSegmentsFinder:
         series_name: str,
         all_clauses: List[Dict[str, Any]],
         search_filter: SearchFilter,
-        size: int,
     ) -> List[Dict[str, Any]]:
         all_hits: List[Dict[str, Any]] = []
         seen_ids: set = set()
         for i in range(0, len(all_clauses), TextSegmentsFinder._MAX_CLAUSES_PER_QUERY):
             batch = all_clauses[i:i + TextSegmentsFinder._MAX_CLAUSES_PER_QUERY]
             query = TextSegmentsFinder._build_interval_batch_query(series_name, batch, search_filter)
-            batch_hits = (await es.search(index=index, body=query, size=size, ignore_unavailable=True))[ElasticsearchKeys.HITS][ElasticsearchKeys.HITS]
+            response = await es.search(
+                index=index, body=query,
+                size=TextSegmentsFinder._BATCH_FETCH_SIZE, ignore_unavailable=True,
+            )
+            batch_hits = response[ElasticsearchKeys.HITS][ElasticsearchKeys.HITS]
             for hit in batch_hits:
                 hit_id = hit.get(ElasticsearchKeys.ID)
                 if hit_id not in seen_ids:
@@ -345,7 +349,6 @@ class TextSegmentsFinder:
             series_name: str,
             frame_keys: Iterable[Tuple[Optional[int], Optional[int], float]],
             search_filter: SearchFilter,
-            size: int = 1000,
     ) -> List[SegmentWithScore]:
         await log_system_message(
             logging.INFO,
@@ -374,7 +377,7 @@ class TextSegmentsFinder:
         )
 
         all_hits = await TextSegmentsFinder._search_batched_clauses(
-            es, index, series_name, all_clauses, search_filter, size,
+            es, index, series_name, all_clauses, search_filter,
         )
 
         if not all_hits:

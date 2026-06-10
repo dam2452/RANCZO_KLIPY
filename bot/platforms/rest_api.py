@@ -56,7 +56,6 @@ from bot.platforms.rest_api_responses import (
     TranscriptResponse,
 )
 from bot.platforms.rest_api_video import _build_streaming_response
-from bot.search.filter_applicator import FilterApplicator
 from bot.search.infra.elastic_search_manager import ElasticSearchManager
 from bot.search.scenes_finder import ScenesFinder
 from bot.search.semantic_segments_finder import (
@@ -200,32 +199,14 @@ async def search(
     has_query = bool(body.query and body.query.strip())
 
     if not has_query and search_filter:
-        has_frame_filters = bool(
-            search_filter.get("character_groups")
-            or search_filter.get("emotions")
-            or search_filter.get("object_groups"),
+        es = await ElasticSearchManager.connect_to_elasticsearch(logger)
+        segments = await ScenesFinder.find_by_filter(
+            es=es,
+            series_names=[series_name],
+            search_filter=search_filter,
+            size=min(body.limit, s.MAX_ES_RESULTS_LONG),
+            logger=logger,
         )
-        if has_frame_filters:
-            frame_keys, _ = await FilterApplicator.collect_frame_keys(search_filter, series_name, logger)
-            if frame_keys:
-                segments = await TextSegmentsFinder.find_segments_by_frame_timestamps(
-                    logger=logger,
-                    series_name=series_name,
-                    frame_keys=frame_keys,
-                    search_filter=search_filter,
-                    size=s.MAX_ES_RESULTS_LONG,
-                )
-            else:
-                segments = []
-        else:
-            es = await ElasticSearchManager.connect_to_elasticsearch(logger)
-            segments = await ScenesFinder.find_by_filter(
-                es=es,
-                series_names=[series_name],
-                search_filter=search_filter,
-                size=min(body.limit, s.MAX_ES_RESULTS_LONG),
-                logger=logger,
-            )
     elif body.mode == SearchMode.KEYWORD:
         es = await ElasticSearchManager.connect_to_elasticsearch(logger)
         segments = await ScenesFinder.find_by_text_and_filter(
