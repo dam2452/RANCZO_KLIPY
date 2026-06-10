@@ -204,7 +204,7 @@ async def search(
             es=es,
             series_names=[series_name],
             search_filter=search_filter,
-            size=s.MAX_ES_RESULTS_LONG,
+            size=99,
             logger=logger,
         )
     elif body.mode == SearchMode.KEYWORD:

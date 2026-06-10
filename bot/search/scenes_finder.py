@@ -59,7 +59,14 @@ class ScenesFinder:
         results: List[SegmentWithScore] = []
         for hit in hits:
             source = hit[ElasticsearchKeys.SOURCE]
-            source[ElasticsearchKeys.SCORE] = hit.get(ElasticsearchKeys.SCORE) or 0.0
+            es_score = hit.get(ElasticsearchKeys.SCORE)
+            sort_values = hit.get(ElasticsearchQueryKeys.SORT, [])
+            first_sort = sort_values[0] if sort_values else None
+            source[ElasticsearchKeys.SCORE] = (
+                float(es_score) if es_score is not None
+                else float(first_sort) if first_sort is not None
+                else 0.0
+            )
             results.append(source)
         return results
 
