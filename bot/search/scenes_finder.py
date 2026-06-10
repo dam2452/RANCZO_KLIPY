@@ -177,7 +177,10 @@ class ScenesFinder:
             f"ScenesFinder: {len(hits)} scenes found for series '{series_desc}'.",
             logger,
         )
-        return ScenesFinder._attach_scores(hits)
+        segments = ScenesFinder._attach_scores(hits)
+        for seg in segments:
+            seg[ElasticsearchKeys.SCORE] = seg[ElasticsearchKeys.SCORE] * 100.0
+        return segments
 
     @staticmethod
     async def find_by_text_and_filter(
