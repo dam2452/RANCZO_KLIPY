@@ -152,12 +152,16 @@ class ScenesFinder:
                     ],
                 },
             },
+            ElasticsearchQueryKeys.COLLAPSE: {ElasticsearchQueryKeys.FIELD: EmbeddingKeys.EPISODE_ID},
             ElasticsearchQueryKeys.SORT: sort,
             ElasticsearchQueryKeys.SOURCE: ScenesFinder.__SOURCE_FIELDS,
         }
 
         index_name = ScenesFinder._build_index(series_names)
-        response = await es.search(index=index_name, body=query, size=size, ignore_unavailable=True)
+        response = await es.search(
+            index=index_name, body=query,
+            size=size, ignore_unavailable=True,
+        )
         hits = response[ElasticsearchKeys.HITS][ElasticsearchKeys.HITS]
 
         series_desc = ",".join(series_names) if series_names else "all"
@@ -166,8 +170,7 @@ class ScenesFinder:
             f"ScenesFinder: {len(hits)} scenes found for series '{series_desc}'.",
             logger,
         )
-        segments = ScenesFinder._attach_scores(hits)
-        return ScenesFinder._deduplicate_hits(segments)
+        return ScenesFinder._attach_scores(hits)
 
     @staticmethod
     async def find_by_text_and_filter(

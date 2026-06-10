@@ -204,7 +204,7 @@ async def search(
             es=es,
             series_names=[series_name],
             search_filter=search_filter,
-            size=min(body.limit, s.MAX_ES_RESULTS_LONG),
+            size=s.MAX_ES_RESULTS_LONG,
             logger=logger,
         )
     elif body.mode == SearchMode.KEYWORD:
@@ -214,7 +214,7 @@ async def search(
             series_names=[series_name],
             quote=body.query,
             search_filter=search_filter,
-            size=min(body.limit, s.MAX_ES_RESULTS_LONG),
+            size=s.MAX_ES_RESULTS_LONG,
             logger=logger,
         )
     elif body.mode in (SearchMode.SEMANTIC_TEXT, SearchMode.SEMANTIC_FRAMES, SearchMode.SEMANTIC_EPISODE):

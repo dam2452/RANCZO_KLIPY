@@ -124,6 +124,7 @@ class ElasticsearchQueryKeys:
     SOURCES: Final[str] = "sources"
     AFTER: Final[str] = "after"
     AFTER_KEY: Final[str] = "after_key"
+    COLLAPSE: Final[str] = "collapse"
 
 
 class DatabaseKeys:
