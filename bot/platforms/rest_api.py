@@ -308,6 +308,14 @@ async def get_clip_subtitles(
     return ClipSubtitlesResponse(lines=lines)
 
 
+@router.get("/catalogue/series")
+async def list_series(
+    _user: Annotated[WorkerUser, Depends(require_worker_auth)],
+):
+    series_list = await DatabaseManager.get_all_series()
+    return {"series": [{"name": s.series_name} for s in series_list]}
+
+
 @router.get("/catalogue/characters")
 async def list_characters(
     user: Annotated[WorkerUser, Depends(require_worker_auth)],
