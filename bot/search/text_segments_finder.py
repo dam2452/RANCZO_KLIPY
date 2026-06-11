@@ -14,6 +14,7 @@ from bot.search.infra.elastic_search_manager import (
     ElasticSearchManager,
     build_episode_restriction_filter,
     build_fuzzy_with_boost_query,
+    build_video_path_time_range_query,
 )
 from bot.settings import settings
 from bot.types import (
@@ -769,32 +770,20 @@ class TextSegmentsFinder:
         es = await ElasticSearchManager.connect_to_elasticsearch(logger)
         index = f"{series_name}{ElasticsearchIndexSuffixes.TEXT_SEGMENTS}"
 
-        query = {
-            ElasticsearchQueryKeys.QUERY: {
-                ElasticsearchQueryKeys.BOOL: {
-                    ElasticsearchQueryKeys.FILTER: [
-                        {ElasticsearchQueryKeys.TERM: {SegmentKeys.VIDEO_PATH: video_path}},
-                        {
-                            ElasticsearchQueryKeys.RANGE: {
-                                SegmentKeys.START_TIME: {
-                                    ElasticsearchQueryKeys.GTE: start_time,
-                                    ElasticsearchQueryKeys.LTE: end_time,
-                                },
-                            },
-                        },
-                    ],
-                },
-            },
-            ElasticsearchQueryKeys.SORT: [
-                {SegmentKeys.START_TIME: {ElasticsearchQueryKeys.ORDER: ElasticsearchQueryKeys.ASC}},
-            ],
-            ElasticsearchQueryKeys.SOURCE: [
-                SegmentKeys.START_TIME,
-                SegmentKeys.END_TIME,
-                SegmentKeys.TEXT,
-                "speaker",
-            ],
-        }
+        query = build_video_path_time_range_query(
+            video_path=video_path,
+            start_time=start_time,
+            end_time=end_time,
+        )
+        query[ElasticsearchQueryKeys.SORT] = [
+            {SegmentKeys.START_TIME: {ElasticsearchQueryKeys.ORDER: ElasticsearchQueryKeys.ASC}},
+        ]
+        query[ElasticsearchQueryKeys.SOURCE] = [
+            SegmentKeys.START_TIME,
+            SegmentKeys.END_TIME,
+            SegmentKeys.TEXT,
+            "speaker",
+        ]
 
         _PAGE_SIZE = 1000
         all_hits = []

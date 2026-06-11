@@ -9,6 +9,7 @@ from typing import (
 from bot.search.infra.elastic_search_manager import (
     ElasticSearchManager,
     build_fuzzy_with_boost_query,
+    build_video_path_overlap_filter,
 )
 from bot.settings import settings
 from bot.utils.constants import (
@@ -106,6 +107,44 @@ class SoundEventsFinder:
         segments = [h[ElasticsearchKeys.SOURCE] for h in hits]
         await log_system_message(
             logging.INFO, f"Found {len(segments)} '{sound_type}' segments.", logger,
+        )
+        return segments
+
+    @staticmethod
+    async def find_by_video_path_in_time_range(
+        video_path: str,
+        start_time: float,
+        end_time: float,
+        series_name: str,
+        logger: logging.Logger,
+    ) -> List[Dict[str, Any]]:
+        await log_system_message(
+            logging.INFO,
+            f"Fetching sound events by video_path in [{start_time:.2f}s, {end_time:.2f}s].",
+            logger,
+        )
+        es = await ElasticSearchManager.connect_to_elasticsearch(logger)
+
+        query = {
+            ElasticsearchQueryKeys.QUERY: {
+                ElasticsearchQueryKeys.BOOL: {
+                    ElasticsearchQueryKeys.FILTER: build_video_path_overlap_filter(
+                        video_path=video_path,
+                        start_time=start_time,
+                        end_time=end_time,
+                    ),
+                },
+            },
+            ElasticsearchQueryKeys.SORT: [{SegmentKeys.START_TIME: ElasticsearchQueryKeys.ASC}],
+            ElasticsearchQueryKeys.SIZE: 200,
+            ElasticsearchQueryKeys.SOURCE: SoundEventsFinder.__SOUND_SEGMENT_SOURCE_FIELDS,
+        }
+
+        response = await es.search(index=_build_index(series_name), body=query, ignore_unavailable=True)
+        hits = response[ElasticsearchKeys.HITS][ElasticsearchKeys.HITS]
+        segments = [h[ElasticsearchKeys.SOURCE] for h in hits]
+        await log_system_message(
+            logging.INFO, f"Found {len(segments)} sound events in time range.", logger,
         )
         return segments
 

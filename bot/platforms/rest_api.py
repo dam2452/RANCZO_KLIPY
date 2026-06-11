@@ -28,6 +28,7 @@ from bot.platforms.rest_api_auth import (
     require_worker_auth,
 )
 from bot.platforms.rest_api_responses import (
+    CharacterAppearanceItem,
     CharacterItem,
     ClipAdjustRequest,
     ClipCompileRequest,
@@ -38,6 +39,7 @@ from bot.platforms.rest_api_responses import (
     ClipSnapResponse,
     ClipSubtitlesRequest,
     ClipSubtitlesResponse,
+    DetectedObjectItem,
     EmotionItem,
     EpisodeDetail,
     IndexStatsResponse,
@@ -45,12 +47,15 @@ from bot.platforms.rest_api_responses import (
     ReindexRequest,
     ReindexResponse,
     ReindexStatusResponse,
+    SceneAnalysisRequest,
+    SceneAnalysisResponse,
     SearchFilters,
     SearchMode,
     SearchRequest,
     SearchResponse,
     SearchResultItem,
     SeasonItem,
+    SoundEventItem,
     SubtitleLine,
     TranscriptRequest,
     TranscriptResponse,
@@ -62,8 +67,10 @@ from bot.search.semantic_segments_finder import (
     SemanticSearchMode,
     SemanticSegmentsFinder,
 )
+from bot.search.sound_events_finder import SoundEventsFinder
 from bot.search.text_segments_finder import TextSegmentsFinder
 from bot.search.video_frames.character_finder import CharacterFinder
+from bot.search.video_frames.frames_finder import VideoFramesFinder
 from bot.search.video_frames.object_finder import ObjectFinder
 from bot.services.reindex.reindex_service import ReindexService
 from bot.services.reindex.reindex_task_manager import task_manager
@@ -406,6 +413,58 @@ async def list_episodes(
         }
 
     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="season parameter is required.")
+
+
+@router.post("/scene-analysis", response_model=SceneAnalysisResponse)
+async def get_scene_analysis(
+    body: SceneAnalysisRequest,
+    user: Annotated[WorkerUser, Depends(require_worker_auth)],
+):
+    series_name = body.series or await _get_active_series(user.user_id)
+
+    (frame_count, raw_characters, raw_objects), sound_segments = await asyncio.gather(
+        VideoFramesFinder.aggregate_scene_data(
+            video_path=body.video_path,
+            start_time=body.start_time,
+            end_time=body.end_time,
+            series_name=series_name,
+            logger=logger,
+        ),
+        SoundEventsFinder.find_by_video_path_in_time_range(
+            video_path=body.video_path,
+            start_time=body.start_time,
+            end_time=body.end_time,
+            series_name=series_name,
+            logger=logger,
+        ),
+    )
+
+    characters = sorted(
+        [CharacterAppearanceItem(**c) for c in raw_characters],
+        key=lambda c: c.frame_count,
+        reverse=True,
+    )
+    objects = sorted(
+        [DetectedObjectItem(**o) for o in raw_objects],
+        key=lambda o: o.frame_count,
+        reverse=True,
+    )
+    sound_events = [
+        SoundEventItem(
+            sound_type=seg.get("sound_type", ""),
+            text=seg.get("text"),
+            start_time=seg.get("start_time", 0.0),
+            end_time=seg.get("end_time", 0.0),
+        )
+        for seg in sound_segments
+    ]
+
+    return SceneAnalysisResponse(
+        characters=characters,
+        objects=objects,
+        sound_events=sound_events,
+        frame_count=frame_count,
+    )
 
 
 @router.post("/clip", response_model=ClipResponse)

@@ -105,6 +105,59 @@ def build_fuzzy_with_boost_query(
     }
 
 
+def build_video_path_time_range_filter(
+    video_path: str,
+    start_time: float,
+    end_time: float,
+    time_field: str = SegmentKeys.START_TIME,
+) -> List[Dict[str, Any]]:
+    return [
+        {ElasticsearchQueryKeys.TERM: {SegmentKeys.VIDEO_PATH: video_path}},
+        {
+            ElasticsearchQueryKeys.RANGE: {
+                time_field: {
+                    ElasticsearchQueryKeys.GTE: start_time,
+                    ElasticsearchQueryKeys.LTE: end_time,
+                },
+            },
+        },
+    ]
+
+
+def build_video_path_time_range_query(
+    video_path: str,
+    start_time: float,
+    end_time: float,
+    time_field: str = SegmentKeys.START_TIME,
+) -> Dict[str, Any]:
+    return {
+        ElasticsearchQueryKeys.QUERY: {
+            ElasticsearchQueryKeys.BOOL: {
+                ElasticsearchQueryKeys.FILTER: build_video_path_time_range_filter(
+                    video_path=video_path,
+                    start_time=start_time,
+                    end_time=end_time,
+                    time_field=time_field,
+                ),
+            },
+        },
+    }
+
+
+def build_video_path_overlap_filter(
+    video_path: str,
+    start_time: float,
+    end_time: float,
+    start_field: str = SegmentKeys.START_TIME,
+    end_field: str = SegmentKeys.END_TIME,
+) -> List[Dict[str, Any]]:
+    return [
+        {ElasticsearchQueryKeys.TERM: {SegmentKeys.VIDEO_PATH: video_path}},
+        {ElasticsearchQueryKeys.RANGE: {start_field: {ElasticsearchQueryKeys.LT: end_time}}},
+        {ElasticsearchQueryKeys.RANGE: {end_field: {ElasticsearchQueryKeys.GT: start_time}}},
+    ]
+
+
 def build_episode_restriction_filter(
     episode_keys: Iterable[Tuple[int, int]],
 ) -> Optional[Dict[str, Any]]:

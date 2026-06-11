@@ -328,3 +328,38 @@ class IndexStatsResponse(BaseModel):
     total_seasons: int
     total_hours: float
     series: list[str]
+
+
+class SceneAnalysisRequest(BaseModel):
+    video_path: str
+    start_time: float
+    end_time: float
+    series: Optional[str] = None
+
+
+class CharacterAppearanceItem(BaseModel):
+    name: str
+    confidence: float
+    emotion_label: Optional[str] = None
+    emotion_confidence: Optional[float] = None
+    frame_count: int = 1
+
+
+class DetectedObjectItem(BaseModel):
+    name: str
+    total_count: int
+    frame_count: int
+
+
+class SoundEventItem(BaseModel):
+    sound_type: str
+    text: Optional[str] = None
+    start_time: float
+    end_time: float
+
+
+class SceneAnalysisResponse(BaseModel):
+    characters: list[CharacterAppearanceItem]
+    objects: list[DetectedObjectItem]
+    sound_events: list[SoundEventItem]
+    frame_count: int

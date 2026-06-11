@@ -150,6 +150,7 @@ class ScenesFinder:
         filter_clauses = ScenesFinder._build_filter_clauses(search_filter)
         sort = ScenesFinder._build_sort(search_filter)
 
+        specific_episodes = bool(search_filter.get("episodes"))
         query: Dict[str, Any] = {
             ElasticsearchQueryKeys.QUERY: {
                 ElasticsearchQueryKeys.BOOL: {
@@ -159,10 +160,11 @@ class ScenesFinder:
                     ],
                 },
             },
-            ElasticsearchQueryKeys.COLLAPSE: {ElasticsearchQueryKeys.FIELD: EmbeddingKeys.EPISODE_ID},
             ElasticsearchQueryKeys.SORT: sort,
             ElasticsearchQueryKeys.SOURCE: ScenesFinder.__SOURCE_FIELDS,
         }
+        if not specific_episodes:
+            query[ElasticsearchQueryKeys.COLLAPSE] = {ElasticsearchQueryKeys.FIELD: EmbeddingKeys.EPISODE_ID}
 
         index_name = ScenesFinder._build_index(series_names)
         response = await es.search(
