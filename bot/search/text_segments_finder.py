@@ -797,7 +797,9 @@ class TextSegmentsFinder:
             all_hits.extend(page_hits)
             if len(page_hits) < _PAGE_SIZE:
                 break
-            search_after = page_hits[-1]["sort"]
+            search_after = page_hits[-1].get(ElasticsearchQueryKeys.SORT)
+            if not search_after:
+                break
 
         await log_system_message(logging.INFO, f"Found {len(all_hits)} segments in time range.", logger)
         return [hit[ElasticsearchKeys.SOURCE] for hit in all_hits]
