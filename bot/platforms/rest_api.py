@@ -330,6 +330,32 @@ async def list_series(
     return {"series": [{"name": s.series_name} for s in series_list]}
 
 
+@router.get("/catalogue/series/active")
+async def get_active_series(
+    user: Annotated[WorkerUser, Depends(require_worker_auth)],
+):
+    series_names = await DatabaseManager.get_user_active_series_names(user.user_id)
+    active = series_names[0] if series_names else None
+    return {"active_series": active}
+
+
+@router.put("/catalogue/series/active")
+async def set_active_series(
+    body: dict,
+    user: Annotated[WorkerUser, Depends(require_worker_auth)],
+):
+    series_name: Optional[str] = body.get("series")
+    if series_name:
+        series_list = await DatabaseManager.get_all_series()
+        valid_names = {s.series_name for s in series_list}
+        if series_name not in valid_names:
+            raise HTTPException(status_code=400, detail=f"Unknown series: {series_name}")
+        await DatabaseManager.set_user_active_series_names(user.user_id, [series_name])
+    else:
+        await DatabaseManager.set_user_active_series_names(user.user_id, [])
+    return {"active_series": series_name}
+
+
 @router.get("/catalogue/characters")
 async def list_characters(
     user: Annotated[WorkerUser, Depends(require_worker_auth)],
