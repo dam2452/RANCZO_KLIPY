@@ -15,11 +15,11 @@ from typing import (
 
 from bot.database.database_manager import DatabaseManager
 from bot.responses.not_sending_videos.characters_handler_responses import scene_to_search_segment
-from bot.responses.not_sending_videos.emotions_handler_responses import map_emotion_to_en
 from bot.responses.not_sending_videos.objects_handler_responses import object_scene_to_search_segment
 from bot.search.video_frames import (
     CharacterFinder,
     ObjectFinder,
+    map_emotion_to_en,
 )
 from bot.types import (
     ObjectFilterSpec,

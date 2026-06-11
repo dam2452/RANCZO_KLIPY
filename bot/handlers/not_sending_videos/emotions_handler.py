@@ -10,9 +10,11 @@ from bot.responses.not_sending_videos.emotions_handler_responses import (
     format_emotions_list,
     get_invalid_args_count_message,
     get_log_emotions_listed_message,
+)
+from bot.search.video_frames import (
+    CharacterFinder,
     map_emotion_to_pl,
 )
-from bot.search.video_frames import CharacterFinder
 from bot.types import Language
 
 

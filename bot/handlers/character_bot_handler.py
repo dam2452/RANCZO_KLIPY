@@ -6,8 +6,10 @@ from typing import (
 
 from bot.handlers.bot_message_handler import BotMessageHandler
 from bot.responses.not_sending_videos.characters_handler_responses import get_character_not_found_message
-from bot.responses.not_sending_videos.emotions_handler_responses import map_emotion_to_en
-from bot.search.video_frames import CharacterFinder
+from bot.search.video_frames import (
+    CharacterFinder,
+    map_emotion_to_en,
+)
 
 
 class CharacterBotHandler(BotMessageHandler):

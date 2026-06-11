@@ -79,16 +79,16 @@ class VideoFramesFinder:
         return frames
 
     @staticmethod
-    async def aggregate_scene_data(
+    async def find_detections_in_time_range(
         video_path: str,
         start_time: float,
         end_time: float,
         series_name: str,
         logger: logging.Logger,
-    ) -> Tuple[int, List[dict], List[dict]]:
+    ) -> List[VideoFrameSource]:
         await log_system_message(
             logging.INFO,
-            f"Aggregating scene data by video_path in [{start_time:.2f}s, {end_time:.2f}s].",
+            f"Fetching scene detections for video_path in [{start_time:.2f}s, {end_time:.2f}s].",
             logger,
         )
         es = await ElasticSearchManager.connect_to_elasticsearch(logger)
@@ -99,83 +99,24 @@ class VideoFramesFinder:
             end_time=end_time,
             time_field=VideoFrameKeys.TIMESTAMP,
         )
-        query[ElasticsearchQueryKeys.SIZE] = 0
-        query[ElasticsearchQueryKeys.AGGS] = {
-            "frame_count": {
-                "value_count": {ElasticsearchQueryKeys.FIELD: VideoFrameKeys.TIMESTAMP},
-            },
-            "characters": {
-                ElasticsearchQueryKeys.NESTED: {ElasticsearchQueryKeys.PATH: "character_appearances"},
-                ElasticsearchQueryKeys.AGGS: {
-                    "by_name": {
-                        ElasticsearchQueryKeys.TERMS: {
-                            ElasticsearchQueryKeys.FIELD: "character_appearances.name",
-                            ElasticsearchQueryKeys.SIZE: 50,
-                        },
-                        ElasticsearchQueryKeys.AGGS: {
-                            "max_confidence": {
-                                "max": {ElasticsearchQueryKeys.FIELD: "character_appearances.confidence"},
-                            },
-                            "top_emotion": {
-                                ElasticsearchQueryKeys.TERMS: {
-                                    ElasticsearchQueryKeys.FIELD: "character_appearances.emotion.label",
-                                    ElasticsearchQueryKeys.SIZE: 1,
-                                },
-                            },
-                        },
-                    },
-                },
-            },
-            "objects": {
-                ElasticsearchQueryKeys.NESTED: {ElasticsearchQueryKeys.PATH: "detected_objects"},
-                ElasticsearchQueryKeys.AGGS: {
-                    "by_class": {
-                        ElasticsearchQueryKeys.TERMS: {
-                            ElasticsearchQueryKeys.FIELD: "detected_objects.class",
-                            ElasticsearchQueryKeys.SIZE: 50,
-                        },
-                        ElasticsearchQueryKeys.AGGS: {
-                            "total_count": {
-                                "sum": {ElasticsearchQueryKeys.FIELD: "detected_objects.count"},
-                            },
-                        },
-                    },
-                },
-            },
-        }
+        query[ElasticsearchQueryKeys.QUERY][ElasticsearchQueryKeys.BOOL][ElasticsearchQueryKeys.FILTER].append(
+            {ElasticsearchQueryKeys.TERM: {VideoFrameKeys.FRAME_TYPE: "scene_start"}},
+        )
+        query[ElasticsearchQueryKeys.SORT] = [{VideoFrameKeys.TIMESTAMP: ElasticsearchQueryKeys.ASC}]
+        query[ElasticsearchQueryKeys.SIZE] = 200
+        query[ElasticsearchQueryKeys.SOURCE] = [
+            VideoFrameKeys.TIMESTAMP,
+            "character_appearances",
+            VideoFrameKeys.DETECTED_OBJECTS,
+        ]
 
         response = await es.search(index=_build_index(series_name), body=query, ignore_unavailable=True)
-        aggs = response.get(ElasticsearchKeys.AGGREGATIONS, {})
-
-        frame_count = aggs.get("frame_count", {}).get(ElasticsearchQueryKeys.VALUE, 0) or 0
-
-        character_buckets = aggs.get("characters", {}).get("by_name", {}).get(ElasticsearchKeys.BUCKETS, [])
-        characters = [
-            {
-                "name": b[ElasticsearchKeys.KEY],
-                "confidence": b.get("max_confidence", {}).get(ElasticsearchQueryKeys.VALUE) or 0.0,
-                "emotion_label": (b.get("top_emotion", {}).get(ElasticsearchKeys.BUCKETS) or [{}])[0].get(ElasticsearchKeys.KEY),
-                "frame_count": b[ElasticsearchKeys.DOC_COUNT],
-            }
-            for b in character_buckets
-        ]
-
-        object_buckets = aggs.get("objects", {}).get("by_class", {}).get(ElasticsearchKeys.BUCKETS, [])
-        objects = [
-            {
-                "name": b[ElasticsearchKeys.KEY],
-                "total_count": int(b.get("total_count", {}).get(ElasticsearchQueryKeys.VALUE) or 0),
-                "frame_count": b[ElasticsearchKeys.DOC_COUNT],
-            }
-            for b in object_buckets
-        ]
-
+        hits = response[ElasticsearchKeys.HITS][ElasticsearchKeys.HITS]
+        frames = [h[ElasticsearchKeys.SOURCE] for h in hits]
         await log_system_message(
-            logging.INFO,
-            f"Scene agg: {frame_count} frames, {len(characters)} chars, {len(objects)} objects.",
-            logger,
+            logging.INFO, f"Found {len(frames)} scene frames with detections.", logger,
         )
-        return frame_count, characters, objects
+        return frames
 
     @staticmethod
     async def find_frames_in_time_range(

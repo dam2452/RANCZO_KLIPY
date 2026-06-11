@@ -229,11 +229,13 @@ class CharacterItem(BaseModel):
 
 class ObjectItem(BaseModel):
     name: str
+    name_pl: str
     scene_count: int
 
 
 class EmotionItem(BaseModel):
     label: str
+    label_pl: str
     count: int
 
 
@@ -337,18 +339,21 @@ class SceneAnalysisRequest(BaseModel):
     series: Optional[str] = None
 
 
-class CharacterAppearanceItem(BaseModel):
+class DetectedCharacter(BaseModel):
     name: str
     confidence: float
     emotion_label: Optional[str] = None
-    emotion_confidence: Optional[float] = None
-    frame_count: int = 1
 
 
-class DetectedObjectItem(BaseModel):
+class DetectedObject(BaseModel):
     name: str
-    total_count: int
-    frame_count: int
+    count: int
+
+
+class FrameTimelineItem(BaseModel):
+    timestamp: float
+    characters: list[DetectedCharacter]
+    objects: list[DetectedObject]
 
 
 class SoundEventItem(BaseModel):
@@ -359,7 +364,5 @@ class SoundEventItem(BaseModel):
 
 
 class SceneAnalysisResponse(BaseModel):
-    characters: list[CharacterAppearanceItem]
-    objects: list[DetectedObjectItem]
+    frames: list[FrameTimelineItem]
     sound_events: list[SoundEventItem]
-    frame_count: int

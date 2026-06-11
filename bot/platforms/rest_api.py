@@ -28,7 +28,6 @@ from bot.platforms.rest_api_auth import (
     require_worker_auth,
 )
 from bot.platforms.rest_api_responses import (
-    CharacterAppearanceItem,
     CharacterItem,
     ClipAdjustRequest,
     ClipCompileRequest,
@@ -39,9 +38,11 @@ from bot.platforms.rest_api_responses import (
     ClipSnapResponse,
     ClipSubtitlesRequest,
     ClipSubtitlesResponse,
-    DetectedObjectItem,
+    DetectedCharacter,
+    DetectedObject,
     EmotionItem,
     EpisodeDetail,
+    FrameTimelineItem,
     IndexStatsResponse,
     ObjectItem,
     ReindexRequest,
@@ -69,9 +70,15 @@ from bot.search.semantic_segments_finder import (
 )
 from bot.search.sound_events_finder import SoundEventsFinder
 from bot.search.text_segments_finder import TextSegmentsFinder
-from bot.search.video_frames.character_finder import CharacterFinder
+from bot.search.video_frames.character_finder import (
+    CharacterFinder,
+    map_emotion_to_pl,
+)
 from bot.search.video_frames.frames_finder import VideoFramesFinder
-from bot.search.video_frames.object_finder import ObjectFinder
+from bot.search.video_frames.object_finder import (
+    ObjectFinder,
+    get_polish_name,
+)
 from bot.services.reindex.reindex_service import ReindexService
 from bot.services.reindex.reindex_task_manager import task_manager
 from bot.services.scene_snap.scene_snap_service import SceneSnapService
@@ -347,7 +354,7 @@ async def list_objects(
     objects = await ObjectFinder.get_all_objects(series_name, logger)
     return {
         "objects": [
-            ObjectItem(name=o.get("class_name", ""), scene_count=o.get("scene_count", 0))
+            ObjectItem(name=o.get("class_name", ""), name_pl=get_polish_name(o.get("class_name", "")), scene_count=o.get("scene_count", 0))
             for o in (objects or [])
         ],
     }
@@ -362,7 +369,7 @@ async def list_emotions(
     emotions = await CharacterFinder.get_all_emotions(series_name, logger)
     return {
         "emotions": [
-            EmotionItem(label=e.get("label", ""), count=e.get("count", 0))
+            EmotionItem(label=e.get("label", ""), label_pl=map_emotion_to_pl(e.get("label", "")), count=e.get("count", 0))
             for e in (emotions or [])
         ],
     }
@@ -422,8 +429,8 @@ async def get_scene_analysis(
 ):
     series_name = body.series or await _get_active_series(user.user_id)
 
-    (frame_count, raw_characters, raw_objects), sound_segments = await asyncio.gather(
-        VideoFramesFinder.aggregate_scene_data(
+    raw_frames, sound_segments = await asyncio.gather(
+        VideoFramesFinder.find_detections_in_time_range(
             video_path=body.video_path,
             start_time=body.start_time,
             end_time=body.end_time,
@@ -439,16 +446,28 @@ async def get_scene_analysis(
         ),
     )
 
-    characters = sorted(
-        [CharacterAppearanceItem(**c) for c in raw_characters],
-        key=lambda c: c.frame_count,
-        reverse=True,
-    )
-    objects = sorted(
-        [DetectedObjectItem(**o) for o in raw_objects],
-        key=lambda o: o.frame_count,
-        reverse=True,
-    )
+    frames = [
+        FrameTimelineItem(
+            timestamp=f.get("timestamp", 0.0),
+            characters=[
+                DetectedCharacter(
+                    name=a.get("name", ""),
+                    confidence=a.get("confidence", 0.0),
+                    emotion_label=(a.get("emotion") or {}).get("label"),
+                )
+                for a in (f.get("character_appearances") or [])
+                if a.get("name")
+            ],
+            objects=[
+                DetectedObject(name=o.get("class", ""), count=o.get("count", 1))
+                for o in (f.get("detected_objects") or [])
+                if o.get("class")
+            ],
+        )
+        for f in raw_frames
+        if (f.get("character_appearances") or f.get("detected_objects"))
+    ]
+
     sound_events = [
         SoundEventItem(
             sound_type=seg.get("sound_type", ""),
@@ -459,12 +478,7 @@ async def get_scene_analysis(
         for seg in sound_segments
     ]
 
-    return SceneAnalysisResponse(
-        characters=characters,
-        objects=objects,
-        sound_events=sound_events,
-        frame_count=frame_count,
-    )
+    return SceneAnalysisResponse(frames=frames, sound_events=sound_events)
 
 
 @router.post("/clip", response_model=ClipResponse)

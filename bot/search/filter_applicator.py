@@ -15,11 +15,11 @@ from typing import (
 
 from elasticsearch import RequestError
 
-from bot.responses.not_sending_videos.emotions_handler_responses import map_emotion_to_en
 from bot.search.infra.elastic_search_manager import (
     ElasticSearchManager,
     build_episode_restriction_filter,
 )
+from bot.search.video_frames import map_emotion_to_en
 from bot.search.video_frames.frames_finder import _build_index
 from bot.search.video_frames.object_finder import _OPERATORS
 from bot.types import (

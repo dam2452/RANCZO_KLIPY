@@ -4,7 +4,7 @@ from typing import (
     Tuple,
 )
 
-from bot.responses.not_sending_videos.emotions_handler_responses import map_emotion_to_en
+from bot.search.video_frames import map_emotion_to_en
 from bot.search.video_frames.character_finder import CharacterFinder
 from bot.search.video_frames.object_finder import ObjectFinder
 from bot.types import (

@@ -8,6 +8,8 @@ from typing import (
     Tuple,
 )
 
+from bidict import bidict
+
 from bot.search.infra.elastic_search_manager import (
     ElasticSearchManager,
     build_episode_restriction_filter,
@@ -30,6 +32,47 @@ from bot.utils.constants import (
     VideoFrameKeys,
 )
 from bot.utils.log import log_system_message
+
+_EMOTION_NAMES: bidict[str, str] = bidict({
+    "happiness": "radosny",
+    "sadness": "smutny",
+    "anger": "zly",
+    "surprise": "zaskoczony",
+    "disgust": "obrzydzony",
+    "fear": "przestraszony",
+    "neutral": "neutralny",
+    "contempt": "pogardliwy",
+})
+
+_EMOTION_ALIASES: Dict[str, str] = {
+    "happy": "happiness",
+    "sad": "sadness",
+    "angry": "anger",
+    "scared": "fear",
+    "surprised": "surprise",
+    "disgusted": "disgust",
+    "contemptful": "contempt",
+}
+
+
+def map_emotion_to_pl(label_en: str) -> str:
+    return _EMOTION_NAMES.get(label_en.lower(), label_en)
+
+
+def map_emotion_to_en(label: str) -> Optional[str]:
+    lower = label.lower()
+    if lower in _EMOTION_NAMES:
+        return lower
+    if lower in _EMOTION_NAMES.inverse:
+        return _EMOTION_NAMES.inverse[lower]
+    if lower in _EMOTION_ALIASES:
+        return _EMOTION_ALIASES[lower]
+    all_labels = list(_EMOTION_NAMES.keys()) + list(_EMOTION_NAMES.inverse.keys())
+    matches = difflib.get_close_matches(lower, all_labels, n=1, cutoff=0.75)
+    if not matches:
+        return None
+    matched = matches[0]
+    return matched if matched in _EMOTION_NAMES else _EMOTION_NAMES.inverse[matched]
 
 
 class CharacterFinder:

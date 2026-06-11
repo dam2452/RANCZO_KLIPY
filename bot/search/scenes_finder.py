@@ -6,9 +6,9 @@ from typing import (
     Optional,
 )
 
-from bot.responses.not_sending_videos.emotions_handler_responses import map_emotion_to_en
 from bot.search.filter_applicator import _build_season_episode_clauses
 from bot.search.infra.elastic_search_manager import build_fuzzy_with_boost_query
+from bot.search.video_frames import map_emotion_to_en
 from bot.settings import settings
 from bot.types import (
     SearchFilter,
