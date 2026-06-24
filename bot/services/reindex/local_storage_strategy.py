@@ -46,6 +46,6 @@ class LocalStorageStrategy:
         resolved = Path(s.VIDEO_DATA_DIR) / video_key
         if not resolved.exists():
             self.__logger.error(f"Video file does not exist: {resolved}")
-        if not str(resolved.resolve()).startswith(str(Path(s.VIDEO_DATA_DIR).resolve())):
+        if not str(resolved).startswith(str(Path(s.VIDEO_DATA_DIR).resolve())):
             raise ValueError(f"Access denied: path outside VIDEO_DATA_DIR: {resolved}")
         return resolved

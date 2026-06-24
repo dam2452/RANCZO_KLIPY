@@ -163,7 +163,8 @@ async def _resolve_video_path(video_path: str) -> Path:
     resolved = Path(s.VIDEO_DATA_DIR) / video_path
     if not resolved.exists():
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Source video file not found.")
-    if not str(resolved.resolve()).startswith(str(Path(s.VIDEO_DATA_DIR).resolve())):
+    video_data_dir = Path(s.VIDEO_DATA_DIR).resolve()
+    if not str(resolved).startswith(str(video_data_dir)):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied.")
     return resolved
 
