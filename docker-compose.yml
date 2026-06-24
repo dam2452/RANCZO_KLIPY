@@ -36,6 +36,7 @@ services:
     restart: ${RESTART_POLICY:-unless-stopped}
     volumes:
       - /mnt/WD_RED_2TB_MIRROR/RanchBot:/app/bot/RanchBotData:ro
+      - /mnt/Macierz_24TB/RanchBotArchive:/mnt/Macierz_24TB/RanchBotArchive:ro
     deploy:
       resources:
         limits:
